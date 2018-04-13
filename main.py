@@ -1,11 +1,14 @@
 
 import click
+from functools import update_wrapper
 import json
+
 import info
 
 
 # validate
 # conver2gltf
+
 
 @click.group()
 def cli1():
@@ -17,7 +20,7 @@ def cli1():
 def info_cmd(input_file):
     """Print some useful information about the CityJSON file."""
     j = json.loads(input_file.read())
-    cjinfo.print_info(j)
+    info.print_info(j)
 
 
 @cli1.command('convert2obj')
@@ -35,7 +38,7 @@ def convert2obj_cmd(input_file, output_file):
 
 #########################
 
-
+# save
 # compress
 # decompress
 # merge [list-files]
@@ -46,21 +49,41 @@ def convert2obj_cmd(input_file, output_file):
 # remove_duplicate_vertices
 # remove_orphan_vertices
 
-@click.group()
-def cli2():
+@click.group(chain=True, invoke_without_command=True)
+@click.option('-i', '--input_file', type=click.File('r'))
+def cli2(input_file):
     pass
 
-@cli2.command()
-@click.argument('input_file', type=click.File('r'))
-def compress(input_file):
-    """Compress the file"""
-    click.echo("-->compress")
+@cli2.resultcallback()
+def process_pipeline(processors, input_file):
+    stream = ()
+    for processor in processors:
+        stream = processor(stream)
+    for each in stream:
+        click.echo(each)
 
-@cli2.command()
-@click.argument('input_file', type=click.File('r'))
-def decompress(input_file):
-    """Decompress the file"""
-    click.echo("-->decompress")
+def processor(f):
+    """Helper decorator to rewrite a function so that it returns another
+    function from it.
+    """
+    def new_func(*args, **kwargs):
+        def processor(stream):
+            return f(stream, *args, **kwargs)
+        return processor
+    return update_wrapper(new_func, f)
+
+@cli2.command('compress')
+@processor
+def compress_cmd():
+    """Compress the file"""
+    click.echo("-->compress" + input_file)
+
+
+# @cli2.command()
+# @click.argument('input_file', type=click.File('r'))
+# def decompress(input_file):
+#     """Decompress the file"""
+#     click.echo("-->decompress")
 
 
 
