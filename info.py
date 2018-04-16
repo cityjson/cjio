@@ -1,49 +1,37 @@
 
+import json
+import collections
 
 def print_info(j):
-    #-- CityJSON version
-    print "CityJSON version: ", j["version"] 
 
-    #-- CityObjects
-    print "===== CityObjects ====="
-    print "Total : ", len(j["CityObjects"])
+    info = collections.OrderedDict()
+    # info = {}
+    info["cityjson_version"] = j["version"]
+    if "crs" in j["metadata"] and "epsg" in j["metadata"]["crs"]:
+        info["crs"] = j["metadata"]["crs"]["epsg"]
+    else:
+        info["crs"] = None
+    if "bbox" in j["metadata"]:
+        info["box"] = j["metadata"]["bbox"]
+    else:
+        info["box"] = None
+
+    info["cityobjects_total"] = len(j["CityObjects"])
+    info["vertices_total"] = len(j["vertices"])
 
     d = set()
-    for id in j["CityObjects"]:
-        d.add(j['CityObjects'][id]['type'])
-    print "Types:" 
-    for each in d:
-        print "\t", each
+    for key in j["CityObjects"]:
+        d.add(j['CityObjects'][key]['type'])
+    info["cityobjects_present"] = list(d)
+
     d.clear()
-    for id in j["CityObjects"]:
-        for geom in j['CityObjects'][id]['geometry']:
+    for key in j["CityObjects"]:
+        for geom in j['CityObjects'][key]['geometry']:
             d.add(geom["type"])
-    print "Geometries present:"
-    for each in d:
-        print "\t", each
+    info["geom_primitives_present"] = list(d)
+    
+    info["materials"] = 'materials' in j['appearance']
+    info["textures"] = 'textures' in j['appearance']
 
+    return json.dumps(info, indent=2)
 
-    #-- metadata
-    print "===== Metadata =====" 
-    if "metadata" not in j:
-        print "  none" 
-    else:
-        for each in j["metadata"]:
-            if each == 'crs':
-                print "  crs: EPSG:", j["metadata"]["crs"]["epsg"]
-            else:
-                print " ", each
-
-    #--  vertices
-    print "===== Vertices ====="
-    print "Total:", len(j["vertices"])
-
-    #-- appearance
-    print "===== Appearance ====="
-    if 'appearance' not in j:
-        print "  none"
-    else:
-        if 'textures' in j['appearance']:
-            print "  textures:", len(j['appearance']['textures'])
-        if 'materials' in j['appearance']:
-            print "  materials:", len(j['appearance']['materials'])

@@ -21,11 +21,25 @@ import info
 # remove_duplicate_vertices
 # remove_orphan_vertices
 
+class PerCommandArgWantSubCmdHelp(click.Argument):
+    def handle_parse_result(self, ctx, opts, args):
+        # check to see if there is a --help on the command line
+        if any(arg in ctx.help_option_names for arg in args):
+            # if asking for help see if we are a subcommand name
+            for arg in opts.values():
+                if arg in ctx.command.commands:
+                    # this matches a sub command name, and --help is
+                    # present, let's assume the user wants help for the
+                    # subcommand
+                    args = [arg] + args
+        return super(PerCommandArgWantSubCmdHelp, self).handle_parse_result(
+            ctx, opts, args)
 
-# @click.group(chain=True, invoke_without_command=True)
+
 @click.group(chain=True)
-@click.argument('input', type=click.File('r'))
-def cli(input):
+@click.argument('input', cls=PerCommandArgWantSubCmdHelp)
+@click.pass_context
+def cli(context, input):
     """Processes a CityJSON and allows different outputs.
     The operators can be chained to perform several processing
     in one step. One commands feeds into the next.
@@ -36,24 +50,30 @@ def cli(input):
         cjio example.json compress --digit 3 info
         cjio example.json remove_textures subset 100 100 400 400 compress save out.json
     """
-    pass
+    context.obj = {"argument": input}
 
 
 @cli.resultcallback()
-def process_pipeline(processors, input):
-    j = json.loads(input.read())
-    for processor in processors:
-        j = processor(j)
-    # print "CRS: ", j["metadata"]["crs"]["epsg"]
+@click.pass_context
+def process_pipeline(context, processors, input):
+    try:
+        f = click.open_file(input, mode='r')
+        j = json.loads(f.read())
+        for processor in processors:
+            j = processor(j)
+    except:
+        click.echo(context.get_usage() + "\n")
+        raise click.ClickException('Invalid file: "%s" does not exist.' % (input))
+        print "duh"
 
 
 @cli.command('info')
-def info_cmd():
-    """Outputs a JSON structured object with different information
-    about the CityJSON file
-    """
+@click.pass_context
+def info_cmd(context):
+    """Outputs info about CityJSON file (in JSON)"""
     def processor(j):
-        info.print_info(j)
+        theinfo = info.print_info(j)
+        click.echo(theinfo)
         return j
     return processor
 
@@ -75,7 +95,7 @@ def save_cmd(filename, indent):
 
 
 @cli.command('update_bbox')
-def info_cmd():
+def update_bbox_cmd():
     def processor(j):
         j["metadata"]["crs"]["epsg"] = 999
         return j
