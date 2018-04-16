@@ -21,6 +21,7 @@ import cityjson
 # update_crs
 # remove_duplicate_vertices
 # remove_orphan_vertices
+# apply_material(rule, color=red)
 
 
 class PerCommandArgWantSubCmdHelp(click.Argument):
@@ -59,10 +60,14 @@ def cli(context, input):
 @click.pass_context
 def process_pipeline(context, processors, input):
     try:
-        cm = cityjson.CityJSON(input)
-    except:
+        f = click.open_file(input, mode='r')
+        cm = cityjson.CityJSON(f)
+    except ValueError as e:
         click.echo(context.get_usage() + "\n")
-        raise click.ClickException('Invalid file: "%s" does not exist.' % (input))
+        raise click.ClickException('%s: "%s".' % (e, input))
+    except IOError as e:
+        click.echo(context.get_usage() + "\n")
+        raise click.ClickException('Invalid file: "%s".' % (input))
     for processor in processors:
         cm = processor(cm)
 

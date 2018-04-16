@@ -5,12 +5,13 @@ import collections
 
 class CityJSON:
 
-    def __init__(self, filename):
-        try:
-            self.j = json.loads(open(filename).read())
-        except:
-            self.j = None
-            raise Exception("Error: filename doesn't exist.")
+    def __init__(self, file):
+        self.j = json.loads(file.read())
+        if "type" in self.j and self.j["type"] == "CityJSON":
+            pass
+        else:
+            self.j = {}
+            raise ValueError("Not a CityJSON file")
 
     def update_crs(self, newcrs):
         if "metadata" not in self.j:
@@ -56,8 +57,14 @@ class CityJSON:
 
 
 if __name__ == '__main__':
-    d = CityJSON('example.json')
-
+    # with open('example2.json', 'r') as cjfile:
+    with open('bob.json', 'r') as cjfile:
+        try:
+            d = CityJSON(cjfile)
+        except ValueError:
+            print "oups"
+            sys.exit()
+            
     print d.update_crs(888)
     print d.update_crs("hguo")
 
