@@ -1,8 +1,8 @@
+
 import click
 import json
 import sys
-
-import info
+import cityjson
 
 # https://stackoverflow.com/questions/47437472/in-python-click-how-do-i-see-help-for-subcommands-whose-parents-have-required
 
@@ -21,6 +21,7 @@ import info
 # update_crs
 # remove_duplicate_vertices
 # remove_orphan_vertices
+
 
 class PerCommandArgWantSubCmdHelp(click.Argument):
     def handle_parse_result(self, ctx, opts, args):
@@ -58,24 +59,22 @@ def cli(context, input):
 @click.pass_context
 def process_pipeline(context, processors, input):
     try:
-        f = click.open_file(input, mode='r')
-        j = json.loads(f.read())
+        cm = cityjson.CityJSON(input)
     except:
         click.echo(context.get_usage() + "\n")
         raise click.ClickException('Invalid file: "%s" does not exist.' % (input))
-        print "duh"
     for processor in processors:
-        j = processor(j)
+        cm = processor(cm)
 
 
 @cli.command('info')
 @click.pass_context
 def info_cmd(context):
     """Outputs info about CityJSON file (in JSON)"""
-    def processor(j):
-        theinfo = info.print_info(j)
+    def processor(cm):
+        theinfo = cm.get_info()
         click.echo(theinfo)
-        return j
+        return cm
     return processor
 
 
@@ -84,14 +83,14 @@ def info_cmd(context):
 @click.option('--indent', default=0)
 def save_cmd(filename, indent):
     """Save the CityJSON to a file."""
-    def processor(j):
+    def processor(cm):
         if indent == 0:
-            json_str = json.dumps(j)
+            json_str = json.dumps(cm.j)
         else:
-            json_str = json.dumps(j, indent=indent)
+            json_str = json.dumps(cm.j, indent=indent)
         f = open(filename, "w")
         f.write(json_str)
-        return j
+        return cm
     return processor
 
 
@@ -100,9 +99,9 @@ def update_bbox_cmd():
     """
     Update the bbox of a CityJSON file.
     """
-    def processor(j):
+    def processor(cm):
         j["metadata"]["crs"]["epsg"] = 999
-        return j
+        return cm
     return processor
 
 
@@ -113,15 +112,15 @@ def update_crs_cmd(newcrs):
     Update the CRS with a new value.
     Can be used to assign one to a file that doesn't have any.
     """
-    def processor(j):
-        if "metadata" not in j:
-            j["metadata"] = {}
-        if "crs" not in j["metadata"]:
-            j["metadata"]["crs"] = {} 
-        if "epsg" not in j["metadata"]["crs"]:
-            j["metadata"]["crs"]["epsg"] = None
-        j["metadata"]["crs"]["epsg"] = newcrs
-        return j
+    def processor(cm):
+        if "metadata" not in cm.j:
+            cm.j["metadata"] = {}
+        if "crs" not in cm.j["metadata"]:
+            cm.j["metadata"]["crs"] = {} 
+        if "epsg" not in cm.j["metadata"]["crs"]:
+            cm.j["metadata"]["crs"]["epsg"] = None
+        cm.j["metadata"]["crs"]["epsg"] = newcrs
+        return cm
     return processor
 
 
