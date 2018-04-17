@@ -41,6 +41,11 @@ class CityJSON:
                     bbox[i+3] = v[i]
         if "metadata" not in self.j:
             self.j["metadata"] = {}
+        if "transform" in self.j:
+            for i in range(3):
+                bbox[i] = (bbox[i] * self.j["transform"]["scale"][i]) + self.j["transform"]["translate"][i]
+            for i in range(3):
+                bbox[i+3] = (bbox[i+3] * self.j["transform"]["scale"][i]) + self.j["transform"]["translate"][i]
         self.j["metadata"]["bbox"] = bbox
         return bbox        
     
@@ -66,9 +71,9 @@ class CityJSON:
         else:
             info["crs"] = None
         if "bbox" in self.j["metadata"]:
-            info["box"] = self.j["metadata"]["bbox"]
+            info["bbox"] = self.j["metadata"]["bbox"]
         else:
-            info["box"] = None
+            info["bbox"] = None
         info["cityobjects_total"] = len(self.j["CityObjects"])
         info["vertices_total"] = len(self.j["vertices"])
         d = set()
