@@ -105,7 +105,25 @@ def update_bbox_cmd():
     Update the bbox of a CityJSON file.
     """
     def processor(cm):
-        j["metadata"]["crs"]["epsg"] = 999
+        # j["metadata"]["crs"]["epsg"] = 999
+        return cm
+    return processor
+
+
+@cli.command('validate')
+@click.option('--hide_errors', is_flag=True, help='Do not print all the errors.')
+def validate_cmd(hide_errors):
+    """
+    Validate the file against its schema.
+    """
+    def processor(cm):
+        bValid, errors = cm.validate()
+        click.echo('===== Schema Validation =====')
+        click.echo(bValid)
+        if not hide_errors:
+            click.echo("ERRORS:")
+            click.echo(errors)
+        click.echo('=============================')
         return cm
     return processor
 

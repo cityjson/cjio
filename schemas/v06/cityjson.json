@@ -1,0 +1,170 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "CityJSON v0.6",
+  "description": "CityJSON specifications v0.6",
+  "type": "object",
+
+  "properties": {
+    "type": { "enum": ["CityJSON"] },
+    "version": { 
+      "type": "string",
+      "pattern": "\\d.\\d"
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "crs": {
+          "type": "object",
+          "properties": {
+            "epsg": {"type": "integer"}
+          },
+          "required": ["epsg"]
+        },
+        "bbox": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 6,    
+          "maxItems": 6    
+        },
+        "keywords": {
+          "type": "array",
+          "items": {"type": "string"}
+        },        
+        "datasetTitle": {"type": "string"},
+        "datasetReferenceDate": {"type": "string"},
+        "geographicLocation": {
+          "type": "string",
+          "description": "the name of the area for instance"
+        },
+        "datasetLanguage": {"type": "string"},
+        "datasetTopicCategory": {
+          "type": "string",
+          "description": "see Table B.3.30 in ISO19115 document"
+        },
+        "datasetAbstract": {"type": "string"},
+        "metadataDateStamp": {"type": "string"},
+        "pointOfContact": {"type": "string"},
+        "copyright": {"type": "string"},
+        "presentLoDs":  {
+          "type": "array",
+          "items": {"type": "number"}
+        }
+      }
+    },
+    "CityObjects": {
+      "type": "object",
+      "additionalProperties": {
+        "oneOf": [
+          { "$ref": "cityobjects.json#/CityObjectGroup" },
+          { "$ref": "cityobjects.json#/Building" },
+          { "$ref": "cityobjects.json#/BuildingPart" },
+          { "$ref": "cityobjects.json#/BuildingInstallation" },
+          { "$ref": "cityobjects.json#/Road" },
+          { "$ref": "cityobjects.json#/Railway" },
+          { "$ref": "cityobjects.json#/TransportSquare" },
+          { "$ref": "cityobjects.json#/TINRelief" },
+          { "$ref": "cityobjects.json#/WaterBody" },
+          { "$ref": "cityobjects.json#/LandUse" },
+          { "$ref": "cityobjects.json#/GenericCityObject" },
+          { "$ref": "cityobjects.json#/CityFurniture" },
+          { "$ref": "cityobjects.json#/SolitaryVegetationObject" },
+          { "$ref": "cityobjects.json#/PlantCover" },
+          { "$ref": "cityobjects.json#/Bridge" },
+          { "$ref": "cityobjects.json#/BridgePart" },
+          { "$ref": "cityobjects.json#/BridgeInstallation" },
+          { "$ref": "cityobjects.json#/BridgeConstructionElement" },
+          { "$ref": "cityobjects.json#/Tunnel" },
+          { "$ref": "cityobjects.json#/TunnelPart" },
+          { "$ref": "cityobjects.json#/TunnelInstallation" }
+        ]
+      }
+    },
+    "vertices": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {"type": "number"},
+        "minItems": 3,    
+        "maxItems": 3
+      }
+    },
+    "transform": {
+      "type": "object",
+      "properties": {
+        "scale": {
+          "type": "array",
+          "items": {"type": "number"},
+          "minItems": 3,    
+          "maxItems": 3
+        },
+        "translate": {
+          "type": "array",
+          "items": {"type": "number"},
+          "minItems": 3,    
+          "maxItems": 3
+        }
+      },
+      "required": ["scale", "translate"],
+      "additionalProperties": false
+    },
+    "appearance": {
+      "type": "object",
+      "properties": {
+        "default-theme-texture": {"type": "string"},
+        "default-theme-material": {"type": "string"},
+        "materials": {
+          "type": "array",
+          "items": {"$ref": "appearance.json#/Material"}
+        },
+        "textures": {
+          "type": "array",
+          "items": {"$ref": "appearance.json#/Texture"}
+        },
+        "vertices-texture": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {"type": "number"},
+            "minItems": 2,    
+            "maxItems": 2
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "geometry-templates": {
+      "type": "object",
+      "properties": {
+        "templates": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {"$ref": "geomprimitives.json#/MultiPoint"},
+              {"$ref": "geomprimitives.json#/MultiLineString"},
+              {"$ref": "geomprimitives.json#/Solid"},
+              {"$ref": "geomprimitives.json#/MultiSolid"},
+              {"$ref": "geomprimitives.json#/CompositeSolid"},
+              {"$ref": "geomprimitives.json#/MultiSurface"},
+              {"$ref": "geomprimitives.json#/CompositeSurface"}            
+            ] 
+          }
+        },
+        "vertices-templates": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": { "type": "number" },
+            "minItems": 3,    
+            "maxItems": 3
+          }
+        }
+      },
+      "required": ["templates", "vertices-templates"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["type", "version", "CityObjects", "vertices"]
+}
+
