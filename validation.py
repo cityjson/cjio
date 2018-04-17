@@ -4,6 +4,7 @@ import json
 import jsonschema
 import jsonref
 import urlparse
+from pkg_resources import resource_filename
 
 
 def dict_raise_on_duplicates(ordered_pairs):
@@ -20,9 +21,9 @@ def validate_cityjson(j):
     isValid = True
     #-- fetch proper schema
     if j["version"] == "0.6":
-        schema = 'schemas/v06/cityjson.json'
+        schema = resource_filename(__name__, '/schemas/v06/cityjson.json')
     elif j["version"] == "0.5":
-        schema = 'schemas/cityjson-v05.schema.json'
+        schema = resource_filename(__name__, '/schemas/cityjson-v05.schema.json')
     else:
         return False
     #-- open the schema
