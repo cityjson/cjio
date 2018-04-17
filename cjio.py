@@ -121,7 +121,7 @@ def validate_cmd(hide_errors):
         bValid, errors = cm.validate()
         click.echo('===== Schema Validation =====')
         click.echo(bValid)
-        if not hide_errors:
+        if not hide_errors and bValid is False:
             click.echo("ERRORS:")
             click.echo(errors)
         click.echo('=============================')
