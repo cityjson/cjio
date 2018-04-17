@@ -84,7 +84,7 @@ def info_cmd(context):
 
 
 @cli.command('save')
-@click.argument('filename', type=click.Path())
+@click.argument('filename', type=click.File('w'))
 @click.option('--indent', default=0)
 def save_cmd(filename, indent):
     """Save the CityJSON to a file."""
@@ -93,8 +93,8 @@ def save_cmd(filename, indent):
             json_str = json.dumps(cm.j)
         else:
             json_str = json.dumps(cm.j, indent=indent)
-        f = open(filename, "w")
-        f.write(json_str)
+        # filen = open(filename, "w")
+        filename.write(json_str)
         return cm
     return processor
 
