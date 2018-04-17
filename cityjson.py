@@ -25,6 +25,24 @@ class CityJSON:
         except Exception as e:
             return (False, e)
         return (True, "")
+
+    def update_bbox(self):
+        """
+        Update the bbox (["metadata"]["bbox"]) of the CityJSON.
+        If there is none then it is added.
+        """
+        bbox = [9e9, 9e9, 9e9, -9e9, -9e9, -9e9]
+        for v in self.j["vertices"]:
+            for i in range(3):
+                if v[i] < bbox[i]:
+                    bbox[i] = v[i]
+            for i in range(3):
+                if v[i] > bbox[i+3]:
+                    bbox[i+3] = v[i]
+        if "metadata" not in self.j:
+            self.j["metadata"] = {}
+        self.j["metadata"]["bbox"] = bbox
+        return bbox        
     
     def update_crs(self, newcrs):
         if "metadata" not in self.j:

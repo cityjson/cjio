@@ -103,9 +103,10 @@ def save_cmd(filename, indent):
 def update_bbox_cmd():
     """
     Update the bbox of a CityJSON file.
+    If there is none then it is added.
     """
     def processor(cm):
-        # j["metadata"]["crs"]["epsg"] = 999
+        cm.update_bbox()
         return cm
     return processor
 
