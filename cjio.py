@@ -75,7 +75,7 @@ def process_pipeline(context, processors, input):
 @cli.command('info')
 @click.pass_context
 def info_cmd(context):
-    """Outputs info about CityJSON file (in JSON)"""
+    """Outputs info in simple JSON."""
     def processor(cm):
         theinfo = cm.get_info()
         click.echo(theinfo)
@@ -129,6 +129,28 @@ def validate_cmd(hide_errors):
     return processor
 
 
+@cli.command('remove_materials')
+def remove_materials_cmd():
+    """
+    Remove all materials from a CityJSON file.
+    """
+    def processor(cm):
+        cm.remove_materials()
+        return cm
+    return processor
+
+
+@cli.command('remove_textures')
+def remove_textures_cmd():
+    """
+    Remove all textures from a CityJSON file.
+    """
+    def processor(cm):
+        cm.remove_textures()
+        return cm
+    return processor
+
+
 @cli.command('update_crs')
 @click.argument('newcrs', type=int)
 def update_crs_cmd(newcrs):
@@ -137,13 +159,7 @@ def update_crs_cmd(newcrs):
     Can be used to assign one to a file that doesn't have any.
     """
     def processor(cm):
-        if "metadata" not in cm.j:
-            cm.j["metadata"] = {}
-        if "crs" not in cm.j["metadata"]:
-            cm.j["metadata"]["crs"] = {} 
-        if "epsg" not in cm.j["metadata"]["crs"]:
-            cm.j["metadata"]["crs"]["epsg"] = None
-        cm.j["metadata"]["crs"]["epsg"] = newcrs
+        cm.update_crs(newcrs)
         return cm
     return processor
 
