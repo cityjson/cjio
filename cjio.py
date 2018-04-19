@@ -14,7 +14,7 @@ import cityjson
 # compress
 # decompress
 # merge [list-files]
-# subset
+# subset 1) id; 2) bbox
 # remove_textures
 # remove_materials
 # update_bbox
@@ -75,7 +75,7 @@ def process_pipeline(context, processors, input):
 @cli.command('info')
 @click.pass_context
 def info_cmd(context):
-    """Outputs info in simple JSON."""
+    """Output info in simple JSON."""
     def processor(cm):
         theinfo = cm.get_info()
         click.echo(theinfo)
@@ -125,6 +125,20 @@ def validate_cmd(hide_errors):
             click.echo("ERRORS:")
             click.echo(errors)
         click.echo('=============================')
+        return cm
+    return processor
+
+
+@cli.command('subset_ids')
+@click.option('--id', multiple=True, help='The ID of the CityObjects; can be used multiple times.')
+@click.option('--box', nargs=4, type=float, help='Give 4 values: minx miny maxx maxy')
+# @click.argument('ids', nargs=-1)
+def subset_cmd(id, box):
+    """
+    Create subset of CityJSON by giving IDs of CityObjects.
+    """
+    def processor(cm):
+        cm.subset(id, box)
         return cm
     return processor
 

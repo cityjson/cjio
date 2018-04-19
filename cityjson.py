@@ -62,7 +62,11 @@ class CityJSON:
             return True
         except ValueError:
             return False
+
     
+    def subset(self, lsIDs, box):
+        print lsIDs
+        print box
 
     def remove_textures(self):
         for i in self.j["CityObjects"]:
