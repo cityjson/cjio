@@ -1,6 +1,6 @@
-# cjio
+# cjio, or CityJSON/io
 
-Or, CityJSON/io.
+To install and still develop with it:
 
     $ virtualenv venv
     $ . venv/bin/activate
@@ -9,3 +9,5 @@ Or, CityJSON/io.
 Then you have a small program called `cjio`, to see its possibities:
 
     $ cjio --help
+
+
