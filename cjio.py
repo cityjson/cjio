@@ -120,12 +120,14 @@ def validate_cmd(hide_errors, skip_schema):
     Validate the CityJSON file: (1) against its schema; (2) extra validations.
     """
     def processor(cm):
-        bValid, errors = cm.validate(skip_schema=skip_schema)
+        bValid, errors, warnings = cm.validate(skip_schema=skip_schema)
         click.echo('===== Validation =====')
         click.echo(bValid)
         if not hide_errors and bValid is False:
             click.echo("--- ERRORS ---")
             click.echo(errors)
+            click.echo("--- WARNINGS ---")
+            click.echo(warnings)
         click.echo('=============================')
         return cm
     return processor

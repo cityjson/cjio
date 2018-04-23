@@ -1,7 +1,11 @@
 
+import os
 import sys
 import json
 import collections
+import jsonref
+import urllib
+from pkg_resources import resource_filename
 
 import validation
 
@@ -22,16 +26,43 @@ class CityJSON:
             self.j = {}
             raise ValueError("Not a CityJSON file")
 
+    def fetch_schema(self):
+        #-- fetch proper schema
+        if self.j["version"] == "0.6":
+            schema = resource_filename(__name__, '/schemas/v06/cityjson.json')
+        elif self.j["version"] == "0.5":
+            schema = resource_filename(__name__, '/schemas/cityjson-v05.schema.json')
+        else:
+            return (False, None)
+        #-- open the schema
+        fins = open(schema)
+        jtmp = json.loads(fins.read())
+        fins.seek(0)
+        if "$id" in jtmp:
+            u = urllib.urlparse(jtmp['$id'])
+            os.path.dirname(u.path)
+            base_uri = u.scheme + "://" + u.netloc + os.path.dirname(u.path) + "/" 
+        else:
+            abs_path = os.path.abspath(os.path.dirname(schema))
+            base_uri = 'file://{}/'.format(abs_path)
+        js = jsonref.loads(fins.read(), jsonschema=True, base_uri=base_uri)
+        return (True, js)
+
     def validate(self, skip_schema=False):
         es = ""
+        ws = ""
         #-- 1. schema
         if skip_schema == False:
-            try:
-                validation.validate_schema(self.j)
-            except Exception as e:
-                es += str(e)
-                return (False, e)
-        #-- 2. all others
+            b, js = self.fetch_schema()
+            if b == False:
+                return (False, "Can't find the proper schema.", "")
+            else:
+                try:
+                    validation.validate_against_schema(self.j, js)
+                except Exception as e:
+                    es += str(e)
+                    return (False, e)
+        #-- 2. ERRORS
         isValid = True
         b, errs = validation.city_object_groups(self.j) 
         if b == False:
@@ -53,7 +84,33 @@ class CityJSON:
         if b == False:
             isValid = False
             es += errs
-        return (isValid, es)
+        #-- 3. WARNINGS
+        woWarnings = True
+        b, errs = validation.metadata(self.j, js) 
+        if b == False:
+            woWarnings = False
+            ws += errs
+        b, errs = validation.cityjson_properties(self.j, js)
+        if b == False:
+            woWarnings = False
+            ws += errs
+        # b, errs = validation.citygml_attributes(self.j, jsco)
+        # if b == False:
+        #     woWarnings = False
+        #     ws += errs
+        b, errs = validation.geometry_empty(self.j)
+        if b == False:
+            woWarnings = False
+            ws += errs
+        b, errs = validation.duplicate_vertices(self.j)
+        if b == False:
+            woWarnings = False
+            ws += errs
+        b, errs = validation.orphan_vertices(self.j)
+        if b == False:
+            woWarnings = False
+            ws += errs
+        return (isValid, es, ws)
 
     def update_bbox(self):
         """

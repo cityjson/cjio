@@ -2,9 +2,9 @@
 import os
 import json
 import jsonschema
-import jsonref
-import urllib
-from pkg_resources import resource_filename
+
+
+
 
 
 def dict_raise_on_duplicates(ordered_pairs):
@@ -129,40 +129,99 @@ def semantics(j):
             geomid += 1            
     return (isValid, es)
 
-def validate_schema(j):
+
+def geometry_empty(j):
     isValid = True
-    #-- fetch proper schema
-    if j["version"] == "0.6":
-        schema = resource_filename(__name__, '/schemas/v06/cityjson.json')
-    elif j["version"] == "0.5":
-        schema = resource_filename(__name__, '/schemas/cityjson-v05.schema.json')
-    else:
-        return False
-    #-- open the schema
-    fins = open(schema)
-    jtmp = json.loads(fins.read())
-    fins.seek(0)
-    if "$id" in jtmp:
-        u = urllib.urlparse(jtmp['$id'])
-        os.path.dirname(u.path)
-        base_uri = u.scheme + "://" + u.netloc + os.path.dirname(u.path) + "/" 
-    else:
-        abs_path = os.path.abspath(os.path.dirname(schema))
-        base_uri = 'file://{}/'.format(abs_path)
-    js = jsonref.loads(fins.read(), jsonschema=True, base_uri=base_uri)
+    ws = ""
+    for id in j["CityObjects"]:
+        if (j['CityObjects'][id]['type'] != 'CityObjectGroup') and (len(j['CityObjects'][id]['geometry']) == 0):
+            isValid = False
+            ws += "WARNING: " + j['CityObjects'][id]['type'] + " #" + id + " has no geometry.\n"
+    return (isValid, ws)
+
+def cityjson_properties(j, js):
+    isValid = True
+    ws = ""
+    thewarnings = {}
+    for property in j:
+        if property not in js["properties"]:
+            isValid = False
+            ws += "WARNING: root property '" + property + "' not in CityJSON schema, might be ignored by some parsers\n"
+    return (isValid, ws)
+
+def duplicate_vertices(j):
+    isValid = True
+    ws = ""
+    thev = set()
+    duplicates = set()
+    for v in j["vertices"]:
+        s = str(v[0]) + " " + str(v[1]) + " " + str(v[2])
+        if s in thev:
+            duplicates.add(s)
+        else:
+            thev.add(s)
+    if len(duplicates) > 0:
+        ws += 'WARNING: there are ' + str(len(duplicates)) + ' duplicate vertices in j["vertices"]\n'
+    if len(duplicates) < 10:
+        for v in duplicates:
+            ws += '\t(' + v + ')\n'
+    return (isValid, ws)
+
+
+def orphan_vertices(j):
+    def recusionvisit(a, ids):
+      for each in a:
+        if isinstance(each, list):
+            recusionvisit(each, ids)
+        else:
+            ids.add(each)
+    isValid = True
+    ws = ""
+    ids = set()
+    for co in j["CityObjects"]:
+        for g in j['CityObjects'][co]['geometry']:
+            recusionvisit(g["boundaries"], ids)
+    noorphans = len(j["vertices"]) - len(ids)
+    if noorphans > 0:
+        ws += 'WARNING: there are ' + str(noorphans) + ' orphan vertices in j["vertices"]\n'
+        isValid
+    if noorphans > 5:
+        all = set()
+        for i in range(len(j["vertices"])):
+            all.add(i)
+        symdiff = all.symmetric_difference(ids)
+        ws += '\t['
+        for each in symdiff:
+            ws += str(each) + ', '
+        ws += ']\n'
+    return (isValid, ws)
+
+
+def metadata(j, js):
+    isValid = True
+    ws = ""
+    jtmp = js['properties']['metadata']['properties']
+    if 'metadata' in j:
+        for each in j['metadata']:
+            if each not in jtmp:
+                isValid = False
+                ws += "WARNING: Metadata '" + each + "' not in CityJSON schema.\n"
+    return (isValid, ws)
+
+
+def validate_against_schema(j, js):
+    isValid = True
     #-- load the schema for the cityobjects.json
-    sco_path = os.path.abspath(os.path.dirname(schema))
-    sco_path += '/cityobjects.json'
-    jsco = json.loads(open(sco_path).read())
+    # sco_path = os.path.abspath(os.path.dirname(schema))
+    # sco_path += '/cityobjects.json'
+    # jsco = json.loads(open(sco_path).read())
     #-- validate the file against the schema
     try:
         jsonschema.validate(j, js)
     except jsonschema.ValidationError as e:
-        # print ("ERROR:   ", e.message)
         raise Exception(e.message)
         return False
     except jsonschema.SchemaError as e:
-        # print ("ERROR:   ", e)
         raise Exception(e.message)
         return False
     return isValid
