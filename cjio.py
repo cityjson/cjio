@@ -41,8 +41,9 @@ class PerCommandArgWantSubCmdHelp(click.Argument):
 
 @click.group(chain=True)
 @click.argument('input', cls=PerCommandArgWantSubCmdHelp)
+@click.option('--ignore_duplicate_keys', is_flag=True, help='Process even if some City Objects have the same keys')
 @click.pass_context
-def cli(context, input):
+def cli(context, input, ignore_duplicate_keys):
     """Processes a CityJSON and allows different outputs.
     The operators can be chained to perform several processing
     in one step. One commands feeds into the next.
@@ -58,15 +59,15 @@ def cli(context, input):
 
 @cli.resultcallback()
 @click.pass_context
-def process_pipeline(context, processors, input):
+def process_pipeline(context, processors, input, ignore_duplicate_keys):
     try:
         f = click.open_file(input, mode='r')
-        cm = cityjson.CityJSON(f)
+        cm = cityjson.CityJSON(f, ignore_duplicate_keys=ignore_duplicate_keys)
     except ValueError as e:
-        click.echo(context.get_usage() + "\n")
+        # click.echo(context.get_usage() + "\n")
         raise click.ClickException('%s: "%s".' % (e, input))
     except IOError as e:
-        click.echo(context.get_usage() + "\n")
+        # click.echo(context.get_usage() + "\n")
         raise click.ClickException('Invalid file: "%s".' % (input))
     for processor in processors:
         cm = processor(cm)

@@ -7,11 +7,14 @@ import validation
 
 class CityJSON:
 
-    def __init__(self, file):
-        try:
-            self.j = json.loads(file.read(), object_pairs_hook=validation.dict_raise_on_duplicates)
-        except ValueError, Argument:
-            raise ValueError(Argument)
+    def __init__(self, file, ignore_duplicate_keys=False):
+        if ignore_duplicate_keys == True:
+            self.j = json.loads(file.read())
+        else:
+            try:
+                self.j = json.loads(file.read(), object_pairs_hook=validation.dict_raise_on_duplicates)
+            except ValueError as err:
+                raise ValueError(err)
         #-- a CityJSON file?
         if "type" in self.j and self.j["type"] == "CityJSON":
             pass
