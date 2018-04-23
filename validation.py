@@ -202,6 +202,7 @@ def duplicate_vertices(j):
             thev.add(s)
     if len(duplicates) > 0:
         ws += 'WARNING: there are ' + str(len(duplicates)) + ' duplicate vertices in j["vertices"]\n'
+        isValid = False
     if len(duplicates) < 10:
         for v in duplicates:
             ws += '\t(' + v + ')\n'
@@ -224,7 +225,7 @@ def orphan_vertices(j):
     noorphans = len(j["vertices"]) - len(ids)
     if noorphans > 0:
         ws += 'WARNING: there are ' + str(noorphans) + ' orphan vertices in j["vertices"]\n'
-        isValid
+        isValid = False
     if noorphans > 5:
         all = set()
         for i in range(len(j["vertices"])):

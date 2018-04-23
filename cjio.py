@@ -127,6 +127,7 @@ def validate_cmd(hide_errors, skip_schema):
         if not hide_errors and bValid is False:
             click.echo("--- ERRORS ---")
             click.echo(errors)
+        if not hide_errors and woWarnings is False:
             click.echo("--- WARNINGS ---")
             click.echo(warnings)
         click.echo('=============================')
