@@ -48,6 +48,19 @@ class CityJSON:
         js = jsonref.loads(fins.read(), jsonschema=True, base_uri=base_uri)
         return (True, js)
 
+    def fetch_schema_cityobjects(self):
+        #-- fetch proper schema
+        if self.j["version"] == "0.6":
+            schema = resource_filename(__name__, '/schemas/v06/cityjson.json')
+        elif self.j["version"] == "0.5":
+            schema = resource_filename(__name__, '/schemas/cityjson-v05.schema.json')
+        else:
+            return (False, None)
+        sco_path = os.path.abspath(os.path.dirname(schema))
+        sco_path += '/cityobjects.json'
+        jsco = json.loads(open(sco_path).read())
+        return (True, jsco)
+
     def validate(self, skip_schema=False):
         es = ""
         ws = ""
@@ -94,10 +107,6 @@ class CityJSON:
         if b == False:
             woWarnings = False
             ws += errs
-        # b, errs = validation.citygml_attributes(self.j, jsco)
-        # if b == False:
-        #     woWarnings = False
-        #     ws += errs
         b, errs = validation.geometry_empty(self.j)
         if b == False:
             woWarnings = False
@@ -107,6 +116,12 @@ class CityJSON:
             woWarnings = False
             ws += errs
         b, errs = validation.orphan_vertices(self.j)
+        if b == False:
+            woWarnings = False
+            ws += errs
+        #-- fetch schema cityobjects.json
+        b, jsco = self.fetch_schema_cityobjects()
+        b, errs = validation.citygml_attributes(self.j, jsco)
         if b == False:
             woWarnings = False
             ws += errs

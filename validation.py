@@ -88,6 +88,7 @@ def semantics(j):
     isValid = True
     es = ""
     for id in j["CityObjects"]:
+        # print("--", id)
         geomid = 0
         for g in j['CityObjects'][id]['geometry']:
             if 'semantics' not in g:
@@ -117,6 +118,7 @@ def semantics(j):
                     for surface in g["boundaries"]:
                         i = None
                         if sem['values'] is not None:
+                            # print(surfaceid)
                             if sem['values'][surfaceid] is not None:
                                 i = sem['values'][surfaceid]
                         if i is not None:
@@ -128,6 +130,44 @@ def semantics(j):
                         surfaceid += 1
             geomid += 1            
     return (isValid, es)
+
+
+def citygml_attributes(j, js):
+    isValid = True
+    ws = ""
+    thewarnings = {}
+    for id in j["CityObjects"]:
+        cotype = j['CityObjects'][id]['type']
+        tmp = js[str(cotype)]["properties"]["attributes"]["properties"]
+        if 'attributes' in j['CityObjects'][id]:
+            for a in j['CityObjects'][id]['attributes']:
+                if a not in tmp:
+                    isValid = False;
+                    s = "WARNING: attributes '" + a + "' not in CityGML schema"
+                    if s not in thewarnings:
+                        thewarnings[s] = [id]
+                    else:
+                        thewarnings[s].append(id)
+        if 'address' in j['CityObjects'][id]:
+            tmp = js[str(cotype)]["properties"]["address"]["properties"]                        
+            for a in j['CityObjects'][id]['address']:
+                if a not in tmp:
+                    isValid = False;
+                    s = "WARNING: address attributes '" + a + "' not in CityGML schema"
+                    if s not in thewarnings:
+                        thewarnings[s] = [id]
+                    else:
+                        thewarnings[s].append(id)                        
+    for each in thewarnings:
+        ws += each
+        if len(thewarnings[each]) < 3:
+            ws += " ("
+            for coid in thewarnings[each]:
+                ws += " #" + coid + " "
+            ws += ")\n"
+        else:
+            ws += " (" + str(len(thewarnings[each])) + " CityObjects have this warning)\n"
+    return (isValid, ws)
 
 
 def geometry_empty(j):
