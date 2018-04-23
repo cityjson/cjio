@@ -44,9 +44,10 @@ class PerCommandArgWantSubCmdHelp(click.Argument):
 @click.option('--ignore_duplicate_keys', is_flag=True, help='Process even if some City Objects have the same keys')
 @click.pass_context
 def cli(context, input, ignore_duplicate_keys):
-    """Processes a CityJSON and allows different outputs.
-    The operators can be chained to perform several processing
-    in one step. One commands feeds into the next.
+    """Process and manipulate a CityJSON file, and allow 
+    different outputs. The different operators can be chained 
+    to perform several processing in one step, the CityJSON model
+    feeds in the different operators.
 
     Example:
 
@@ -114,7 +115,7 @@ def update_bbox_cmd():
 
 @cli.command('validate')
 @click.option('--hide_errors', is_flag=True, help='Do not print all the errors.')
-@click.option('--skip_schema', is_flag=True, help='Skip the schema validation (since it can be painfully slow.')
+@click.option('--skip_schema', is_flag=True, help='Skip the schema validation (since it can be painfully slow).')
 def validate_cmd(hide_errors, skip_schema):
     """
     Validate the CityJSON file: (1) against its schema; (2) extra validations.
@@ -135,13 +136,14 @@ def validate_cmd(hide_errors, skip_schema):
     return processor
 
 
-@cli.command('subset_ids')
+@cli.command('subset')
 @click.option('--id', multiple=True, help='The ID of the CityObjects; can be used multiple times.')
 @click.option('--box', nargs=4, type=float, help='Give 4 values: minx miny maxx maxy')
 # @click.argument('ids', nargs=-1)
 def subset_cmd(id, box):
     """
-    Create subset of CityJSON by giving IDs of CityObjects.
+    Create a subset of a CityJSON file.
+    One can select City Objects by (1) IDs; and/or (2) bbox.
     """
     def processor(cm):
         cm.subset(id, box)
