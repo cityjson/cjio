@@ -74,7 +74,7 @@ class CityJSON:
                     validation.validate_against_schema(self.j, js)
                 except Exception as e:
                     es += str(e)
-                    return (False, e)
+                    return (False, es, "")
         #-- 2. ERRORS
         isValid = True
         b, errs = validation.city_object_groups(self.j) 
@@ -125,7 +125,7 @@ class CityJSON:
         if b == False:
             woWarnings = False
             ws += errs
-        return (isValid, es, ws)
+        return (isValid, woWarnings, es, ws)
 
     def update_bbox(self):
         """
