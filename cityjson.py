@@ -22,12 +22,38 @@ class CityJSON:
             self.j = {}
             raise ValueError("Not a CityJSON file")
 
-    def validate(self):
-        try:
-            validation.validate_cityjson(self.j)
-        except Exception as e:
-            return (False, e)
-        return (True, "")
+    def validate(self, skip_schema=False):
+        es = ""
+        #-- 1. schema
+        if skip_schema == False:
+            try:
+                validation.validate_schema(self.j)
+            except Exception as e:
+                es += str(e)
+                return (False, e)
+        #-- 2. all others
+        isValid = True
+        b, errs = validation.city_object_groups(self.j) 
+        if b == False:
+            isValid = False
+            es += errs
+        b, errs = validation.building_parts(self.j) 
+        if b == False:
+            isValid = False
+            es += errs
+        b, errs = validation.building_installations(self.j)
+        if b == False:
+            isValid = False
+            es += errs
+        b, errs = validation.building_pi_parent(self.j)
+        if b == False:
+            isValid = False
+            es += errs
+        b, errs = validation.semantics(self.j)
+        if b == False:
+            isValid = False
+            es += errs
+        return (isValid, es)
 
     def update_bbox(self):
         """
@@ -135,8 +161,8 @@ class CityJSON:
 
 
 if __name__ == '__main__':
-    # with open('/Users/hugo/projects/cityjson/example-datasets/dummy-values/invalid.json', 'r') as cjfile:
-    with open('/Users/hugo/projects/cityjson/example-datasets/dummy-values/invalid3.json', 'r') as cjfile:
+    with open('/Users/hugo/projects/cityjson/example-datasets/dummy-values/invalid.json', 'r') as cjfile:
+    # with open('/Users/hugo/projects/cityjson/example-datasets/dummy-values/invalid3.json', 'r') as cjfile:
     # with open('example2.json', 'r') as cjfile:
     # with open('bob.json', 'r') as cjfile:
     # with open('/Users/hugo/Dropbox/data/cityjson/examples/rotterdam/3-20-DELFSHAVEN.json', 'r') as cjfile:

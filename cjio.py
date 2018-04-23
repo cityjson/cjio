@@ -114,16 +114,17 @@ def update_bbox_cmd():
 
 @cli.command('validate')
 @click.option('--hide_errors', is_flag=True, help='Do not print all the errors.')
-def validate_cmd(hide_errors):
+@click.option('--skip_schema', is_flag=True, help='Skip the schema validation (since it can be painfully slow.')
+def validate_cmd(hide_errors, skip_schema):
     """
-    Validate the file against its schema.
+    Validate the CityJSON file: (1) against its schema; (2) extra validations.
     """
     def processor(cm):
-        bValid, errors = cm.validate()
-        click.echo('===== Schema Validation =====')
+        bValid, errors = cm.validate(skip_schema=skip_schema)
+        click.echo('===== Validation =====')
         click.echo(bValid)
         if not hide_errors and bValid is False:
-            click.echo("ERRORS:")
+            click.echo("--- ERRORS ---")
             click.echo(errors)
         click.echo('=============================')
         return cm
