@@ -49,11 +49,16 @@ def cli(context, input, ignore_duplicate_keys):
     to perform several processing in one step, the CityJSON model
     feeds in the different operators.
 
-    Example:
+    Help on secific command, eg for 'validate':
 
     \b
-        cjio example.json compress --digit 3 info
-        cjio example.json remove_textures subset 100 100 400 400 compress save out.json
+        cjio validate --help
+
+    Usage examples:
+
+    \b
+        cjio example.json remove_textures info
+        cjio example.json subset --id house12 compress save out.json
     """
     context.obj = {"argument": input}
 
