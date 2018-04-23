@@ -3,7 +3,7 @@ import os
 import json
 import jsonschema
 import jsonref
-import urlparse
+import urllib
 from pkg_resources import resource_filename
 
 
@@ -31,7 +31,7 @@ def validate_cityjson(j):
     jtmp = json.loads(fins.read())
     fins.seek(0)
     if "$id" in jtmp:
-        u = urlparse.urlparse(jtmp['$id'])
+        u = urllib.urlparse(jtmp['$id'])
         os.path.dirname(u.path)
         base_uri = u.scheme + "://" + u.netloc + os.path.dirname(u.path) + "/" 
     else:

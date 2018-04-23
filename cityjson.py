@@ -65,8 +65,8 @@ class CityJSON:
 
     
     def subset(self, lsIDs, box):
-        print lsIDs
-        print box
+        print (lsIDs)
+        print (box)
 
     def remove_textures(self):
         for i in self.j["CityObjects"]:
@@ -79,7 +79,7 @@ class CityJSON:
                 del self.j["appearance"]["vertices-texture"]
             if "default-theme-texture" in self.j["appearance"]:
                 del self.j["appearance"]["default-theme-texture"]
-        print len(self.j["appearance"])
+        print (len(self.j["appearance"]))
         if self.j["appearance"] is None or len(self.j["appearance"]) == 0:
             del self.j["appearance"]
         return True
@@ -133,18 +133,18 @@ class CityJSON:
 
 if __name__ == '__main__':
     # with open('/Users/hugo/projects/cityjson/example-datasets/dummy-values/invalid.json', 'r') as cjfile:
+    with open('/Users/hugo/projects/cityjson/example-datasets/dummy-values/invalid3.json', 'r') as cjfile:
     # with open('example2.json', 'r') as cjfile:
     # with open('bob.json', 'r') as cjfile:
-    with open('/Users/hugo/Dropbox/data/cityjson/examples/rotterdam/3-20-DELFSHAVEN.json', 'r') as cjfile:
+    # with open('/Users/hugo/Dropbox/data/cityjson/examples/rotterdam/3-20-DELFSHAVEN.json', 'r') as cjfile:
         try:
-            d = CityJSON(cjfile)
+            d = CityJSON(cjfile, ignore_duplicate_keys=False)
         except ValueError:
-            print "oups"
+            print ("!!!duplicate keys")
             sys.exit()
 
-    d.validate()            
-    # print d.update_crs(888)
-    # print d.update_crs("hguo")
-    # print d.j["metadata"]
+    b, errs = d.validate()            
+    if b == False:
+        print (errs)
 
-    # print e.j
+    print ("done.")
