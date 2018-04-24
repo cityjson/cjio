@@ -25,6 +25,12 @@ class CityJSON:
     def __repr__(self):
         return self.get_info()
 
+    def is_empty(self):
+        if len(self.j["CityObjects"]) == 0:
+            return True
+        else:
+            return False
+
     def read(self, file, ignore_duplicate_keys=False):
         if ignore_duplicate_keys == True:
             self.j = json.loads(file.read())
@@ -147,7 +153,13 @@ class CityJSON:
         Update the bbox (["metadata"]["bbox"]) of the CityJSON.
         If there is none then it is added.
         """
-        bbox = [9e9, 9e9, 9e9, -9e9, -9e9, -9e9]
+        if "metadata" not in self.j:
+            self.j["metadata"] = {}
+        if self.is_empty() == True:
+            bbox = [0, 0, 0, 0, 0, 0]    
+            self.j["metadata"]["bbox"] = bbox
+            return bbox
+        bbox = [9e9, 9e9, 9e9, -9e9, -9e9, -9e9]    
         for v in self.j["vertices"]:
             for i in range(3):
                 if v[i] < bbox[i]:
@@ -155,8 +167,6 @@ class CityJSON:
             for i in range(3):
                 if v[i] > bbox[i+3]:
                     bbox[i+3] = v[i]
-        if "metadata" not in self.j:
-            self.j["metadata"] = {}
         if "transform" in self.j:
             for i in range(3):
                 bbox[i] = (bbox[i] * self.j["transform"]["scale"][i]) + self.j["transform"]["translate"][i]

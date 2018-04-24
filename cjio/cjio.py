@@ -152,7 +152,7 @@ def subset_cmd(id, box):
     One can select City Objects by (1) IDs; and/or (2) bbox.
     """
     def processor(cm):
-        subset = cm.subset(id, box)
+        subset = cm.get_subset(id, box)
         return subset
     return processor
 
