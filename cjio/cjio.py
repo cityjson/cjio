@@ -59,7 +59,8 @@ def cli(context, input, ignore_duplicate_keys):
 
     \b
         cjio example.json remove_textures info
-        cjio example.json subset --id house12 compress save out.json
+        cjio example.json validate
+        cjio example.json subset --id house12 remove_materials save out.json
     """
     context.obj = {"argument": input}
 
