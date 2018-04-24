@@ -4,7 +4,6 @@ import json
 import sys
 import cityjson
 
-# https://stackoverflow.com/questions/47437472/in-python-click-how-do-i-see-help-for-subcommands-whose-parents-have-required
 
 # info
 # convert2obj
@@ -24,6 +23,8 @@ import cityjson
 # apply_material(rule, color=red)
 
 
+#-- taken from: 
+#-- https://stackoverflow.com/questions/47437472/in-python-click-how-do-i-see-help-for-subcommands-whose-parents-have-required
 class PerCommandArgWantSubCmdHelp(click.Argument):
     def handle_parse_result(self, ctx, opts, args):
         # check to see if there is a --help on the command line
@@ -151,8 +152,8 @@ def subset_cmd(id, box):
     One can select City Objects by (1) IDs; and/or (2) bbox.
     """
     def processor(cm):
-        cm.subset(id, box)
-        return cm
+        subset = cm.subset(id, box)
+        return subset
     return processor
 
 

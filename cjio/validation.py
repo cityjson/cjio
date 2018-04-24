@@ -3,7 +3,21 @@ import os
 import json
 import jsonschema
 
+#-- ERRORS
+ # validate_against_schema
+ # city_object_groups
+ # building_parts
+ # building_installations
+ # building_pi_parent
+ # semantics
 
+#-- WARNINGS
+ # metadata
+ # cityjson_properties
+ # citygml_attributes
+ # geometry_empty
+ # duplicate_vertices
+ # orphan_vertices
 
 
 

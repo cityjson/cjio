@@ -8,10 +8,24 @@ import urllib
 from pkg_resources import resource_filename
 
 import validation
+import subset
 
 class CityJSON:
 
-    def __init__(self, file, ignore_duplicate_keys=False):
+    def __init__(self, file=None, ignore_duplicate_keys=False):
+        if file is None:
+            self.j = {}
+            self.j["type"] = "CityJSON"
+            self.j["version"] = "0.6"
+            self.j["CityObjects"] = {}
+            self.j["vertices"] = []
+        else:
+            self.read(file, ignore_duplicate_keys)
+
+    def __repr__(self):
+        return self.get_info()
+
+    def read(self, file, ignore_duplicate_keys=False):
         if ignore_duplicate_keys == True:
             self.j = json.loads(file.read())
         else:
@@ -26,6 +40,7 @@ class CityJSON:
             self.j = {}
             raise ValueError("Not a CityJSON file")
 
+            
     def fetch_schema(self):
         #-- fetch proper schema
         if self.j["version"] == "0.6":
@@ -68,13 +83,13 @@ class CityJSON:
         if skip_schema == False:
             b, js = self.fetch_schema()
             if b == False:
-                return (False, "Can't find the proper schema.", "")
+                return (False, False, "Can't find the proper schema.", "")
             else:
                 try:
                     validation.validate_against_schema(self.j, js)
                 except Exception as e:
                     es += str(e)
-                    return (False, es, "")
+                    return (False, False, es, "")
         #-- 2. ERRORS
         isValid = True
         b, errs = validation.city_object_groups(self.j) 
@@ -165,9 +180,28 @@ class CityJSON:
             return False
 
     
-    def subset(self, lsIDs, box):
-        print (lsIDs)
-        print (box)
+    def get_subset(self, lsIDs, box):
+        #-- new sliced CityJSON object
+        cm2 = CityJSON()
+        cm2.j["version"] = self.j["version"]
+        if "transform" in self.j:
+            cm2.j["transform"] = self.j["transform"]
+        #-- copy selected CO to the j2
+        subset.select_cityobjects(self.j, cm2.j, lsIDs)
+        #-- geometry
+        subset.process_geometry(self.j, cm2.j)
+        #-- templates
+        subset.process_templates(self.j, cm2.j)
+        #-- appearance
+        if ("appearance" in self.j):
+            cm2.j["appearance"] = {}
+            subset.process_appearance(self.j, cm2.j)
+        #-- metadata
+        if ("metadata" in self.j):
+            cm2.j["metadata"] = self.j["metadata"]
+        cm2.update_bbox()
+        return cm2
+        
 
     def remove_textures(self):
         for i in self.j["CityObjects"]:
@@ -202,14 +236,15 @@ class CityJSON:
     def get_info(self):
         info = collections.OrderedDict()
         info["cityjson_version"] = self.j["version"]
-        if "crs" in self.j["metadata"] and "epsg" in self.j["metadata"]["crs"]:
-            info["crs"] = self.j["metadata"]["crs"]["epsg"]
-        else:
-            info["crs"] = None
-        if "bbox" in self.j["metadata"]:
-            info["bbox"] = self.j["metadata"]["bbox"]
-        else:
-            info["bbox"] = None
+        if "metadata" in self.j:
+            if "crs" in self.j["metadata"] and "epsg" in self.j["metadata"]["crs"]:
+                info["crs"] = self.j["metadata"]["crs"]["epsg"]
+            else:
+                info["crs"] = None
+            if "bbox" in self.j["metadata"]:
+                info["bbox"] = self.j["metadata"]["bbox"]
+            else:
+                info["bbox"] = None
         info["cityobjects_total"] = len(self.j["CityObjects"])
         info["vertices_total"] = len(self.j["vertices"])
         d = set()
@@ -233,19 +268,27 @@ class CityJSON:
 
 
 if __name__ == '__main__':
-    with open('/Users/hugo/projects/cityjson/example-datasets/dummy-values/invalid.json', 'r') as cjfile:
-    # with open('/Users/hugo/projects/cityjson/example-datasets/dummy-values/invalid3.json', 'r') as cjfile:
+    # with open('/Users/hugo/projects/cityjson/example-datasets/dummy-values/invalid.json', 'r') as cjfile:
+    with open('/Users/hugo/projects/cityjson/example-datasets/dummy-values/example.json', 'r') as cjfile:
     # with open('example2.json', 'r') as cjfile:
     # with open('bob.json', 'r') as cjfile:
     # with open('/Users/hugo/Dropbox/data/cityjson/examples/rotterdam/3-20-DELFSHAVEN.json', 'r') as cjfile:
         try:
-            d = CityJSON(cjfile, ignore_duplicate_keys=False)
+            # cm1 = CityJSON()
+            # print (cm1)
+            cm2 = CityJSON(cjfile)
         except ValueError:
             print ("!!!duplicate keys")
             sys.exit()
 
-    b, errs = d.validate()            
-    if b == False:
-        print (errs)
+    # bValid, woWarnings, errors, warnings = cm1.validate()            
+    # print (bValid)
+    # print (errors)
+    bValid, woWarnings, errors, warnings = cm2.validate()            
+    print (bValid)
+    print (errors)
 
-    print ("done.")
+    cm3 = cm2.get_subset(['2929'], None)
+    # print (cm3)
+    print (cm3)
+
