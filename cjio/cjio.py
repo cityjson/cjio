@@ -188,7 +188,7 @@ def update_crs_cmd(newcrs):
     Can be used to assign one to a file that doesn't have any.
     """
     def processor(cm):
-        cm.update_crs(newcrs)
+        cm.set_crs(newcrs)
         return cm
     return processor
 

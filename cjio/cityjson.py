@@ -180,7 +180,8 @@ class CityJSON:
         self.j["metadata"]["bbox"] = bbox
         return bbox        
 
-    def update_crs(self, newcrs):
+
+    def set_crs(self, newcrs):
         if "metadata" not in self.j:
             self.j["metadata"] = {}
         if "crs" not in self.j["metadata"]:
@@ -194,15 +195,61 @@ class CityJSON:
         except ValueError:
             return False
 
+
+    def get_crs(self):
+        if "metadata" not in self.j:
+            return None
+        if "crs" not in self.j["metadata"]:
+            return None
+        if "epsg" not in self.j["metadata"]["crs"]:
+            return None
+        return self.j["metadata"]["crs"]["epsg"]
+
     
-    def get_subset(self, lsIDs, box):
+
+    def get_subset_ids(self, lsIDs):
         #-- new sliced CityJSON object
         cm2 = CityJSON()
         cm2.j["version"] = self.j["version"]
         if "transform" in self.j:
             cm2.j["transform"] = self.j["transform"]
         #-- copy selected CO to the j2
-        subset.select_cityobjects(self.j, cm2.j, lsIDs)
+        # subset.select_cityobjects(self.j, cm2.j, lsIDs)
+        re = subset.select_co_ids(self.j, lsIDs)
+        for each in re:
+            cm2.j["CityObjects"][each] = self.j["CityObjects"][each]
+        #-- geometry
+        subset.process_geometry(self.j, cm2.j)
+        #-- templates
+        subset.process_templates(self.j, cm2.j)
+        #-- appearance
+        if ("appearance" in self.j):
+            cm2.j["appearance"] = {}
+            subset.process_appearance(self.j, cm2.j)
+        #-- metadata
+        if ("metadata" in self.j):
+            cm2.j["metadata"] = self.j["metadata"]
+        cm2.update_bbox()
+        return cm2
+
+    def get_subset_cotypes(self, lsCOtypes):
+        for cotype in lsCOtypes:
+            if cotype == 'Building':
+                lsCOtypes.add('BuildingInstallation')
+                lsCOtypes.add('BuildingPart')
+            if cotype == 'Bridge':
+                lsCOtypes.add('BridgePart')
+                lsCOtypes.add('BridgeInstallation')
+                lsCOtypes.add('BridgeConstructionElement')
+        #-- new sliced CityJSON object
+        cm2 = CityJSON()
+        cm2.j["version"] = self.j["version"]
+        if "transform" in self.j:
+            cm2.j["transform"] = self.j["transform"]
+        #-- copy selected CO to the j2
+        for theid in self.j["CityObjects"]:
+            if self.j["CityObjects"][theid]["type"] in lsCOtypes:
+                cm2.j["CityObjects"][theid] = self.j["CityObjects"][theid]
         #-- geometry
         subset.process_geometry(self.j, cm2.j)
         #-- templates
