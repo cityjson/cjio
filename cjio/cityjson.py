@@ -10,6 +10,11 @@ from pkg_resources import resource_filename
 import validation
 import subset
 
+
+def reader(file, ignore_duplicate_keys=False):
+    return CityJSON(file, ignore_duplicate_keys=ignore_duplicate_keys)
+
+
 class CityJSON:
 
     def __init__(self, file=None, ignore_duplicate_keys=False):
@@ -279,26 +284,22 @@ class CityJSON:
 
 if __name__ == '__main__':
     # with open('/Users/hugo/projects/cityjson/example-datasets/dummy-values/invalid.json', 'r') as cjfile:
-    with open('/Users/hugo/projects/cityjson/example-datasets/dummy-values/example.json', 'r') as cjfile:
+    # with open('/Users/hugo/projects/cityjson/example-datasets/dummy-values/example.json', 'r') as cjfile:
     # with open('example2.json', 'r') as cjfile:
-    # with open('bob.json', 'r') as cjfile:
+    with open('/Users/hugo/Dropbox/data/cityjson/GMLAS-GeoJSON/agniesebuurt.json', 'r') as cjfile:
     # with open('/Users/hugo/Dropbox/data/cityjson/examples/rotterdam/3-20-DELFSHAVEN.json', 'r') as cjfile:
         try:
-            # cm1 = CityJSON()
-            # print (cm1)
-            cm2 = CityJSON(cjfile)
-        except ValueError:
-            print ("!!!duplicate keys")
+            cm = reader(cjfile, ignore_duplicate_keys=True)
+        except ValueError as e:
+            print ("ERROR:", e)
             sys.exit()
 
     # bValid, woWarnings, errors, warnings = cm1.validate()            
     # print (bValid)
     # print (errors)
-    bValid, woWarnings, errors, warnings = cm2.validate()            
-    print (bValid)
-    print (errors)
-
-    cm3 = cm2.get_subset(['2929'], None)
-    # print (cm3)
-    print (cm3)
+    bValid, woWarnings, errors, warnings = cm.validate()            
+    print ("is_valid?", bValid)
+    print ("errors:", errors)
+    # cm2 = cm.get_subset(['2929'], None)
+    # print (cm2)
 

@@ -70,7 +70,7 @@ def cli(context, input, ignore_duplicate_keys):
 def process_pipeline(context, processors, input, ignore_duplicate_keys):
     try:
         f = click.open_file(input, mode='r')
-        cm = cityjson.CityJSON(f, ignore_duplicate_keys=ignore_duplicate_keys)
+        cm = cityjson.read(f, ignore_duplicate_keys=ignore_duplicate_keys)
     except ValueError as e:
         # click.echo(context.get_usage() + "\n")
         raise click.ClickException('%s: "%s".' % (e, input))
