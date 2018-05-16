@@ -153,7 +153,8 @@ def subset_cmd(id, box):
     One can select City Objects by (1) IDs; and/or (2) bbox.
     """
     def processor(cm):
-        subset = cm.get_subset(id, box)
+        if len(id) > 0:
+            subset = cm.get_subset_ids(id)
         return subset
     return processor
 
@@ -188,7 +189,7 @@ def update_crs_cmd(newcrs):
     Can be used to assign one to a file that doesn't have any.
     """
     def processor(cm):
-        cm.update_crs(newcrs)
+        cm.set_crs(newcrs)
         return cm
     return processor
 

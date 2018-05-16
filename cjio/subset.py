@@ -1,10 +1,11 @@
 
 import json
 
-def select_cityobjects(j, j2, IDs):
-    for each in j["CityObjects"]:
-        if each in IDs:
-            j2["CityObjects"][each] = j["CityObjects"][each]
+def select_co_ids(j, IDs):
+    re = set()
+    for theid in j["CityObjects"]:
+        if theid in IDs:
+            re.add(theid)
     for theid in IDs:
         if theid not in j["CityObjects"]:
             print ("WARNING: ID", theid, "not found in input file; ignored.")
@@ -13,23 +14,25 @@ def select_cityobjects(j, j2, IDs):
         if each in IDs:
             if j["CityObjects"][each]["type"] == "CityObjectGroup" and "members" in j["CityObjects"][each]:
                 for member in j["CityObjects"][each]["members"]:
-                    j2["CityObjects"][member] = j["CityObjects"][member]
+                    re.add(member)
     #-- deal with Parts and Installations and ConstructionElements
     for each in j["CityObjects"]:
         if each in IDs:
             if "Parts" in j["CityObjects"][each]:
                 for part in j["CityObjects"][each]["Parts"]:
-                    j2["CityObjects"][part] = j["CityObjects"][part]
+                    re.add(part)
     for each in j["CityObjects"]:
         if each in IDs:
             if "Installations" in j["CityObjects"][each]:
                 for i in j["CityObjects"][each]["Installations"]:
-                    j2["CityObjects"][i] = j["CityObjects"][i]
+                    re.add(i)
     for each in j["CityObjects"]:
         if each in IDs:
             if "ConstructionElements" in j["CityObjects"][each]:
                 for i in j["CityObjects"][each]["ConstructionElements"]:
-                    j2["CityObjects"][i] = j["CityObjects"][i]
+                    re.add(i)
+    return re                
+
 
 
 def process_geometry(j, j2):
