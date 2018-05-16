@@ -280,16 +280,14 @@ class CityJSON:
         return json.dumps(info, indent=2)
 
 
-
-
 if __name__ == '__main__':
-    # with open('/Users/hugo/projects/cityjson/example-datasets/dummy-values/invalid.json', 'r') as cjfile:
+    with open('/Users/hugo/projects/cityjson/example-datasets/dummy-values/invalid3.json', 'r') as cjfile:
     # with open('/Users/hugo/projects/cityjson/example-datasets/dummy-values/example.json', 'r') as cjfile:
     # with open('example2.json', 'r') as cjfile:
-    with open('/Users/hugo/Dropbox/data/cityjson/GMLAS-GeoJSON/agniesebuurt.json', 'r') as cjfile:
+    # with open('/Users/hugo/Dropbox/data/cityjson/GMLAS-GeoJSON/agniesebuurt.json', 'r') as cjfile:
     # with open('/Users/hugo/Dropbox/data/cityjson/examples/rotterdam/3-20-DELFSHAVEN.json', 'r') as cjfile:
         try:
-            cm = reader(cjfile, ignore_duplicate_keys=True)
+            cm = reader(cjfile, ignore_duplicate_keys=False)
         except ValueError as e:
             print ("ERROR:", e)
             sys.exit()
