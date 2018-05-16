@@ -8,6 +8,12 @@ def select_cityobjects(j, j2, IDs):
     for theid in IDs:
         if theid not in j["CityObjects"]:
             print ("WARNING: ID", theid, "not found in input file; ignored.")
+    #-- deal with CityObjectGroup
+    for each in j["CityObjects"]:
+        if each in IDs:
+            if j["CityObjects"][each]["type"] == "CityObjectGroup" and "members" in j["CityObjects"][each]:
+                for member in j["CityObjects"][each]["members"]:
+                    j2["CityObjects"][member] = j["CityObjects"][member]
     #-- deal with Parts and Installations and ConstructionElements
     for each in j["CityObjects"]:
         if each in IDs:
