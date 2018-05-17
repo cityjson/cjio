@@ -206,6 +206,60 @@ class CityJSON:
         return self.j["metadata"]["crs"]["epsg"]
 
 
+    def add_bbox_each_co(self):
+        for theid in self.j["CityObjects"]:
+            bbox = [9e9, 9e9, 9e9, -9e9, -9e9, -9e9]    
+            # iterate over all vertices
+            
+            for v in self.j["vertices"]:
+                for i in range(3):
+                    if v[i] < bbox[i]:
+                        bbox[i] = v[i]
+                for i in range(3):
+                    if v[i] > bbox[i+3]:
+                        bbox[i+3] = v[i]
+            if "transform" in self.j:
+                for i in range(3):
+                    bbox[i] = (bbox[i] * self.j["transform"]["scale"][i]) + self.j["transform"]["translate"][i]
+                for i in range(3):
+                    bbox[i+3] = (bbox[i+3] * self.j["transform"]["scale"][i]) + self.j["transform"]["translate"][i]
+            self.j["metadata"]["bbox"] = bbox
+
+            self.j["CityObjects"][theid][]
+
+            if each in IDs:
+            if "Parts" in j["CityObjects"][each]:
+                for part in j["CityObjects"][each]["Parts"]:
+                    re.add(part)
+
+
+
+    def get_subset_bbox(self, bbox):
+        pass
+        # #-- new sliced CityJSON object
+        # cm2 = CityJSON()
+        # cm2.j["version"] = self.j["version"]
+        # if "transform" in self.j:
+        #     cm2.j["transform"] = self.j["transform"]
+        # #-- copy selected CO to the j2
+        # re = subset.select_co_ids(self.j, lsIDs)
+        # for each in re:
+        #     cm2.j["CityObjects"][each] = self.j["CityObjects"][each]
+        # #-- geometry
+        # subset.process_geometry(self.j, cm2.j)
+        # #-- templates
+        # subset.process_templates(self.j, cm2.j)
+        # #-- appearance
+        # if ("appearance" in self.j):
+        #     cm2.j["appearance"] = {}
+        #     subset.process_appearance(self.j, cm2.j)
+        # #-- metadata
+        # if ("metadata" in self.j):
+        #     cm2.j["metadata"] = self.j["metadata"]
+        # cm2.update_bbox()
+        # return cm2
+
+
     def get_subset_ids(self, lsIDs):
         #-- new sliced CityJSON object
         cm2 = CityJSON()
