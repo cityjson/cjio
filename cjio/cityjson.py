@@ -205,7 +205,6 @@ class CityJSON:
             return None
         return self.j["metadata"]["crs"]["epsg"]
 
-    
 
     def get_subset_ids(self, lsIDs):
         #-- new sliced CityJSON object
@@ -214,7 +213,6 @@ class CityJSON:
         if "transform" in self.j:
             cm2.j["transform"] = self.j["transform"]
         #-- copy selected CO to the j2
-        # subset.select_cityobjects(self.j, cm2.j, lsIDs)
         re = subset.select_co_ids(self.j, lsIDs)
         for each in re:
             cm2.j["CityObjects"][each] = self.j["CityObjects"][each]
@@ -232,15 +230,20 @@ class CityJSON:
         cm2.update_bbox()
         return cm2
 
-    def get_subset_cotypes(self, lsCOtypes):
-        for cotype in lsCOtypes:
-            if cotype == 'Building':
-                lsCOtypes.add('BuildingInstallation')
-                lsCOtypes.add('BuildingPart')
-            if cotype == 'Bridge':
-                lsCOtypes.add('BridgePart')
-                lsCOtypes.add('BridgeInstallation')
-                lsCOtypes.add('BridgeConstructionElement')
+
+    def get_subset_cotype(self, cotype):
+        print ('get_subset_cotype')
+        lsCOtypes = [cotype]
+        if cotype == 'Building':
+            lsCOtypes.append('BuildingInstallation')
+            lsCOtypes.append('BuildingPart')
+        if cotype == 'Bridge':
+            lsCOtypes.append('BridgePart')
+            lsCOtypes.append('BridgeInstallation')
+            lsCOtypes.append('BridgeConstructionElement')
+        if cotype == 'Tunnel':
+            lsCOtypes.append('TunnelInstallation')
+            lsCOtypes.append('TunnelPart')
         #-- new sliced CityJSON object
         cm2 = CityJSON()
         cm2.j["version"] = self.j["version"]

@@ -2,12 +2,14 @@
 import json
 
 def select_co_ids(j, IDs):
+    IDs = list(IDs)
     re = set()
     for theid in j["CityObjects"]:
         if theid in IDs:
             re.add(theid)
     for theid in IDs:
         if theid not in j["CityObjects"]:
+            IDs.remove(theid)
             print ("WARNING: ID", theid, "not found in input file; ignored.")
     #-- deal with CityObjectGroup
     for each in j["CityObjects"]:
@@ -31,6 +33,13 @@ def select_co_ids(j, IDs):
             if "ConstructionElements" in j["CityObjects"][each]:
                 for i in j["CityObjects"][each]["ConstructionElements"]:
                     re.add(i)
+    #-- also add the parent of a Part/Installation
+    for theid in IDs:
+        for each in ['Parts', 'Installations', 'ConstructionElements']:
+            if j["CityObjects"][theid]["type"].find(each[:-1]) > 0:
+                for coid in j["CityObjects"]:
+                    if (each in j["CityObjects"][coid]) and (theid in j["CityObjects"][coid][each]):
+                        re.add(coid)
     return re                
 
 

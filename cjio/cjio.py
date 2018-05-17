@@ -3,7 +3,7 @@ import click
 import json
 import sys
 import cityjson
-
+import copy
 
 # info
 # convert2obj
@@ -145,17 +145,25 @@ def validate_cmd(hide_errors, skip_schema):
 
 @cli.command('subset')
 @click.option('--id', multiple=True, help='The ID of the CityObjects; can be used multiple times.')
-@click.option('--box', nargs=4, type=float, help='Give 4 values: minx miny maxx maxy')
-# @click.argument('ids', nargs=-1)
-def subset_cmd(id, box):
+@click.option('--box', nargs=4, type=float, help='2D bbox: minx miny maxx maxy')
+@click.option('--cotype',
+    type=click.Choice(['Building', 'Bridge', 'Road', 'TransportSquare', 'LandUse', 'Railway', 'TINRelief', 'WaterBody', 'PlantCover', 'SolitaryVegetationObject', 'CityFurniture', 'GenericCityObject', 'Tunnel']), 
+    help='The City Object type')
+def subset_cmd(id, box, cotype):
     """
     Create a subset of a CityJSON file.
-    One can select City Objects by (1) IDs; and/or (2) bbox.
+    One can select City Objects by 
+    (1) IDs;
+    (2) bbox;
+    (3) CityObject type.
     """
     def processor(cm):
-        if len(id) > 0:
-            subset = cm.get_subset_ids(id)
-        return subset
+        s = copy.deepcopy(cm)
+        if id is not None:
+            s = s.get_subset_ids(id)
+        if cotype is not None:
+            s = s.get_subset_cotype(cotype)
+        return s 
     return processor
 
 
