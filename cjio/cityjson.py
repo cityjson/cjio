@@ -206,32 +206,32 @@ class CityJSON:
         return self.j["metadata"]["crs"]["epsg"]
 
 
-    def add_bbox_each_co(self):
-        for theid in self.j["CityObjects"]:
+    def add_bbox_to_each_co(self):
+        def recusionvisit(a, vs):
+          for each in a:
+            if isinstance(each, list):
+                recusionvisit(each, vs)
+            else:
+                vs.append(each)
+        for co in self.j["CityObjects"]:
+            vs = []
             bbox = [9e9, 9e9, 9e9, -9e9, -9e9, -9e9]    
-            # iterate over all vertices
-            
-            for v in self.j["vertices"]:
-                for i in range(3):
-                    if v[i] < bbox[i]:
-                        bbox[i] = v[i]
-                for i in range(3):
-                    if v[i] > bbox[i+3]:
-                        bbox[i+3] = v[i]
-            if "transform" in self.j:
-                for i in range(3):
-                    bbox[i] = (bbox[i] * self.j["transform"]["scale"][i]) + self.j["transform"]["translate"][i]
-                for i in range(3):
-                    bbox[i+3] = (bbox[i+3] * self.j["transform"]["scale"][i]) + self.j["transform"]["translate"][i]
-            self.j["metadata"]["bbox"] = bbox
-
-            self.j["CityObjects"][theid][]
-
-            if each in IDs:
-            if "Parts" in j["CityObjects"][each]:
-                for part in j["CityObjects"][each]["Parts"]:
-                    re.add(part)
-
+            for g in self.j['CityObjects'][co]['geometry']:
+                recusionvisit(g["boundaries"], vs)
+                for each in vs:
+                    v = self.j["vertices"][each]
+                    for i in range(3):
+                        if v[i] < bbox[i]:
+                            bbox[i] = v[i]
+                    for i in range(3):
+                        if v[i] > bbox[i+3]:
+                            bbox[i+3] = v[i]
+                if "transform" in self.j:
+                    for i in range(3):
+                        bbox[i] = (bbox[i] * self.j["transform"]["scale"][i]) + self.j["transform"]["translate"][i]
+                    for i in range(3):
+                        bbox[i+3] = (bbox[i+3] * self.j["transform"]["scale"][i]) + self.j["transform"]["translate"][i]
+                self.j["CityObjects"][co]["bbox"] = bbox
 
 
     def get_subset_bbox(self, bbox):
@@ -385,8 +385,8 @@ class CityJSON:
 
 
 if __name__ == '__main__':
-    with open('/Users/hugo/projects/cityjson/example-datasets/dummy-values/invalid3.json', 'r') as cjfile:
-    # with open('/Users/hugo/projects/cityjson/example-datasets/dummy-values/example.json', 'r') as cjfile:
+    # with open('/Users/hugo/projects/cityjson/example-datasets/dummy-values/invalid3.json', 'r') as cjfile:
+    with open('/Users/hugo/projects/cityjson/example-datasets/dummy-values/example.json', 'r') as cjfile:
     # with open('example2.json', 'r') as cjfile:
     # with open('/Users/hugo/Dropbox/data/cityjson/GMLAS-GeoJSON/agniesebuurt.json', 'r') as cjfile:
     # with open('/Users/hugo/Dropbox/data/cityjson/examples/rotterdam/3-20-DELFSHAVEN.json', 'r') as cjfile:
@@ -396,12 +396,14 @@ if __name__ == '__main__':
             print ("ERROR:", e)
             sys.exit()
 
+    cm.add_bbox_to_each_co()
+    print (cm)        
     # bValid, woWarnings, errors, warnings = cm1.validate()            
     # print (bValid)
     # print (errors)
-    bValid, woWarnings, errors, warnings = cm.validate()            
-    print ("is_valid?", bValid)
-    print ("errors:", errors)
+    # bValid, woWarnings, errors, warnings = cm.validate()            
+    # print ("is_valid?", bValid)
+    # print ("errors:", errors)
     # cm2 = cm.get_subset(['2929'], None)
     # print (cm2)
 
