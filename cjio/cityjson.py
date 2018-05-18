@@ -206,7 +206,7 @@ class CityJSON:
         return self.j["metadata"]["crs"]["epsg"]
 
 
-    def add_bbox_to_each_co(self):
+    def add_bbox_each_cityobjects(self):
         def recusionvisit(a, vs):
           for each in a:
             if isinstance(each, list):
@@ -234,33 +234,71 @@ class CityJSON:
                 self.j["CityObjects"][co]["bbox"] = bbox
 
 
+    def get_centroid(self, coid):
+        def recusionvisit(a, vs):
+          for each in a:
+            if isinstance(each, list):
+                recusionvisit(each, vs)
+            else:
+                vs.append(each)
+        #-- find the 3D centroid
+        centroid = [0, 0, 0]
+        total = 0
+        for g in self.j['CityObjects'][coid]['geometry']:
+            vs = []
+            recusionvisit(g["boundaries"], vs)
+            for each in vs:
+                v = self.j["vertices"][each]
+                total += 1
+                centroid[0] += v[0]
+                centroid[1] += v[1]
+                centroid[2] += v[2]
+        if (total != 0):
+            centroid[0] /= total
+            centroid[1] /= total
+            centroid[2] /= total
+            if "transform" in self.j:
+                centroid[0] = (centroid[0] * self.j["transform"]["scale"][0]) + self.j["transform"]["translate"][0]
+                centroid[1] = (centroid[1] * self.j["transform"]["scale"][1]) + self.j["transform"]["translate"][1]
+                centroid[2] = (centroid[2] * self.j["transform"]["scale"][2]) + self.j["transform"]["translate"][2]
+            return centroid
+        else:
+            return None
+
+
     def get_subset_bbox(self, bbox):
-        pass
-        # #-- new sliced CityJSON object
-        # cm2 = CityJSON()
-        # cm2.j["version"] = self.j["version"]
-        # if "transform" in self.j:
-        #     cm2.j["transform"] = self.j["transform"]
-        # #-- copy selected CO to the j2
-        # re = subset.select_co_ids(self.j, lsIDs)
-        # for each in re:
-        #     cm2.j["CityObjects"][each] = self.j["CityObjects"][each]
-        # #-- geometry
-        # subset.process_geometry(self.j, cm2.j)
-        # #-- templates
-        # subset.process_templates(self.j, cm2.j)
-        # #-- appearance
-        # if ("appearance" in self.j):
-        #     cm2.j["appearance"] = {}
-        #     subset.process_appearance(self.j, cm2.j)
-        # #-- metadata
-        # if ("metadata" in self.j):
-        #     cm2.j["metadata"] = self.j["metadata"]
-        # cm2.update_bbox()
-        # return cm2
+        # print ('get_subset_bbox')
+        #-- new sliced CityJSON object
+        cm2 = CityJSON()
+        cm2.j["version"] = self.j["version"]
+        if "transform" in self.j:
+            cm2.j["transform"] = self.j["transform"]
+        for coid in self.j["CityObjects"]:
+            centroid = self.get_centroid(coid)
+            if ((centroid is not None) and
+                (centroid[0] >= bbox[0]) and
+                (centroid[1] >= bbox[1]) and
+                (centroid[0] <  bbox[2]) and
+                (centroid[1] <  bbox[3]) ):
+                cm2.j["CityObjects"][coid] = self.j["CityObjects"][coid]
+                # print (centroid)
+        #-- geometry
+        subset.process_geometry(self.j, cm2.j)
+        #-- templates
+        subset.process_templates(self.j, cm2.j)
+        #-- appearance
+        if ("appearance" in self.j):
+            cm2.j["appearance"] = {}
+            subset.process_appearance(self.j, cm2.j)
+        #-- metadata
+        if ("metadata" in self.j):
+            cm2.j["metadata"] = self.j["metadata"]
+        cm2.update_bbox()
+        return cm2
 
 
     def get_subset_ids(self, lsIDs):
+        # print ('get_subset_ids')
         #-- new sliced CityJSON object
         cm2 = CityJSON()
         cm2.j["version"] = self.j["version"]
@@ -286,7 +324,7 @@ class CityJSON:
 
 
     def get_subset_cotype(self, cotype):
-        print ('get_subset_cotype')
+        # print ('get_subset_cotype')
         lsCOtypes = [cotype]
         if cotype == 'Building':
             lsCOtypes.append('BuildingInstallation')
@@ -333,7 +371,7 @@ class CityJSON:
                 del self.j["appearance"]["vertices-texture"]
             if "default-theme-texture" in self.j["appearance"]:
                 del self.j["appearance"]["default-theme-texture"]
-        print (len(self.j["appearance"]))
+        # print (len(self.j["appearance"]))
         if self.j["appearance"] is None or len(self.j["appearance"]) == 0:
             del self.j["appearance"]
         return True
@@ -386,8 +424,8 @@ class CityJSON:
 
 if __name__ == '__main__':
     # with open('/Users/hugo/projects/cityjson/example-datasets/dummy-values/invalid3.json', 'r') as cjfile:
-    with open('/Users/hugo/projects/cityjson/example-datasets/dummy-values/example.json', 'r') as cjfile:
-    # with open('example2.json', 'r') as cjfile:
+    # with open('/Users/hugo/projects/cityjson/example-datasets/dummy-values/example.json', 'r') as cjfile:
+    with open('/Users/hugo/Dropbox/data/cityjson/examples/denhaag/DenHaag_01.json', 'r') as cjfile:
     # with open('/Users/hugo/Dropbox/data/cityjson/GMLAS-GeoJSON/agniesebuurt.json', 'r') as cjfile:
     # with open('/Users/hugo/Dropbox/data/cityjson/examples/rotterdam/3-20-DELFSHAVEN.json', 'r') as cjfile:
         try:
@@ -396,8 +434,9 @@ if __name__ == '__main__':
             print ("ERROR:", e)
             sys.exit()
 
-    cm.add_bbox_to_each_co()
-    print (cm)        
+    # cm.add_bbox_to_each_co()
+    cm2 = cm.get_subset_bbox([78640, 458149, 78650, 458160])
+    print (cm2)        
     # bValid, woWarnings, errors, warnings = cm1.validate()            
     # print (bValid)
     # print (errors)
