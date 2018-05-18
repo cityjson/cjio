@@ -5,22 +5,25 @@ import sys
 import cityjson
 import copy
 
-# info
-# convert2obj
-# validate
-# conver2gltf
-# save
-# compress
-# decompress
-# merge [list-files]
-# subset 1) id; 2) bbox
-# remove_textures
-# remove_materials
-# update_bbox
-# update_crs
-# remove_duplicate_vertices
-# remove_orphan_vertices
-# apply_material(rule, color=red)
+#-- DONE:
+    # info
+    # validate
+    # save
+    # subset 1) id; 2) bbox; 3) cotype
+    # remove_textures
+    # remove_materials
+    # update_bbox
+    # update_crs
+
+#-- TODO:
+    # convert2obj
+    # conver2gltf
+    # compress
+    # decompress
+    # merge [list-files]
+    # remove_duplicate_vertices
+    # remove_orphan_vertices
+    # apply_material(rule, color=red)
 
 
 #-- taken from: 
@@ -42,15 +45,15 @@ class PerCommandArgWantSubCmdHelp(click.Argument):
 
 @click.group(chain=True)
 @click.argument('input', cls=PerCommandArgWantSubCmdHelp)
-@click.option('--ignore_duplicate_keys', is_flag=True, help='Process even if some City Objects have the same keys')
+@click.option('--ignore_duplicate_keys', is_flag=True, help='Load a CityJSON file even if some City Objects have the same keys')
 @click.pass_context
 def cli(context, input, ignore_duplicate_keys):
-    """Process and manipulate a CityJSON file, and allow 
-    different outputs. The different operators can be chained 
+    """Process and manipulate a CityJSON file, and allow
+    different outputs. The different operators can be chained
     to perform several processing in one step, the CityJSON model
-    feeds in the different operators.
+    goes through the different operators.
 
-    Help on secific command, eg for 'validate':
+    To get help on specific command, eg for 'validate':
 
     \b
         cjio validate --help
@@ -58,8 +61,8 @@ def cli(context, input, ignore_duplicate_keys):
     Usage examples:
 
     \b
-        cjio example.json remove_textures info
         cjio example.json validate
+        cjio example.json remove_textures info
         cjio example.json subset --id house12 remove_materials save out.json
     """
     context.obj = {"argument": input}
@@ -145,11 +148,11 @@ def validate_cmd(hide_errors, skip_schema):
 
 @cli.command('subset')
 @click.option('--id', multiple=True, help='The ID of the CityObjects; can be used multiple times.')
-@click.option('--box', nargs=4, type=float, help='2D bbox: minx miny maxx maxy')
+@click.option('--bbox', nargs=4, type=float, help='2D bbox: minx miny maxx maxy')
 @click.option('--cotype',
     type=click.Choice(['Building', 'Bridge', 'Road', 'TransportSquare', 'LandUse', 'Railway', 'TINRelief', 'WaterBody', 'PlantCover', 'SolitaryVegetationObject', 'CityFurniture', 'GenericCityObject', 'Tunnel']), 
     help='The City Object type')
-def subset_cmd(id, box, cotype):
+def subset_cmd(id, bbox, cotype):
     """
     Create a subset of a CityJSON file.
     One can select City Objects by 
@@ -159,8 +162,10 @@ def subset_cmd(id, box, cotype):
     """
     def processor(cm):
         s = copy.deepcopy(cm)
-        if id is not None:
+        if len(id) > 0:
             s = s.get_subset_ids(id)
+        if len(bbox) > 0:
+            s = s.get_subset_bbox(bbox)
         if cotype is not None:
             s = s.get_subset_cotype(cotype)
         return s 
