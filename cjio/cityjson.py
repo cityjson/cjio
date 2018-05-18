@@ -6,6 +6,7 @@ import collections
 import jsonref
 import urllib
 from pkg_resources import resource_filename
+import copy
 
 import validation
 import subset
@@ -273,6 +274,7 @@ class CityJSON:
         cm2.j["version"] = self.j["version"]
         if "transform" in self.j:
             cm2.j["transform"] = self.j["transform"]
+        re = set()            
         for coid in self.j["CityObjects"]:
             centroid = self.get_centroid(coid)
             if ((centroid is not None) and
@@ -280,8 +282,17 @@ class CityJSON:
                 (centroid[1] >= bbox[1]) and
                 (centroid[0] <  bbox[2]) and
                 (centroid[1] <  bbox[3]) ):
-                cm2.j["CityObjects"][coid] = self.j["CityObjects"][coid]
-                # print (centroid)
+                re.add(coid)
+        #-- also add the parent of a Part/Installation
+        re2 = copy.deepcopy(re)
+        for theid in re2:
+            for each in ['Parts', 'Installations', 'ConstructionElements']:
+                if self.j["CityObjects"][theid]["type"].find(each[:-1]) > 0:
+                    for coid in self.j["CityObjects"]:
+                        if (each in self.j["CityObjects"][coid]) and (theid in self.j["CityObjects"][coid][each]):
+                            re.add(coid)
+        for each in re:
+            cm2.j["CityObjects"][each] = self.j["CityObjects"][each]
         #-- geometry
         subset.process_geometry(self.j, cm2.j)
         #-- templates
