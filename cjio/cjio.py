@@ -14,16 +14,17 @@ import copy
     # remove_materials
     # update_bbox
     # update_crs
+    # merge [list-files]
 
 #-- TODO:
     # convert2obj
     # conver2gltf
     # compress
     # decompress
-    # merge [list-files]
     # remove_duplicate_vertices
     # remove_orphan_vertices
     # apply_material(rule, color=red)
+    # upgrade_version
 
 
 #-- taken from: 
