@@ -414,11 +414,12 @@ class CityJSON:
             else:
                 info["bbox"] = None
         info["cityobjects_total"] = len(self.j["CityObjects"])
-        info["vertices_total"] = len(self.j["vertices"])
         d = set()
         for key in self.j["CityObjects"]:
             d.add(self.j['CityObjects'][key]['type'])
         info["cityobjects_present"] = list(d)
+        info["vertices_total"] = len(self.j["vertices"])
+        info["transform/compressed"] = "transform" in self.j
         d.clear()
         for key in self.j["CityObjects"]:
             for geom in self.j['CityObjects'][key]['geometry']:
@@ -431,6 +432,37 @@ class CityJSON:
             info["materials"] = False
             info["textures"] =  False
         return json.dumps(info, indent=2)
+
+
+    def decompress(self):
+        if "transform" in self.j:
+            for v in self.j["vertices"]:
+                v[0] = (v[0] * self.j["transform"]["scale"][0]) + self.j["transform"]["translate"][0]
+                v[1] = (v[1] * self.j["transform"]["scale"][1]) + self.j["transform"]["translate"][1]
+                v[2] = (v[2] * self.j["transform"]["scale"][2]) + self.j["transform"]["translate"][2]
+            del self.j["transform"]
+            return True
+        else: 
+            return False
+
+
+    # def merge(self, lsCMs):
+    #     # 0. no transform for anything
+    #     # 1. find total # of points
+    #     # 2. add them at the end
+    #     # 3. increase each ID by the delta
+    #     # 4. templates/material/textures
+
+    #     for cm in lsCMS:
+    #         nopts = len(self.j["vertices"])
+    #         for theid in cm.j["CityObjects"]:
+    #             self.j["CityObjects"][theid] = cm.j["CityObjects"][theid]
+    #         if "transform" in self.j:
+    #             # cm2.j["transform"] = self.j["transform"]
+
+
+
+
 
 
 if __name__ == '__main__':

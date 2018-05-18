@@ -14,13 +14,13 @@ import copy
     # remove_materials
     # update_bbox
     # update_crs
-    # merge [list-files]
+    # decompress
 
 #-- TODO:
+    # merge [list-files]
     # convert2obj
     # conver2gltf
     # compress
-    # decompress
     # remove_duplicate_vertices
     # remove_orphan_vertices
     # apply_material(rule, color=red)
@@ -180,6 +180,18 @@ def remove_materials_cmd():
     """
     def processor(cm):
         cm.remove_materials()
+        return cm
+    return processor
+
+
+@cli.command('decompress')
+def decompress_cmd():
+    """
+    Decompress a CityJSON file, ie remove the "tranform".
+    """
+    def processor(cm):
+        if (cm.decompress() == False):
+            click.echo("WARNING: File is not compressed.")
         return cm
     return processor
 
