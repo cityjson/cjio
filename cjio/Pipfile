@@ -1,11 +1,15 @@
 [[source]]
-url = "https://pypi.org/simple"
-verify_ssl = true
 name = "pypi"
-
-[packages]
+verify_ssl = true
+url = "https://pypi.org/simple"
 
 [dev-packages]
 
 [requires]
 python_version = "3.6"
+
+[packages]
+click = "*"
+jsonschema = "*"
+jsonref = "*"
+"e1839a8" = {path = ".", editable = true}

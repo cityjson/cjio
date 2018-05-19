@@ -1,3 +1,7 @@
+build
+__pycache__
+
 # Balázs Eclipse
 .project
 .pydevproject
+.settings

@@ -1,9 +1,9 @@
-
 import click
 import json
 import sys
-import cityjson
 import copy
+
+from cjio import cityjson
 
 #-- DONE:
     # info
