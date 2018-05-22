@@ -481,8 +481,16 @@ class CityJSON:
                     update_geom_indices(g["boundaries"], offset)
             
         #-- templates
-        # for cm in lsCMs:
-            # if "geometry-templates" in cm:
+        for cm in lsCMs:
+            if "geometry-templates" in cm.j:
+                if "geometry-templates" in self.j:
+                    notemplates = len(self.j["geometry-templates"]["templates"])
+                    novtemplate = len(self.j["geometry-templates"]["vertices-templates"])
+                else:
+                    self.j["geometry-templates"] = {}
+                    self.j["geometry-templates"]["templates"] = []
+                    self.j["geometry-templates"]["vertices-templates"] = []
+
 
         #-- textures
         # for cm in lsCMs:
