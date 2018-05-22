@@ -446,19 +446,53 @@ class CityJSON:
             return False
 
 
-    # def merge(self, lsCMs):
-    #     # 0. no transform for anything
-    #     # 1. find total # of points
-    #     # 2. add them at the end
-    #     # 3. increase each ID by the delta
-    #     # 4. templates/material/textures
+    def merge(self, lsCMs):
+        # 0. no transform for anything --> decompress()
+        # 1. find total # of points
+        # 2. add them at the end
+        # 3. increase each ID by the offset
+        # 4. templates/material/textures
+        def update_geom_indices(a, offset):
+          for i, each in enumerate(a):
+            if isinstance(each, list):
+                update_geom_indices(each, offset)
+            else:
+                a[i] = each + offset
 
-    #     for cm in lsCMS:
-    #         nopts = len(self.j["vertices"])
-    #         for theid in cm.j["CityObjects"]:
-    #             self.j["CityObjects"][theid] = cm.j["CityObjects"][theid]
-    #         if "transform" in self.j:
-    #             # cm2.j["transform"] = self.j["transform"]
+        #-- decompress all
+        self.decompress()
+        for cm in lsCMs:
+            cm.decompress()
+
+        #-- add each CityObjects
+        for cm in lsCMs:
+            for theid in cm.j["CityObjects"]:
+                if theid in self.j["CityObjects"]:
+                    print ("ERROR: CityObject #", theid, "already present. Skipped.")
+                else:
+                    self.j["CityObjects"][theid] = cm.j["CityObjects"][theid]
+                
+        #-- add the vertices + update the geom indices
+        for cm in lsCMs:
+            offset = len(self.j["vertices"])
+            self.j["vertices"] += cm.j["vertices"]
+            for theid in cm.j["CityObjects"]:
+                for g in cm.j['CityObjects'][theid]['geometry']:
+                    update_geom_indices(g["boundaries"], offset)
+            
+        #-- templates
+        # for cm in lsCMs:
+            # if "geometry-templates" in cm:
+
+        #-- textures
+        # for cm in lsCMs:
+            # if "geometry-templates" in cm:
+        
+        #-- materials
+        # for cm in lsCMs:
+            # if "geometry-templates" in cm:
+
+
 
 
 
@@ -468,18 +502,32 @@ class CityJSON:
 if __name__ == '__main__':
     # with open('/Users/hugo/projects/cityjson/example-datasets/dummy-values/invalid3.json', 'r') as cjfile:
     # with open('/Users/hugo/projects/cityjson/example-datasets/dummy-values/example.json', 'r') as cjfile:
-    with open('/Users/hugo/Dropbox/data/cityjson/examples/denhaag/DenHaag_01.json', 'r') as cjfile:
+    # with open('/Users/hugo/Dropbox/data/cityjson/examples/denhaag/DenHaag_01.json', 'r') as cjfile:
     # with open('/Users/hugo/Dropbox/data/cityjson/GMLAS-GeoJSON/agniesebuurt.json', 'r') as cjfile:
     # with open('/Users/hugo/Dropbox/data/cityjson/examples/rotterdam/3-20-DELFSHAVEN.json', 'r') as cjfile:
+    with open('/Users/hugo/temp/0000/a.json', 'r') as cjfile:
         try:
             cm = reader(cjfile, ignore_duplicate_keys=False)
         except ValueError as e:
             print ("ERROR:", e)
             sys.exit()
 
+    with open('/Users/hugo/temp/0000/b.json', 'r') as cjfile:
+        try:
+            cmb = reader(cjfile, ignore_duplicate_keys=False)
+        except ValueError as e:
+            print ("ERROR:", e)
+            sys.exit()
+
+
+    cm.merge([cmb])
+    print (cm)
+    json_str = json.dumps(cm.j)
+    f = open("/Users/hugo/temp/z.json", "w")
+    f.write(json_str)
     # cm.add_bbox_to_each_co()
-    cm2 = cm.get_subset_bbox([78640, 458149, 78650, 458160])
-    print (cm2)        
+    # cm2 = cm.get_subset_bbox([78640, 458149, 78650, 458160])
+    # print (cm2)        
     # bValid, woWarnings, errors, warnings = cm1.validate()            
     # print (bValid)
     # print (errors)
