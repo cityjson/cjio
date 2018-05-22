@@ -460,6 +460,13 @@ class CityJSON:
             else:
                 if each is not None:
                     a[i] = each + offset
+        def update_texture_indices(a, offset):
+          for i, each in enumerate(a):
+            if isinstance(each, list):
+                update_texture_indices(each, offset)
+            else:
+                if each is not None:
+                    a[i] = each + offset
 
         #-- decompress all
         self.decompress()
@@ -509,35 +516,48 @@ class CityJSON:
             #-- materials
             if ("appearance" in cm.j) and ("materials" in cm.j["appearance"]):
                 if ("appearance" in self.j) and ("materials" in self.j["appearance"]):
-                    nomat = len(self.j["appearance"]["materials"])
+                    offset = len(self.j["appearance"]["materials"])
                 else:
                     if "appearance" not in self.j:
                         self.j["appearance"] = {}
                     if "materials" not in self.j["appearance"]:
                         self.j["appearance"]["materials"] = {}
-                    nomat = 0
+                    offset = 0
                 #-- copy materials
                 for m in cm.j["appearance"]["materials"]:
                     self.j["appearance"]["materials"].append(m)
-                    tmp = self.j["appearance"]["materials"][-1]
                 #-- update the "material" in each Geometry
-                # print ("nomat", nomat)
                 for theid in cm.j["CityObjects"]:
                     for g in self.j['CityObjects'][theid]['geometry']:
                         if 'material' in g:
                             for m in g['material']:
-                                update_geom_indices(g['material'][m]['values'], nomat)
+                                update_geom_indices(g['material'][m]['values'], offset)
 
-
-        #-- textures
-        # for cm in lsCMs:
-            # if "geometry-templates" in cm:
-        
-
-
-
-
-
+            #-- textures
+            if ("appearance" in cm.j) and ("textures" in cm.j["appearance"]):
+                if ("appearance" in self.j) and ("textures" in self.j["appearance"]):
+                    toffset = len(self.j["appearance"]["textures"])
+                    voffset = len(self.j["appearance"]["vertices-texture"])
+                else:
+                    if "appearance" not in self.j:
+                        self.j["appearance"] = {}
+                    if "textures" not in self.j["appearance"]:
+                        self.j["appearance"]["textures"] = {}
+                    if "vertices-texture" not in self.j["appearance"]:
+                        self.j["appearance"]["vertices-texture"] = {}                        
+                    toffset = 0
+                    voffset = 0
+                #-- copy vertices-texture
+                self.j["appearance"]["vertices-texture"] += cm.j["appearance"]["vertices-texture"]
+                #-- copy textures
+                for t in cm.j["appearance"]["textures"]:
+                    self.j["appearance"]["textures"].append(t)
+                #-- update the "texture" in each Geometry
+                for theid in cm.j["CityObjects"]:
+                    for g in self.j['CityObjects'][theid]['geometry']:
+                        if 'texture' in g:
+                            for m in g['texture']:
+                                update_geom_indices(g['texture'][m]['values'], offset)
 
 
 
