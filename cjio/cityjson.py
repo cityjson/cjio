@@ -452,6 +452,7 @@ class CityJSON:
         # 2. add them at the end
         # 3. increase each ID by the offset
         # 4. templates/material/textures
+
         def update_geom_indices(a, offset):
           for i, each in enumerate(a):
             if isinstance(each, list):
@@ -464,24 +465,23 @@ class CityJSON:
         for cm in lsCMs:
             cm.decompress()
 
-        #-- add each CityObjects
         for cm in lsCMs:
+            
+            #-- add each CityObjects
             for theid in cm.j["CityObjects"]:
                 if theid in self.j["CityObjects"]:
                     print ("ERROR: CityObject #", theid, "already present. Skipped.")
                 else:
                     self.j["CityObjects"][theid] = cm.j["CityObjects"][theid]
                 
-        #-- add the vertices + update the geom indices
-        for cm in lsCMs:
+            #-- add the vertices + update the geom indices
             offset = len(self.j["vertices"])
             self.j["vertices"] += cm.j["vertices"]
             for theid in cm.j["CityObjects"]:
                 for g in cm.j['CityObjects'][theid]['geometry']:
                     update_geom_indices(g["boundaries"], offset)
             
-        #-- templates
-        for cm in lsCMs:
+            #-- templates
             if "geometry-templates" in cm.j:
                 if "geometry-templates" in self.j:
                     notemplates = len(self.j["geometry-templates"]["templates"])
@@ -490,6 +490,23 @@ class CityJSON:
                     self.j["geometry-templates"] = {}
                     self.j["geometry-templates"]["templates"] = []
                     self.j["geometry-templates"]["vertices-templates"] = []
+                    notemplates = 0
+                    novtemplate = 0
+                #-- copy templates
+                for t in cm.j["geometry-templates"]["templates"]:
+                    self.j["geometry-templates"]["templates"].append(t)
+                    tmp = self.j["geometry-templates"]["templates"][-1]
+                    update_geom_indices(tmp["boundaries"], novtemplate)
+                #-- copy vertices
+                self.j["geometry-templates"]["vertices-templates"] += cm.j["geometry-templates"]["vertices-templates"]
+                #-- update the "template" in each GeometryInstance
+                for theid in cm.j["CityObjects"]:
+                    for g in self.j['CityObjects'][theid]['geometry']:
+                        if g["type"] == 'GeometryInstance':
+                            g["template"] += notemplates
+
+
+
 
 
         #-- textures
