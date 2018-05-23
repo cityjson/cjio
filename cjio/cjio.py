@@ -4,6 +4,7 @@ import json
 import sys
 import cityjson
 import copy
+import glob
 
 #-- DONE:
     # info
@@ -14,13 +15,13 @@ import copy
     # remove_materials
     # update_bbox
     # update_crs
-    # merge [list-files]
+    # decompress
 
 #-- TODO:
+    # merge [list-files]
     # convert2obj
     # conver2gltf
     # compress
-    # decompress
     # remove_duplicate_vertices
     # remove_orphan_vertices
     # apply_material(rule, color=red)
@@ -46,6 +47,7 @@ class PerCommandArgWantSubCmdHelp(click.Argument):
 
 @click.group(chain=True)
 @click.argument('input', cls=PerCommandArgWantSubCmdHelp)
+# @click.argument('input')
 @click.option('--ignore_duplicate_keys', is_flag=True, help='Load a CityJSON file even if some City Objects have the same keys')
 @click.pass_context
 def cli(context, input, ignore_duplicate_keys):
@@ -103,10 +105,9 @@ def save_cmd(filename, indent):
     """Save the CityJSON to a file."""
     def processor(cm):
         if indent == 0:
-            json_str = json.dumps(cm.j)
+            json_str = json.dumps(cm.j, separators=(',',':'))
         else:
             json_str = json.dumps(cm.j, indent=indent)
-        # filen = open(filename, "w")
         filename.write(json_str)
         return cm
     return processor
@@ -134,15 +135,53 @@ def validate_cmd(hide_errors, skip_schema):
     def processor(cm):
         bValid, woWarnings, errors, warnings = cm.validate(skip_schema=skip_schema)
         click.echo('===== Validation =====')
-        click.echo('File valid? \t\t%s' % bValid)
-        click.echo('File has warnings? \t%s\n' % (not woWarnings))
+        if bValid == True:
+            click.echo(click.style('File is valid', fg='green'))
+        else:    
+            click.echo(click.style('File is invalid', fg='red'))
+        if woWarnings == False:
+            click.echo(click.style('File has warnings', fg='red'))
         if not hide_errors and bValid is False:
             click.echo("--- ERRORS ---")
             click.echo(errors)
         if not hide_errors and woWarnings is False:
             click.echo("--- WARNINGS ---")
             click.echo(warnings)
-        click.echo('=============================')
+        click.echo('======================')
+        return cm
+    return processor
+
+
+@cli.command('merge')
+@click.argument('filepattern')
+def merge_cmd(filepattern):
+    """
+    Merge the current CityJSON with others.
+    All City Objects with their textures/materials/templates are handled.
+    
+    Possible to give a wildcard but put it between quotes:
+
+        $ cjio myfile.json merge '/home/elvis/temp/*.json' info
+    """
+    def processor(cm):
+        lsCMs = []
+        g = glob.glob(filepattern)
+        for i in g:
+            try:
+                f = click.open_file(i, mode='r')
+                lsCMs.append(cityjson.reader(f))
+            except ValueError as e:
+                click.echo('shit')
+                raise click.ClickException('%s: "%s".' % (e, input))
+            except IOError as e:
+                click.echo('shit')
+                raise click.ClickException('Invalid file: "%s".' % (input))
+        if len(lsCMs) == 0:
+            click.echo("WARNING: No files to merge.")
+        else:
+            # for i in lsCMs:
+                # click.echo(i)
+            cm.merge(lsCMs)
         return cm
     return processor
 
@@ -173,6 +212,32 @@ def subset_cmd(id, bbox, cotype):
     return processor
 
 
+@cli.command('remove_duplicate_vertices')
+def remove_duplicate_vertices_cmd():
+    """
+    Remove duplicate vertices a CityJSON file.
+    Only the geometry vertices are processed,
+    and not those of the textures/templates.
+    """
+    def processor(cm):
+        cm.remove_duplicate_vertices()
+        return cm
+    return processor
+
+
+@cli.command('remove_orphan_vertices')
+def remove_orphan_vertices_cmd():
+    """
+    Remove orphan vertices a CityJSON file.
+    Only the geometry vertices are processed,
+    and not those of the textures/templates.
+    """
+    def processor(cm):
+        cm.remove_orphan_vertices()
+        return cm
+    return processor
+
+
 @cli.command('remove_materials')
 def remove_materials_cmd():
     """
@@ -180,6 +245,18 @@ def remove_materials_cmd():
     """
     def processor(cm):
         cm.remove_materials()
+        return cm
+    return processor
+
+
+@cli.command('decompress')
+def decompress_cmd():
+    """
+    Decompress a CityJSON file, ie remove the "tranform".
+    """
+    def processor(cm):
+        if (cm.decompress() == False):
+            click.echo("WARNING: File is not compressed.")
         return cm
     return processor
 

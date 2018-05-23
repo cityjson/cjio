@@ -414,11 +414,12 @@ class CityJSON:
             else:
                 info["bbox"] = None
         info["cityobjects_total"] = len(self.j["CityObjects"])
-        info["vertices_total"] = len(self.j["vertices"])
         d = set()
         for key in self.j["CityObjects"]:
             d.add(self.j['CityObjects'][key]['type'])
         info["cityobjects_present"] = list(d)
+        info["vertices_total"] = len(self.j["vertices"])
+        info["transform/compressed"] = "transform" in self.j
         d.clear()
         for key in self.j["CityObjects"]:
             for geom in self.j['CityObjects'][key]['geometry']:
@@ -433,21 +434,248 @@ class CityJSON:
         return json.dumps(info, indent=2)
 
 
+    def remove_orphan_vertices(self):
+        def visit_geom(a, oldnewids, newvertices):
+          for i, each in enumerate(a):
+            if isinstance(each, list):
+                visit_geom(each, oldnewids, newvertices)
+            else:
+                if each not in oldnewids:
+                    oldnewids[each] = len(newvertices)
+                    newvertices.append(each)
+        def update_face(a, oldnewids):
+          for i, each in enumerate(a):
+            if isinstance(each, list):
+                update_face(each, oldnewids)
+            else:
+                a[i] = oldnewids[each]
+        #--
+        totalinput = len(self.j["vertices"])        
+        oldnewids = {}
+        newvertices = []
+        #-- visit each geom to gather used ids 
+        for theid in self.j["CityObjects"]:
+                for g in self.j['CityObjects'][theid]['geometry']:
+                    visit_geom(g["boundaries"], oldnewids, newvertices)
+        #-- update the faces ids
+        for theid in self.j["CityObjects"]:
+                for g in self.j['CityObjects'][theid]['geometry']:
+                    update_face(g["boundaries"], oldnewids)
+        #-- replace the vertices, innit?
+        newv2 = []
+        for v in newvertices:
+            newv2.append(self.j["vertices"][v])
+        self.j["vertices"] = newv2
+        return (totalinput - len(self.j["vertices"]))
+
+
+    def remove_duplicate_vertices(self):
+        def update_geom_indices(a, newids):
+          for i, each in enumerate(a):
+            if isinstance(each, list):
+                update_geom_indices(each, newids)
+            else:
+                a[i] = newids[each]
+        #--            
+        totalinput = len(self.j["vertices"])        
+        h = {}
+        newids = [-1] * len(self.j["vertices"])
+        newvertices = []
+        for i, v in enumerate(self.j["vertices"]):
+            s = str(v[0]) + " " + str(v[1]) + " " + str(v[2])
+            if s not in h:
+                newid = len(h)
+                newids[i] = newid
+                h[s] = newid
+                newvertices.append(s)
+            else:
+                newids[i] = h[s]
+        #-- update indices
+        for theid in self.j["CityObjects"]:
+                for g in self.j['CityObjects'][theid]['geometry']:
+                    update_geom_indices(g["boundaries"], newids)
+        #-- replace the vertices, innit?
+        newv2 = []
+        for v in newvertices:
+            if "transform" in self.j:
+                a = list(map(int, v.split()))
+            else:
+                a = list(map(float, v.split()))
+            newv2.append(a)
+        self.j["vertices"] = newv2
+        return (totalinput - len(self.j["vertices"]))
+
+
+    def decompress(self):
+        if "transform" in self.j:
+            for v in self.j["vertices"]:
+                v[0] = (v[0] * self.j["transform"]["scale"][0]) + self.j["transform"]["translate"][0]
+                v[1] = (v[1] * self.j["transform"]["scale"][1]) + self.j["transform"]["translate"][1]
+                v[2] = (v[2] * self.j["transform"]["scale"][2]) + self.j["transform"]["translate"][2]
+            del self.j["transform"]
+            return True
+        else: 
+            return False
+
+
+    def merge(self, lsCMs):
+        # decompress() everything
+        # updates CityObjects
+        # updates vertices
+        # updates geometry-templates
+        # updates textures
+        # updates materials
+        #############################
+        def update_geom_indices(a, offset):
+          for i, each in enumerate(a):
+            if isinstance(each, list):
+                update_geom_indices(each, offset)
+            else:
+                if each is not None:
+                    a[i] = each + offset
+        def update_texture_indices(a, toffset, voffset):
+          for i, each in enumerate(a):
+            if isinstance(each, list):
+                update_texture_indices(each, toffset, voffset)
+            else:
+                if each is not None:
+                    if i == 0:
+                        a[i] = each + toffset
+                    else:
+                        a[i] = each + voffset
+        #-- decompress current CM                        
+        self.decompress()
+        for cm in lsCMs:
+            #-- decompress 
+            cm.decompress()
+            #-- add each CityObjects
+            coadded = 0
+            for theid in cm.j["CityObjects"]:
+                if theid in self.j["CityObjects"]:
+                    print ("ERROR: CityObject #", theid, "already present. Skipped.")
+                else:
+                    self.j["CityObjects"][theid] = cm.j["CityObjects"][theid]
+                    coadded += 1
+            if coadded == 0:
+                continue
+            #-- add the vertices + update the geom indices
+            offset = len(self.j["vertices"])
+            self.j["vertices"] += cm.j["vertices"]
+            for theid in cm.j["CityObjects"]:
+                for g in cm.j['CityObjects'][theid]['geometry']:
+                    update_geom_indices(g["boundaries"], offset)
+            #-- templates
+            if "geometry-templates" in cm.j:
+                if "geometry-templates" in self.j:
+                    notemplates = len(self.j["geometry-templates"]["templates"])
+                    novtemplate = len(self.j["geometry-templates"]["vertices-templates"])
+                else:
+                    self.j["geometry-templates"] = {}
+                    self.j["geometry-templates"]["templates"] = []
+                    self.j["geometry-templates"]["vertices-templates"] = []
+                    notemplates = 0
+                    novtemplate = 0
+                #-- copy templates
+                for t in cm.j["geometry-templates"]["templates"]:
+                    self.j["geometry-templates"]["templates"].append(t)
+                    tmp = self.j["geometry-templates"]["templates"][-1]
+                    update_geom_indices(tmp["boundaries"], novtemplate)
+                #-- copy vertices
+                self.j["geometry-templates"]["vertices-templates"] += cm.j["geometry-templates"]["vertices-templates"]
+                #-- update the "template" in each GeometryInstance
+                for theid in cm.j["CityObjects"]:
+                    for g in self.j['CityObjects'][theid]['geometry']:
+                        if g["type"] == 'GeometryInstance':
+                            g["template"] += notemplates
+            #-- materials
+            if ("appearance" in cm.j) and ("materials" in cm.j["appearance"]):
+                if ("appearance" in self.j) and ("materials" in self.j["appearance"]):
+                    offset = len(self.j["appearance"]["materials"])
+                else:
+                    if "appearance" not in self.j:
+                        self.j["appearance"] = {}
+                    if "materials" not in self.j["appearance"]:
+                        self.j["appearance"]["materials"] = {}
+                    offset = 0
+                #-- copy materials
+                for m in cm.j["appearance"]["materials"]:
+                    self.j["appearance"]["materials"].append(m)
+                #-- update the "material" in each Geometry
+                for theid in cm.j["CityObjects"]:
+                    for g in self.j['CityObjects'][theid]['geometry']:
+                        if 'material' in g:
+                            for m in g['material']:
+                                update_geom_indices(g['material'][m]['values'], offset)
+            #-- textures
+            if ("appearance" in cm.j) and ("textures" in cm.j["appearance"]):
+                if ("appearance" in self.j) and ("textures" in self.j["appearance"]):
+                    toffset = len(self.j["appearance"]["textures"])
+                    voffset = len(self.j["appearance"]["vertices-texture"])
+                else:
+                    if "appearance" not in self.j:
+                        self.j["appearance"] = {}
+                    if "textures" not in self.j["appearance"]:
+                        self.j["appearance"]["textures"] = {}
+                    if "vertices-texture" not in self.j["appearance"]:
+                        self.j["appearance"]["vertices-texture"] = {}                        
+                    toffset = 0
+                    voffset = 0
+                #-- copy vertices-texture
+                self.j["appearance"]["vertices-texture"] += cm.j["appearance"]["vertices-texture"]
+                #-- copy textures
+                for t in cm.j["appearance"]["textures"]:
+                    self.j["appearance"]["textures"].append(t)
+                #-- update the "texture" in each Geometry
+                for theid in cm.j["CityObjects"]:
+                    for g in self.j['CityObjects'][theid]['geometry']:
+                        if 'texture' in g:
+                            for m in g['texture']:
+                                update_texture_indices(g['texture'][m]['values'], toffset, voffset)
+        # self.remove_duplicate_vertices()
+        # self.remove_orphan_vertices()
+        return True
+
+
+
+
 if __name__ == '__main__':
     # with open('/Users/hugo/projects/cityjson/example-datasets/dummy-values/invalid3.json', 'r') as cjfile:
     # with open('/Users/hugo/projects/cityjson/example-datasets/dummy-values/example.json', 'r') as cjfile:
-    with open('/Users/hugo/Dropbox/data/cityjson/examples/denhaag/DenHaag_01.json', 'r') as cjfile:
+    # with open('/Users/hugo/Dropbox/data/cityjson/examples/denhaag/DenHaag_01.json', 'r') as cjfile:
     # with open('/Users/hugo/Dropbox/data/cityjson/GMLAS-GeoJSON/agniesebuurt.json', 'r') as cjfile:
     # with open('/Users/hugo/Dropbox/data/cityjson/examples/rotterdam/3-20-DELFSHAVEN.json', 'r') as cjfile:
+    with open('/Users/hugo/temp/0000/a.json', 'r') as cjfile:
         try:
             cm = reader(cjfile, ignore_duplicate_keys=False)
         except ValueError as e:
             print ("ERROR:", e)
             sys.exit()
 
+    with open('/Users/hugo/temp/0000/b.json', 'r') as cjfile:
+        try:
+            cmb = reader(cjfile, ignore_duplicate_keys=False)
+        except ValueError as e:
+            print ("ERROR:", e)
+            sys.exit()
+    with open('/Users/hugo/temp/0000/c.json', 'r') as cjfile:
+        try:
+            cmc = reader(cjfile, ignore_duplicate_keys=False)
+        except ValueError as e:
+            print ("ERROR:", e)
+            sys.exit()
+
+    # cm.merge([cmb])
+    cm.merge([cm, cmb, cmc])
+    # print(cm.remove_duplicate_vertices())
+    # print(cm.remove_orphan_vertices())
+    # print (cm)
+    json_str = json.dumps(cm.j)
+    f = open("/Users/hugo/temp/0000/z.json", "w")
+    f.write(json_str)
+
     # cm.add_bbox_to_each_co()
-    cm2 = cm.get_subset_bbox([78640, 458149, 78650, 458160])
-    print (cm2)        
+    # cm2 = cm.get_subset_bbox([78640, 458149, 78650, 458160])
+    # print (cm2)        
     # bValid, woWarnings, errors, warnings = cm1.validate()            
     # print (bValid)
     # print (errors)
