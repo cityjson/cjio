@@ -16,14 +16,14 @@ import glob
     # update_bbox
     # update_crs
     # decompress
+    # merge [list-files]
+    # remove_duplicate_vertices
+    # remove_orphan_vertices
 
 #-- TODO:
-    # merge [list-files]
     # convert2obj
     # conver2gltf
     # compress
-    # remove_duplicate_vertices
-    # remove_orphan_vertices
     # apply_material(rule, color=red)
     # upgrade_version
 
