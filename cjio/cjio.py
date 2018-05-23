@@ -179,6 +179,8 @@ def merge_cmd(filepattern):
         if len(lsCMs) == 0:
             click.echo("WARNING: No files to merge.")
         else:
+            # for i in lsCMs:
+                # click.echo(i)
             cm.merge(lsCMs)
         return cm
     return processor
@@ -207,6 +209,32 @@ def subset_cmd(id, bbox, cotype):
         if cotype is not None:
             s = s.get_subset_cotype(cotype)
         return s 
+    return processor
+
+
+@cli.command('remove_duplicate_vertices')
+def remove_duplicate_vertices_cmd():
+    """
+    Remove duplicate vertices a CityJSON file.
+    Only the geometry vertices are processed,
+    and not those of the textures/templates.
+    """
+    def processor(cm):
+        cm.remove_duplicate_vertices()
+        return cm
+    return processor
+
+
+@cli.command('remove_orphan_vertices')
+def remove_orphan_vertices_cmd():
+    """
+    Remove orphan vertices a CityJSON file.
+    Only the geometry vertices are processed,
+    and not those of the textures/templates.
+    """
+    def processor(cm):
+        cm.remove_orphan_vertices()
+        return cm
     return processor
 
 
