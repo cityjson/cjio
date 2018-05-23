@@ -434,6 +434,41 @@ class CityJSON:
         return json.dumps(info, indent=2)
 
 
+    def remove_orphan_vertices(self):
+        def visit_geom(a, oldnewids, newvertices):
+          for i, each in enumerate(a):
+            if isinstance(each, list):
+                visit_geom(each, oldnewids, newvertices)
+            else:
+                if each not in oldnewids:
+                    oldnewids[each] = len(newvertices)
+                    newvertices.append(each)
+        def update_face(a, oldnewids):
+          for i, each in enumerate(a):
+            if isinstance(each, list):
+                update_face(each, oldnewids)
+            else:
+                a[i] = oldnewids[each]
+        #--
+        totalinput = len(self.j["vertices"])        
+        oldnewids = {}
+        newvertices = []
+        #-- visit each geom to gather used ids 
+        for theid in self.j["CityObjects"]:
+                for g in self.j['CityObjects'][theid]['geometry']:
+                    visit_geom(g["boundaries"], oldnewids, newvertices)
+        #-- update the faces ids
+        for theid in self.j["CityObjects"]:
+                for g in self.j['CityObjects'][theid]['geometry']:
+                    update_face(g["boundaries"], oldnewids)
+        #-- replace the vertices, innit?
+        newv2 = []
+        for v in newvertices:
+            newv2.append(self.j["vertices"][v])
+        self.j["vertices"] = newv2
+        return (totalinput - len(self.j["vertices"]))
+
+
     def remove_duplicate_vertices(self):
         def update_geom_indices(a, newids):
           for i, each in enumerate(a):
@@ -507,15 +542,18 @@ class CityJSON:
         #-- decompress current CM                        
         self.decompress()
         for cm in lsCMs:
-            print (cm)
             #-- decompress 
             cm.decompress()
             #-- add each CityObjects
+            coadded = 0
             for theid in cm.j["CityObjects"]:
                 if theid in self.j["CityObjects"]:
                     print ("ERROR: CityObject #", theid, "already present. Skipped.")
                 else:
                     self.j["CityObjects"][theid] = cm.j["CityObjects"][theid]
+                    coadded += 1
+            if coadded == 0:
+                continue
             #-- add the vertices + update the geom indices
             offset = len(self.j["vertices"])
             self.j["vertices"] += cm.j["vertices"]
@@ -589,6 +627,8 @@ class CityJSON:
                         if 'texture' in g:
                             for m in g['texture']:
                                 update_texture_indices(g['texture'][m]['values'], toffset, voffset)
+        # self.remove_duplicate_vertices()
+        # self.remove_orphan_vertices()
         return True
 
 
@@ -596,36 +636,37 @@ class CityJSON:
 
 if __name__ == '__main__':
     # with open('/Users/hugo/projects/cityjson/example-datasets/dummy-values/invalid3.json', 'r') as cjfile:
-    with open('/Users/hugo/projects/cityjson/example-datasets/dummy-values/example.json', 'r') as cjfile:
+    # with open('/Users/hugo/projects/cityjson/example-datasets/dummy-values/example.json', 'r') as cjfile:
     # with open('/Users/hugo/Dropbox/data/cityjson/examples/denhaag/DenHaag_01.json', 'r') as cjfile:
     # with open('/Users/hugo/Dropbox/data/cityjson/GMLAS-GeoJSON/agniesebuurt.json', 'r') as cjfile:
     # with open('/Users/hugo/Dropbox/data/cityjson/examples/rotterdam/3-20-DELFSHAVEN.json', 'r') as cjfile:
-    # with open('/Users/hugo/temp/0000/a.json', 'r') as cjfile:
+    with open('/Users/hugo/temp/0000/a.json', 'r') as cjfile:
         try:
             cm = reader(cjfile, ignore_duplicate_keys=False)
         except ValueError as e:
             print ("ERROR:", e)
             sys.exit()
 
-    # with open('/Users/hugo/temp/0000/b.json', 'r') as cjfile:
-    #     try:
-    #         cmb = reader(cjfile, ignore_duplicate_keys=False)
-    #     except ValueError as e:
-    #         print ("ERROR:", e)
-    #         sys.exit()
-    # with open('/Users/hugo/temp/0000/c.json', 'r') as cjfile:
-    #     try:
-    #         cmc = reader(cjfile, ignore_duplicate_keys=False)
-    #     except ValueError as e:
-    #         print ("ERROR:", e)
-    #         sys.exit()
+    with open('/Users/hugo/temp/0000/b.json', 'r') as cjfile:
+        try:
+            cmb = reader(cjfile, ignore_duplicate_keys=False)
+        except ValueError as e:
+            print ("ERROR:", e)
+            sys.exit()
+    with open('/Users/hugo/temp/0000/c.json', 'r') as cjfile:
+        try:
+            cmc = reader(cjfile, ignore_duplicate_keys=False)
+        except ValueError as e:
+            print ("ERROR:", e)
+            sys.exit()
 
     # cm.merge([cmb])
-    # cm.merge([cmb, cmc])
-    print(cm.remove_duplicate_vertices())
-    print (cm)
+    cm.merge([cm, cmb, cmc])
+    # print(cm.remove_duplicate_vertices())
+    # print(cm.remove_orphan_vertices())
+    # print (cm)
     json_str = json.dumps(cm.j)
-    f = open("/Users/hugo/temp/z.json", "w")
+    f = open("/Users/hugo/temp/0000/z.json", "w")
     f.write(json_str)
 
     # cm.add_bbox_to_each_co()

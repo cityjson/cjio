@@ -166,7 +166,6 @@ def merge_cmd(filepattern):
     def processor(cm):
         lsCMs = []
         g = glob.glob(filepattern)
-        click.echo(g)
         for i in g:
             try:
                 f = click.open_file(i, mode='r')
