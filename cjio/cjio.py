@@ -4,6 +4,7 @@ import json
 import sys
 import cityjson
 import copy
+import glob
 
 #-- DONE:
     # info
@@ -46,6 +47,7 @@ class PerCommandArgWantSubCmdHelp(click.Argument):
 
 @click.group(chain=True)
 @click.argument('input', cls=PerCommandArgWantSubCmdHelp)
+# @click.argument('input')
 @click.option('--ignore_duplicate_keys', is_flag=True, help='Load a CityJSON file even if some City Objects have the same keys')
 @click.pass_context
 def cli(context, input, ignore_duplicate_keys):
@@ -133,15 +135,53 @@ def validate_cmd(hide_errors, skip_schema):
     def processor(cm):
         bValid, woWarnings, errors, warnings = cm.validate(skip_schema=skip_schema)
         click.echo('===== Validation =====')
-        click.echo('File valid? \t\t%s' % bValid)
-        click.echo('File has warnings? \t%s\n' % (not woWarnings))
+        if bValid == True:
+            click.echo(click.style('File is valid', fg='green'))
+        else:    
+            click.echo(click.style('File is invalid', fg='red'))
+        if woWarnings == False:
+            click.echo(click.style('File has warnings', fg='red'))
         if not hide_errors and bValid is False:
             click.echo("--- ERRORS ---")
             click.echo(errors)
         if not hide_errors and woWarnings is False:
             click.echo("--- WARNINGS ---")
             click.echo(warnings)
-        click.echo('=============================')
+        click.echo('======================')
+        return cm
+    return processor
+
+
+@cli.command('merge')
+@click.argument('filepattern')
+def merge_cmd(filepattern):
+    """
+    Merge the current CityJSON with others.
+    All City Objects with their textures/materials/templates are handled.
+    
+    Possible to give a wildcard but put it between quotes:
+
+        $ cjio myfile.json merge '/home/elvis/temp/*.json' info
+    """
+    def processor(cm):
+        ls = []
+        g = glob.glob(filepattern)
+        for i in g:
+            try:
+                f = click.open_file(i, mode='r')
+                ls.append(f)
+            except ValueError as e:
+                click.echo('shit')
+                raise click.ClickException('%s: "%s".' % (e, input))
+            except IOError as e:
+                click.echo('shit')
+                raise click.ClickException('Invalid file: "%s".' % (input))
+        if len(ls) == 0:
+            click.echo("No files to merge.")
+        for i in ls:
+            click.echo(i)
+            
+
         return cm
     return processor
 
