@@ -103,10 +103,9 @@ def save_cmd(filename, indent):
     """Save the CityJSON to a file."""
     def processor(cm):
         if indent == 0:
-            json_str = json.dumps(cm.j)
+            json_str = json.dumps(cm.j, separators=(',',':'))
         else:
             json_str = json.dumps(cm.j, indent=indent)
-        # filen = open(filename, "w")
         filename.write(json_str)
         return cm
     return processor
