@@ -6,27 +6,6 @@ import cityjson
 import copy
 import glob
 
-#-- DONE:
-    # info
-    # validate
-    # save
-    # subset 1) id; 2) bbox; 3) cotype
-    # remove_textures
-    # remove_materials
-    # update_bbox
-    # update_crs
-    # decompress
-    # merge [list-files]
-    # remove_duplicate_vertices
-    # remove_orphan_vertices
-
-#-- TODO:
-    # convert2obj
-    # conver2gltf
-    # compress
-    # apply_material(rule, color=red)
-    # upgrade_version
-
 
 #-- taken from: 
 #-- https://stackoverflow.com/questions/47437472/in-python-click-how-do-i-see-help-for-subcommands-whose-parents-have-required
