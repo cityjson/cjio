@@ -447,12 +447,13 @@ class CityJSON:
 
 
     def merge(self, lsCMs):
-        # 0. no transform for anything --> decompress()
-        # 1. find total # of points
-        # 2. add them at the end
-        # 3. increase each ID by the offset
-        # 4. templates/material/textures
-
+        # decompress() everything
+        # updates CityObjects
+        # updates vertices
+        # updates geometry-templates
+        # updates textures
+        # updates materials
+        #############################
         def update_geom_indices(a, offset):
           for i, each in enumerate(a):
             if isinstance(each, list):
@@ -460,35 +461,33 @@ class CityJSON:
             else:
                 if each is not None:
                     a[i] = each + offset
-        def update_texture_indices(a, offset):
+        def update_texture_indices(a, toffset, voffset):
           for i, each in enumerate(a):
             if isinstance(each, list):
-                update_texture_indices(each, offset)
+                update_texture_indices(each, toffset, voffset)
             else:
                 if each is not None:
-                    a[i] = each + offset
-
-        #-- decompress all
+                    if i == 0:
+                        a[i] = each + toffset
+                    else:
+                        a[i] = each + voffset
+        #-- decompress current CM                        
         self.decompress()
         for cm in lsCMs:
+            #-- decompress 
             cm.decompress()
-
-        for cm in lsCMs:
-            
             #-- add each CityObjects
             for theid in cm.j["CityObjects"]:
                 if theid in self.j["CityObjects"]:
                     print ("ERROR: CityObject #", theid, "already present. Skipped.")
                 else:
                     self.j["CityObjects"][theid] = cm.j["CityObjects"][theid]
-                
             #-- add the vertices + update the geom indices
             offset = len(self.j["vertices"])
             self.j["vertices"] += cm.j["vertices"]
             for theid in cm.j["CityObjects"]:
                 for g in cm.j['CityObjects'][theid]['geometry']:
                     update_geom_indices(g["boundaries"], offset)
-            
             #-- templates
             if "geometry-templates" in cm.j:
                 if "geometry-templates" in self.j:
@@ -512,7 +511,6 @@ class CityJSON:
                     for g in self.j['CityObjects'][theid]['geometry']:
                         if g["type"] == 'GeometryInstance':
                             g["template"] += notemplates
-
             #-- materials
             if ("appearance" in cm.j) and ("materials" in cm.j["appearance"]):
                 if ("appearance" in self.j) and ("materials" in self.j["appearance"]):
@@ -532,7 +530,6 @@ class CityJSON:
                         if 'material' in g:
                             for m in g['material']:
                                 update_geom_indices(g['material'][m]['values'], offset)
-
             #-- textures
             if ("appearance" in cm.j) and ("textures" in cm.j["appearance"]):
                 if ("appearance" in self.j) and ("textures" in self.j["appearance"]):
@@ -557,7 +554,7 @@ class CityJSON:
                     for g in self.j['CityObjects'][theid]['geometry']:
                         if 'texture' in g:
                             for m in g['texture']:
-                                update_geom_indices(g['texture'][m]['values'], offset)
+                                update_texture_indices(g['texture'][m]['values'], toffset, voffset)
 
 
 
@@ -567,14 +564,14 @@ if __name__ == '__main__':
     # with open('/Users/hugo/Dropbox/data/cityjson/examples/denhaag/DenHaag_01.json', 'r') as cjfile:
     # with open('/Users/hugo/Dropbox/data/cityjson/GMLAS-GeoJSON/agniesebuurt.json', 'r') as cjfile:
     # with open('/Users/hugo/Dropbox/data/cityjson/examples/rotterdam/3-20-DELFSHAVEN.json', 'r') as cjfile:
-    with open('/Users/hugo/temp/0000/a.json', 'r') as cjfile:
+    with open('/Users/hugo/temp/0000/c.json', 'r') as cjfile:
         try:
             cm = reader(cjfile, ignore_duplicate_keys=False)
         except ValueError as e:
             print ("ERROR:", e)
             sys.exit()
 
-    with open('/Users/hugo/temp/0000/b.json', 'r') as cjfile:
+    with open('/Users/hugo/temp/0000/d.json', 'r') as cjfile:
         try:
             cmb = reader(cjfile, ignore_duplicate_keys=False)
         except ValueError as e:
