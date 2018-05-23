@@ -497,7 +497,11 @@ class CityJSON:
         #-- replace the vertices, innit?
         newv2 = []
         for v in newvertices:
-            newv2.append(v.split())
+            if "transform" in self.j:
+                a = list(map(int, v.split()))
+            else:
+                a = list(map(float, v.split()))
+            newv2.append(a)
         self.j["vertices"] = newv2
         return (totalinput - len(self.j["vertices"]))
 
