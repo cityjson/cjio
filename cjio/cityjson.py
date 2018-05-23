@@ -474,6 +474,7 @@ class CityJSON:
         #-- decompress current CM                        
         self.decompress()
         for cm in lsCMs:
+            print (cm)
             #-- decompress 
             cm.decompress()
             #-- add each CityObjects
@@ -555,6 +556,8 @@ class CityJSON:
                         if 'texture' in g:
                             for m in g['texture']:
                                 update_texture_indices(g['texture'][m]['values'], toffset, voffset)
+        return True
+
 
 
 
@@ -564,22 +567,27 @@ if __name__ == '__main__':
     # with open('/Users/hugo/Dropbox/data/cityjson/examples/denhaag/DenHaag_01.json', 'r') as cjfile:
     # with open('/Users/hugo/Dropbox/data/cityjson/GMLAS-GeoJSON/agniesebuurt.json', 'r') as cjfile:
     # with open('/Users/hugo/Dropbox/data/cityjson/examples/rotterdam/3-20-DELFSHAVEN.json', 'r') as cjfile:
-    with open('/Users/hugo/temp/0000/c.json', 'r') as cjfile:
+    with open('/Users/hugo/temp/0000/a.json', 'r') as cjfile:
         try:
             cm = reader(cjfile, ignore_duplicate_keys=False)
         except ValueError as e:
             print ("ERROR:", e)
             sys.exit()
 
-    with open('/Users/hugo/temp/0000/d.json', 'r') as cjfile:
+    with open('/Users/hugo/temp/0000/b.json', 'r') as cjfile:
         try:
             cmb = reader(cjfile, ignore_duplicate_keys=False)
         except ValueError as e:
             print ("ERROR:", e)
             sys.exit()
+    with open('/Users/hugo/temp/0000/c.json', 'r') as cjfile:
+        try:
+            cmc = reader(cjfile, ignore_duplicate_keys=False)
+        except ValueError as e:
+            print ("ERROR:", e)
+            sys.exit()
 
-
-    cm.merge([cmb])
+    cm.merge([cmb, cmc])
     print (cm)
     json_str = json.dumps(cm.j)
     f = open("/Users/hugo/temp/z.json", "w")

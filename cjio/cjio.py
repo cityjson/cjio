@@ -164,24 +164,23 @@ def merge_cmd(filepattern):
         $ cjio myfile.json merge '/home/elvis/temp/*.json' info
     """
     def processor(cm):
-        ls = []
+        lsCMs = []
         g = glob.glob(filepattern)
+        click.echo(g)
         for i in g:
             try:
                 f = click.open_file(i, mode='r')
-                ls.append(f)
+                lsCMs.append(cityjson.reader(f))
             except ValueError as e:
                 click.echo('shit')
                 raise click.ClickException('%s: "%s".' % (e, input))
             except IOError as e:
                 click.echo('shit')
                 raise click.ClickException('Invalid file: "%s".' % (input))
-        if len(ls) == 0:
-            click.echo("No files to merge.")
-        for i in ls:
-            click.echo(i)
-            
-
+        if len(lsCMs) == 0:
+            click.echo("WARNING: No files to merge.")
+        else:
+            cm.merge(lsCMs)
         return cm
     return processor
 
