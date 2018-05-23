@@ -434,6 +434,39 @@ class CityJSON:
         return json.dumps(info, indent=2)
 
 
+    def remove_duplicate_vertices(self):
+        def update_geom_indices(a, newids):
+          for i, each in enumerate(a):
+            if isinstance(each, list):
+                update_geom_indices(each, newids)
+            else:
+                a[i] = newids[each]
+        #--            
+        totalinput = len(self.j["vertices"])        
+        h = {}
+        newids = [-1] * len(self.j["vertices"])
+        newvertices = []
+        for i, v in enumerate(self.j["vertices"]):
+            s = str(v[0]) + " " + str(v[1]) + " " + str(v[2])
+            if s not in h:
+                newid = len(h)
+                newids[i] = newid
+                h[s] = newid
+                newvertices.append(s)
+            else:
+                newids[i] = h[s]
+        #-- update indices
+        for theid in self.j["CityObjects"]:
+                for g in self.j['CityObjects'][theid]['geometry']:
+                    update_geom_indices(g["boundaries"], newids)
+        #-- replace the vertices, innit?
+        newv2 = []
+        for v in newvertices:
+            newv2.append(v.split())
+        self.j["vertices"] = newv2
+        return (totalinput - len(self.j["vertices"]))
+
+
     def decompress(self):
         if "transform" in self.j:
             for v in self.j["vertices"]:
@@ -563,35 +596,38 @@ class CityJSON:
 
 if __name__ == '__main__':
     # with open('/Users/hugo/projects/cityjson/example-datasets/dummy-values/invalid3.json', 'r') as cjfile:
-    # with open('/Users/hugo/projects/cityjson/example-datasets/dummy-values/example.json', 'r') as cjfile:
+    with open('/Users/hugo/projects/cityjson/example-datasets/dummy-values/example.json', 'r') as cjfile:
     # with open('/Users/hugo/Dropbox/data/cityjson/examples/denhaag/DenHaag_01.json', 'r') as cjfile:
     # with open('/Users/hugo/Dropbox/data/cityjson/GMLAS-GeoJSON/agniesebuurt.json', 'r') as cjfile:
     # with open('/Users/hugo/Dropbox/data/cityjson/examples/rotterdam/3-20-DELFSHAVEN.json', 'r') as cjfile:
-    with open('/Users/hugo/temp/0000/a.json', 'r') as cjfile:
+    # with open('/Users/hugo/temp/0000/a.json', 'r') as cjfile:
         try:
             cm = reader(cjfile, ignore_duplicate_keys=False)
         except ValueError as e:
             print ("ERROR:", e)
             sys.exit()
 
-    with open('/Users/hugo/temp/0000/b.json', 'r') as cjfile:
-        try:
-            cmb = reader(cjfile, ignore_duplicate_keys=False)
-        except ValueError as e:
-            print ("ERROR:", e)
-            sys.exit()
-    with open('/Users/hugo/temp/0000/c.json', 'r') as cjfile:
-        try:
-            cmc = reader(cjfile, ignore_duplicate_keys=False)
-        except ValueError as e:
-            print ("ERROR:", e)
-            sys.exit()
+    # with open('/Users/hugo/temp/0000/b.json', 'r') as cjfile:
+    #     try:
+    #         cmb = reader(cjfile, ignore_duplicate_keys=False)
+    #     except ValueError as e:
+    #         print ("ERROR:", e)
+    #         sys.exit()
+    # with open('/Users/hugo/temp/0000/c.json', 'r') as cjfile:
+    #     try:
+    #         cmc = reader(cjfile, ignore_duplicate_keys=False)
+    #     except ValueError as e:
+    #         print ("ERROR:", e)
+    #         sys.exit()
 
-    cm.merge([cmb, cmc])
+    # cm.merge([cmb])
+    # cm.merge([cmb, cmc])
+    print(cm.remove_duplicate_vertices())
     print (cm)
     json_str = json.dumps(cm.j)
     f = open("/Users/hugo/temp/z.json", "w")
     f.write(json_str)
+
     # cm.add_bbox_to_each_co()
     # cm2 = cm.get_subset_bbox([78640, 458149, 78650, 458160])
     # print (cm2)        
