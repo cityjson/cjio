@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='cjio',
-    version='0.2.0',
+    version='0.2.1',
     description='Python CLI to process and manipulate CityJSON files',
     long_description='Python CLI to process and manipulate [CityJSON](http://www.cityjson.org) files. The different operators can be chained to perform several processing in one step, the CityJSON model goes through them and allows to save to a new CityJSON at the end.',
     long_description_content_type="text/markdown",
@@ -11,7 +11,7 @@ setup(
     author_email='h.ledoux@tudelft.nl, b.dukai@tudelft.nl',
     python_requires='>=3',
     packages=['cjio'],
-    package_data={'cjio': ['schemas/*']},
+    # package_data={'cjio': ['schemas/*', 'schemas/v06/*']},
     include_package_data=True,
     license = 'MIT',
     classifiers=[

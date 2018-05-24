@@ -26,7 +26,7 @@ class PerCommandArgWantSubCmdHelp(click.Argument):
 
 
 @click.group(chain=True)
-@click.version_option(version='0.2.0')
+@click.version_option(version='0.2.1')
 @click.argument('input', cls=PerCommandArgWantSubCmdHelp)
 @click.option('--ignore_duplicate_keys', is_flag=True, help='Load a CityJSON file even if some City Objects have the same keys')
 @click.pass_context
