@@ -1,3 +1,4 @@
+
 import click
 import json
 import sys
@@ -7,7 +8,7 @@ import glob
 from cjio import cityjson
 
 
-#-- taken from: 
+
 #-- https://stackoverflow.com/questions/47437472/in-python-click-how-do-i-see-help-for-subcommands-whose-parents-have-required
 class PerCommandArgWantSubCmdHelp(click.Argument):
     def handle_parse_result(self, ctx, opts, args):
@@ -26,7 +27,6 @@ class PerCommandArgWantSubCmdHelp(click.Argument):
 
 @click.group(chain=True)
 @click.argument('input', cls=PerCommandArgWantSubCmdHelp)
-# @click.argument('input')
 @click.option('--ignore_duplicate_keys', is_flag=True, help='Load a CityJSON file even if some City Objects have the same keys')
 @click.pass_context
 def cli(context, input, ignore_duplicate_keys):
@@ -264,6 +264,3 @@ def update_crs_cmd(newcrs):
     return processor
 
 
-
-if __name__ == '__main__':
-    cli()    
