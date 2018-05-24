@@ -25,6 +25,11 @@ setup(
         'Operating System :: MacOS :: MacOS X',
         'Operating System :: Microsoft :: Windows'
     ],
+    install_requires=[
+        'Click',
+        'jsonschema',
+        'jsonref'
+    ],
     entry_points='''
         [console_scripts]
         cjio=cjio.cjio:cli

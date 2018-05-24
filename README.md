@@ -11,7 +11,7 @@ To install and still develop with it:
 ```console
 $ virtualenv venv
 $ . venv/bin/activate
-$ pip3 install -r requirements.txt --editable .
+$ pip3 install --editable .
 ```
 
 Then you have a small program called `cjio`, to see its possibities:
