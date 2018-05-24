@@ -4,7 +4,9 @@
 Python CLI to process and manipulate a [CityJSON](http://www.cityjson.org) file.
 The different operators can be chained to perform several processing in one step, the CityJSON model goes through them and allows to save to a new CityJSON at the end.
 
-To install and still develop with it (uses Python3.x):
+It is only for uses Python 3.3+
+
+To install and still develop with it:
 
 ```console
 $ virtualenv venv
