@@ -1,13 +1,26 @@
+
 # cjio, or CityJSON/io
+
+Python CLI to process and manipulate a [CityJSON](http://www.cityjson.org) file.
+The different operators can be chained to perform several processing in one step, the CityJSON model goes through them and allows to save to a new CityJSON at the end.
 
 To install and still develop with it (uses Python3.x):
 
-    $ virtualenv venv
-    $ . venv/bin/activate
-    $ pip3 install --editable .
+```console
+$ virtualenv venv
+$ . venv/bin/activate
+$ pip3 install -r requirements.txt --editable .
+```
 
 Then you have a small program called `cjio`, to see its possibities:
+```console
+$ cjio --help
+```
 
-    $ cjio --help
+## Where can I get data to test it?
+
+There are a few [example files on the CityJSON webpage](http://www.cityjson.org/en/0.6/datasets/).
+
+Alternatively, any [CityGML](https://www.citygml.org) file can be automatically converted to CityJSON with the open-source project [citygml4j](https://github.com/citygml4j/citygml4j).
 
 
