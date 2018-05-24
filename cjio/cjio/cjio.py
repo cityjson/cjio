@@ -2,6 +2,7 @@ import click
 import json
 import sys
 import copy
+import glob
 
 from cjio import cityjson
 
