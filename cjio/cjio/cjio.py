@@ -1,10 +1,9 @@
-
 import click
 import json
 import sys
-import cityjson
 import copy
-import glob
+
+from cjio import cityjson
 
 
 #-- taken from: 

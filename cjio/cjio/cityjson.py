@@ -8,8 +8,8 @@ import urllib
 from pkg_resources import resource_filename
 import copy
 
-import validation
-import subset
+from cjio import validation
+from cjio import subset
 
 
 def reader(file, ignore_duplicate_keys=False):

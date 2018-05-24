@@ -1,0 +1,10 @@
+build
+__pycache__
+
+# Documentation
+docs/_build
+
+# Balázs Eclipse
+.project
+.pydevproject
+.settings
