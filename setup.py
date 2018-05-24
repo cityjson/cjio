@@ -2,8 +2,8 @@ from setuptools import setup
 
 setup(
     name='cjio',
-    version='0.1.0',
-    description='Work with CityJSON effortlessly',
+    version='0.2.0',
+    description='Python CLI to process and manipulate CityJSON files',
     url='https://github.com/tudelft3d/cityjson_tools',
     author='Hugo Ledoux, Balázs Dukai',
     author_email='h.ledoux@tudelft.nl, b.dukai@tudelft.nl',

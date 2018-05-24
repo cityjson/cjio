@@ -1,7 +1,7 @@
 
 # cjio, or CityJSON/io
 
-Python CLI to process and manipulate a [CityJSON](http://www.cityjson.org) file.
+Python CLI to process and manipulate [CityJSON](http://www.cityjson.org) files.
 The different operators can be chained to perform several processing in one step, the CityJSON model goes through them and allows to save to a new CityJSON at the end.
 
 It is only for uses Python 3.3+
