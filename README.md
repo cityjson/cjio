@@ -15,7 +15,21 @@ $ pip3 install -r requirements.txt --editable .
 Then you have a small program called `cjio`, to see its possibities:
 ```console
 $ cjio --help
+
+  decompress                 Decompress a CityJSON file, ie remove the...
+  info                       Output info in simple JSON.
+  merge                      Merge the current CityJSON with others.
+  remove_duplicate_vertices  Remove duplicate vertices a CityJSON file.
+  remove_materials           Remove all materials from a CityJSON file.
+  remove_orphan_vertices     Remove orphan vertices a CityJSON file.
+  remove_textures            Remove all textures from a CityJSON file.
+  save                       Save the CityJSON to a file.
+  subset                     Create a subset of a CityJSON file.
+  update_bbox                Update the bbox of a CityJSON file.
+  update_crs                 Update the CRS with a new value.
+  validate                   Validate the CityJSON file: (1) against its...
 ```
+
 
 ## Where can I get data to test it?
 
