@@ -7,6 +7,8 @@ import jsonref
 import urllib
 from pkg_resources import resource_filename
 import copy
+import random
+
 
 from cjio import validation
 from cjio import subset
@@ -308,8 +310,19 @@ class CityJSON:
         return cm2
 
 
+    def get_subset_random(self, number=1):
+        random.seed()
+        total = len(self.j["CityObjects"])
+        if number > total:
+            number = total
+        allkeys = list(self.j["CityObjects"].keys())
+        lsIDs = []
+        for each in range(number):
+            lsIDs.append(allkeys[random.randint(0, total - 1)])
+        return self.get_subset_ids(lsIDs)
+
+
     def get_subset_ids(self, lsIDs):
-        # print ('get_subset_ids')
         #-- new sliced CityJSON object
         cm2 = CityJSON()
         cm2.j["version"] = self.j["version"]
