@@ -1,10 +1,9 @@
-
 # cjio, or CityJSON/io
 
 Python CLI to process and manipulate [CityJSON](http://www.cityjson.org) files.
 The different operators can be chained to perform several processing in one step, the CityJSON model goes through them and allows to save to a new CityJSON at the end.
 
-It is only for uses Python 3.3+
+It uses Python 3.3+ only.
 
 To install and still develop with it:
 
@@ -30,6 +29,18 @@ $ cjio --help
   update_bbox                Update the bbox of a CityJSON file.
   update_crs                 Update the CRS with a new value.
   validate                   Validate the CityJSON file: (1) against its...
+```
+
+
+## Pipelines of operators
+
+The 3D city model opened is passed through all the operators, and it gets modified by some operators.
+Operators like `nfo` and `validate` output information in the console and just pass the 3D city model to the next operator.
+
+```console
+$ cjio example.json validate
+$ cjio example.json remove_textures info
+$ cjio example.json subset --id house12 info remove_materials info save out.json
 ```
 
 
