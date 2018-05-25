@@ -168,20 +168,25 @@ def merge_cmd(filepattern):
 
 @cli.command('subset')
 @click.option('--id', multiple=True, help='The ID of the CityObjects; can be used multiple times.')
-@click.option('--bbox', nargs=4, type=float, help='2D bbox: minx miny maxx maxy')
+@click.option('--bbox', nargs=4, type=float, help='2D bbox: (minx miny maxx maxy).')
+@click.option('--random', type=int, help='Number of random CityObjects to select.')
 @click.option('--cotype',
     type=click.Choice(['Building', 'Bridge', 'Road', 'TransportSquare', 'LandUse', 'Railway', 'TINRelief', 'WaterBody', 'PlantCover', 'SolitaryVegetationObject', 'CityFurniture', 'GenericCityObject', 'Tunnel']), 
     help='The City Object type')
-def subset_cmd(id, bbox, cotype):
+def subset_cmd(id, bbox, random, cotype):
     """
     Create a subset of a CityJSON file.
     One can select City Objects by 
     (1) IDs;
     (2) bbox;
-    (3) CityObject type.
+    (3) CityObject type;
+    (4) randomly.
     """
     def processor(cm):
         s = copy.deepcopy(cm)
+        if random is not None:
+            s = s.get_subset_random(random)
+            return s
         if len(id) > 0:
             s = s.get_subset_ids(id)
         if len(bbox) > 0:
