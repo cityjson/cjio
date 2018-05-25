@@ -1,10 +1,13 @@
 from setuptools import setup
 
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
 setup(
     name='cjio',
     version='0.2.1',
-    description='Python CLI to process and manipulate CityJSON files',
-    long_description='Python CLI to process and manipulate [CityJSON](http://www.cityjson.org) files. The different operators can be chained to perform several processing in one step, the CityJSON model goes through them and allows to save to a new CityJSON at the end.',
+    description='CLI to process and manipulate CityJSON files',
+    long_description=long_description,
     long_description_content_type="text/markdown",
     url='https://github.com/tudelft3d/cjio',
     author='Hugo Ledoux, Balázs Dukai',
