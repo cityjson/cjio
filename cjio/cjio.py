@@ -111,6 +111,11 @@ def update_bbox_cmd():
 def validate_cmd(hide_errors, skip_schema):
     """
     Validate the CityJSON file: (1) against its schema; (2) extra validations.
+
+    If the file is too large (and thus validation is slow),
+    an option is to crop a subset and just validate it:
+
+        cjio myfile.json subset --random 5 validate
     """
     def processor(cm):
         bValid, woWarnings, errors, warnings = cm.validate(skip_schema=skip_schema)
@@ -167,20 +172,22 @@ def merge_cmd(filepattern):
 
 
 @cli.command('subset')
-@click.option('--id', multiple=True, help='The ID of the CityObjects; can be used multiple times.')
+@click.option('--id', multiple=True, help='The ID of the City Objects; can be used multiple times.')
 @click.option('--bbox', nargs=4, type=float, help='2D bbox: (minx miny maxx maxy).')
-@click.option('--random', type=int, help='Number of random CityObjects to select.')
+@click.option('--random', type=int, help='Number of random City Objects to select.')
 @click.option('--cotype',
     type=click.Choice(['Building', 'Bridge', 'Road', 'TransportSquare', 'LandUse', 'Railway', 'TINRelief', 'WaterBody', 'PlantCover', 'SolitaryVegetationObject', 'CityFurniture', 'GenericCityObject', 'Tunnel']), 
     help='The City Object type')
 def subset_cmd(id, bbox, random, cotype):
     """
     Create a subset of a CityJSON file.
-    One can select City Objects by 
-    (1) IDs;
+    One can select City Objects by
+    (1) IDs of City Objects;
     (2) bbox;
-    (3) CityObject type;
+    (3) City Object type;
     (4) randomly.
+
+    These can be combined, except random which overwrites others.
     """
     def processor(cm):
         s = copy.deepcopy(cm)
