@@ -28,7 +28,7 @@ class PerCommandArgWantSubCmdHelp(click.Argument):
 @click.group(chain=True)
 @click.version_option(version='0.2.1')
 @click.argument('input', cls=PerCommandArgWantSubCmdHelp)
-@click.option('--ignore_duplicate_keys', is_flag=True, help='Load a CityJSON file even if some City Objects have the same IDs')
+@click.option('--ignore_duplicate_keys', is_flag=True, help='Load a CityJSON file even if some City Objects have the same IDs (technically invalid file)')
 @click.pass_context
 def cli(context, input, ignore_duplicate_keys):
     """Process and manipulate a CityJSON file, and allow
