@@ -78,18 +78,21 @@ def info_cmd(context):
 
 
 @cli.command('save')
-@click.argument('filename', type=click.File('w'))
+@click.argument('filename')
 @click.option('--indent', default=0)
 def save_cmd(filename, indent):
     """Save the CityJSON to a file."""
     def processor(cm):
-        if indent == 0:
-            json_str = json.dumps(cm.j, separators=(',',':'))
-            # click.echo(json_str)
-            filename.write(json_str)
-        else:
-            json_str = json.dumps(cm.j, indent=indent)
-            filename.write(json_str)
+        try:
+            fo = click.open_file(filename, mode='w')
+            if indent == 0:
+                json_str = json.dumps(cm.j, separators=(',',':'))
+                fo.write(json_str)
+            else:
+                json_str = json.dumps(cm.j, indent=indent)
+                fo.write(json_str)
+        except IOError as e:
+            raise click.ClickException('Invalid output file: "%s"' % (filename))                
         return cm
     return processor
 
