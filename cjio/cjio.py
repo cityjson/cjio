@@ -85,9 +85,11 @@ def save_cmd(filename, indent):
     def processor(cm):
         if indent == 0:
             json_str = json.dumps(cm.j, separators=(',',':'))
+            # click.echo(json_str)
+            filename.write(json_str)
         else:
             json_str = json.dumps(cm.j, indent=indent)
-        filename.write(json_str)
+            filename.write(json_str)
         return cm
     return processor
 
@@ -236,6 +238,18 @@ def remove_materials_cmd():
     """
     def processor(cm):
         cm.remove_materials()
+        return cm
+    return processor
+
+
+@cli.command('compress')
+# @click.option('--digit', default=3, type=click.IntRange(1, 10), help='Number of digit to keep.')
+def compress_cmd():
+    """
+    Compress a CityJSON file, ie stores its vertices with integers.
+    """
+    def processor(cm):
+        cm.compress(2)
         return cm
     return processor
 
