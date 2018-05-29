@@ -115,6 +115,7 @@ def update_bbox_cmd():
 def validate_cmd(hide_errors, skip_schema):
     """
     Validate the CityJSON file: (1) against its schema; (2) extra validations.
+    Only files with version >0.6 can be validated.
 
     If the file is too large (and thus validation is slow),
     an option is to crop a subset and just validate it:

@@ -20,6 +20,7 @@ Then you have a small program called `cjio`, to see its possibities:
 ```console
 $ cjio --help
 
+  compress                   Compress a CityJSON file, ie stores its...
   decompress                 Decompress a CityJSON file, ie remove the...
   info                       Output info in simple JSON.
   merge                      Merge the current CityJSON with others.
@@ -42,12 +43,12 @@ Operators like `nfo` and `validate` output information in the console and just p
 
 ```console
 $ cjio example.json validate
-$ cjio example.json remove_textures info
+$ cjio example.json remove_textures compress info
 $ cjio example.json subset --id house12 info remove_materials info save out.json
 ```
 
 
-## Where can I get data to test it?
+## Example CityJSON datasets
 
 There are a few [example files on the CityJSON webpage](http://www.cityjson.org/en/0.6/datasets/).
 

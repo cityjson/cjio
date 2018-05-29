@@ -59,8 +59,6 @@ class CityJSON:
         #-- fetch proper schema
         if self.j["version"] == "0.6":
             schema = resource_filename(__name__, '/schemas/v06/cityjson.json')
-        elif self.j["version"] == "0.5":
-            schema = resource_filename(__name__, '/schemas/cityjson-v05.schema.json')
         else:
             return (False, None)
         #-- open the schema
@@ -91,6 +89,9 @@ class CityJSON:
         return (True, jsco)
 
     def validate(self, skip_schema=False):
+        #-- only v0.6+
+        if float(self.j["version"]) < 0.6:
+            return (False, False, "Only files with version 0.6+ can be validated.", "")
         es = ""
         ws = ""
         #-- 1. schema
@@ -546,9 +547,10 @@ class CityJSON:
         self.j["transform"]["scale"] = [ss, ss, ss]
         self.j["transform"]["translate"] = [bbox[0], bbox[1], bbox[2]]
         #-- clean the file
-        self.remove_duplicate_vertices()
-        self.remove_orphan_vertices()
-        # print(self.j)
+        re = self.remove_duplicate_vertices()
+        # print ("Remove duplicates:", re)
+        re = self.remove_orphan_vertices()
+        # print ("Remove orphans:", re)
         return True
 
 
