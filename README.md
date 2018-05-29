@@ -1,5 +1,8 @@
 # cjio, or CityJSON/io
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/tudelft3d/cjio/blob/master/LICENSE)
+[![](https://badge.fury.io/py/cjio.svg)](https://pypi.org/project/cjio/)
+
 Python CLI to process and manipulate [CityJSON](http://www.cityjson.org) files.
 The different operators can be chained to perform several processing in one step, the CityJSON model goes through them and allows to save to a new CityJSON at the end.
 
