@@ -529,7 +529,6 @@ class CityJSON:
             for i in range(3):
                 if v[i] < bbox[i]:
                     bbox[i] = v[i]
-        # print (bbox)
         #-- convert vertices in self.j to int
         n = [0, 0, 0]
         p = '%.' + str(important_digits) + 'f' 
@@ -546,11 +545,10 @@ class CityJSON:
         ss = float(ss)
         self.j["transform"]["scale"] = [ss, ss, ss]
         self.j["transform"]["translate"] = [bbox[0], bbox[1], bbox[2]]
-        print (self.j["vertices"])
         #-- clean the file
         self.remove_duplicate_vertices()
         self.remove_orphan_vertices()
-        print(self.j)
+        # print(self.j)
         return True
 
 
