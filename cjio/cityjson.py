@@ -522,7 +522,7 @@ class CityJSON:
 
     def compress(self, important_digits=3):
         if "transform" in self.j:
-            raise Error("CityJSON already compressed")
+            raise Exception("CityJSON already compressed")
             return True
         #-- find the minx/miny/minz
         bbox = [9e9, 9e9, 9e9]    

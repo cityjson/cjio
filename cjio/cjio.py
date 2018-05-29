@@ -253,7 +253,10 @@ def compress_cmd(digit):
     Compress a CityJSON file, ie stores its vertices with integers.
     """
     def processor(cm):
-        cm.compress(digit)
+        try:
+            cm.compress(digit)
+        except Exception as e:
+            click.echo("WARNING: %s." % e)
         return cm
     return processor
 
