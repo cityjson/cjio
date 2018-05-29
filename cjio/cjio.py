@@ -246,13 +246,13 @@ def remove_materials_cmd():
 
 
 @cli.command('compress')
-# @click.option('--digit', default=3, type=click.IntRange(1, 10), help='Number of digit to keep.')
-def compress_cmd():
+@click.option('--digit', default=3, type=click.IntRange(1, 10), help='Number of digit to keep.')
+def compress_cmd(digit):
     """
     Compress a CityJSON file, ie stores its vertices with integers.
     """
     def processor(cm):
-        cm.compress(2)
+        cm.compress(digit)
         return cm
     return processor
 
