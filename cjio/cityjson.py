@@ -59,8 +59,6 @@ class CityJSON:
         #-- fetch proper schema
         if self.j["version"] == "0.6":
             schema = resource_filename(__name__, '/schemas/v06/cityjson.json')
-        elif self.j["version"] == "0.5":
-            schema = resource_filename(__name__, '/schemas/cityjson-v05.schema.json')
         else:
             return (False, None)
         #-- open the schema
@@ -91,6 +89,9 @@ class CityJSON:
         return (True, jsco)
 
     def validate(self, skip_schema=False):
+        #-- only v0.6+
+        if float(self.j["version"]) < 0.6:
+            return (False, False, "Only files with version 0.6+ can be validated.", "")
         es = ""
         ws = ""
         #-- 1. schema
@@ -519,6 +520,40 @@ class CityJSON:
         return (totalinput - len(self.j["vertices"]))
 
 
+    def compress(self, important_digits=3):
+        if "transform" in self.j:
+            raise Exception("CityJSON already compressed")
+            return True
+        #-- find the minx/miny/minz
+        bbox = [9e9, 9e9, 9e9]    
+        for v in self.j["vertices"]:
+            for i in range(3):
+                if v[i] < bbox[i]:
+                    bbox[i] = v[i]
+        #-- convert vertices in self.j to int
+        n = [0, 0, 0]
+        p = '%.' + str(important_digits) + 'f' 
+        for v in self.j["vertices"]:
+            for i in range(3):
+                n[i] = v[i] - bbox[i]
+            for i in range(3):
+                v[i] = int((p % n[i]).replace('.', ''))
+        #-- put transform
+        self.j["transform"] = {}
+        ss = '0.'
+        ss += '0'*(important_digits - 1)
+        ss += '1'
+        ss = float(ss)
+        self.j["transform"]["scale"] = [ss, ss, ss]
+        self.j["transform"]["translate"] = [bbox[0], bbox[1], bbox[2]]
+        #-- clean the file
+        re = self.remove_duplicate_vertices()
+        # print ("Remove duplicates:", re)
+        re = self.remove_orphan_vertices()
+        # print ("Remove orphans:", re)
+        return True
+
+
     def decompress(self):
         if "transform" in self.j:
             for v in self.j["vertices"]:
@@ -649,52 +684,4 @@ class CityJSON:
         return True
 
 
-
-
-if __name__ == '__main__':
-    # with open('/Users/hugo/projects/cityjson/example-datasets/dummy-values/invalid3.json', 'r') as cjfile:
-    # with open('/Users/hugo/projects/cityjson/example-datasets/dummy-values/example.json', 'r') as cjfile:
-    # with open('/Users/hugo/Dropbox/data/cityjson/examples/denhaag/DenHaag_01.json', 'r') as cjfile:
-    # with open('/Users/hugo/Dropbox/data/cityjson/GMLAS-GeoJSON/agniesebuurt.json', 'r') as cjfile:
-    # with open('/Users/hugo/Dropbox/data/cityjson/examples/rotterdam/3-20-DELFSHAVEN.json', 'r') as cjfile:
-    with open('/Users/hugo/temp/0000/a.json', 'r') as cjfile:
-        try:
-            cm = reader(cjfile, ignore_duplicate_keys=False)
-        except ValueError as e:
-            print ("ERROR:", e)
-            sys.exit()
-
-    with open('/Users/hugo/temp/0000/b.json', 'r') as cjfile:
-        try:
-            cmb = reader(cjfile, ignore_duplicate_keys=False)
-        except ValueError as e:
-            print ("ERROR:", e)
-            sys.exit()
-    with open('/Users/hugo/temp/0000/c.json', 'r') as cjfile:
-        try:
-            cmc = reader(cjfile, ignore_duplicate_keys=False)
-        except ValueError as e:
-            print ("ERROR:", e)
-            sys.exit()
-
-    # cm.merge([cmb])
-    cm.merge([cm, cmb, cmc])
-    # print(cm.remove_duplicate_vertices())
-    # print(cm.remove_orphan_vertices())
-    # print (cm)
-    json_str = json.dumps(cm.j)
-    f = open("/Users/hugo/temp/0000/z.json", "w")
-    f.write(json_str)
-
-    # cm.add_bbox_to_each_co()
-    # cm2 = cm.get_subset_bbox([78640, 458149, 78650, 458160])
-    # print (cm2)        
-    # bValid, woWarnings, errors, warnings = cm1.validate()            
-    # print (bValid)
-    # print (errors)
-    # bValid, woWarnings, errors, warnings = cm.validate()            
-    # print ("is_valid?", bValid)
-    # print ("errors:", errors)
-    # cm2 = cm.get_subset(['2929'], None)
-    # print (cm2)
 

@@ -78,16 +78,21 @@ def info_cmd(context):
 
 
 @cli.command('save')
-@click.argument('filename', type=click.File('w'))
+@click.argument('filename')
 @click.option('--indent', default=0)
 def save_cmd(filename, indent):
     """Save the CityJSON to a file."""
     def processor(cm):
-        if indent == 0:
-            json_str = json.dumps(cm.j, separators=(',',':'))
-        else:
-            json_str = json.dumps(cm.j, indent=indent)
-        filename.write(json_str)
+        try:
+            fo = click.open_file(filename, mode='w')
+            if indent == 0:
+                json_str = json.dumps(cm.j, separators=(',',':'))
+                fo.write(json_str)
+            else:
+                json_str = json.dumps(cm.j, indent=indent)
+                fo.write(json_str)
+        except IOError as e:
+            raise click.ClickException('Invalid output file: "%s"' % (filename))                
         return cm
     return processor
 
@@ -110,6 +115,7 @@ def update_bbox_cmd():
 def validate_cmd(hide_errors, skip_schema):
     """
     Validate the CityJSON file: (1) against its schema; (2) extra validations.
+    Only files with version >0.6 can be validated.
 
     If the file is too large (and thus validation is slow),
     an option is to crop a subset and just validate it:
@@ -236,6 +242,21 @@ def remove_materials_cmd():
     """
     def processor(cm):
         cm.remove_materials()
+        return cm
+    return processor
+
+
+@cli.command('compress')
+@click.option('--digit', default=3, type=click.IntRange(1, 10), help='Number of digit to keep.')
+def compress_cmd(digit):
+    """
+    Compress a CityJSON file, ie stores its vertices with integers.
+    """
+    def processor(cm):
+        try:
+            cm.compress(digit)
+        except Exception as e:
+            click.echo("WARNING: %s." % e)
         return cm
     return processor
 
