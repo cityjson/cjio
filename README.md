@@ -4,21 +4,34 @@
 [![](https://badge.fury.io/py/cjio.svg)](https://pypi.org/project/cjio/)
 
 Python CLI to process and manipulate [CityJSON](http://www.cityjson.org) files.
-The different operators can be chained to perform several processing in one step, the CityJSON model goes through them and allows to save to a new CityJSON at the end.
+The different operators can be chained to perform several processing operations in one step, the CityJSON model goes through them and different versions of the CityJSON model can be saved as files along the pipeline.
+
+
+## Installation
 
 It uses Python 3.3+ only.
 
-To install and still develop with it:
+To install the latest release:
 
 ```console
-$ virtualenv venv
-$ . venv/bin/activate
-$ pip3 install --editable .
+pip3 install cjio
 ```
 
-Then you have a small program called `cjio`, to see its possibities:
+To install the development branch, and still develop with it:
+
 ```console
-$ cjio --help
+git checkout development
+virtualenv venv
+. venv/bin/activate
+pip3 install --editable .
+```
+
+## Usage
+
+After installation, you have a small program called `cjio`, to see its possibities:
+
+```console
+cjio --help
 
   compress                   Compress a CityJSON file, ie stores its...
   decompress                 Decompress a CityJSON file, ie remove the...
@@ -39,7 +52,7 @@ $ cjio --help
 ## Pipelines of operators
 
 The 3D city model opened is passed through all the operators, and it gets modified by some operators.
-Operators like `nfo` and `validate` output information in the console and just pass the 3D city model to the next operator.
+Operators like `info` and `validate` output information in the console and just pass the 3D city model to the next operator.
 
 ```console
 $ cjio example.json validate
