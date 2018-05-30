@@ -27,9 +27,10 @@ class PerCommandArgWantSubCmdHelp(click.Argument):
 @click.group(chain=True)
 @click.version_option(version=__version__)
 @click.argument('input', cls=PerCommandArgWantSubCmdHelp)
+@click.option('--off', is_flag=True, help='Load an OFF file and convert it to one CityJSON GenericCityObject.')
 @click.option('--ignore_duplicate_keys', is_flag=True, help='Load a CityJSON file even if some City Objects have the same IDs (technically invalid file)')
 @click.pass_context
-def cli(context, input, ignore_duplicate_keys):
+def cli(context, input, off, ignore_duplicate_keys):
     """Process and manipulate a CityJSON file, and allow
     different outputs. The different operators can be chained
     to perform several processing in one step, the CityJSON model
@@ -52,10 +53,13 @@ def cli(context, input, ignore_duplicate_keys):
 
 @cli.resultcallback()
 @click.pass_context
-def process_pipeline(context, processors, input, ignore_duplicate_keys):
+def process_pipeline(context, processors, input, off, ignore_duplicate_keys):
     try:
         f = click.open_file(input, mode='r')
-        cm = cityjson.reader(f, ignore_duplicate_keys=ignore_duplicate_keys)
+        if off is True: #-- OFF file
+            cm = cityjson.off2cj(f)
+        else: #-- CityJSON file
+            cm = cityjson.reader(file=f, ignore_duplicate_keys=ignore_duplicate_keys)
     except ValueError as e:
         # click.echo(context.get_usage() + "\n")
         raise click.ClickException('%s: "%s".' % (e, input))

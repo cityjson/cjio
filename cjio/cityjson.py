@@ -15,20 +15,56 @@ from cjio import subset
 
 
 def reader(file, ignore_duplicate_keys=False):
-    return CityJSON(file, ignore_duplicate_keys=ignore_duplicate_keys)
+    return CityJSON(file=file, ignore_duplicate_keys=ignore_duplicate_keys)
+
+def off2cj(file):
+    l = file.readline()
+    # print(l)
+    while (len(l) <= 1) or (l[0] == '#') or (l[:3] == 'OFF'):
+        l = file.readline()
+        # print(l)
+        # print ('len', len(l))
+    numVertices = int(l.split()[0])
+    numFaces    = int(l.split()[1])
+    lstVertices = []
+    for i in range(numVertices):
+        lstVertices.append(list(map(float, file.readline().split())))
+    lstFaces = []
+    for i in range(numFaces):
+        lstFaces.append(list(map(int, file.readline().split()[1:])))
+    cm = {}
+    cm["type"] = "CityJSON"
+    cm["version"] = "0.6"
+    cm["CityObjects"] = {}
+    cm["vertices"] = []
+    for v in lstVertices:
+        cm["vertices"].append(v)
+    g = {'type': 'Solid'}
+    shell = []
+    for f in lstFaces:
+        shell.append([f])
+    g['boundaries'] = [shell]
+    g['lod'] = 1
+    o = {'type': 'GenericCityObject'}
+    o['geometry'] = [g]
+    cm["CityObjects"]["id-1"] = o
+    return CityJSON(j=cm)
+
 
 
 class CityJSON:
 
-    def __init__(self, file=None, ignore_duplicate_keys=False):
-        if file is None:
+    def __init__(self, file=None, j=None, ignore_duplicate_keys=False):
+        if file is not None:
+            self.read(file, ignore_duplicate_keys)
+        elif j is not None:
+            self.j = j
+        else: #-- create an empty one
             self.j = {}
             self.j["type"] = "CityJSON"
             self.j["version"] = "0.6"
             self.j["CityObjects"] = {}
             self.j["vertices"] = []
-        else:
-            self.read(file, ignore_duplicate_keys)
 
     def __repr__(self):
         return self.get_info()
