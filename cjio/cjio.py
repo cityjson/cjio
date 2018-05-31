@@ -4,10 +4,9 @@ import json
 import sys
 import copy
 import glob
-
 from cjio import cityjson
 
-
+__version__ = "0.3.0"
 
 #-- https://stackoverflow.com/questions/47437472/in-python-click-how-do-i-see-help-for-subcommands-whose-parents-have-required
 class PerCommandArgWantSubCmdHelp(click.Argument):
@@ -26,11 +25,12 @@ class PerCommandArgWantSubCmdHelp(click.Argument):
 
 
 @click.group(chain=True)
-@click.version_option(version='0.2.1')
+@click.version_option(version=__version__)
 @click.argument('input', cls=PerCommandArgWantSubCmdHelp)
-@click.option('--ignore_duplicate_keys', is_flag=True, help='Load a CityJSON file even if some City Objects have the same keys')
+@click.option('--off', is_flag=True, help='Load an OFF file and convert it to one CityJSON GenericCityObject.')
+@click.option('--ignore_duplicate_keys', is_flag=True, help='Load a CityJSON file even if some City Objects have the same IDs (technically invalid file)')
 @click.pass_context
-def cli(context, input, ignore_duplicate_keys):
+def cli(context, input, off, ignore_duplicate_keys):
     """Process and manipulate a CityJSON file, and allow
     different outputs. The different operators can be chained
     to perform several processing in one step, the CityJSON model
@@ -53,10 +53,13 @@ def cli(context, input, ignore_duplicate_keys):
 
 @cli.resultcallback()
 @click.pass_context
-def process_pipeline(context, processors, input, ignore_duplicate_keys):
+def process_pipeline(context, processors, input, off, ignore_duplicate_keys):
     try:
         f = click.open_file(input, mode='r')
-        cm = cityjson.reader(f, ignore_duplicate_keys=ignore_duplicate_keys)
+        if off is True: #-- OFF file
+            cm = cityjson.off2cj(f)
+        else: #-- CityJSON file
+            cm = cityjson.reader(file=f, ignore_duplicate_keys=ignore_duplicate_keys)
     except ValueError as e:
         # click.echo(context.get_usage() + "\n")
         raise click.ClickException('%s: "%s".' % (e, input))
@@ -79,16 +82,21 @@ def info_cmd(context):
 
 
 @cli.command('save')
-@click.argument('filename', type=click.File('w'))
+@click.argument('filename')
 @click.option('--indent', default=0)
 def save_cmd(filename, indent):
     """Save the CityJSON to a file."""
     def processor(cm):
-        if indent == 0:
-            json_str = json.dumps(cm.j, separators=(',',':'))
-        else:
-            json_str = json.dumps(cm.j, indent=indent)
-        filename.write(json_str)
+        try:
+            fo = click.open_file(filename, mode='w')
+            if indent == 0:
+                json_str = json.dumps(cm.j, separators=(',',':'))
+                fo.write(json_str)
+            else:
+                json_str = json.dumps(cm.j, indent=indent)
+                fo.write(json_str)
+        except IOError as e:
+            raise click.ClickException('Invalid output file: "%s"' % (filename))                
         return cm
     return processor
 
@@ -111,6 +119,12 @@ def update_bbox_cmd():
 def validate_cmd(hide_errors, skip_schema):
     """
     Validate the CityJSON file: (1) against its schema; (2) extra validations.
+    Only files with version >0.6 can be validated.
+
+    If the file is too large (and thus validation is slow),
+    an option is to crop a subset and just validate it:
+
+        cjio myfile.json subset --random 5 validate
     """
     def processor(cm):
         bValid, woWarnings, errors, warnings = cm.validate(skip_schema=skip_schema)
@@ -167,21 +181,28 @@ def merge_cmd(filepattern):
 
 
 @cli.command('subset')
-@click.option('--id', multiple=True, help='The ID of the CityObjects; can be used multiple times.')
-@click.option('--bbox', nargs=4, type=float, help='2D bbox: minx miny maxx maxy')
+@click.option('--id', multiple=True, help='The ID of the City Objects; can be used multiple times.')
+@click.option('--bbox', nargs=4, type=float, help='2D bbox: (minx miny maxx maxy).')
+@click.option('--random', type=int, help='Number of random City Objects to select.')
 @click.option('--cotype',
     type=click.Choice(['Building', 'Bridge', 'Road', 'TransportSquare', 'LandUse', 'Railway', 'TINRelief', 'WaterBody', 'PlantCover', 'SolitaryVegetationObject', 'CityFurniture', 'GenericCityObject', 'Tunnel']), 
     help='The City Object type')
-def subset_cmd(id, bbox, cotype):
+def subset_cmd(id, bbox, random, cotype):
     """
     Create a subset of a CityJSON file.
-    One can select City Objects by 
-    (1) IDs;
+    One can select City Objects by
+    (1) IDs of City Objects;
     (2) bbox;
-    (3) CityObject type.
+    (3) City Object type;
+    (4) randomly.
+
+    These can be combined, except random which overwrites others.
     """
     def processor(cm):
         s = copy.deepcopy(cm)
+        if random is not None:
+            s = s.get_subset_random(random)
+            return s
         if len(id) > 0:
             s = s.get_subset_ids(id)
         if len(bbox) > 0:
@@ -225,6 +246,21 @@ def remove_materials_cmd():
     """
     def processor(cm):
         cm.remove_materials()
+        return cm
+    return processor
+
+
+@cli.command('compress')
+@click.option('--digit', default=3, type=click.IntRange(1, 10), help='Number of digit to keep.')
+def compress_cmd(digit):
+    """
+    Compress a CityJSON file, ie stores its vertices with integers.
+    """
+    def processor(cm):
+        try:
+            cm.compress(digit)
+        except Exception as e:
+            click.echo("WARNING: %s." % e)
         return cm
     return processor
 

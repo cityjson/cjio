@@ -1,23 +1,39 @@
-
 # cjio, or CityJSON/io
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/tudelft3d/cjio/blob/master/LICENSE)
+[![](https://badge.fury.io/py/cjio.svg)](https://pypi.org/project/cjio/)
+
 Python CLI to process and manipulate [CityJSON](http://www.cityjson.org) files.
-The different operators can be chained to perform several processing in one step, the CityJSON model goes through them and allows to save to a new CityJSON at the end.
+The different operators can be chained to perform several processing operations in one step, the CityJSON model goes through them and different versions of the CityJSON model can be saved as files along the pipeline.
 
-It is only for uses Python 3.3+
 
-To install and still develop with it:
+## Installation
+
+It uses Python 3.3+ only.
+
+To install the latest release:
 
 ```console
-$ virtualenv venv
-$ . venv/bin/activate
-$ pip3 install --editable .
+pip3 install cjio
 ```
 
-Then you have a small program called `cjio`, to see its possibities:
-```console
-$ cjio --help
+To install the development branch, and still develop with it:
 
+```console
+git checkout development
+virtualenv venv
+. venv/bin/activate
+pip3 install --editable .
+```
+
+## Usage
+
+After installation, you have a small program called `cjio`, to see its possibities:
+
+```console
+cjio --help
+
+  compress                   Compress a CityJSON file, ie stores its...
   decompress                 Decompress a CityJSON file, ie remove the...
   info                       Output info in simple JSON.
   merge                      Merge the current CityJSON with others.
@@ -33,7 +49,19 @@ $ cjio --help
 ```
 
 
-## Where can I get data to test it?
+## Pipelines of operators
+
+The 3D city model opened is passed through all the operators, and it gets modified by some operators.
+Operators like `info` and `validate` output information in the console and just pass the 3D city model to the next operator.
+
+```console
+$ cjio example.json validate
+$ cjio example.json remove_textures compress info
+$ cjio example.json subset --id house12 info remove_materials info save out.json
+```
+
+
+## Example CityJSON datasets
 
 There are a few [example files on the CityJSON webpage](http://www.cityjson.org/en/0.6/datasets/).
 

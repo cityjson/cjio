@@ -1,10 +1,26 @@
 from setuptools import setup
+import re
+from pathlib import Path
+
+CURRENT_DIR = Path(__file__).parent
+
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
+def get_version():
+    cjio_py = CURRENT_DIR / "cjio/cjio.py"
+    print(cjio_py)
+    _version_re = re.compile(r"__version__\s+=\s+(?P<version>.*)")
+    with open(cjio_py, "r", encoding="utf8") as f:
+        match = _version_re.search(f.read())
+        version = match.group("version") if match is not None else '"unknown"'
+    return str(version)
 
 setup(
     name='cjio',
-    version='0.2.1',
-    description='Python CLI to process and manipulate CityJSON files',
-    long_description='Python CLI to process and manipulate [CityJSON](http://www.cityjson.org) files. The different operators can be chained to perform several processing in one step, the CityJSON model goes through them and allows to save to a new CityJSON at the end.',
+    version=get_version(),
+    description='CLI to process and manipulate CityJSON files',
+    long_description=long_description,
     long_description_content_type="text/markdown",
     url='https://github.com/tudelft3d/cjio',
     author='Hugo Ledoux, Balázs Dukai',
