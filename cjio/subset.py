@@ -37,13 +37,16 @@ def select_co_ids(j, IDs):
             if "ConstructionElements" in j["CityObjects"][each]:
                 for i in j["CityObjects"][each]["ConstructionElements"]:
                     re.add(i)
-    #-- also add the parent of a Part/Installation
+    #-- also add the parent and siblings of a Part/Installation
     for theid in IDs:
         for each in ['Parts', 'Installations', 'ConstructionElements']:
             if j["CityObjects"][theid]["type"].find(each[:-1]) > 0:
                 for coid in j["CityObjects"]:
                     if (each in j["CityObjects"][coid]) and (theid in j["CityObjects"][coid][each]):
                         re.add(coid)
+                        #-- add siblings
+                        for i in j["CityObjects"][coid][each]:
+                            re.add(i)
     return re                
 
 
