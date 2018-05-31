@@ -4,6 +4,7 @@ import json
 import sys
 import copy
 import glob
+import cjio
 from cjio import cityjson
 
 #-- https://stackoverflow.com/questions/47437472/in-python-click-how-do-i-see-help-for-subcommands-whose-parents-have-required
@@ -23,7 +24,7 @@ class PerCommandArgWantSubCmdHelp(click.Argument):
 
 
 @click.group(chain=True)
-@click.version_option(version=__version__)
+@click.version_option(version=cjio.__version__)
 @click.argument('input', cls=PerCommandArgWantSubCmdHelp)
 @click.option('--off', is_flag=True, help='Load an OFF file and convert it to one CityJSON GenericCityObject.')
 @click.option('--ignore_duplicate_keys', is_flag=True, help='Load a CityJSON file even if some City Objects have the same IDs (technically invalid file)')
