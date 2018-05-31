@@ -6,8 +6,6 @@ import copy
 import glob
 from cjio import cityjson
 
-__version__ = "0.3.0"
-
 #-- https://stackoverflow.com/questions/47437472/in-python-click-how-do-i-see-help-for-subcommands-whose-parents-have-required
 class PerCommandArgWantSubCmdHelp(click.Argument):
     def handle_parse_result(self, ctx, opts, args):
