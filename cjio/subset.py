@@ -69,7 +69,7 @@ def process_templates(j, j2):
             if geom["type"] == "GeometryInstance": 
                 t = geom["template"] 
                 if t in dOldNewIDs:
-                    geom["template"] = dOldNewIDs[v]
+                    geom["template"] = dOldNewIDs[t]
                 else:
                     geom["template"] = len(newones)
                     dOldNewIDs[t] = len(newones)
