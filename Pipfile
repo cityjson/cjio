@@ -4,6 +4,7 @@ verify_ssl = true
 url = "https://pypi.org/simple"
 
 [dev-packages]
+pytest = "*"
 
 [requires]
 python_version = "3.6"
@@ -12,4 +13,4 @@ python_version = "3.6"
 click = "*"
 jsonschema = "*"
 jsonref = "*"
-"e1839a8" = {path = ".", editable = true}
+"e1839a8" = {editable = true, path = "."}

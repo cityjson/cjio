@@ -1,6 +1,8 @@
 
 import os
 import sys
+import re
+
 import json
 import collections
 import jsonref
@@ -57,6 +59,7 @@ class CityJSON:
     def __init__(self, file=None, j=None, ignore_duplicate_keys=False):
         if file is not None:
             self.read(file, ignore_duplicate_keys)
+            self.path = file.name
         elif j is not None:
             self.j = j
         else: #-- create an empty one
@@ -420,6 +423,42 @@ class CityJSON:
         cm2.update_bbox()
         return cm2
         
+
+
+    def get_texture_location(self):
+        """Get the location of the texture files
+        
+        Assumes that all textures are in the same location. Relative paths
+        are expanded to absolute paths.
+        """
+        if "appearance" in self.j:
+            if "textures" in self.j["appearance"]:
+                p = self.j["appearance"]["textures"][0]["image"]
+                cj_dir = os.path.dirname(self.path)
+                url = re.match('http[s]?://|www\.', p)
+                if url:
+                    return url
+                else:
+                    d = os.path.dirname(p)
+                    print(d)
+                    if len(d) == 0:
+                        # textures are in the same dir as the cityjson file
+                        return cj_dir
+                    elif not os.path.isabs(d):
+                        if os.path.isdir(os.path.abspath(d)):
+                            # texture dir is not necessarily in the same dir 
+                            # as the input file
+                            return os.path.abspath(d)
+                        elif os.path.isdir(os.path.join(cj_dir, d)):
+                            # texture dir is a subdirectory at the input file
+                            return os.path.join(cj_dir, d)
+                        else:
+                            raise FileNotFoundError("Texture directory '%s' not found" % d)
+
+
+    def validate_textures(self):
+        """Check if the texture files exist"""
+
 
     def remove_textures(self):
         for i in self.j["CityObjects"]:
