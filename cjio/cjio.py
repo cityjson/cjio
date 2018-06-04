@@ -1,3 +1,5 @@
+import os.path
+from os import makedirs
 
 import click
 import json
@@ -86,8 +88,13 @@ def info_cmd(context):
 def save_cmd(filename, indent):
     """Save the CityJSON to a file."""
     def processor(cm):
+        f = os.path.basename(filename)
+        d = os.path.abspath(os.path.dirname(filename))
+        if not os.path.isdir(d):
+            os.makedirs(d)
+        p = os.path.join(d, f)
         try:
-            fo = click.open_file(filename, mode='w')
+            fo = click.open_file(p, mode='w')
             if indent == 0:
                 json_str = json.dumps(cm.j, separators=(',',':'))
                 fo.write(json_str)
@@ -95,7 +102,7 @@ def save_cmd(filename, indent):
                 json_str = json.dumps(cm.j, indent=indent)
                 fo.write(json_str)
         except IOError as e:
-            raise click.ClickException('Invalid output file: "%s"' % (filename))                
+            raise click.ClickException('Invalid output file: "%s".\n%s' % (p, e))                
         return cm
     return processor
 
