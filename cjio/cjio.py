@@ -64,7 +64,7 @@ def process_pipeline(context, processors, input, off, ignore_duplicate_keys):
         raise click.ClickException('%s: "%s".' % (e, input))
     except IOError as e:
         # click.echo(context.get_usage() + "\n")
-        raise click.ClickException('Invalid file: "%s".' % (input))
+        raise click.ClickException('Invalid file: "%s".\n%s' % (input, e))
     for processor in processors:
         cm = processor(cm)
 
