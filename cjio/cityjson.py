@@ -59,7 +59,7 @@ class CityJSON:
     def __init__(self, file=None, j=None, ignore_duplicate_keys=False):
         if file is not None:
             self.read(file, ignore_duplicate_keys)
-            self.path = file.name
+            self.path = os.path.abspath(file.name)
         elif j is not None:
             self.j = j
         else: #-- create an empty one
@@ -425,7 +425,7 @@ class CityJSON:
         
 
 
-    def get_texture_location(self):
+    def get_textures_location(self):
         """Get the location of the texture files
         
         Assumes that all textures are in the same location. Relative paths
@@ -440,7 +440,6 @@ class CityJSON:
                     return url
                 else:
                     d = os.path.dirname(p)
-                    print(d)
                     if len(d) == 0:
                         # textures are in the same dir as the cityjson file
                         return cj_dir
@@ -454,7 +453,12 @@ class CityJSON:
                             return os.path.join(cj_dir, d)
                         else:
                             raise FileNotFoundError("Texture directory '%s' not found" % d)
-
+            else:
+                print("This file does not have textures")
+                return None
+        else:
+            print("This file does not have textures")
+            return None
 
     def validate_textures(self):
         """Check if the texture files exist"""

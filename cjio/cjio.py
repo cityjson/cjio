@@ -307,3 +307,13 @@ def update_crs_cmd(newcrs):
     return processor
 
 
+@cli.command('locate_textures')
+def locate_textures_cmd():
+    """
+    Output the location of the texture files.
+    """
+    def processor(cm):
+        loc = cm.get_textures_location()
+        click.echo(loc)
+        return cm
+    return processor
