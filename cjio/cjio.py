@@ -9,6 +9,7 @@ import glob
 import cjio
 from cjio import cityjson
 
+
 #-- https://stackoverflow.com/questions/47437472/in-python-click-how-do-i-see-help-for-subcommands-whose-parents-have-required
 class PerCommandArgWantSubCmdHelp(click.Argument):
     def handle_parse_result(self, ctx, opts, args):
@@ -85,7 +86,10 @@ def info_cmd(context):
 @cli.command('save')
 @click.argument('filename')
 @click.option('--indent', default=0)
-def save_cmd(filename, indent):
+@click.option('--textures', default=None, 
+              type=click.Path(exists=True),
+              help='Copy the textures to a new location. Useful when creating an independent subset of a CityJSON file.')
+def save_cmd(filename, indent, textures):
     """Save the CityJSON to a file."""
     def processor(cm):
         f = os.path.basename(filename)
@@ -94,9 +98,10 @@ def save_cmd(filename, indent):
             os.makedirs(d)
         p = os.path.join(d, f)
         try:
-            # collect texture files from prev dir and cp them to p
-            # update texture links in cm.j
             fo = click.open_file(p, mode='w')
+            if textures:
+#                 cm.path = p
+                cm.copy_textures(textures, p)
             if indent == 0:
                 json_str = json.dumps(cm.j, separators=(',',':'))
                 fo.write(json_str)
