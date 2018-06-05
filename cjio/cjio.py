@@ -296,15 +296,29 @@ def remove_textures_cmd():
     return processor
 
 
-@cli.command('update_crs')
-@click.argument('newcrs', type=int)
-def update_crs_cmd(newcrs):
+@cli.command('update_epsg')
+@click.argument('newepsg', type=int)
+def update_crs_cmd(newepsg):
     """
     Update the CRS with a new value (give only the EPSG).
     Can be used to assign one to a file that doesn't have any.
     """
     def processor(cm):
-        print (cm.set_crs(newcrs))
+        cm.set_epsg(newepsg)
+        return cm
+    return processor
+
+
+@cli.command('upgrade_version')
+@click.argument('newversion')
+def update_crs_cmd(newversion):
+    """
+    Update the CityJSON to a new version.
+    It takes care of *everything* (touch wood).
+    """
+    def processor(cm):
+        if (cm.upgrade_version(newversion) == False):
+            click.echo("WARNING: File cannot be upgraded to this version.")
         return cm
     return processor
 
