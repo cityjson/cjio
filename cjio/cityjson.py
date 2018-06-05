@@ -14,6 +14,8 @@ import random
 
 from cjio import validation
 from cjio import subset
+from cjio import errors
+from cjio.errors import InvalidOperation
 
 
 def reader(file, ignore_duplicate_keys=False):
@@ -452,13 +454,22 @@ class CityJSON:
                             # texture dir is a subdirectory at the input file
                             return os.path.join(cj_dir, d)
                         else:
-                            raise FileNotFoundError("Texture directory '%s' not found" % d)
+                            raise NotADirectoryError("Texture directory '%s' not found" % d)
             else:
                 print("This file does not have textures")
                 return None
         else:
             print("This file does not have textures")
             return None
+
+
+    def update_textures_location(self, new_loc, relative=True):
+        """Updates the location of the texture files"""
+        curr_loc = self.get_textures_location()
+        if curr_loc:
+            pass
+        else:
+            raise InvalidOperation("Cannot update textures in a city model without textures")
 
     def validate_textures(self):
         """Check if the texture files exist"""

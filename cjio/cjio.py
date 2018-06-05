@@ -94,6 +94,8 @@ def save_cmd(filename, indent):
             os.makedirs(d)
         p = os.path.join(d, f)
         try:
+            # collect texture files from prev dir and cp them to p
+            # update texture links in cm.j
             fo = click.open_file(p, mode='w')
             if indent == 0:
                 json_str = json.dumps(cm.j, separators=(',',':'))
@@ -315,5 +317,18 @@ def locate_textures_cmd():
     def processor(cm):
         loc = cm.get_textures_location()
         click.echo(loc)
+        return cm
+    return processor
+
+
+@cli.command('update_textures')
+@click.argument('newlocation', type=str)
+def update_textures_cmd(newlocation):
+    """
+    Update the location of the texture files.
+    Can be used if the texture files were moved to new directory.
+    """
+    def processor(cm):
+        cm.update_textures_location(newlocation)
         return cm
     return processor
