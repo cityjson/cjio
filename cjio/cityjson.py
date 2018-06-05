@@ -464,10 +464,31 @@ class CityJSON:
 
 
     def update_textures_location(self, new_loc, relative=True):
-        """Updates the location of the texture files"""
+        """Updates the location of the texture files
+        
+        If the new location is a directory in the local file system, it is
+        expected to exists with the texture files in it.
+        """
         curr_loc = self.get_textures_location()
         if curr_loc:
-            pass
+            if re.match('http[s]?://|www\.', new_loc):
+                apath = new_loc
+                for t in self.j["appearance"]["textures"]:
+                    f = os.path.basename(t["image"])
+                    t["image"] = os.path.join(apath, f)
+            else:
+                apath = os.path.abspath(new_loc)
+                if not os.path.isdir(apath):
+                    raise NotADirectoryError("%s does not exits" % apath)
+                elif relative:
+                    rpath = os.path.relpath(apath, os.path.dirname(self.path))
+                    for t in self.j["appearance"]["textures"]:
+                        f = os.path.basename(t["image"])
+                        t["image"] = os.path.join(rpath, f)
+                else:
+                    for t in self.j["appearance"]["textures"]:
+                        f = os.path.basename(t["image"])
+                        t["image"] = os.path.join(apath, f)
         else:
             raise InvalidOperation("Cannot update textures in a city model without textures")
 

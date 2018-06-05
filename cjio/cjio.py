@@ -323,12 +323,13 @@ def locate_textures_cmd():
 
 @cli.command('update_textures')
 @click.argument('newlocation', type=str)
-def update_textures_cmd(newlocation):
+@click.option('--relative', is_flag=True, help='Convert texture file paths to relative paths.')
+def update_textures_cmd(newlocation, relative):
     """
     Update the location of the texture files.
     Can be used if the texture files were moved to new directory.
     """
     def processor(cm):
-        cm.update_textures_location(newlocation)
+        cm.update_textures_location(newlocation, relative=relative)
         return cm
     return processor
