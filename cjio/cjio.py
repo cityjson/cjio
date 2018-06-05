@@ -147,7 +147,7 @@ def validate_cmd(hide_errors, skip_schema):
         if not hide_errors and woWarnings is False:
             click.echo("--- WARNINGS ---")
             click.echo(warnings)
-        click.echo('======================')
+        click.echo('=====================================')
         return cm
     return processor
 

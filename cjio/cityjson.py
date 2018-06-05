@@ -72,6 +72,23 @@ class CityJSON:
     def __repr__(self):
         return self.get_info()
 
+
+    def get_version(self):
+        return self.j["version"]
+
+
+    def get_epsg(self):
+        if "metadata" not in self.j:
+            return None
+        if "crs" in self.j["metadata"] and "epsg" in self.j["metadata"]["crs"]:
+            return self.j["metadata"]["crs"]["epsg"]
+        elif "referenceSystem" in self.j["metadata"]:
+            s = self.j["metadata"]["referenceSystem"]
+            return int(s[s.find("::")+2:])
+        else:
+            return None
+
+
     def is_empty(self):
         if len(self.j["CityObjects"]) == 0:
             return True
@@ -498,16 +515,8 @@ class CityJSON:
 
     def get_info(self):
         info = collections.OrderedDict()
-        info["cityjson_version"] = self.j["version"]
-        if "metadata" in self.j:
-            if "crs" in self.j["metadata"] and "epsg" in self.j["metadata"]["crs"]:
-                info["crs"] = self.j["metadata"]["crs"]["epsg"]
-            else:
-                info["crs"] = None
-            if "bbox" in self.j["metadata"]:
-                info["bbox"] = self.j["metadata"]["bbox"]
-            else:
-                info["bbox"] = None
+        info["cityjson_version"] = self.get_version()
+        info["epsg"] = self.get_epsg()
         info["cityobjects_total"] = len(self.j["CityObjects"])
         d = set()
         for key in self.j["CityObjects"]:
