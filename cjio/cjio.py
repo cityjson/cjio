@@ -136,7 +136,7 @@ def validate_cmd(hide_errors, skip_schema):
     """
     def processor(cm):
         bValid, woWarnings, errors, warnings = cm.validate(skip_schema=skip_schema)
-        click.echo('===== Validation =====')
+        click.echo('===== Validation (schemas v%s) =====' % (cm.j['version']))
         if bValid == True:
             click.echo(click.style('File is valid', fg='green'))
         else:    
@@ -149,7 +149,7 @@ def validate_cmd(hide_errors, skip_schema):
         if not hide_errors and woWarnings is False:
             click.echo("--- WARNINGS ---")
             click.echo(warnings)
-        click.echo('======================')
+        click.echo('=====================================')
         return cm
     return processor
 
