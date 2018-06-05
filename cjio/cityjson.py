@@ -96,9 +96,10 @@ class CityJSON:
             
     def fetch_schema(self):
         #-- fetch proper schema
-        if self.j["version"] == "0.6":
-            schema = resource_filename(__name__, '/schemas/v06/cityjson.json')
-        else:
+        v = self.j["version"].replace('.', '')
+        try:
+            schema = resource_filename(__name__, '/schemas/v%s/cityjson.json' % (v))
+        except:
             return (False, None)
         #-- open the schema
         fins = open(schema)
@@ -114,18 +115,19 @@ class CityJSON:
         js = jsonref.loads(fins.read(), jsonschema=True, base_uri=base_uri)
         return (True, js)
 
+
     def fetch_schema_cityobjects(self):
         #-- fetch proper schema
-        if self.j["version"] == "0.6":
-            schema = resource_filename(__name__, '/schemas/v06/cityjson.json')
-        elif self.j["version"] == "0.5":
-            schema = resource_filename(__name__, '/schemas/cityjson-v05.schema.json')
-        else:
+        v = self.j["version"].replace('.', '')
+        try:
+            schema = resource_filename(__name__, '/schemas/v%s/cityjson.json' % (v))
+        except:
             return (False, None)
         sco_path = os.path.abspath(os.path.dirname(schema))
         sco_path += '/cityobjects.json'
         jsco = json.loads(open(sco_path).read())
         return (True, jsco)
+
 
     def validate(self, skip_schema=False):
         #-- only v0.6+
