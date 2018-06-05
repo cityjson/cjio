@@ -246,18 +246,25 @@ class CityJSON:
 
 
     def set_crs(self, newcrs):
-        if "metadata" not in self.j:
-            self.j["metadata"] = {}
-        if "crs" not in self.j["metadata"]:
-            self.j["metadata"]["crs"] = {} 
-        if "epsg" not in self.j["metadata"]["crs"]:
-            self.j["metadata"]["crs"]["epsg"] = None
         try:
             i = int(newcrs)
-            self.j["metadata"]["crs"]["epsg"] = i
-            return True
         except ValueError:
             return False
+        if "metadata" not in self.j:
+            self.j["metadata"] = {}
+        if float(self.get_version()) < 0.7:
+            print ("ici")
+            if "crs" not in self.j["metadata"]:
+                self.j["metadata"]["crs"] = {} 
+            if "epsg" not in self.j["metadata"]["crs"]:
+                self.j["metadata"]["crs"]["epsg"] = {}
+            self.j["metadata"]["crs"]["epsg"] = i
+            return True
+        else:
+            if "referenceSystem" not in self.j["metadata"]:
+                self.j["metadata"]["referenceSystem"] = {}
+            self.j["metadata"]["referenceSystem"] = i
+            return True
 
 
     def get_crs(self):

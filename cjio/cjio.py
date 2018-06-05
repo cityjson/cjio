@@ -300,11 +300,11 @@ def remove_textures_cmd():
 @click.argument('newcrs', type=int)
 def update_crs_cmd(newcrs):
     """
-    Update the CRS with a new value.
+    Update the CRS with a new value (give only the EPSG).
     Can be used to assign one to a file that doesn't have any.
     """
     def processor(cm):
-        cm.set_crs(newcrs)
+        print (cm.set_crs(newcrs))
         return cm
     return processor
 
