@@ -87,8 +87,8 @@ def info_cmd(context):
 @click.argument('filename')
 @click.option('--indent', default=0)
 @click.option('--textures', default=None, 
-              type=click.Path(exists=True),
-              help='Copy the textures to a new location. Useful when creating an independent subset of a CityJSON file.')
+              type=str,
+              help='Path to the new textures directory. This command copies the textures to a new location. Useful when creating an independent subset of a CityJSON file.')
 def save_cmd(filename, indent, textures):
     """Save the CityJSON to a file."""
     def processor(cm):
@@ -100,7 +100,6 @@ def save_cmd(filename, indent, textures):
         try:
             fo = click.open_file(p, mode='w')
             if textures:
-#                 cm.path = p
                 cm.copy_textures(textures, p)
             if indent == 0:
                 json_str = json.dumps(cm.j, separators=(',',':'))
