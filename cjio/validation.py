@@ -152,6 +152,8 @@ def citygml_attributes(j, js):
     thewarnings = {}
     for id in j["CityObjects"]:
         cotype = j['CityObjects'][id]['type']
+        if cotype[0] == "+":
+            continue
         tmp = js[str(cotype)]["properties"]["attributes"]["properties"]
         if 'attributes' in j['CityObjects'][id]:
             for a in j['CityObjects'][id]['attributes']:
