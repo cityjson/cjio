@@ -151,7 +151,37 @@ class CityJSON:
         return (True, jsco)
 
 
-    def validate(self, skip_schema=False, folder_schemas=None):
+    def validate_extensions(self, folder_schemas=None):
+        print ('-- Validating the extensions')
+        if "extensions" not in self.j:
+            print ("---No extensions in the file.")
+            return (True, "")
+        isValid = True
+        es = ""
+        for ext in self.j["extensions"]:
+            print ('  %s' % (ext))
+            s = self.j["extensions"][ext]
+            s = s[s.rfind('/') + 1:]
+            schema = os.path.join(folder_schemas, s)
+            jeval = {}
+            jeval["$schema"] = "http://json-schema.org/draft-04/schema#"
+            jeval["type"] = "object"
+            jeval["$ref"] = "file://"
+            jeval["$ref"] += schema 
+            jeval["$ref"] += "#/%s" % (ext)
+            for theid in self.j["CityObjects"]:
+                if self.j["CityObjects"][theid]["type"] == ext:
+                    oneco = self.j["CityObjects"][theid]
+                    try:
+                        validation.validate_against_schema(oneco, jeval)
+                    except Exception as e:
+                        es += str(e)
+                        isValid = False
+        return (isValid, es)
+
+
+    def validate(self, skip_schema=False, folder_schemas=None, with_extensions=False):
+        print ('-- Validating against the schema')
         #-- only v0.6+
         if float(self.j["version"]) < 0.6:
             return (False, False, "Only files with version 0.6+ can be validated.", "")
@@ -168,56 +198,62 @@ class CityJSON:
                 except Exception as e:
                     es += str(e)
                     return (False, False, es, "")
-        #-- 2. ERRORS
+        #-- 2. schema for Extensions
+        if with_extensions == True:
+            b, es = self.validate_extensions(folder_schemas)
+            if b == False:
+                return (b, True, es, "")
+
+        # #-- 3. ERRORS
         isValid = True
-        b, errs = validation.city_object_groups(self.j) 
-        if b == False:
-            isValid = False
-            es += errs
-        b, errs = validation.building_parts(self.j) 
-        if b == False:
-            isValid = False
-            es += errs
-        b, errs = validation.building_installations(self.j)
-        if b == False:
-            isValid = False
-            es += errs
-        b, errs = validation.building_pi_parent(self.j)
-        if b == False:
-            isValid = False
-            es += errs
-        b, errs = validation.semantics(self.j)
-        if b == False:
-            isValid = False
-            es += errs
-        #-- 3. WARNINGS
+        # b, errs = validation.city_object_groups(self.j) 
+        # if b == False:
+        #     isValid = False
+        #     es += errs
+        # b, errs = validation.building_parts(self.j) 
+        # if b == False:
+        #     isValid = False
+        #     es += errs
+        # b, errs = validation.building_installations(self.j)
+        # if b == False:
+        #     isValid = False
+        #     es += errs
+        # b, errs = validation.building_pi_parent(self.j)
+        # if b == False:
+        #     isValid = False
+        #     es += errs
+        # b, errs = validation.semantics(self.j)
+        # if b == False:
+        #     isValid = False
+        #     es += errs
+        # #-- 4. WARNINGS
         woWarnings = True
-        b, errs = validation.metadata(self.j, js) 
-        if b == False:
-            woWarnings = False
-            ws += errs
-        b, errs = validation.cityjson_properties(self.j, js)
-        if b == False:
-            woWarnings = False
-            ws += errs
-        b, errs = validation.geometry_empty(self.j)
-        if b == False:
-            woWarnings = False
-            ws += errs
-        b, errs = validation.duplicate_vertices(self.j)
-        if b == False:
-            woWarnings = False
-            ws += errs
-        b, errs = validation.orphan_vertices(self.j)
-        if b == False:
-            woWarnings = False
-            ws += errs
-        #-- fetch schema cityobjects.json
-        b, jsco = self.fetch_schema_cityobjects(folder_schemas)
-        b, errs = validation.citygml_attributes(self.j, jsco)
-        if b == False:
-            woWarnings = False
-            ws += errs
+        # b, errs = validation.metadata(self.j, js) 
+        # if b == False:
+        #     woWarnings = False
+        #     ws += errs
+        # b, errs = validation.cityjson_properties(self.j, js)
+        # if b == False:
+        #     woWarnings = False
+        #     ws += errs
+        # b, errs = validation.geometry_empty(self.j)
+        # if b == False:
+        #     woWarnings = False
+        #     ws += errs
+        # b, errs = validation.duplicate_vertices(self.j)
+        # if b == False:
+        #     woWarnings = False
+        #     ws += errs
+        # b, errs = validation.orphan_vertices(self.j)
+        # if b == False:
+        #     woWarnings = False
+        #     ws += errs
+        # #-- fetch schema cityobjects.json
+        # b, jsco = self.fetch_schema_cityobjects(folder_schemas)
+        # b, errs = validation.citygml_attributes(self.j, jsco)
+        # if b == False:
+        #     woWarnings = False
+        #     ws += errs
         return (isValid, woWarnings, es, ws)
 
     def update_bbox(self):
