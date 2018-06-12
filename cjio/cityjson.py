@@ -116,41 +116,35 @@ class CityJSON:
             
     def fetch_schema(self, folder_schemas=None):
         if folder_schemas is None:
-            #-- fetch proper schema from the stored ones in the project
+            #-- fetch proper schema from the stored ones 
             v = self.j["version"].replace('.', '')
             try:
                 schema = resource_filename(__name__, '/schemas/v%s/cityjson.json' % (v))
             except:
                 return (False, None)
         else:
-            print (folder_schemas)
             schema = os.path.join(folder_schemas, 'cityjson.json')  
-            print (schema)
         #-- open the schema
         try:
             fins = open(schema)
         except: 
             return (False, None)
-        jtmp = json.loads(fins.read())
-        fins.seek(0)
-        if "$id" in jtmp:
-            u = urllib.urlparse(jtmp['$id'])
-            os.path.dirname(u.path)
-            base_uri = u.scheme + "://" + u.netloc + os.path.dirname(u.path) + "/" 
-        else:
-            abs_path = os.path.abspath(os.path.dirname(schema))
-            base_uri = 'file://{}/'.format(abs_path)
+        abs_path = os.path.abspath(os.path.dirname(schema))
+        base_uri = 'file://{}/'.format(abs_path)
         js = jsonref.loads(fins.read(), jsonschema=True, base_uri=base_uri)
         return (True, js)
 
 
-    def fetch_schema_cityobjects(self):
-        #-- fetch proper schema
-        v = self.j["version"].replace('.', '')
-        try:
-            schema = resource_filename(__name__, '/schemas/v%s/cityjson.json' % (v))
-        except:
-            return (False, None)
+    def fetch_schema_cityobjects(self, folder_schemas=None):
+        if folder_schemas is None:
+            #-- fetch proper schema from the stored ones 
+            v = self.j["version"].replace('.', '')
+            try:
+                schema = resource_filename(__name__, '/schemas/v%s/cityjson.json' % (v))
+            except:
+                return (False, None)
+        else:
+            schema = os.path.join(folder_schemas, 'cityjson.json')  
         sco_path = os.path.abspath(os.path.dirname(schema))
         sco_path += '/cityobjects.json'
         jsco = json.loads(open(sco_path).read())
@@ -167,7 +161,7 @@ class CityJSON:
         if skip_schema == False:
             b, js = self.fetch_schema(folder_schemas)
             if b == False:
-                return (False, False, "Can't find the proper schema.", "")
+                return (False, False, "Can't find the schema.", "")
             else:
                 try:
                     validation.validate_against_schema(self.j, js)
@@ -219,7 +213,7 @@ class CityJSON:
             woWarnings = False
             ws += errs
         #-- fetch schema cityobjects.json
-        b, jsco = self.fetch_schema_cityobjects()
+        b, jsco = self.fetch_schema_cityobjects(folder_schemas)
         b, errs = validation.citygml_attributes(self.j, jsco)
         if b == False:
             woWarnings = False
