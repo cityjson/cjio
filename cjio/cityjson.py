@@ -158,6 +158,12 @@ class CityJSON:
             return (True, "")
         isValid = True
         es = ""
+        for theid in self.j["CityObjects"]:
+                if ( (self.j["CityObjects"][theid]["type"][0] == "+") and
+                     (self.j["CityObjects"][theid]["type"] not in self.j["extensions"]) ):
+                    isValid = False
+                    s = self.j["CityObjects"][theid]["type"] + " has no schema provided."
+                    es += s
         for ext in self.j["extensions"]:
             print ('  %s' % (ext))
             s = self.j["extensions"][ext]
