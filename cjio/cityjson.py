@@ -114,15 +114,23 @@ class CityJSON:
             raise ValueError("Not a CityJSON file")
 
             
-    def fetch_schema(self):
-        #-- fetch proper schema
-        v = self.j["version"].replace('.', '')
-        try:
-            schema = resource_filename(__name__, '/schemas/v%s/cityjson.json' % (v))
-        except:
-            return (False, None)
+    def fetch_schema(self, folder_schemas=None):
+        if folder_schemas is None:
+            #-- fetch proper schema from the stored ones in the project
+            v = self.j["version"].replace('.', '')
+            try:
+                schema = resource_filename(__name__, '/schemas/v%s/cityjson.json' % (v))
+            except:
+                return (False, None)
+        else:
+            print (folder_schemas)
+            schema = os.path.join(folder_schemas, 'cityjson.json')  
+            print (schema)
         #-- open the schema
-        fins = open(schema)
+        try:
+            fins = open(schema)
+        except: 
+            return (False, None)
         jtmp = json.loads(fins.read())
         fins.seek(0)
         if "$id" in jtmp:
@@ -149,7 +157,7 @@ class CityJSON:
         return (True, jsco)
 
 
-    def validate(self, skip_schema=False):
+    def validate(self, skip_schema=False, folder_schemas=None):
         #-- only v0.6+
         if float(self.j["version"]) < 0.6:
             return (False, False, "Only files with version 0.6+ can be validated.", "")
@@ -157,7 +165,7 @@ class CityJSON:
         ws = ""
         #-- 1. schema
         if skip_schema == False:
-            b, js = self.fetch_schema()
+            b, js = self.fetch_schema(folder_schemas)
             if b == False:
                 return (False, False, "Can't find the proper schema.", "")
             else:

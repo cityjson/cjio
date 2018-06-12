@@ -128,7 +128,8 @@ def update_bbox_cmd():
 @cli.command('validate')
 @click.option('--hide_errors', is_flag=True, help='Do not print all the errors.')
 @click.option('--skip_schema', is_flag=True, help='Skip the schema validation (since it can be painfully slow).')
-def validate_cmd(hide_errors, skip_schema):
+@click.option('--folder_schemas', help='Specify a folder where the schemas are (cityjson.json needs to be the master file).')
+def validate_cmd(hide_errors, skip_schema, folder_schemas):
     """
     Validate the CityJSON file: (1) against its schema; (2) extra validations.
     Only files with version >0.6 can be validated.
@@ -139,8 +140,14 @@ def validate_cmd(hide_errors, skip_schema):
         cjio myfile.json subset --random 5 validate
     """
     def processor(cm):
-        bValid, woWarnings, errors, warnings = cm.validate(skip_schema=skip_schema)
-        click.echo('===== Validation (schemas v%s) =====' % (cm.j['version']))
+        # click.echo('===== Validation (schemas v%s) =====' % (cm.j['version']))
+        click.echo('===== Validation =====') 
+        if folder_schemas is not None:
+            if os.path.exists(folder_schemas) == False:
+                click.echo(click.style("Folder for schemas unknown. Validation aborted.", fg='red'))
+                return cm
+            
+        bValid, woWarnings, errors, warnings = cm.validate(skip_schema=skip_schema, folder_schemas=folder_schemas)
         if bValid == True:
             click.echo(click.style('File is valid', fg='green'))
         else:    
