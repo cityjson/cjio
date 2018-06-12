@@ -2,6 +2,7 @@
 import os
 import sys
 import re
+import shutil
 
 import json
 import collections
@@ -335,6 +336,7 @@ class CityJSON:
         #-- new sliced CityJSON object
         cm2 = CityJSON()
         cm2.j["version"] = self.j["version"]
+        cm2.path = self.path
         if "transform" in self.j:
             cm2.j["transform"] = self.j["transform"]
         re = set()            
@@ -387,6 +389,7 @@ class CityJSON:
         #-- new sliced CityJSON object
         cm2 = CityJSON()
         cm2.j["version"] = self.j["version"]
+        cm2.path = self.path
         if "transform" in self.j:
             cm2.j["transform"] = self.j["transform"]
         #-- copy selected CO to the j2
@@ -424,6 +427,7 @@ class CityJSON:
         #-- new sliced CityJSON object
         cm2 = CityJSON()
         cm2.j["version"] = self.j["version"]
+        cm2.path = self.path
         if "transform" in self.j:
             cm2.j["transform"] = self.j["transform"]
         #-- copy selected CO to the j2
@@ -451,6 +455,10 @@ class CityJSON:
         
         Assumes that all textures are in the same location. Relative paths
         are expanded to absolute paths.
+        
+        :returns: path to the directory or URL of the texture files
+        :rtype: string (path) or None (on failure)
+        :raises: NotADirectoryError
         """
         if "appearance" in self.j:
             if "textures" in self.j["appearance"]:
@@ -474,6 +482,7 @@ class CityJSON:
                             return os.path.join(cj_dir, d)
                         else:
                             raise NotADirectoryError("Texture directory '%s' not found" % d)
+                            return None
             else:
                 print("This file does not have textures")
                 return None
@@ -487,6 +496,13 @@ class CityJSON:
         
         If the new location is a directory in the local file system, it is
         expected to exists with the texture files in it.
+        
+        :param new_loc: path to new texture directory
+        :type new_loc: string
+        :param relative: create texture links relative to the CityJSON file
+        :type relative: boolean
+        :returns: None -- modifies the CityJSON
+        :raises: InvalidOperation, NotADirectoryError
         """
         curr_loc = self.get_textures_location()
         if curr_loc:
@@ -511,8 +527,47 @@ class CityJSON:
         else:
             raise InvalidOperation("Cannot update textures in a city model without textures")
 
+
+    def copy_textures(self, new_loc, json_path):
+        """Copy the texture files to a new location
+        
+        :param new_loc: path to new texture directory
+        :type new_loc: string
+        :param json_path: path to the CityJSON file directory
+        :type json_path: string
+        :returns: None -- modifies the CityJSON
+        :raises: InvalidOperation, IOError
+        """
+        curr_loc = self.get_textures_location()
+        if curr_loc:
+            apath = os.path.abspath(new_loc)
+            if not os.path.isdir(apath):
+                os.mkdir(apath)
+            if not os.path.abspath(json_path):
+                jpath = os.path.abspath(json_path)
+            else:
+                jpath = json_path
+            curr_path = self.path
+            try:
+                self.path = jpath
+                for t in self.j["appearance"]["textures"]:
+                    f = os.path.basename(t["image"])
+                    curr_path = os.path.join(curr_loc, f)
+                    shutil.copy(curr_path, apath)
+                # update the location relative to the CityJSON file
+                self.update_textures_location(apath, relative=True)
+                print("Textures copied to", apath)
+            except IOError:
+                raise
+            finally:
+                self.path = curr_path
+        else:
+            raise InvalidOperation("Cannot copy textures from a city model without textures")
+
+
     def validate_textures(self):
         """Check if the texture files exist"""
+        raise NotImplemented
 
 
     def remove_textures(self):
