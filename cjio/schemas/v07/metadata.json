@@ -2,7 +2,7 @@
   "title": "CityJSON metadata schema v0.7",
   "$schema": "http://json-schema.org/draft-04/schema#",
   "definitions": {
-    "presentLODs": {
+    "presentLoDs": {
       "type": "object",
       "properties": {
         "0.0": {
@@ -152,8 +152,8 @@
         "featureCount": {
           "type": "number"
         },
-        "presentLODs": {
-          "$ref": "#/definitions/presentLODs"
+        "presentLoDs": {
+          "$ref": "#/definitions/presentLoDs"
         }
       }
     }
@@ -388,8 +388,8 @@
           "absent"
         ]
       },
-      "presentLODs": {
-        "$ref": "#/definitions/presentLODs"
+      "presentLoDs": {
+        "$ref": "#/definitions/presentLoDs"
       },
       "cityfeatureMetadata": {
         "type": "object",
