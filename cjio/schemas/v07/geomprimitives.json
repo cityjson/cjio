@@ -19,7 +19,8 @@
           "WaterGroundSurface", 
           "WaterClosureSurface",
           "TrafficArea",
-          "AuxiliaryTrafficArea"
+          "AuxiliaryTrafficArea",
+          "+ExtensionSemantics"
         ] 
       }
     }
