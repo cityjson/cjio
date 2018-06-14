@@ -649,6 +649,10 @@ class CityJSON:
         info = collections.OrderedDict()
         info["cityjson_version"] = self.get_version()
         info["epsg"] = self.get_epsg()
+        if "extensions" in self.j:
+            info["extensions"] = True
+        else:
+            info["extensions"] = False
         info["cityobjects_total"] = len(self.j["CityObjects"])
         d = set()
         for key in self.j["CityObjects"]:
