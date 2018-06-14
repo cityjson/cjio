@@ -2,6 +2,18 @@
   "$schema": "http://json-schema.org/draft-04/schema#",
   "title": "CityJSON City Objects schema v0.7",
 
+
+  "ExtensionObject": {
+    "type": "object",
+    "properties": {
+      "type": {
+        "type": "string",
+        "pattern": "(\\+)([A-Z])\\w+"
+      }
+    },
+    "required": ["type"]
+  },
+
   "CityObjectGroup": {
     "type": "object",
     "properties": {
