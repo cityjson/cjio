@@ -216,19 +216,28 @@ class CityJSON:
         #-- 3. ERRORS
         print ('-- Validating extra options (see docs for list)')
         isValid = True
+
+        if float(self.j["version"]) == 0.6:
+            b, errs = validation.building_parts(self.j) 
+            if b == False:
+                isValid = False
+                es += errs
+            b, errs = validation.building_installations(self.j)
+            if b == False:
+                isValid = False
+                es += errs
+            b, errs = validation.building_pi_parent(self.j)
+            if b == False:
+                isValid = False
+                es += errs
+        #-- for v0.7+ (where the parent-child concept was introduced)                
+        else:
+            b, errs = validation.parent_children_consistency(self.j)
+            if b == False:
+                isValid = False
+                es += errs
+
         b, errs = validation.city_object_groups(self.j) 
-        if b == False:
-            isValid = False
-            es += errs
-        b, errs = validation.building_parts(self.j) 
-        if b == False:
-            isValid = False
-            es += errs
-        b, errs = validation.building_installations(self.j)
-        if b == False:
-            isValid = False
-            es += errs
-        b, errs = validation.building_pi_parent(self.j)
         if b == False:
             isValid = False
             es += errs
