@@ -303,9 +303,9 @@ class CityJSON:
             self.j["metadata"] = {}
         if float(self.get_version()) < 0.7:
             print ("ici")
-        if "crs" not in self.j["metadata"]:
-            self.j["metadata"]["crs"] = {} 
-        if "epsg" not in self.j["metadata"]["crs"]:
+            if "crs" not in self.j["metadata"]:
+                self.j["metadata"]["crs"] = {} 
+            if "epsg" not in self.j["metadata"]["crs"]:
                 self.j["metadata"]["crs"]["epsg"] = {}
             self.j["metadata"]["crs"]["epsg"] = i
             return True
@@ -574,20 +574,8 @@ class CityJSON:
             raise InvalidOperation("Cannot update textures in a city model without textures")
 
 
-
-        if CITYJSON_VERSIONS_SUPPORTED.count(newversion) == 0:
-            return False
-        #-- v0.6 -> v0.7
-        if ( (self.get_version() == CITYJSON_VERSIONS_SUPPORTED[0]) and
-             (newversion         == CITYJSON_VERSIONS_SUPPORTED[1]) ):
-            print ("v06 --> v07")
-            self.j["version"] = newversion
-            epsg = self.get_epsg()
-            if epsg is not None:
-
-                self.set_epsg(epsg)    
-        return True
-        
+    def copy_textures(self, new_loc, json_path):
+        """Copy the texture files to a new location        
         :param new_loc: path to new texture directory
         :type new_loc: string
         :param json_path: path to the CityJSON file directory
@@ -920,6 +908,20 @@ class CityJSON:
         # self.remove_duplicate_vertices()
         # self.remove_orphan_vertices()
         return True
+
+    def upgrade_version(self, newversion):
+        if CITYJSON_VERSIONS_SUPPORTED.count(newversion) == 0:
+            return False
+        #-- v0.6 -> v0.7
+        if ( (self.get_version() == CITYJSON_VERSIONS_SUPPORTED[0]) and
+             (newversion         == CITYJSON_VERSIONS_SUPPORTED[1]) ):
+            print ("v06 --> v07")
+            self.j["version"] = newversion
+            epsg = self.get_epsg()
+            if epsg is not None:
+                del self.j["metadata"]["crs"]
+                self.set_epsg(epsg)    
+        return True        
 
 
 
