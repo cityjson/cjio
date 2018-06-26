@@ -924,12 +924,32 @@ class CityJSON:
         #-- v0.6 -> v0.7
         if ( (self.get_version() == CITYJSON_VERSIONS_SUPPORTED[0]) and
              (newversion         == CITYJSON_VERSIONS_SUPPORTED[1]) ):
-            print ("v06 --> v07")
+            print ("=== UPGRADING: v06 --> v07 ===")
+            #-- version 
             self.j["version"] = newversion
+            #-- crs/epgs
             epsg = self.get_epsg()
             if epsg is not None:
                 del self.j["metadata"]["crs"]
-                self.set_epsg(epsg)    
+                self.set_epsg(epsg)
+            #-- parent-children: do children have the parent too?
+            subs = ['Parts', 'Installations', 'ConstructionElements']
+            for id in self.j["CityObjects"]:
+                children = []
+                for sub in subs:
+                    if sub in self.j['CityObjects'][id]:
+                        for each in self.j['CityObjects'][id][sub]:
+                            children.append(each)
+                            b = True
+                if len(children) > 0:
+                    #-- remove the Parts/Installations
+                    self.j['CityObjects'][id]['children'] = children
+                    for sub in subs:
+                        if sub in self.j['CityObjects'][id]:
+                             del self.j['CityObjects'][id][sub]
+                    #-- put the "parent" in each children
+                    for child in children:
+                        self.j['CityObjects'][child]['parent'] = id
         return True        
 
 
