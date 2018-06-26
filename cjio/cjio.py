@@ -330,8 +330,10 @@ def update_crs_cmd(newepsg):
 @click.argument('newversion')
 def update_crs_cmd(newversion):
     """
-    Update the CityJSON to a new version.
+    Upgrade the CityJSON to a new version.
     It takes care of *everything* (touch wood).
+
+        $ cjio myfile.json upgrade_version 0.7 
     """
     def processor(cm):
         if (cm.upgrade_version(newversion) == False):

@@ -44,6 +44,32 @@ def city_object_groups(j):
                     isValid = False
     return (isValid, es)
 
+
+def parent_children_consistency(j):
+    isValid = True
+    es = ""
+    #-- do children have the parent too?
+    for id in j["CityObjects"]:
+        if "children" in j['CityObjects'][id]:
+            for child in j['CityObjects'][id]['children']:
+                if (child not in j['CityObjects']):
+                    es += "ERROR:   CityObject #" + child + " doesn't exist.\n"
+                    es += "\t(CityObject #" + id + " references it as children)\n"   
+                    isValid = False
+                else:
+                    if j['CityObjects'][child]['parent'] != id:    
+                        es += "ERROR:   CityObject #" + child + " doesn't reference correct parent.\n"
+                        es += "\t(Parent should be CityObject #" + id + ")\n"   
+                        isValid = False
+    #-- are there orphans?
+    for id in j["CityObjects"]:
+        if "parent" in j['CityObjects'][id]:
+            if (j['CityObjects'][id]['parent'] not in j['CityObjects']):
+                    es += "ERROR:   CityObject #" + id + " is an orphan (no parent exists).\n"
+                    isValid = False
+    return (isValid, es)
+
+
 def building_parts(j):
     isValid = True
     es = ""
@@ -97,6 +123,7 @@ def building_pi_parent(j):
         for each in pis:
             es += "\t#" + each + "\n"
     return (isValid, es)
+
 
 def semantics(j):
     isValid = True
