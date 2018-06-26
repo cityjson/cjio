@@ -19,6 +19,9 @@ from cjio import errors
 from cjio.errors import InvalidOperation
 
 
+CITYJSON_VERSIONS_SUPPORTED = ['0.6', '0.7']
+
+
 def reader(file, ignore_duplicate_keys=False):
     return CityJSON(file=file, ignore_duplicate_keys=ignore_duplicate_keys)
 
@@ -291,29 +294,27 @@ class CityJSON:
         return bbox        
 
 
-    def set_crs(self, newcrs):
+    def set_epsg(self, newepsg):
+        try:
+            i = int(newepsg)
+        except ValueError:
+            return False
         if "metadata" not in self.j:
             self.j["metadata"] = {}
+        if float(self.get_version()) < 0.7:
+            print ("ici")
         if "crs" not in self.j["metadata"]:
             self.j["metadata"]["crs"] = {} 
         if "epsg" not in self.j["metadata"]["crs"]:
-            self.j["metadata"]["crs"]["epsg"] = None
-        try:
-            i = int(newcrs)
+                self.j["metadata"]["crs"]["epsg"] = {}
             self.j["metadata"]["crs"]["epsg"] = i
             return True
-        except ValueError:
-            return False
-
-
-    def get_crs(self):
-        if "metadata" not in self.j:
-            return None
-        if "crs" not in self.j["metadata"]:
-            return None
-        if "epsg" not in self.j["metadata"]["crs"]:
-            return None
-        return self.j["metadata"]["crs"]["epsg"]
+        else:
+            if "referenceSystem" not in self.j["metadata"]:
+                self.j["metadata"]["referenceSystem"] = {}
+            s = 'urn:ogc:def:crs:EPSG::' + str(i)
+            self.j["metadata"]["referenceSystem"] = s
+            return True
 
 
     def add_bbox_each_cityobjects(self):
@@ -573,8 +574,19 @@ class CityJSON:
             raise InvalidOperation("Cannot update textures in a city model without textures")
 
 
-    def copy_textures(self, new_loc, json_path):
-        """Copy the texture files to a new location
+
+        if CITYJSON_VERSIONS_SUPPORTED.count(newversion) == 0:
+            return False
+        #-- v0.6 -> v0.7
+        if ( (self.get_version() == CITYJSON_VERSIONS_SUPPORTED[0]) and
+             (newversion         == CITYJSON_VERSIONS_SUPPORTED[1]) ):
+            print ("v06 --> v07")
+            self.j["version"] = newversion
+            epsg = self.get_epsg()
+            if epsg is not None:
+
+                self.set_epsg(epsg)    
+        return True
         
         :param new_loc: path to new texture directory
         :type new_loc: string
