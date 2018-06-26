@@ -654,6 +654,15 @@ class CityJSON:
             del self.j["appearance"]
         return True
 
+
+    def number_city_objects(self):
+        total = 0
+        for id in self.j["CityObjects"]:
+            if "parent" not in self.j["CityObjects"][id]:
+                total += 1
+        return total
+
+
     def get_info(self):
         info = collections.OrderedDict()
         info["cityjson_version"] = self.get_version()
@@ -662,7 +671,7 @@ class CityJSON:
             info["extensions"] = True
         else:
             info["extensions"] = False
-        info["cityobjects_total"] = len(self.j["CityObjects"])
+        info["cityobjects_total"] = self.number_city_objects()
         d = set()
         for key in self.j["CityObjects"]:
             d.add(self.j['CityObjects'][key]['type'])
