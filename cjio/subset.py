@@ -21,32 +21,18 @@ def select_co_ids(j, IDs):
             if j["CityObjects"][each]["type"] == "CityObjectGroup" and "members" in j["CityObjects"][each]:
                 for member in j["CityObjects"][each]["members"]:
                     re.add(member)
-    #-- deal with Parts and Installations and ConstructionElements
-    for each in j["CityObjects"]:
-        if each in IDs:
-            if "Parts" in j["CityObjects"][each]:
-                for part in j["CityObjects"][each]["Parts"]:
-                    re.add(part)
-    for each in j["CityObjects"]:
-        if each in IDs:
-            if "Installations" in j["CityObjects"][each]:
-                for i in j["CityObjects"][each]["Installations"]:
-                    re.add(i)
-    for each in j["CityObjects"]:
-        if each in IDs:
-            if "ConstructionElements" in j["CityObjects"][each]:
-                for i in j["CityObjects"][each]["ConstructionElements"]:
-                    re.add(i)
-    #-- also add the parent and siblings of a Part/Installation
-    for theid in IDs:
-        for each in ['Parts', 'Installations', 'ConstructionElements']:
-            if j["CityObjects"][theid]["type"].find(each[:-1]) > 0:
-                for coid in j["CityObjects"]:
-                    if (each in j["CityObjects"][coid]) and (theid in j["CityObjects"][coid][each]):
-                        re.add(coid)
-                        #-- add siblings
-                        for i in j["CityObjects"][coid][each]:
-                            re.add(i)
+    #-- also add the children
+    for id in j["CityObjects"]:
+        if id in IDs:
+            if "children" in j['CityObjects'][id]:
+                for child in j['CityObjects'][id]['children']:
+                    re.add(child)
+            if "parent" in j['CityObjects'][id]:
+                re.add(j['CityObjects'][id]['parent']) 
+                #-- add siblings
+                if "children" in j['CityObjects'][id]['parent']:
+                    for child in j['CityObjects'][id]['parent']:
+                        re.add(child)
     return re                
 
 

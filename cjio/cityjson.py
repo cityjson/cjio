@@ -403,14 +403,21 @@ class CityJSON:
                 (centroid[0] <  bbox[2]) and
                 (centroid[1] <  bbox[3]) ):
                 re.add(coid)
-        #-- also add the parent of a Part/Installation
         re2 = copy.deepcopy(re)
+        #-- also add the parent-children
         for theid in re2:
-            for each in ['Parts', 'Installations', 'ConstructionElements']:
-                if self.j["CityObjects"][theid]["type"].find(each[:-1]) > 0:
-                    for coid in self.j["CityObjects"]:
-                        if (each in self.j["CityObjects"][coid]) and (theid in self.j["CityObjects"][coid][each]):
-                            re.add(coid)
+            if "children" in self.j['CityObjects'][theid]:
+                for child in self.j['CityObjects'][theid]['children']:
+                    re.add(child)
+            if "parent" in self.j['CityObjects'][theid]:
+                re.add(self.j['CityObjects'][theid]['parent'])
+
+            # for each in ['Parts', 'Installations', 'ConstructionElements']:
+            #     if self.j["CityObjects"][theid]["type"].find(each[:-1]) > 0:
+            #         for coid in self.j["CityObjects"]:
+            #             if (each in self.j["CityObjects"][coid]) and (theid in self.j["CityObjects"][coid][each]):
+            #                 re.add(coid)
+        
         for each in re:
             cm2.j["CityObjects"][each] = self.j["CityObjects"][each]
         #-- geometry
