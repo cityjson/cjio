@@ -275,6 +275,7 @@ class CityJSON:
             ws += errs
         return (isValid, woWarnings, es, ws)
 
+
     def update_bbox(self):
         """
         Update the bbox (["metadata"]["bbox"]) of the CityJSON.
@@ -386,7 +387,7 @@ class CityJSON:
             return None
 
 
-    def get_subset_bbox(self, bbox):
+    def get_subset_bbox(self, bbox, invert=False):
         # print ('get_subset_bbox')
         #-- new sliced CityJSON object
         cm2 = CityJSON()
@@ -404,6 +405,9 @@ class CityJSON:
                 (centroid[1] <  bbox[3]) ):
                 re.add(coid)
         re2 = copy.deepcopy(re)
+        if invert == True:
+            allkeys = set(self.j["CityObjects"].keys())
+            re = allkeys ^ re
         #-- also add the parent-children
         for theid in re2:
             if "children" in self.j['CityObjects'][theid]:
@@ -435,19 +439,27 @@ class CityJSON:
         return cm2
 
 
-    def get_subset_random(self, number=1):
+    def get_subset_random(self, number=1, invert=False):
         random.seed()
         total = len(self.j["CityObjects"])
         if number > total:
             number = total
         allkeys = list(self.j["CityObjects"].keys())
-        lsIDs = []
-        for each in range(number):
-            lsIDs.append(allkeys[random.randint(0, total - 1)])
-        return self.get_subset_ids(lsIDs)
+        re = set()
+        count = 0
+        while (count < number):
+            t = allkeys[random.randint(0, total - 1)]
+            if "parent" is not self.j["CityObjects"][t]:
+                re.add(t)
+                count += 1
+        if invert == True:
+            sallkeys = set(self.j["CityObjects"].keys())
+            re = sallkeys ^ re
+        re = list(re)
+        return self.get_subset_ids(re)
 
 
-    def get_subset_ids(self, lsIDs):
+    def get_subset_ids(self, lsIDs, invert=False):
         #-- new sliced CityJSON object
         cm2 = CityJSON()
         cm2.j["version"] = self.j["version"]
@@ -456,6 +468,9 @@ class CityJSON:
             cm2.j["transform"] = self.j["transform"]
         #-- copy selected CO to the j2
         re = subset.select_co_ids(self.j, lsIDs)
+        if invert == True:
+            allkeys = set(self.j["CityObjects"].keys())
+            re = allkeys ^ re
         for each in re:
             cm2.j["CityObjects"][each] = self.j["CityObjects"][each]
         #-- geometry
@@ -473,7 +488,7 @@ class CityJSON:
         return cm2
 
 
-    def get_subset_cotype(self, cotype):
+    def get_subset_cotype(self, cotype, invert=False):
         # print ('get_subset_cotype')
         lsCOtypes = [cotype]
         if cotype == 'Building':
@@ -494,8 +509,12 @@ class CityJSON:
             cm2.j["transform"] = self.j["transform"]
         #-- copy selected CO to the j2
         for theid in self.j["CityObjects"]:
-            if self.j["CityObjects"][theid]["type"] in lsCOtypes:
-                cm2.j["CityObjects"][theid] = self.j["CityObjects"][theid]
+            if invert == False:
+                if self.j["CityObjects"][theid]["type"] in lsCOtypes:
+                    cm2.j["CityObjects"][theid] = self.j["CityObjects"][theid]
+            else:
+                if self.j["CityObjects"][theid]["type"] not in lsCOtypes:
+                    cm2.j["CityObjects"][theid] = self.j["CityObjects"][theid]
         #-- geometry
         subset.process_geometry(self.j, cm2.j)
         #-- templates

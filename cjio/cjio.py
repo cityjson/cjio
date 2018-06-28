@@ -212,7 +212,8 @@ def merge_cmd(filepattern):
 @click.option('--cotype',
     type=click.Choice(['Building', 'Bridge', 'Road', 'TransportSquare', 'LandUse', 'Railway', 'TINRelief', 'WaterBody', 'PlantCover', 'SolitaryVegetationObject', 'CityFurniture', 'GenericCityObject', 'Tunnel']), 
     help='The City Object type')
-def subset_cmd(id, bbox, random, cotype):
+@click.option('--invert', is_flag=True, help='Invert the selection, thus delete the selected object(s).')
+def subset_cmd(id, bbox, random, cotype, invert):
     """
     Create a subset of a CityJSON file.
     One can select City Objects by
@@ -222,18 +223,20 @@ def subset_cmd(id, bbox, random, cotype):
     (4) randomly.
 
     These can be combined, except random which overwrites others.
+
+    Option '--invert' inverts the selection, thus delete the selected object(s).
     """
     def processor(cm):
         s = copy.deepcopy(cm)
         if random is not None:
-            s = s.get_subset_random(random)
+            s = s.get_subset_random(random, invert=invert)
             return s
         if len(id) > 0:
-            s = s.get_subset_ids(id)
+            s = s.get_subset_ids(id, invert=invert)
         if len(bbox) > 0:
-            s = s.get_subset_bbox(bbox)
+            s = s.get_subset_bbox(bbox, invert=invert)
         if cotype is not None:
-            s = s.get_subset_cotype(cotype)
+            s = s.get_subset_cotype(cotype, invert=invert)
         return s 
     return processor
 
