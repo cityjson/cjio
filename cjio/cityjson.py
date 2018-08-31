@@ -62,6 +62,41 @@ def off2cj(file):
     return CityJSON(j=cm)
 
 
+def poly2cj(file):
+    l = file.readline()
+    numVertices = int(l.split()[0])
+    lstVertices = []
+    for i in range(numVertices):
+        lstVertices.append(list(map(float, file.readline().split()))[1:])
+    numFaces = int(file.readline().split()[0])
+    # print(numFaces)
+    lstFaces = []
+    holes = []
+    for i in range(numFaces):
+        l = file.readline()
+        irings = int(l.split()[0]) - 1
+        lstFaces.append(list(map(int, file.readline().split()[1:])))
+        for r in range(irings):
+            lstFaces[-1] += lstFaces[-1] + list(map(int, file.readline().split()[1:]))
+            file.readline()
+    cm = {}
+    cm["type"] = "CityJSON"
+    cm["version"] = "0.6"
+    cm["CityObjects"] = {}
+    cm["vertices"] = []
+    for v in lstVertices:
+        cm["vertices"].append(v)
+    g = {'type': 'Solid'}
+    shell = []
+    for f in lstFaces:
+        shell.append([f])
+    g['boundaries'] = [shell]
+    g['lod'] = 1
+    o = {'type': 'GenericCityObject'}
+    o['geometry'] = [g]
+    cm["CityObjects"]["id-1"] = o
+    return CityJSON(j=cm)
+
 
 class CityJSON:
 
