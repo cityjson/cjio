@@ -16,7 +16,7 @@ def to_2d(p, n):
 
 def get_normal_newell(poly):
     # find normal with Newell's method
-    print (poly)
+    # print (poly)
     n = np.array([0.0, 0.0, 0.0])
     for i,p in enumerate(poly):
         ne = i + 1
