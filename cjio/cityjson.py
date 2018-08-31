@@ -13,6 +13,11 @@ import copy
 import random
 from io import StringIO
 import numpy as np
+try:
+    import mapbox_earcut
+except ModuleNotFoundError as e:
+    raise e
+
 
 
 from cjio import validation
@@ -1026,46 +1031,56 @@ class CityJSON:
         return True        
 
 
-    def triangulate_face(self, face):
+    def triangulate_face(self, face, vnp):
         sf = np.array([], dtype=np.int32)
         for ring in face:
             sf = np.hstack( (sf, np.array(ring)) )
+        sfv = vnp[sf]
         # print(sf)
+        # print(sfv)
         rings = np.zeros(len(face), dtype=np.int32)
         total = 0
         for i in range(len(face)):
             total += len(face[i])
             rings[i] = total
-        print(rings)
+        # print(rings)
 
         # 1. normal with Newell's method
-        # print("---", f)
-        # n = geom_help.get_normal_newell(f)
+        n = geom_help.get_normal_newell(sfv)
         # print ("Newell:", n)
-        # verts = np.zeros( (poly.shape[0], 2))
+        # 2. project to the plane to get xy
+        sfv2d = np.zeros( (sfv.shape[0], 2))
+        # print (sfv2d)
+        for i,p in enumerate(sfv):
+            xy = geom_help.to_2d(p, n)
+            # print("xy", xy)
+            sfv2d[i][0] = xy[0]
+            sfv2d[i][1] = xy[1]
+        result = mapbox_earcut.triangulate_float32(sfv2d, rings)
+        # print (result.reshape(-1, 3))
 
+        for i,each in enumerate(result):
+            # print (sf[i])        
+            result[i] = sf[each]
+        
+        # print (result.reshape(-1, 3))
+        return result.reshape(-1, 3)
 
 
     def export2obj(self):
-        # try:
-        #     import mapbox_earcut
-        # except ModuleNotFoundError as e:
-        #     raise e
-
         out = StringIO()
         #-- vertices
         for v in self.j['vertices']:
             out.write('v ' + str(v[0]) + ' ' + str(v[1]) + ' ' + str(v[2]) + '\n')
-
         vnp = np.array(self.j["vertices"])
-
         for theid in self.j['CityObjects']:
             for geom in self.j['CityObjects'][theid]['geometry']:
                 out.write('o ' + str(theid) + '\n')
                 if ( (geom['type'] == 'MultiSurface') or (geom['type'] == 'CompositeSurface') ):
                     for face in geom['boundaries']:
-                        # print(face)
-                        self.triangulate_face(face)
+                        re = self.triangulate_face(face, vnp)
+                        for t in re:
+                            out.write("f %d %d %d\n" % (t[0] + 1, t[1] + 1, t[2] + 1))
         return out
 
 
