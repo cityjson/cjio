@@ -83,6 +83,36 @@ def info_cmd(context):
     return processor
 
 
+@cli.command('export')
+@click.argument('filename')
+def export_cmd(filename):
+    """Export the CityJSON to an OBJ file.
+    
+    Textures are not supported, sorry.
+    """
+    def processor(cm):
+        f = os.path.basename(filename)
+        d = os.path.abspath(os.path.dirname(filename))
+        if not os.path.isdir(d):
+            os.makedirs(d)
+        p = os.path.join(d, f)
+        try:
+            fo = click.open_file(p, mode='w')
+            click.echo("Exporting to OBJ")
+            re = cm.export2obj()
+            fo.write(re.getvalue())
+            fo.close()
+        except IOError as e:
+            raise click.ClickException('Invalid output file: "%s".\n%s' % (p, e))                
+        except ModuleNotFoundError as e:
+            str = "OBJ export skipped: Python module 'mapbox_earcut' missing (to triangulate faces)"
+            click.echo(click.style(str, fg='red'))
+            str = "Install it: https://github.com/skogler/mapbox_earcut_python"
+            click.echo(str)
+        return cm
+    return processor
+
+
 @cli.command('save')
 @click.argument('filename')
 @click.option('--indent', default=0)

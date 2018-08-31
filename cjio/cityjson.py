@@ -11,10 +11,13 @@ import urllib
 from pkg_resources import resource_filename
 import copy
 import random
+from io import StringIO
+import numpy as np
 
 
 from cjio import validation
 from cjio import subset
+from cjio import geom_help
 from cjio import errors
 from cjio.errors import InvalidOperation
 
@@ -986,6 +989,50 @@ class CityJSON:
                     for child in children:
                         self.j['CityObjects'][child]['parent'] = id
         return True        
+
+
+    def triangulate_face(self, face):
+        sf = np.array([], dtype=np.int32)
+        for ring in face:
+            sf = np.hstack( (sf, np.array(ring)) )
+        # print(sf)
+        rings = np.zeros(len(face), dtype=np.int32)
+        total = 0
+        for i in range(len(face)):
+            total += len(face[i])
+            rings[i] = total
+        print(rings)
+
+        # 1. normal with Newell's method
+        # print("---", f)
+        # n = geom_help.get_normal_newell(f)
+        # print ("Newell:", n)
+        # verts = np.zeros( (poly.shape[0], 2))
+
+
+
+    def export2obj(self):
+        # try:
+        #     import mapbox_earcut
+        # except ModuleNotFoundError as e:
+        #     raise e
+
+        out = StringIO()
+        #-- vertices
+        for v in self.j['vertices']:
+            out.write('v ' + str(v[0]) + ' ' + str(v[1]) + ' ' + str(v[2]) + '\n')
+
+        vnp = np.array(self.j["vertices"])
+
+        for theid in self.j['CityObjects']:
+            for geom in self.j['CityObjects'][theid]['geometry']:
+                out.write('o ' + str(theid) + '\n')
+                if ( (geom['type'] == 'MultiSurface') or (geom['type'] == 'CompositeSurface') ):
+                    for face in geom['boundaries']:
+                        # print(face)
+                        self.triangulate_face(face)
+        return out
+
 
 
 
