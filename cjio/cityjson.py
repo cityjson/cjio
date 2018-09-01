@@ -11,10 +11,18 @@ import urllib
 from pkg_resources import resource_filename
 import copy
 import random
+from io import StringIO
+import numpy as np
+try:
+    import mapbox_earcut
+except ModuleNotFoundError as e:
+    raise e
+
 
 
 from cjio import validation
 from cjio import subset
+from cjio import geom_help
 from cjio import errors
 from cjio.errors import InvalidOperation
 
@@ -58,6 +66,42 @@ def off2cj(file):
     cm["CityObjects"]["id-1"] = o
     return CityJSON(j=cm)
 
+
+def poly2cj(file):
+    l = file.readline()
+    numVertices = int(l.split()[0])
+    lstVertices = []
+    for i in range(numVertices):
+        lstVertices.append(list(map(float, file.readline().split()))[1:])
+    numFaces = int(file.readline().split()[0])
+    lstFaces = []
+    holes = []
+    for i in range(numFaces):
+        l = file.readline()
+        irings = int(l.split()[0]) - 1
+        face = []
+        face.append(list(map(int, file.readline().split()[1:])))
+        for r in range(irings):
+            face.append(list(map(int, file.readline().split()[1:])))
+            file.readline()
+        lstFaces.append(face)
+    cm = {}
+    cm["type"] = "CityJSON"
+    cm["version"] = "0.6"
+    cm["CityObjects"] = {}
+    cm["vertices"] = []
+    for v in lstVertices:
+        cm["vertices"].append(v)
+    g = {'type': 'Solid'}
+    shell = []
+    for f in lstFaces:
+        shell.append(f)
+    g['boundaries'] = [shell]
+    g['lod'] = 1
+    o = {'type': 'GenericCityObject'}
+    o['geometry'] = [g]
+    cm["CityObjects"]["id-1"] = o
+    return CityJSON(j=cm)
 
 
 class CityJSON:
@@ -986,6 +1030,69 @@ class CityJSON:
                     for child in children:
                         self.j['CityObjects'][child]['parent'] = id
         return True        
+
+
+    def triangulate_face(self, face, vnp):
+        #-- if already a triangle then return it
+        if ( (len(face) == 1) and (len(face[0]) == 3) ):
+            return face
+        sf = np.array([], dtype=np.int32)
+        for ring in face:
+            sf = np.hstack( (sf, np.array(ring)) )
+        sfv = vnp[sf]
+        # print(sf)
+        # print(sfv)
+        rings = np.zeros(len(face), dtype=np.int32)
+        total = 0
+        for i in range(len(face)):
+            total += len(face[i])
+            rings[i] = total
+        # print(rings)
+
+        # 1. normal with Newell's method
+        n = geom_help.get_normal_newell(sfv)
+        # print ("Newell:", n)
+        # 2. project to the plane to get xy
+        sfv2d = np.zeros( (sfv.shape[0], 2))
+        # print (sfv2d)
+        for i,p in enumerate(sfv):
+            xy = geom_help.to_2d(p, n)
+            # print("xy", xy)
+            sfv2d[i][0] = xy[0]
+            sfv2d[i][1] = xy[1]
+        result = mapbox_earcut.triangulate_float32(sfv2d, rings)
+        # print (result.reshape(-1, 3))
+
+        for i,each in enumerate(result):
+            # print (sf[i])        
+            result[i] = sf[each]
+        
+        # print (result.reshape(-1, 3))
+        return result.reshape(-1, 3)
+
+
+    def export2obj(self):
+        out = StringIO()
+        #-- vertices
+        for v in self.j['vertices']:
+            out.write('v ' + str(v[0]) + ' ' + str(v[1]) + ' ' + str(v[2]) + '\n')
+        vnp = np.array(self.j["vertices"])
+        for theid in self.j['CityObjects']:
+            for geom in self.j['CityObjects'][theid]['geometry']:
+                out.write('o ' + str(theid) + '\n')
+                if ( (geom['type'] == 'MultiSurface') or (geom['type'] == 'CompositeSurface') ):
+                    for face in geom['boundaries']:
+                        re = self.triangulate_face(face, vnp)
+                        for t in re:
+                            out.write("f %d %d %d\n" % (t[0] + 1, t[1] + 1, t[2] + 1))
+                elif (geom['type'] == 'Solid'):
+                    for shell in geom['boundaries']:
+                        for face in shell:
+                            re = self.triangulate_face(face, vnp)
+                            for t in re:
+                                out.write("f %d %d %d\n" % (t[0] + 1, t[1] + 1, t[2] + 1))
+        return out
+
 
 
 
