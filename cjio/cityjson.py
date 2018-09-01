@@ -74,16 +74,17 @@ def poly2cj(file):
     for i in range(numVertices):
         lstVertices.append(list(map(float, file.readline().split()))[1:])
     numFaces = int(file.readline().split()[0])
-    # print(numFaces)
     lstFaces = []
     holes = []
     for i in range(numFaces):
         l = file.readline()
         irings = int(l.split()[0]) - 1
-        lstFaces.append(list(map(int, file.readline().split()[1:])))
+        face = []
+        face.append(list(map(int, file.readline().split()[1:])))
         for r in range(irings):
-            lstFaces[-1] += lstFaces[-1] + list(map(int, file.readline().split()[1:]))
+            face.append(list(map(int, file.readline().split()[1:])))
             file.readline()
+        lstFaces.append(face)
     cm = {}
     cm["type"] = "CityJSON"
     cm["version"] = "0.6"
@@ -94,7 +95,7 @@ def poly2cj(file):
     g = {'type': 'Solid'}
     shell = []
     for f in lstFaces:
-        shell.append([f])
+        shell.append(f)
     g['boundaries'] = [shell]
     g['lod'] = 1
     o = {'type': 'GenericCityObject'}
@@ -1081,6 +1082,12 @@ class CityJSON:
                         re = self.triangulate_face(face, vnp)
                         for t in re:
                             out.write("f %d %d %d\n" % (t[0] + 1, t[1] + 1, t[2] + 1))
+                elif (geom['type'] == 'Solid'):
+                    for shell in geom['boundaries']:
+                        for face in shell:
+                            re = self.triangulate_face(face, vnp)
+                            for t in re:
+                                out.write("f %d %d %d\n" % (t[0] + 1, t[1] + 1, t[2] + 1))
         return out
 
 
