@@ -1033,6 +1033,9 @@ class CityJSON:
 
 
     def triangulate_face(self, face, vnp):
+        #-- if already a triangle then return it
+        if ( (len(face) == 1) and (len(face[0]) == 3) ):
+            return face
         sf = np.array([], dtype=np.int32)
         for ring in face:
             sf = np.hstack( (sf, np.array(ring)) )
