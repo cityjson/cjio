@@ -7,8 +7,11 @@ def to_2d(p, n):
     # p = np.array([1, 2, 3])
     # newell = np.array([1, 3, 4.2])
     # n = newell/sqrt(p[0]*p[0] + p[1]*p[1] + p[2]*p[2])
-    x3 = np.array([1,0,0])    #-- is this always a good value??
+    x3 = np.array([1,1,1])    #-- is this always a good value??
+    if((n==x3).all()):
+        x3 += np.array([1,2,3])
     x3 = x3 - np.dot(x3, n) * n
+    # print(n, x3)
     x3 /= sqrt((x3**2).sum())   # make x a unit vector    
     y3 = np.cross(n, x3)
     return (np.dot(p, x3), np.dot(p, y3))
