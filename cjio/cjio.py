@@ -372,9 +372,25 @@ def update_crs_cmd(newepsg):
     return processor
 
 
+@cli.command('reproject')
+@click.argument('epsg', type=int)
+def update_crs_cmd(epsg):
+    """
+    Reproject the CityJSON to a new EPSG.
+    The current file must have an EPSG defined (do it with function update_epsg()).
+    """
+    def processor(cm):
+        if (cm.get_epsg() == None):
+            click.echo("WARNING: CityJSON has no EPSG defined, can't be reprojected.")
+        else:    
+            cm.reproject(epsg)
+        return cm
+    return processor
+
+
 @cli.command('upgrade_version')
 @click.argument('newversion')
-def update_crs_cmd(newversion):
+def upgrade_version_cmd(newversion):
     """
     Upgrade the CityJSON to a new version.
     It takes care of *everything* (touch wood).

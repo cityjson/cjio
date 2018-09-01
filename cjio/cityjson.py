@@ -17,7 +17,7 @@ try:
     import mapbox_earcut
 except ModuleNotFoundError as e:
     raise e
-
+import pyproj
 
 
 from cjio import validation
@@ -356,7 +356,6 @@ class CityJSON:
         if "metadata" not in self.j:
             self.j["metadata"] = {}
         if float(self.get_version()) < 0.7:
-            print ("ici")
             if "crs" not in self.j["metadata"]:
                 self.j["metadata"]["crs"] = {} 
             if "epsg" not in self.j["metadata"]["crs"]:
@@ -1092,6 +1091,23 @@ class CityJSON:
                             for t in re:
                                 out.write("f %d %d %d\n" % (t[0] + 1, t[1] + 1, t[2] + 1))
         return out
+
+
+    def reproject(self, epsg):
+        wascompressed = False
+        if "transform" in self.j:
+            self.decompress()
+            wascompressed = True
+        p1 = pyproj.Proj(init='epsg:%d' % (self.get_epsg()))
+        p2 = pyproj.Proj(init='epsg:%d' % (epsg))
+        for v in self.j['vertices']:
+            x, y, z = pyproj.transform(p1, p2, v[0], v[1], v[2])
+            v[0] = x
+            v[1] = y
+            v[2] = z
+        self.set_epsg(epsg)
+        if wascompressed == True:
+            self.compress()
 
 
 
