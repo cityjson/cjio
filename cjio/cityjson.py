@@ -13,11 +13,13 @@ import copy
 import random
 from io import StringIO
 import numpy as np
+import pyproj
+
+
 try:
     import mapbox_earcut
 except ModuleNotFoundError as e:
     raise e
-import pyproj
 
 
 from cjio import validation
@@ -281,11 +283,15 @@ class CityJSON:
                 isValid = False
                 es += errs
 
+        b, errs = validation.wrong_vertex_index(self.j)
+        if b == False:
+            isValid = False
+            es += errs
         b, errs = validation.city_object_groups(self.j) 
         if b == False:
             isValid = False
             es += errs
-        b, errs = validation.semantics(self.j)
+        b, errs = validation.semantics_array(self.j)
         if b == False:
             isValid = False
             es += errs
@@ -572,7 +578,6 @@ class CityJSON:
         cm2.update_bbox()
         return cm2
         
-
 
     def get_textures_location(self):
         """Get the location of the texture files
