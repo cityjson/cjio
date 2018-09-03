@@ -26,6 +26,8 @@ virtualenv venv
 pip3 install --editable .
 ```
 
+Alternatively, you can use the included Pipfile to manage the virtual environment with [pipenv](https://pipenv.readthedocs.io/en/latest/).
+
 ## Usage
 
 After installation, you have a small program called `cjio`, to see its possibities:
@@ -33,18 +35,24 @@ After installation, you have a small program called `cjio`, to see its possibiti
 ```console
 cjio --help
 
+Commands:
   compress                   Compress a CityJSON file, ie stores its...
   decompress                 Decompress a CityJSON file, ie remove the...
+  export                     Export the CityJSON to an OBJ file.
   info                       Output info in simple JSON.
+  locate_textures            Output the location of the texture files.
   merge                      Merge the current CityJSON with others.
   remove_duplicate_vertices  Remove duplicate vertices a CityJSON file.
   remove_materials           Remove all materials from a CityJSON file.
   remove_orphan_vertices     Remove orphan vertices a CityJSON file.
   remove_textures            Remove all textures from a CityJSON file.
+  reproject                  Reproject the CityJSON to a new EPSG.
   save                       Save the CityJSON to a file.
   subset                     Create a subset of a CityJSON file.
   update_bbox                Update the bbox of a CityJSON file.
-  update_crs                 Update the CRS with a new value.
+  update_epsg                Update the CRS with a new value (give only...
+  update_textures            Update the location of the texture files.
+  upgrade_version            Upgrade the CityJSON to a new version.
   validate                   Validate the CityJSON file: (1) against its...
 ```
 

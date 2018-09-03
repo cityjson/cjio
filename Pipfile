@@ -13,4 +13,5 @@ python_version = "3.6"
 click = "*"
 jsonschema = "*"
 jsonref = "*"
+numpy = "*"
 "e1839a8" = {editable = true, path = "."}
