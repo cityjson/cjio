@@ -29,7 +29,7 @@ from cjio import errors
 from cjio.errors import InvalidOperation
 
 
-CITYJSON_VERSIONS_SUPPORTED = ['0.6', '0.7']
+CITYJSON_VERSIONS_SUPPORTED = ['0.6', '0.9']
 
 
 def reader(file, ignore_duplicate_keys=False):
@@ -117,9 +117,10 @@ class CityJSON:
         else: #-- create an empty one
             self.j = {}
             self.j["type"] = "CityJSON"
-            self.j["version"] = "0.6"
+            self.j["version"] = "0.9"
             self.j["CityObjects"] = {}
             self.j["vertices"] = []
+
 
     def __repr__(self):
         return self.get_info()
@@ -1004,10 +1005,10 @@ class CityJSON:
     def upgrade_version(self, newversion):
         if CITYJSON_VERSIONS_SUPPORTED.count(newversion) == 0:
             return False
-        #-- v0.6 -> v0.7
+        #-- v0.6 -> v0.9
         if ( (self.get_version() == CITYJSON_VERSIONS_SUPPORTED[0]) and
              (newversion         == CITYJSON_VERSIONS_SUPPORTED[1]) ):
-            print ("=== UPGRADING: v06 --> v07 ===")
+            print ("=== UPGRADING: v06 --> v09 ===")
             #-- version 
             self.j["version"] = newversion
             #-- crs/epgs
