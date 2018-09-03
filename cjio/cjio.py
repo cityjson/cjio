@@ -26,6 +26,10 @@ class PerCommandArgWantSubCmdHelp(click.Argument):
             ctx, opts, args)
 
 
+def print_cmd_status(s):
+    click.echo(click.style(s, bg='blue', fg='white'))
+
+
 @click.group(chain=True)
 @click.version_option(version=cjio.__version__)
 @click.argument('input', cls=PerCommandArgWantSubCmdHelp)
@@ -53,8 +57,7 @@ def cli(context, input, ignore_duplicate_keys):
 
 
 @cli.resultcallback()
-@click.pass_context
-def process_pipeline(context, processors, input, ignore_duplicate_keys):
+def process_pipeline(processors, input, ignore_duplicate_keys):
     extensions = ['.json', '.off', '.poly'] #-- input allowed
     try:
         f = click.open_file(input, mode='r')
@@ -63,18 +66,19 @@ def process_pipeline(context, processors, input, ignore_duplicate_keys):
             raise IOError("File type not supported (only .json, .off, and .poly).")
         #-- OFF file
         if (extension == '.off'):
+            print_cmd_status("Converting %s to CityJSON" % (input))
             cm = cityjson.off2cj(f)
         #-- POLY file
         elif (extension == '.poly'):
+            print_cmd_status("Converting %s to CityJSON" % (input))
             cm = cityjson.poly2cj(f)            
         #-- CityJSON file
         else: 
+            print_cmd_status("Parsing %s" % (input))
             cm = cityjson.reader(file=f, ignore_duplicate_keys=ignore_duplicate_keys)
     except ValueError as e:
-        # click.echo(context.get_usage() + "\n")
         raise click.ClickException('%s: "%s".' % (e, input))
     except IOError as e:
-        # click.echo(context.get_usage() + "\n")
         raise click.ClickException('Invalid file: "%s".\n%s' % (input, e))
     for processor in processors:
         cm = processor(cm)
@@ -109,6 +113,7 @@ def export_cmd(filename):
         #-- output allowed
         extensions = ['.obj'] 
         #--
+        print_cmd_status("Converting CityJSON to OBJ (%s)" % (filename))
         f = os.path.basename(filename)
         d = os.path.abspath(os.path.dirname(filename))
         if not os.path.isdir(d):
@@ -119,10 +124,8 @@ def export_cmd(filename):
             if (extension not in extensions):
                 raise IOError("Only .obj files supported")
             fo = click.open_file(p, mode='w')
-            click.echo("Exporting to OBJ")
             re = cm.export2obj()
             fo.write(re.getvalue())
-            # fo.close()
         except IOError as e:
             raise click.ClickException('Invalid output file: "%s".\n%s' % (p, e))                
         return cm
@@ -138,6 +141,7 @@ def export_cmd(filename):
 def save_cmd(filename, indent, textures):
     """Save the CityJSON to a file."""
     def processor(cm):
+        print_cmd_status("Saving CityJSON to a file (%s)" % (filename))
         f = os.path.basename(filename)
         d = os.path.abspath(os.path.dirname(filename))
         if not os.path.isdir(d):
@@ -166,6 +170,7 @@ def update_bbox_cmd():
     If there is none then it is added.
     """
     def processor(cm):
+        print_cmd_status("Updating bbox")
         cm.update_bbox()
         return cm
     return processor
@@ -195,9 +200,9 @@ def validate_cmd(hide_errors, skip_schema, folder_schemas, extensions):
                 click.echo(click.style("Folder for schemas unknown. Validation aborted.", fg='red'))
                 return cm
             else:
-                click.echo('===== Validation (schemas: %s) =====' % (folder_schemas)) 
+                print_cmd_status('===== Validation (schemas: %s) =====' % (folder_schemas)) 
         else:
-            click.echo('===== Validation (schemas v%s) =====' % (cm.j['version']))
+            print_cmd_status('===== Validation (schemas v%s) =====' % (cm.j['version']))
         #-- validate    
         bValid, woWarnings, errors, warnings = cm.validate(skip_schema=skip_schema, folder_schemas=folder_schemas, with_extensions=extensions)
         if bValid == True:
@@ -229,6 +234,7 @@ def merge_cmd(filepattern):
         $ cjio myfile.json merge '/home/elvis/temp/*.json' info
     """
     def processor(cm):
+        print_cmd_status('Merging files') 
         lsCMs = []
         g = glob.glob(filepattern)
         for i in g:
@@ -236,16 +242,14 @@ def merge_cmd(filepattern):
                 f = click.open_file(i, mode='r')
                 lsCMs.append(cityjson.reader(f))
             except ValueError as e:
-                click.echo('shit')
                 raise click.ClickException('%s: "%s".' % (e, input))
             except IOError as e:
-                click.echo('shit')
                 raise click.ClickException('Invalid file: "%s".' % (input))
         if len(lsCMs) == 0:
             click.echo("WARNING: No files to merge.")
         else:
-            # for i in lsCMs:
-                # click.echo(i)
+            for i in lsCMs:
+                click.echo("\t%s" % i)
             cm.merge(lsCMs)
         return cm
     return processor
@@ -273,6 +277,7 @@ def subset_cmd(id, bbox, random, cotype, invert):
     Option '--invert' inverts the selection, thus delete the selected object(s).
     """
     def processor(cm):
+        print_cmd_status('Subset of CityJSON') 
         s = copy.deepcopy(cm)
         if random is not None:
             s = s.get_subset_random(random, invert=invert)
@@ -295,6 +300,7 @@ def remove_duplicate_vertices_cmd():
     and not those of the textures/templates.
     """
     def processor(cm):
+        print_cmd_status('Remove duplicate vertices')
         cm.remove_duplicate_vertices()
         return cm
     return processor
@@ -308,6 +314,7 @@ def remove_orphan_vertices_cmd():
     and not those of the textures/templates.
     """
     def processor(cm):
+        print_cmd_status('Remove orphan vertices')
         cm.remove_orphan_vertices()
         return cm
     return processor
@@ -319,6 +326,7 @@ def remove_materials_cmd():
     Remove all materials from a CityJSON file.
     """
     def processor(cm):
+        print_cmd_status('Remove all material')
         cm.remove_materials()
         return cm
     return processor
@@ -331,6 +339,7 @@ def compress_cmd(digit):
     Compress a CityJSON file, ie stores its vertices with integers.
     """
     def processor(cm):
+        print_cmd_status('Compressing the CityJSON (with %d digit)' % digit)
         try:
             cm.compress(digit)
         except Exception as e:
@@ -345,8 +354,9 @@ def decompress_cmd():
     Decompress a CityJSON file, ie remove the "tranform".
     """
     def processor(cm):
+        print_cmd_status('Decompressing the CityJSON')
         if (cm.decompress() == False):
-            click.echo("WARNING: File is not compressed.")
+            click.echo("File is not compressed, nothing done.")
         return cm
     return processor
 
@@ -357,19 +367,23 @@ def remove_textures_cmd():
     Remove all textures from a CityJSON file.
     """
     def processor(cm):
+        print_cmd_status('Remove all textures')
         cm.remove_textures()
         return cm
     return processor
 
 
-@cli.command('update_epsg')
+@cli.command('assign_epsg')
 @click.argument('newepsg', type=int)
 def update_crs_cmd(newepsg):
     """
-    Update the CRS with a new value (give only the EPSG).
-    Can be used to assign one to a file that doesn't have any.
+    Assign a (new) EPSG.
+    Can be used to assign one to a file that doesn't have any, or update one.
+
+    To reproject (and thus modify all the values of the coordinates) use reproject().
     """
     def processor(cm):
+        print_cmd_status('Assign EPSG:%d' % newepsg)
         cm.set_epsg(newepsg)
         return cm
     return processor
@@ -383,6 +397,7 @@ def update_crs_cmd(epsg):
     The current file must have an EPSG defined (do it with function update_epsg()).
     """
     def processor(cm):
+        print_cmd_status('Reproject to EPSG:%d' % epsg)
         if (cm.get_epsg() == None):
             click.echo("WARNING: CityJSON has no EPSG defined, can't be reprojected.")
         else:    
@@ -401,6 +416,7 @@ def upgrade_version_cmd(newversion):
         $ cjio myfile.json upgrade_version 0.7 
     """
     def processor(cm):
+        print_cmd_status('Upgrading the CityJSON file v%s' % newversion)
         if (cm.upgrade_version(newversion) == False):
             click.echo("WARNING: File cannot be upgraded to this version.")
         return cm
@@ -413,6 +429,7 @@ def locate_textures_cmd():
     Output the location of the texture files.
     """
     def processor(cm):
+        print_cmd_status('Locate the textures')
         loc = cm.get_textures_location()
         click.echo(loc)
         return cm
@@ -428,6 +445,7 @@ def update_textures_cmd(newlocation, relative):
     Can be used if the texture files were moved to new directory.
     """
     def processor(cm):
+        print_cmd_status('Update location of textures')
         cm.update_textures_location(newlocation, relative=relative)
         return cm
     return processor
