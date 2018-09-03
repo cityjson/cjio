@@ -15,11 +15,11 @@ from io import StringIO
 import numpy as np
 import pyproj
 
-
+MODULE_EARCUT_AVAILABLE = True
 try:
     import mapbox_earcut
 except ModuleNotFoundError as e:
-    raise e
+    MODULE_EARCUT_AVAILABLE = False
 
 
 from cjio import validation

@@ -99,8 +99,16 @@ def export_cmd(filename):
     Textures are not supported, sorry.
     """
     def processor(cm):
+        #-- mapbox_earcut available?
+        if (cityjson.MODULE_EARCUT_AVAILABLE == False):
+            str = "OBJ export skipped: Python module 'mapbox_earcut' missing (to triangulate faces)"
+            click.echo(click.style(str, fg='red'))
+            str = "Install it: https://github.com/skogler/mapbox_earcut_python"
+            click.echo(str)
+            return cm
         #-- output allowed
         extensions = ['.obj'] 
+        #--
         f = os.path.basename(filename)
         d = os.path.abspath(os.path.dirname(filename))
         if not os.path.isdir(d):
@@ -117,11 +125,6 @@ def export_cmd(filename):
             # fo.close()
         except IOError as e:
             raise click.ClickException('Invalid output file: "%s".\n%s' % (p, e))                
-        except ModuleNotFoundError as e:
-            str = "OBJ export skipped: Python module 'mapbox_earcut' missing (to triangulate faces)"
-            click.echo(click.style(str, fg='red'))
-            str = "Install it: https://github.com/skogler/mapbox_earcut_python"
-            click.echo(str)
         return cm
     return processor
 
