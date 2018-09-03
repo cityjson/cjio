@@ -31,8 +31,8 @@ def get_normal_newell(poly):
         n[1] += ( (poly[i][2] - poly[ne][2]) * (poly[i][0] + poly[ne][0]) )
         n[2] += ( (poly[i][0] - poly[ne][0]) * (poly[i][1] + poly[ne][1]) )
     
-    if (n==np.array([0.0, 0.0, 0.0])).all():
-        print ("oh collapsed triangle:", poly)
+    # if (n==np.array([0.0, 0.0, 0.0])).all():
+    #     print ("oh collapsed triangle:", poly)
        
     n = n / sqrt(n[0]*n[0] + n[1]*n[1] + n[2]*n[2])    
     return n
