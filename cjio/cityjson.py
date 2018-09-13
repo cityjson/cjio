@@ -28,8 +28,7 @@ from cjio import geom_help
 from cjio import errors
 from cjio.errors import InvalidOperation
 
-
-CITYJSON_VERSIONS_SUPPORTED = ['0.6', '0.9']
+CITYJSON_VERSIONS_SUPPORTED = ['0.6', '0.8']
 
 
 def reader(file, ignore_duplicate_keys=False):
@@ -298,10 +297,10 @@ class CityJSON:
             es += errs
         #-- 4. WARNINGS
         woWarnings = True
-        b, errs = validation.metadata(self.j, js) 
-        if b == False:
-            woWarnings = False
-            ws += errs
+        # b, errs = validation.metadata(self.j, js) 
+        # if b == False:
+        #     woWarnings = False
+        #     ws += errs
         b, errs = validation.cityjson_properties(self.j, js)
         if b == False:
             woWarnings = False
@@ -336,7 +335,7 @@ class CityJSON:
             self.j["metadata"] = {}
         if self.is_empty() == True:
             bbox = [0, 0, 0, 0, 0, 0]    
-            self.j["metadata"]["bbox"] = bbox
+            self.j["metadata"]["geographicalExtent"] = bbox
             return bbox
         bbox = [9e9, 9e9, 9e9, -9e9, -9e9, -9e9]    
         for v in self.j["vertices"]:
@@ -351,7 +350,7 @@ class CityJSON:
                 bbox[i] = (bbox[i] * self.j["transform"]["scale"][i]) + self.j["transform"]["translate"][i]
             for i in range(3):
                 bbox[i+3] = (bbox[i+3] * self.j["transform"]["scale"][i]) + self.j["transform"]["translate"][i]
-        self.j["metadata"]["bbox"] = bbox
+        self.j["metadata"]["geographicalExtent"] = bbox
         return bbox        
 
 
@@ -402,7 +401,7 @@ class CityJSON:
                         bbox[i] = (bbox[i] * self.j["transform"]["scale"][i]) + self.j["transform"]["translate"][i]
                     for i in range(3):
                         bbox[i+3] = (bbox[i+3] * self.j["transform"]["scale"][i]) + self.j["transform"]["translate"][i]
-                self.j["CityObjects"][co]["bbox"] = bbox
+                self.j["CityObjects"][co]["geographicalExtent"] = bbox
 
 
     def get_centroid(self, coid):
@@ -499,7 +498,7 @@ class CityJSON:
         count = 0
         while (count < number):
             t = allkeys[random.randint(0, total - 1)]
-            if "parent" is not self.j["CityObjects"][t]:
+            if "parent" not in self.j["CityObjects"][t]:
                 re.add(t)
                 count += 1
         if invert == True:
@@ -1005,10 +1004,9 @@ class CityJSON:
     def upgrade_version(self, newversion):
         if CITYJSON_VERSIONS_SUPPORTED.count(newversion) == 0:
             return False
-        #-- v0.6 -> v0.9
+        #-- v0.6 -> v0.8
         if ( (self.get_version() == CITYJSON_VERSIONS_SUPPORTED[0]) and
              (newversion         == CITYJSON_VERSIONS_SUPPORTED[1]) ):
-            print ("=== UPGRADING: v06 --> v09 ===")
             #-- version 
             self.j["version"] = newversion
             #-- crs/epgs
@@ -1016,7 +1014,14 @@ class CityJSON:
             if epsg is not None:
                 del self.j["metadata"]["crs"]
                 self.set_epsg(epsg)
-            #-- parent-children: do children have the parent too?
+            #-- bbox
+            del self.j["metadata"]["bbox"]
+            self.update_bbox()
+            for id in self.j["CityObjects"]:
+                if "bbox" in self.j['CityObjects'][id]:
+                    self.j["CityObjects"][id]["geographicalExtent"] = self.j["CityObjects"][id]["bbox"]
+                    del self.j["CityObjects"][id]["bbox"]
+            # #-- parent-children: do children have the parent too?
             subs = ['Parts', 'Installations', 'ConstructionElements']
             for id in self.j["CityObjects"]:
                 children = []

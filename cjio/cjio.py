@@ -76,6 +76,17 @@ def process_pipeline(processors, input, ignore_duplicate_keys):
         else: 
             print_cmd_status("Parsing %s" % (input))
             cm = cityjson.reader(file=f, ignore_duplicate_keys=ignore_duplicate_keys)
+            if (cm.get_version() not in cityjson.CITYJSON_VERSIONS_SUPPORTED):
+                allv = ""
+                for v in cityjson.CITYJSON_VERSIONS_SUPPORTED:
+                    allv = allv + v + "/"
+                str = "CityJSON version %s not supported (only versions: %s), not every operators will work." % (cm.get_version(), allv)
+                raise click.ClickException(str)
+            elif (cm.get_version() != cityjson.CITYJSON_VERSIONS_SUPPORTED[-1]):
+                str = "v%s is not the latest version, and not everything will work.\n" % cm.get_version()
+                str += "Upgrade the file with 'upgrade_version' command: 'cjio input.json upgrade_version save out.json'" 
+                click.echo(click.style(str, fg='red'))
+            
     except ValueError as e:
         raise click.ClickException('%s: "%s".' % (e, input))
     except IOError as e:
@@ -407,17 +418,17 @@ def update_crs_cmd(epsg):
 
 
 @cli.command('upgrade_version')
-@click.argument('newversion')
-def upgrade_version_cmd(newversion):
+def upgrade_version_cmd():
     """
-    Upgrade the CityJSON to a new version.
+    Upgrade the CityJSON to the latest version.
     It takes care of *everything* (touch wood).
 
-        $ cjio myfile.json upgrade_version 0.7 
+        $ cjio myfile.json upgrade_version
     """
     def processor(cm):
-        print_cmd_status('Upgrading the CityJSON file v%s' % newversion)
-        if (cm.upgrade_version(newversion) == False):
+        vlatest = cityjson.CITYJSON_VERSIONS_SUPPORTED[-1]
+        print_cmd_status('Upgrade CityJSON file to v%s' % vlatest)
+        if (cm.upgrade_version(vlatest) == False):
             click.echo("WARNING: File cannot be upgraded to this version.")
         return cm
     return processor
