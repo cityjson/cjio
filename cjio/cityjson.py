@@ -213,6 +213,7 @@ class CityJSON:
                     isValid = False
                     s = self.j["CityObjects"][theid]["type"] + " has no schema provided."
                     es += s
+        folder_schemas = os.path.abspath(folder_schemas)
         for ext in self.j["extensions"]:
             print ('  %s' % (ext))
             s = self.j["extensions"][ext]
