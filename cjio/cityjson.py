@@ -237,7 +237,7 @@ class CityJSON:
         return (isValid, es)
 
 
-    def validate(self, skip_schema=False, folder_schemas=None, with_extensions=False):
+    def validate(self, skip_schema=False, folder_schemas=None):
         print ('-- Validating against the schema')
         #-- only v0.6+
         if float(self.j["version"]) < 0.6:
@@ -256,7 +256,7 @@ class CityJSON:
                     es += str(e)
                     return (False, False, es, "")
         #-- 2. schema for Extensions
-        if with_extensions == True:
+        if "extensions" in self.j:
             b, es = self.validate_extensions(folder_schemas)
             if b == False:
                 return (b, True, es, "")
