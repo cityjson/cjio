@@ -1011,11 +1011,12 @@ class CityJSON:
             self.j["version"] = newversion
             #-- crs/epgs
             epsg = self.get_epsg()
+            self.j["metadata"] = {}
             if epsg is not None:
-                del self.j["metadata"]["crs"]
+                if "crs" in self.j["metadata"]["crs"]:
+                    del self.j["metadata"]["crs"]
                 self.set_epsg(epsg)
             #-- bbox
-            del self.j["metadata"]["bbox"]
             self.update_bbox()
             for id in self.j["CityObjects"]:
                 if "bbox" in self.j['CityObjects'][id]:
