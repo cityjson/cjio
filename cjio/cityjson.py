@@ -217,7 +217,8 @@ class CityJSON:
             print ('  %s' % (ext))
             s = self.j["extensions"][ext]
             s = s[s.rfind('/') + 1:]
-            schema = os.path.join(folder_schemas, s)
+            schema = os.path.join(folder_schemas, "extensions")
+            schema = os.path.join(schema, s)
             jeval = {}
             jeval["$schema"] = "http://json-schema.org/draft-04/schema#"
             jeval["type"] = "object"
