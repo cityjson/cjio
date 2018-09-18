@@ -27,7 +27,7 @@ class PerCommandArgWantSubCmdHelp(click.Argument):
 
 
 def print_cmd_status(s):
-    click.echo(click.style(s, bg='blue', fg='white'))
+    click.echo(click.style(s, bg='cyan', fg='black'))
 
 
 @click.group(chain=True)
