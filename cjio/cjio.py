@@ -197,7 +197,8 @@ def validate_cmd(hide_errors, skip_schema, folder_schemas):
     Only files with version >0.6 can be validated.
 
     The schemas are fetched automatically, based on the version of the file.
-    Although one can specify schemas with the '--folder_schemas' option.
+    It's possible to specify schemas with the '--folder_schemas' option.
+    This is used when there are Extensions used.
     
     If the file is too large (and thus validation is slow),
     an option is to crop a subset and just validate it:
