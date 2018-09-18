@@ -36,6 +36,7 @@ After installation, you have a small program called `cjio`, to see its possibiti
 cjio --help
 
 Commands:
+  assign_epsg                Assign a (new) EPSG.
   compress                   Compress a CityJSON file, ie stores its...
   decompress                 Decompress a CityJSON file, ie remove the...
   export                     Export the CityJSON to an OBJ file.
@@ -50,10 +51,9 @@ Commands:
   save                       Save the CityJSON to a file.
   subset                     Create a subset of a CityJSON file.
   update_bbox                Update the bbox of a CityJSON file.
-  update_epsg                Update the CRS with a new value (give only...
   update_textures            Update the location of the texture files.
-  upgrade_version            Upgrade the CityJSON to a new version.
-  validate                   Validate the CityJSON file: (1) against its...
+  upgrade_version            Upgrade the CityJSON to the latest version.
+  validate                   Validate the CityJSON file: (1) against its...  
 ```
 
 
@@ -63,15 +63,36 @@ The 3D city model opened is passed through all the operators, and it gets modifi
 Operators like `info` and `validate` output information in the console and just pass the 3D city model to the next operator.
 
 ```console
-$ cjio example.json validate
-$ cjio example.json remove_textures compress info
 $ cjio example.json subset --id house12 info remove_materials info save out.json
+$ cjio example.json remove_textures compress info
+$ cjio example.json upgrade_version save new.json
+$ cjio myfile.json merge '/home/elvis/temp/*.json' save allfiles.json
 ```
 
 
+## Validation of CityJSON files against the schema
+
+To validate a CityJSON file against the [schemas of CityJSON](https://github.com/tudelft3d/cityjson/tree/master/schema) (this will automatically fetch the schemas for the version of CityJSON):
+
+```console
+$ cjio myfile.json validate
+```
+
+If the file is too large (and thus validation is slow), an option is to crop a subset and just validate it:
+
+```console
+$ cjio myfile.json subset --random 2 validate
+```
+
+If you want to use your own schemas, give the folder where the master schema file `cityjson.json` is located:
+
+```console
+$ cjio example.json validate --folder_schemas /home/elvis/temp/myschemas/
+```
+
 ## Example CityJSON datasets
 
-There are a few [example files on the CityJSON webpage](http://www.cityjson.org/en/0.6/datasets/).
+There are a few [example files on the CityJSON webpage](http://www.cityjson.org/en/0.8/datasets/).
 
 Alternatively, any [CityGML](https://www.citygml.org) file can be automatically converted to CityJSON with the open-source project [citygml4j](https://github.com/citygml4j/citygml4j).
 
