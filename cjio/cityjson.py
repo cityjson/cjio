@@ -1015,7 +1015,7 @@ class CityJSON:
             epsg = self.get_epsg()
             self.j["metadata"] = {}
             if epsg is not None:
-                if "crs" in self.j["metadata"]["crs"]:
+                if "crs" in self.j["metadata"]:
                     del self.j["metadata"]["crs"]
                 self.set_epsg(epsg)
             #-- bbox
