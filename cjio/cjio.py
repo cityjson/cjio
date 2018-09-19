@@ -49,9 +49,9 @@ def cli(context, input, ignore_duplicate_keys):
     Usage examples:
 
     \b
-        cjio example.json validate
-        cjio example.json remove_textures info
-        cjio example.json subset --id house12 remove_materials save out.json
+        cjio example.json info validate
+        cjio example.json assign_epsg 7145 remove_textures export output.obj
+        cjio example.json subset --id house12 save out.json
     """
     context.obj = {"argument": input}
 
