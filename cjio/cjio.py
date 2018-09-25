@@ -1,3 +1,4 @@
+
 import os.path
 from os import makedirs
 
@@ -109,9 +110,9 @@ def info_cmd(context):
 @cli.command('export')
 @click.argument('filename')
 def export_cmd(filename):
-    """Export the CityJSON to an OBJ file.
-    
-    Textures are not supported, sorry.
+    """Export the CityJSON to another format.
+
+    Currently only OBJ file are supported; textures are not supported, sorry.
     """
     def processor(cm):
         #-- mapbox_earcut available?
@@ -150,7 +151,7 @@ def export_cmd(filename):
               type=str,
               help='Path to the new textures directory. This command copies the textures to a new location. Useful when creating an independent subset of a CityJSON file.')
 def save_cmd(filename, indent, textures):
-    """Save the CityJSON to a file."""
+    """Save the city model to a CityJSON file."""
     def processor(cm):
         print_cmd_status("Saving CityJSON to a file (%s)" % (filename))
         f = os.path.basename(filename)

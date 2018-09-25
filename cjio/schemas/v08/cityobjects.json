@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "title": "CityJSON City Objects schema v0.7",
+  "title": "CityJSON City Objects schema v0.8",
 
 
   "ExtensionObject": {
@@ -21,8 +21,8 @@
       "attributes": {
         "type": "object",
         "properties": {
-          "creationDate" : {"type": "string"},
-          "terminationDate" : {"type": "string"},
+          "creationDate" : {"type": "string","format": "date"},
+          "terminationDate" : {"type": "string","format": "date"},
           "class": {"type": "string"},
           "function": {"type": "string"},
           "usage": {"type": "string"}
@@ -33,7 +33,7 @@
         "description": "the IDs of the CityObjects members of that group",
         "items": {"type": "string"}
       },
-      "bbox": {
+      "geographicalExtent": {
         "type": "array",
         "items": { "type": "number" },
         "minItems": 6,    
@@ -66,8 +66,8 @@
       "attributes": {
         "type": "object",
         "properties": {
-          "creationDate" : {"type": "string"},
-          "terminationDate" : {"type": "string"},
+          "creationDate" : {"type": "string", "format": "date"},
+          "terminationDate" : {"type": "string", "format": "date"},
           "class": {"type": "string"},
           "function": {"type": "string"},
           "usage": {"type": "string"},
@@ -75,17 +75,12 @@
           "yearOfDemolition": { "type": "integer"}
         }
       },
-      "Parts": {
+      "children": {
         "type": "array",
-        "description": "the IDs of the TunnelPart of this Tunnel",
+        "description": "the IDs of the TunnelPart and TunnelInstallation of this Tunnel",
         "items": {"type": "string"}
       },
-      "Installations": {
-        "type": "array",
-        "description": "the IDs of the TunnelInstallation of this Tunnel",
-        "items": {"type": "string"}
-      },
-      "bbox": {
+      "geographicalExtent": {
         "type": "array",
         "items": { "type": "number" },
         "minItems": 6,    
@@ -114,8 +109,8 @@
       "attributes": {
         "type": "object",
         "properties": {
-          "creationDate" : {"type": "string"},
-          "terminationDate" : {"type": "string"},
+          "creationDate" : {"type": "string", "format": "date"},
+          "terminationDate" : {"type": "string", "format": "date"},
           "class": {"type": "string"},
           "function": {"type": "string"},
           "usage": {"type": "string"},
@@ -123,12 +118,16 @@
           "yearOfDemolition": { "type": "integer"}
         }
       },
-      "Installations": {
+      "parent": {
+        "type": "string",
+        "description": "the ID of the parent Tunnel"
+      },
+      "children": {
         "type": "array",
         "description": "the IDs of the TunnelInstallation of this TunnelPart",
         "items": {"type": "string"}
       },
-      "bbox": {
+      "geographicalExtent": {
         "type": "array",
         "items": { "type": "number" },
         "minItems": 6,    
@@ -146,7 +145,7 @@
         }
       }
     },
-    "required": ["type", "geometry"],
+    "required": ["type", "geometry", "parent"],
     "additionalProperties": false
   },
 
@@ -157,14 +156,18 @@
       "attributes": {
         "type": "object",
         "properties": {
-          "creationDate" : {"type": "string"},
-          "terminationDate" : {"type": "string"},            
+          "creationDate" : {"type": "string", "format": "date"},
+          "terminationDate" : {"type": "string", "format": "date"},            
           "class": {"type": "string"},
           "function": {"type": "string"},
           "usage": {"type": "string"}
         }
       },
-      "bbox": {
+      "parent": {
+        "type": "string",
+        "description": "the ID of the parent Tunnel"
+      },
+      "geographicalExtent": {
         "type": "array",
         "items": { "type": "number" },
         "minItems": 6,    
@@ -186,7 +189,7 @@
         }
       }
     },
-    "required": ["type", "geometry"],
+    "required": ["type", "geometry", "parent"],
     "additionalProperties": false
   },
 
@@ -197,8 +200,8 @@
       "attributes": {
         "type": "object",
         "properties": {
-          "creationDate" : {"type": "string"},
-          "terminationDate" : {"type": "string"},
+          "creationDate" : {"type": "string", "format": "date"},
+          "terminationDate" : {"type": "string", "format": "date"},
           "class": {"type": "string"},
           "function": {"type": "string"},
           "usage": {"type": "string"},
@@ -218,22 +221,12 @@
           "location": {"$ref": "geomprimitives.json#/MultiPoint"}
         }
       },
-      "Parts": {
+      "children": {
         "type": "array",
-        "description": "the IDs of the BridgePart of this Bridge",
+        "description": "the IDs of the BridgePart/Installation/ConstructionElement of this Bridge",
         "items": {"type": "string"}
       },
-      "Installations": {
-        "type": "array",
-        "description": "the IDs of the BridgeInstallation of this Bridge",
-        "items": {"type": "string"}
-      },
-      "ConstructionElements": {
-        "type": "array",
-        "description": "the IDs of the BridgeConstructionElement of this Bridge",
-        "items": {"type": "string"}
-      },
-      "bbox": {
+      "geographicalExtent": {
         "type": "array",
         "items": { "type": "number" },
         "minItems": 6,    
@@ -262,8 +255,8 @@
       "attributes": {
         "type": "object",
         "properties": {
-          "creationDate" : {"type": "string"},
-          "terminationDate" : {"type": "string"},
+          "creationDate" : {"type": "string", "format": "date"},
+          "terminationDate" : {"type": "string", "format": "date"},
           "class": {"type": "string"},
           "function": {"type": "string"},
           "usage": {"type": "string"},
@@ -283,17 +276,16 @@
           "location": {"$ref": "geomprimitives.json#/MultiPoint"}
         }
       },
-      "Installations": {
+      "children": {
         "type": "array",
-        "description": "the IDs of the BridgeInstallation of this BridgePart",
+        "description": "the IDs of the BridgeInstallation/ConstructionElement of this BridgePart",
         "items": {"type": "string"}
       },
-      "ConstructionElements": {
-        "type": "array",
-        "description": "the IDs of the BridgeConstructionElement of this BridgePart",
-        "items": {"type": "string"}
-      },
-      "bbox": {
+      "parent": {
+        "type": "string",
+        "description": "the ID of the parent Bridge"
+      },      
+      "geographicalExtent": {
         "type": "array",
         "items": { "type": "number" },
         "minItems": 6,    
@@ -311,7 +303,7 @@
         }
       }
     },
-    "required": ["type", "geometry"],
+    "required": ["type", "geometry", "parent"],
     "additionalProperties": false
   },
 
@@ -322,19 +314,23 @@
       "attributes": {
         "type": "object",
         "properties": {
-          "creationDate" : {"type": "string"},
-          "terminationDate" : {"type": "string"},            
+          "creationDate" : {"type": "string", "format": "date"},
+          "terminationDate" : {"type": "string","format": "date"},            
           "class": {"type": "string"},
           "function": {"type": "string"},
           "usage": {"type": "string"}
         }
       },
-      "bbox": {
+      "geographicalExtent": {
         "type": "array",
         "items": { "type": "number" },
         "minItems": 6,    
         "maxItems": 6    
       },
+      "parent": {
+        "type": "string",
+        "description": "the ID of the parent Bridge"
+      },      
       "geometry": {
         "type": "array",
         "items": {
@@ -351,7 +347,7 @@
         }
       }
     },
-    "required": ["type", "geometry"],
+    "required": ["type", "geometry", "parent"],
     "additionalProperties": false
   },
 
@@ -362,19 +358,23 @@
       "attributes": {
         "type": "object",
         "properties": {
-          "creationDate" : {"type": "string"},
-          "terminationDate" : {"type": "string"},            
+          "creationDate" : {"type": "string", "format": "date"},
+          "terminationDate" : {"type": "string", "format": "date"},            
           "class": {"type": "string"},
           "function": {"type": "string"},
           "usage": {"type": "string"}
         }
       },
-      "bbox": {
+      "geographicalExtent": {
         "type": "array",
         "items": { "type": "number" },
         "minItems": 6,    
         "maxItems": 6    
       },
+      "parent": {
+        "type": "string",
+        "description": "the ID of the parent Bridge"
+      },      
       "geometry": {
         "type": "array",
         "items": {
@@ -391,7 +391,7 @@
         }
       }
     },
-    "required": ["type", "geometry"],
+    "required": ["type", "geometry", "parent"],
     "additionalProperties": false
   },
 
@@ -402,8 +402,8 @@
       "attributes": {
         "type": "object",
         "properties": {
-          "creationDate" : {"type": "string"},
-          "terminationDate" : {"type": "string"},
+          "creationDate" : {"type": "string", "format": "date"},
+          "terminationDate" : {"type": "string", "format": "date"},
           "class": {"type": "string"},
           "function": {"type": "string"},
           "usage": {"type": "string"},
@@ -434,17 +434,12 @@
           "location": {"$ref": "geomprimitives.json#/MultiPoint"}
         }
       },
-      "Parts": {
+      "children": {
         "type": "array",
-        "description": "the IDs of the BuildingPart of this Building",
+        "description": "the IDs of the BuildingPart/Installation of this Building",
         "items": {"type": "string"}
       },
-      "Installations": {
-        "type": "array",
-        "description": "the IDs of the BuildingInstallation of this Building",
-        "items": {"type": "string"}
-      },
-      "bbox": {
+      "geographicalExtent": {
         "type": "array",
         "items": { "type": "number" },
         "minItems": 6,    
@@ -473,8 +468,8 @@
       "attributes": {
         "type": "object",
         "properties": {
-          "creationDate" : {"type": "string"},
-          "terminationDate" : {"type": "string"},
+          "creationDate" : {"type": "string", "format": "date"},
+          "terminationDate" : {"type": "string", "format": "date"},
           "class": {"type": "string"},
           "function": {"type": "string"},
           "usage": {"type": "string"},
@@ -506,11 +501,15 @@
         },
         "additionalProperties": false
       },              
-      "Installations": {
+      "children": {
         "type": "array",
           "items": {"type": "string"}
       },
-      "bbox": {
+      "parent": {
+        "type": "string",
+        "description": "the ID of the parent Building"
+      },      
+      "geographicalExtent": {
         "type": "array",
         "items": { "type": "number" },
         "minItems": 6,    
@@ -528,7 +527,7 @@
         }
       }
     },
-    "required": ["type", "geometry"],
+    "required": ["type", "geometry", "parent"],
     "additionalProperties": false
   },
 
@@ -539,14 +538,19 @@
       "attributes": {
         "type": "object",
         "properties": {
-          "creationDate" : {"type": "string"},
-          "terminationDate" : {"type": "string"},            
+          "creationDate" : {"type": "string", "format": "date"},
+          "terminationDate" : {"type": "string", "format": "date"},            
           "class": {"type": "string"},
           "function": {"type": "string"},
           "usage": {"type": "string"}
         }
       },
-      "bbox": {
+      "parent": {
+        "type": "string",
+        "description": "the ID of the parent Tunnel"
+      },
+
+      "geographicalExtent": {
         "type": "array",
         "items": { "type": "number" },
         "minItems": 6,    
@@ -568,7 +572,7 @@
         }
       }
     },
-    "required": ["type", "geometry"],
+    "required": ["type", "geometry", "parent"],
     "additionalProperties": false
   },
 
@@ -579,8 +583,8 @@
       "attributes": {
         "type": "object",
         "properties": {
-          "creationDate" : {"type": "string"},
-          "terminationDate" : {"type": "string"},
+          "creationDate" : {"type": "string", "format": "date"},
+          "terminationDate" : {"type": "string", "format": "date"},
           "class": {"type": "string"},
           "function": {"type": "string"},
           "usage": {"type": "string"},
@@ -590,7 +594,7 @@
           }
         }
       },
-      "bbox": {
+      "geographicalExtent": {
         "type": "array",
         "items": { "type": "number" },
         "minItems": 6,    
@@ -617,8 +621,8 @@
       "attributes": {
         "type": "object",
         "properties": {
-          "creationDate" : {"type": "string"},
-          "terminationDate" : {"type": "string"},
+          "creationDate" : {"type": "string", "format": "date"},
+          "terminationDate" : {"type": "string", "format": "date"},
           "class": {"type": "string"},
           "function": {"type": "string"},
           "usage": {"type": "string"},
@@ -628,7 +632,7 @@
           }
         }
       },
-      "bbox": {
+      "geographicalExtent": {
         "type": "array",
         "items": { "type": "number" },
         "minItems": 6,    
@@ -655,8 +659,8 @@
       "attributes": {
         "type": "object",
         "properties": {
-          "creationDate" : {"type": "string"},
-          "terminationDate" : {"type": "string"},
+          "creationDate" : {"type": "string", "format": "date"},
+          "terminationDate" : {"type": "string", "format": "date"},
           "class": {"type": "string"},
           "function": {"type": "string"},
           "usage": {"type": "string"},
@@ -666,7 +670,7 @@
           }
         }
       },
-      "bbox": {
+      "geographicalExtent": {
         "type": "array",
         "items": { "type": "number" },
         "minItems": 6,    
@@ -694,14 +698,14 @@
       "attributes": {
         "type": "object",
         "properties": {
-          "creationDate" : {"type": "string"},
-          "terminationDate" : {"type": "string"},
+          "creationDate" : {"type": "string", "format": "date"},
+          "terminationDate" : {"type": "string", "format": "date"},
           "class": {"type": "string"},
           "function": {"type": "string"},
           "usage": {"type": "string"}
         }
       },
-      "bbox": {
+      "geographicalExtent": {
         "type": "array",
         "items": { "type": "number" },
         "minItems": 6,    
@@ -723,14 +727,14 @@
       "attributes": {
         "type": "object",
         "properties": {
-          "creationDate" : {"type": "string"},
-          "terminationDate" : {"type": "string"},                        
+          "creationDate" : {"type": "string", "format": "date"},
+          "terminationDate" : {"type": "string", "format": "date"},                        
           "class": {"type": "string"},
           "function": {"type": "string"},
           "usage": {"type": "string"}
         }
       },
-      "bbox": {
+      "geographicalExtent": {
         "type": "array",
         "items": { "type": "number" },
         "minItems": 6,    
@@ -760,15 +764,15 @@
       "attributes": {
         "type": "object",
         "properties": {
-          "creationDate" : {"type": "string"},
-          "terminationDate" : {"type": "string"},                        
+          "creationDate" : {"type": "string", "format": "date"},
+          "terminationDate" : {"type": "string", "format": "date"},                        
           "class": {"type": "string"},
           "function": {"type": "string"},
           "usage": {"type": "string"},
           "averageHeight": {"type": "number"}
         }
       },
-      "bbox": {
+      "geographicalExtent": {
         "type": "array",
         "items": { "type": "number" },
         "minItems": 6,    
@@ -796,8 +800,8 @@
       "attributes": {
         "type": "object",
         "properties": {
-          "creationDate" : {"type": "string"},
-          "terminationDate" : {"type": "string"},                        
+          "creationDate" : {"type": "string", "format": "date"},
+          "terminationDate" : {"type": "string", "format": "date"},                        
           "class": {"type": "string"},
           "function": {"type": "string"},
           "usage": {"type": "string"},
@@ -806,7 +810,7 @@
           "crownDiameter": {"type": "number"}
         }
       },
-      "bbox": {
+      "geographicalExtent": {
         "type": "array",
         "items": { "type": "number" },
         "minItems": 6,    
@@ -839,14 +843,14 @@
       "attributes": {
         "type": "object",
         "properties": {
-          "creationDate" : {"type": "string"},
-          "terminationDate" : {"type": "string"},                        
+          "creationDate" : {"type": "string", "format": "date"},
+          "terminationDate" : {"type": "string", "format": "date"},                        
           "class": {"type": "string"},
           "function": {"type": "string"},
           "usage": {"type": "string"}
         }
       },
-      "bbox": {
+      "geographicalExtent": {
         "type": "array",
         "items": { "type": "number" },
         "minItems": 6,    
@@ -873,14 +877,14 @@
       "attributes": {
         "type": "object",
         "properties": {
-          "creationDate" : {"type": "string"},
-          "terminationDate" : {"type": "string"},            
+          "creationDate" : {"type": "string", "format": "date"},
+          "terminationDate" : {"type": "string", "format": "date"},            
           "class": {"type": "string"},
           "function": {"type": "string"},
           "usage": {"type": "string"}
         }
       },
-      "bbox": {
+      "geographicalExtent": {
         "type": "array",
         "items": { "type": "number" },
         "minItems": 6,    
@@ -913,14 +917,14 @@
       "attributes": {
         "type": "object",
         "properties": {
-          "creationDate" : {"type": "string"},
-          "terminationDate" : {"type": "string"},            
+          "creationDate" : {"type": "string", "format": "date"},
+          "terminationDate" : {"type": "string", "format": "date"},            
           "class": {"type": "string"},
           "function": {"type": "string"},
           "usage": {"type": "string"}
         }
       },
-      "bbox": {
+      "geographicalExtent": {
         "type": "array",
         "items": { "type": "number" },
         "minItems": 6,    
