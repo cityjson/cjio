@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "title": "CityJSON geometry templates schema v0.7",
+  "title": "CityJSON geometry templates schema v0.8",
   
   "GeometryInstance": {
     "type": "object",
