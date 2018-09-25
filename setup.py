@@ -20,8 +20,8 @@ setup(
     author_email='h.ledoux@tudelft.nl, b.dukai@tudelft.nl',
     python_requires='>=3',
     packages=['cjio'],
-    # package_data={'cjio': ['schemas/*', 'schemas/v06/*']},
-    include_package_data=True,
+    package_data={'cjio': ['schemas/v06/*', 'schemas/v08/*']},
+    # include_package_data=True,
     license = 'MIT',
     classifiers=[
         # https://pypi.org/pypi?%3Aaction=list_classifiers
