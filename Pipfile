@@ -7,7 +7,7 @@ url = "https://pypi.org/simple"
 pytest = "*"
 
 [requires]
-python_version = "3.6"
+python_version = "3.5"
 
 [packages]
 click = "*"

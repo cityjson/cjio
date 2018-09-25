@@ -18,7 +18,7 @@ setup(
     url='https://github.com/tudelft3d/cjio',
     author='Hugo Ledoux, Balázs Dukai',
     author_email='h.ledoux@tudelft.nl, b.dukai@tudelft.nl',
-    python_requires='>=3',
+    python_requires='~=3.5',
     packages=['cjio'],
     package_data={'cjio': ['schemas/v06/*', 'schemas/v08/*']},
     # include_package_data=True,

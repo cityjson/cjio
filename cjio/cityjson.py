@@ -18,7 +18,7 @@ import pyproj
 MODULE_EARCUT_AVAILABLE = True
 try:
     import mapbox_earcut
-except ModuleNotFoundError as e:
+except ImportError as e:
     MODULE_EARCUT_AVAILABLE = False
 
 from cjio import validation
