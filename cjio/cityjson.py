@@ -21,12 +21,12 @@ try:
 except ModuleNotFoundError as e:
     MODULE_EARCUT_AVAILABLE = False
 
-
 from cjio import validation
 from cjio import subset
 from cjio import geom_help
 from cjio import errors
 from cjio.errors import InvalidOperation
+
 
 CITYJSON_VERSIONS_SUPPORTED = ['0.6', '0.8']
 
