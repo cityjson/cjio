@@ -37,7 +37,8 @@ setup(
     install_requires=[
         'Click',
         'jsonschema',
-        'jsonref'
+        'jsonref',
+        'pyproj'
     ],
     entry_points='''
         [console_scripts]

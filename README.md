@@ -26,6 +26,8 @@ virtualenv venv
 pip3 install --editable .
 ```
 
+Alternatively, you can use the included Pipfile to manage the virtual environment with [pipenv](https://pipenv.readthedocs.io/en/latest/).
+
 ## Usage
 
 After installation, you have a small program called `cjio`, to see its possibities:
@@ -33,19 +35,25 @@ After installation, you have a small program called `cjio`, to see its possibiti
 ```console
 cjio --help
 
+Commands:
+  assign_epsg                Assign a (new) EPSG.
   compress                   Compress a CityJSON file, ie stores its...
   decompress                 Decompress a CityJSON file, ie remove the...
+  export                     Export the CityJSON to an OBJ file.
   info                       Output info in simple JSON.
+  locate_textures            Output the location of the texture files.
   merge                      Merge the current CityJSON with others.
   remove_duplicate_vertices  Remove duplicate vertices a CityJSON file.
   remove_materials           Remove all materials from a CityJSON file.
   remove_orphan_vertices     Remove orphan vertices a CityJSON file.
   remove_textures            Remove all textures from a CityJSON file.
+  reproject                  Reproject the CityJSON to a new EPSG.
   save                       Save the CityJSON to a file.
   subset                     Create a subset of a CityJSON file.
   update_bbox                Update the bbox of a CityJSON file.
-  update_crs                 Update the CRS with a new value.
-  validate                   Validate the CityJSON file: (1) against its...
+  update_textures            Update the location of the texture files.
+  upgrade_version            Upgrade the CityJSON to the latest version.
+  validate                   Validate the CityJSON file: (1) against its...  
 ```
 
 
@@ -55,15 +63,36 @@ The 3D city model opened is passed through all the operators, and it gets modifi
 Operators like `info` and `validate` output information in the console and just pass the 3D city model to the next operator.
 
 ```console
-$ cjio example.json validate
-$ cjio example.json remove_textures compress info
 $ cjio example.json subset --id house12 info remove_materials info save out.json
+$ cjio example.json remove_textures compress info
+$ cjio example.json upgrade_version save new.json
+$ cjio myfile.json merge '/home/elvis/temp/*.json' save all_merged.json
 ```
 
 
+## Validation of CityJSON files against the schema
+
+To validate a CityJSON file against the [schemas of CityJSON](https://github.com/tudelft3d/cityjson/tree/master/schema) (this will automatically fetch the schemas for the version of CityJSON):
+
+```console
+$ cjio myfile.json validate
+```
+
+If the file is too large (and thus validation is slow), an option is to crop a subset and just validate it:
+
+```console
+$ cjio myfile.json subset --random 2 validate
+```
+
+If you want to use your own schemas, give the folder where the master schema file `cityjson.json` is located:
+
+```console
+$ cjio example.json validate --folder_schemas /home/elvis/temp/myschemas/
+```
+
 ## Example CityJSON datasets
 
-There are a few [example files on the CityJSON webpage](http://www.cityjson.org/en/0.6/datasets/).
+There are a few [example files on the CityJSON webpage](https://www.cityjson.org/en/0.8/datasets/).
 
 Alternatively, any [CityGML](https://www.citygml.org) file can be automatically converted to CityJSON with the open-source project [citygml4j](https://github.com/citygml4j/citygml4j).
 

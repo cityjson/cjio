@@ -5,11 +5,13 @@ import jsonschema
 
 #-- ERRORS
  # validate_against_schema
+ # parent_children_consistency
  # city_object_groups
+ # semantics_array
+ # wrong_vertex_index
  # building_parts
  # building_installations
  # building_pi_parent
- # semantics
 
 #-- WARNINGS
  # metadata
@@ -43,6 +45,32 @@ def city_object_groups(j):
                     es += "ERROR:   CityObjectGroup (#" + id + ") contains member #" + each + ", but it doesn't exist.\n" 
                     isValid = False
     return (isValid, es)
+
+
+def parent_children_consistency(j):
+    isValid = True
+    es = ""
+    #-- do children have the parent too?
+    for id in j["CityObjects"]:
+        if "children" in j['CityObjects'][id]:
+            for child in j['CityObjects'][id]['children']:
+                if (child not in j['CityObjects']):
+                    es += "ERROR:   CityObject #" + child + " doesn't exist.\n"
+                    es += "\t(CityObject #" + id + " references it as children)\n"   
+                    isValid = False
+                else:
+                    if j['CityObjects'][child]['parent'] != id:    
+                        es += "ERROR:   CityObject #" + child + " doesn't reference correct parent.\n"
+                        es += "\t(Parent should be CityObject #" + id + ")\n"   
+                        isValid = False
+    #-- are there orphans?
+    for id in j["CityObjects"]:
+        if "parent" in j['CityObjects'][id]:
+            if (j['CityObjects'][id]['parent'] not in j['CityObjects']):
+                    es += "ERROR:   CityObject #" + id + " is an orphan (no parent exists).\n"
+                    isValid = False
+    return (isValid, es)
+
 
 def building_parts(j):
     isValid = True
@@ -98,7 +126,8 @@ def building_pi_parent(j):
             es += "\t#" + each + "\n"
     return (isValid, es)
 
-def semantics(j):
+
+def semantics_array(j):
     isValid = True
     es = ""
     for id in j["CityObjects"]:
@@ -152,6 +181,8 @@ def citygml_attributes(j, js):
     thewarnings = {}
     for id in j["CityObjects"]:
         cotype = j['CityObjects'][id]['type']
+        if cotype[0] == "+":
+            continue
         tmp = js[str(cotype)]["properties"]["attributes"]["properties"]
         if 'attributes' in j['CityObjects'][id]:
             for a in j['CityObjects'][id]['attributes']:
@@ -193,6 +224,32 @@ def geometry_empty(j):
             ws += "WARNING: " + j['CityObjects'][id]['type'] + " #" + id + " has no geometry.\n"
     return (isValid, ws)
 
+
+def wrong_vertex_index(j):
+    def recusionvisit(a, co, errs):
+      for each in a:
+        if isinstance(each, list):
+            recusionvisit(each, co, errs)
+        else:
+            if (each >= len(j['vertices'])):
+                es = ""
+                es += "ERROR:   CityObject #" + co + " has geometry with wrong vertex.\n"
+                es += "\t(vertex #" + str(each) + " doesn't exist)\n"   
+                errs.append(es)
+    errs = []
+    for co in j["CityObjects"]:
+        for g in j['CityObjects'][co]['geometry']:
+            recusionvisit(g["boundaries"], co, errs)    
+    es = ""
+    if (len(errs) > 0):
+        isValid = False
+        for each in errs:
+            es += each
+    else:
+        isValid = True
+    return (isValid, es)    
+
+
 def cityjson_properties(j, js):
     isValid = True
     ws = ""
@@ -202,6 +259,7 @@ def cityjson_properties(j, js):
             isValid = False
             ws += "WARNING: root property '" + property + "' not in CityJSON schema, might be ignored by some parsers\n"
     return (isValid, ws)
+
 
 def duplicate_vertices(j):
     isValid = True
