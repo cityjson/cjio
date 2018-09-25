@@ -38,6 +38,7 @@ setup(
         'Click',
         'jsonschema',
         'jsonref',
+        'numpy',
         'pyproj'
     ],
     entry_points='''
