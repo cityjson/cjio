@@ -66,7 +66,7 @@ Operators like `info` and `validate` output information in the console and just 
 $ cjio example.json subset --id house12 info remove_materials info save out.json
 $ cjio example.json remove_textures compress info
 $ cjio example.json upgrade_version save new.json
-$ cjio myfile.json merge '/home/elvis/temp/*.json' save allfiles.json
+$ cjio myfile.json merge '/home/elvis/temp/*.json' save all_merged.json
 ```
 
 
@@ -92,7 +92,7 @@ $ cjio example.json validate --folder_schemas /home/elvis/temp/myschemas/
 
 ## Example CityJSON datasets
 
-There are a few [example files on the CityJSON webpage](http://www.cityjson.org/en/0.8/datasets/).
+There are a few [example files on the CityJSON webpage](https://www.cityjson.org/en/0.8/datasets/).
 
 Alternatively, any [CityGML](https://www.citygml.org) file can be automatically converted to CityJSON with the open-source project [citygml4j](https://github.com/citygml4j/citygml4j).
 
