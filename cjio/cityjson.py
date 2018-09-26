@@ -180,17 +180,11 @@ class CityJSON:
         except: 
             return (False, None)
         abs_path = os.path.abspath(os.path.dirname(schema))
-        
+        #-- because Windows uses \ and not /        
         if platform == "darwin" or platform == "linux" or platform == "linux2":
-            print ("Running cjio on ", sys.platform)
             base_uri = 'file://{}/'.format(abs_path)
-#        elif platform == "win32":
         else:
-            print ("Running cjio on ", sys.platform)
-            print ("Original absolute path: ", abs_path)
             base_uri = 'file:///{}/'.format(abs_path.replace('\\', '/'))
-            print ("Base URI after formatting: ",base_uri)
-            
         js = jsonref.loads(fins.read(), jsonschema=True, base_uri=base_uri)
         return (True, js)
 
