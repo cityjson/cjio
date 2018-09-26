@@ -14,6 +14,7 @@ import random
 from io import StringIO
 import numpy as np
 import pyproj
+from sys import platform
 
 MODULE_EARCUT_AVAILABLE = True
 try:
@@ -179,7 +180,11 @@ class CityJSON:
         except: 
             return (False, None)
         abs_path = os.path.abspath(os.path.dirname(schema))
-        base_uri = 'file://{}/'.format(abs_path)
+        #-- because Windows uses \ and not /        
+        if platform == "darwin" or platform == "linux" or platform == "linux2":
+            base_uri = 'file://{}/'.format(abs_path)
+        else:
+            base_uri = 'file:///{}/'.format(abs_path.replace('\\', '/'))
         js = jsonref.loads(fins.read(), jsonschema=True, base_uri=base_uri)
         return (True, js)
 
