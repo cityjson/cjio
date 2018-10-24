@@ -988,9 +988,9 @@ class CityJSON:
                     if "appearance" not in self.j:
                         self.j["appearance"] = {}
                     if "textures" not in self.j["appearance"]:
-                        self.j["appearance"]["textures"] = {}
+                        self.j["appearance"]["textures"] = []
                     if "vertices-texture" not in self.j["appearance"]:
-                        self.j["appearance"]["vertices-texture"] = {}                        
+                        self.j["appearance"]["vertices-texture"] = []                        
                     toffset = 0
                     voffset = 0
                 #-- copy vertices-texture
