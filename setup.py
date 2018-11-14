@@ -39,6 +39,7 @@ setup(
         'jsonschema',
         'jsonref',
         'numpy',
+        'strict-rfc3339',
         'pyproj'
     ],
     entry_points='''
