@@ -330,7 +330,7 @@ def validate_against_schema(j, js):
     # jsco = json.loads(open(sco_path).read())
     #-- validate the file against the schema
     try:
-        jsonschema.validate(j, js)
+        jsonschema.validate(j, js, format_checker=jsonschema.FormatChecker())
     except jsonschema.ValidationError as e:
         raise Exception(e.message)
         return False
