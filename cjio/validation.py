@@ -148,7 +148,7 @@ def semantics_array(j):
                                 if sem['values'][shellid] is not None:
                                     i = sem['values'][shellid][surfaceid]
                             if i is not None:
-                                if i > (len(sem['surfaces']) - 1):
+                                if ( (type(i) is not int) or (i > (len(sem['surfaces']) - 1)) ):
                                     es += "ERROR:   semantics arrays problems ( #" + id
                                     es += "; geom=" + str(geomid) + ",shell=" + str(shellid) + ",surface=" + str(surfaceid) + " )\n"
                                     isValid = False;
@@ -165,7 +165,7 @@ def semantics_array(j):
                             if sem['values'][surfaceid] is not None:
                                 i = sem['values'][surfaceid]
                         if i is not None:
-                            if i > (len(sem['surfaces']) - 1):
+                            if ( (type(i) is not int) or (i > (len(sem['surfaces']) - 1)) ):
                                 es += "ERROR:   semantics arrays problems ( #" + id
                                 es += "; geom=" + str(geomid) + ",surface=" + str(surfaceid) + " )\n"
                                 isValid = False;
