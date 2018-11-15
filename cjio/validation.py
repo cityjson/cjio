@@ -138,6 +138,7 @@ def semantics_array(j):
                 continue
             else:
                 sem = g['semantics']
+                # TODO: CompositeSolid
                 if g['type'] == 'Solid':
                     shellid = 0
                     for shell in g["boundaries"]:
