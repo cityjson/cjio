@@ -212,6 +212,8 @@ class CityJSON:
             return (True, "")
         isValid = True
         es = ""
+        
+        # 1-- extraCityObjects
         for theid in self.j["CityObjects"]:
                 if ( (self.j["CityObjects"][theid]["type"][0] == "+") and
                      (self.j["CityObjects"][theid]["type"] not in self.j["extensions"]) ):
@@ -225,20 +227,29 @@ class CityJSON:
             s = s[s.rfind('/') + 1:]
             schema = os.path.join(folder_schemas, "extensions")
             schema = os.path.join(schema, s)
-            jeval = {}
-            jeval["$schema"] = "http://json-schema.org/draft-04/schema#"
-            jeval["type"] = "object"
-            jeval["$ref"] = "file://"
-            jeval["$ref"] += schema 
-            jeval["$ref"] += "#/%s" % (ext)
+            # print(schema)
+            jsotf = {}
+            jsotf["$schema"] = "http://json-schema.org/draft-07/schema#"
+            jsotf["type"] = "object"
+            jsotf["$ref"] = "file://"
+            jsotf["$ref"] += schema 
+            jsotf["$ref"] += "#/extraCityObjects/"
+            jsotf["$ref"] += "%s" % (ext)
+            # print (jsotf)
             for theid in self.j["CityObjects"]:
                 if self.j["CityObjects"][theid]["type"] == ext:
                     oneco = self.j["CityObjects"][theid]
                     try:
-                        validation.validate_against_schema(oneco, jeval)
+                        validation.validate_against_schema(oneco, jsotf)
                     except Exception as e:
                         es += str(e)
                         isValid = False
+
+        # 2-- extraRootProperties
+        for p in self.j:
+            if (p[0] == "+"):
+                print(p)
+
         return (isValid, es)
 
 
