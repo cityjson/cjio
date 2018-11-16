@@ -325,11 +325,11 @@ class CityJSON:
             woWarnings = False
             ws += errs
         #-- fetch schema cityobjects.json
-        b, jsco = self.fetch_schema_cityobjects(folder_schemas)
-        b, errs = validation.citygml_attributes(self.j, jsco)
-        if b == False:
-            woWarnings = False
-            ws += errs
+        # b, jsco = self.fetch_schema_cityobjects(folder_schemas)
+        # b, errs = validation.citygml_attributes(self.j, jsco)
+        # if b == False:
+        #     woWarnings = False
+        #     ws += errs
         return (isValid, woWarnings, es, ws)
 
 
