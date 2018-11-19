@@ -277,6 +277,7 @@ class CityJSON:
                     jsotf = jsonref.loads(json.dumps(jtmp), jsonschema=True, base_uri=base_uri)
                     for theid in self.j["CityObjects"]:
                         if ( (self.j["CityObjects"][theid]["type"] == thetype) and 
+                             ("attributes" in self.j["CityObjects"][theid])    and
                              (ea2 in self.j["CityObjects"][theid]["attributes"]) ):
                             a = self.j["CityObjects"][theid]["attributes"][ea2]
                             try:
