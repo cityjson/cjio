@@ -209,10 +209,10 @@ class CityJSON:
         print ('-- Validating the Extensions')
         if "extensions" not in self.j:
             print ("---No extensions in the file.")
-            return (True, "")
+            return (True, [])
         
         isValid = True
-        es = ""
+        es = []
         
         folder_schemas = os.path.abspath(folder_schemas)
         base_uri = os.path.join(folder_schemas, "extensions")
@@ -240,7 +240,7 @@ class CityJSON:
                         try:
                             validation.validate_against_schema(nco1, jsotf)
                         except Exception as e:
-                            es += str(e) + "\n"
+                            es.append(str(e))
                             isValid = False
 
             #-- 2. extraRootProperties
@@ -257,7 +257,7 @@ class CityJSON:
                         try:
                             validation.validate_against_schema(thep, jsotf)
                         except Exception as e:
-                            es += str(e) + "\n"
+                            es.append(str(e))
                             isValid = False
 
             #-- 3. extraAttributes
@@ -280,38 +280,37 @@ class CityJSON:
                             try:
                                 validation.validate_against_schema(a, jsotf)
                             except Exception as e:
-                                es += str(e) + "\n"
+                                es.append(str(e))
                                 isValid = False
 
         return (isValid, es)
 
 
     def validate(self, skip_schema=False, folder_schemas=None):
-        print ('-- Validating against the schema')
+        print ('-- Validating the syntax of the file (using the schemas)')
         #-- only v0.6+
         if float(self.j["version"]) < 0.6:
-            return (False, False, "Only files with version 0.6+ can be validated.", "")
-        es = ""
-        ws = ""
+            return (False, False, ["Only files with version 0.6+ can be validated."], "")
+        es = []
+        ws = []
         #-- 1. schema
         if skip_schema == False:
             b, js = self.fetch_schema(folder_schemas)
             if b == False:
-                return (False, False, "Can't find the schema.", "")
+                return (False, False, ["Can't find the schema."], [])
             else:
-                try:
-                    validation.validate_against_schema(self.j, js)
-                except Exception as e:
-                    es += str(e)
-                    return (False, False, es, "")
+                isValid, errs = validation.validate_against_schema(self.j, js)
+                if (isValid == False):
+                    es += errs
+                    return (False, False, es, [])
         #-- 2. schema for Extensions
         if "extensions" in self.j:
             b, es = self.validate_extensions(folder_schemas)
             if b == False:
-                return (b, True, es, "")
+                return (b, True, es, [])
 
         #-- 3. ERRORS
-        print ('-- Validating extra options (see docs for list)')
+        print ('-- Validating the internal consistency of the file (see docs for list)')
         isValid = True
 
         if float(self.j["version"]) == 0.6:
@@ -368,7 +367,7 @@ class CityJSON:
         if b == False:
             woWarnings = False
             ws += errs
-        #-- fetch schema cityobjects.json
+        #-- fetch schema cityobjects.json TODO: finish this
         # b, jsco = self.fetch_schema_cityobjects(folder_schemas)
         # b, errs = validation.citygml_attributes(self.j, jsco)
         # if b == False:
