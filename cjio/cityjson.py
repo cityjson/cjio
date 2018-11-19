@@ -206,14 +206,70 @@ class CityJSON:
 
 
     def validate_extensions(self, folder_schemas=None):
-        print ('-- Validating the extensions')
+        print ('-- Validating the Extensions')
         if "extensions" not in self.j:
             print ("---No extensions in the file.")
             return (True, "")
+        
         isValid = True
         es = ""
         
-        # 1-- extraCityObjects
+        folder_schemas = os.path.abspath(folder_schemas)
+        base_uri = os.path.join(folder_schemas, "extensions")
+        #-- iterate over each Extensions, and verify each of the properties
+        #-- in the file. Other way around is more cumbersome
+        for ext in self.j["extensions"]:
+            s = self.j["extensions"][ext]
+            s = s[s.rfind('/') + 1:]
+            print ('  %s [%s]' % (ext, s))
+            schemapath = os.path.join(base_uri, s)
+            js = json.loads(open(schemapath).read())
+
+            #-- 1. extraCityObjects
+            for nco in js["extraCityObjects"]:
+                print (nco)
+                jtmp = {}
+                jtmp["$schema"] = "http://json-schema.org/draft-07/schema#"
+                jtmp["type"] = "object"
+                jtmp["$ref"] = "file://"
+                jtmp["$ref"] += schemapath 
+                jtmp["$ref"] += "#/extraCityObjects/"
+                jtmp["$ref"] += "%s" % (nco)
+                jsotf = jsonref.loads(json.dumps(jtmp), jsonschema=True, base_uri=base_uri)
+                for theid in self.j["CityObjects"]:
+                    if self.j["CityObjects"][theid]["type"] == nco:
+                        print(theid)
+                        nco1 = self.j["CityObjects"][theid]
+                        try:
+                            validation.validate_against_schema(nco1, jsotf)
+                        except Exception as e:
+                            es += str(e)
+                            isValid = False
+
+            #-- 2. extraRootProperties
+            for nrp in js["extraRootProperties"]:
+                print (nrp)
+                jtmp = {}
+                jtmp["$schema"] = "http://json-schema.org/draft-07/schema#"
+                jtmp["type"] = "object"
+                jtmp["$ref"] = "file://"
+                jtmp["$ref"] += schemapath 
+                jtmp["$ref"] += "#/extraRootProperties/"
+                jtmp["$ref"] += "%s" % (nrp)
+                jsotf = jsonref.loads(json.dumps(jtmp), jsonschema=True, base_uri=base_uri)
+                for p in self.j:
+                    if p == nrp:
+                        thep = self.j[p]
+                        try:
+                            validation.validate_against_schema(thep, jsotf)
+                        except Exception as e:
+                            es += str(e)
+                            isValid = False
+
+
+
+
+        # # 1-- extraCityObjects
         # for theid in self.j["CityObjects"]:
         #         if ( (self.j["CityObjects"][theid]["type"][0] == "+") and
         #              (self.j["CityObjects"][theid]["type"] not in self.j["extensions"]) ):
@@ -225,17 +281,16 @@ class CityJSON:
         #     print ('  %s' % (ext))
         #     s = self.j["extensions"][ext]
         #     s = s[s.rfind('/') + 1:]
-        #     schema = os.path.join(folder_schemas, "extensions")
-        #     schema = os.path.join(schema, s)
-        #     # print(schema)
-        #     jsotf = {}
-        #     jsotf["$schema"] = "http://json-schema.org/draft-07/schema#"
-        #     jsotf["type"] = "object"
-        #     jsotf["$ref"] = "file://"
-        #     jsotf["$ref"] += schema 
-        #     jsotf["$ref"] += "#/extraCityObjects/"
-        #     jsotf["$ref"] += "%s" % (ext)
-        #     # print (jsotf)
+        #     base_uri = os.path.join(folder_schemas, "extensions")
+        #     schema = os.path.join(base_uri, s)
+        #     jtmp = {}
+        #     jtmp["$schema"] = "http://json-schema.org/draft-07/schema#"
+        #     jtmp["type"] = "object"
+        #     jtmp["$ref"] = "file://"
+        #     jtmp["$ref"] += schema 
+        #     jtmp["$ref"] += "#/extraCityObjects/"
+        #     jtmp["$ref"] += "%s" % (ext)
+        #     jsotf = jsonref.loads(json.dumps(jtmp), jsonschema=True, base_uri=base_uri)
         #     for theid in self.j["CityObjects"]:
         #         if self.j["CityObjects"][theid]["type"] == ext:
         #             oneco = self.j["CityObjects"][theid]
@@ -268,38 +323,38 @@ class CityJSON:
 
 
         # 3-- extraAttributes
-        for ext in self.j["extensions"]:
-            print ('  %s' % (ext))
-            s = self.j["extensions"][ext]
-            s = s[s.rfind('/') + 1:]
-            schema = os.path.join(folder_schemas, "extensions")
-            schema = os.path.join(schema, s)
-            fins = open(schema)
-            js = json.loads(fins.read())
-            # print (js["extraAttributes"]["Building"])        
-            thetype = "Building"
-            for newatt in js["extraAttributes"][thetype]:
-                # print(newatt)
-                jsotf = js["extraAttributes"][thetype][newatt]
-                jsotf["$schema"] = "http://json-schema.org/draft-07/schema#"
-                # jsotf = {}
-                # jsotf["$schema"] = "http://json-schema.org/draft-07/schema#"
-                # jsotf["type"] = "object"
-                # jsotf["$ref"] = "file://"
-                # jsotf["$ref"] += schema 
-                # jsotf["$ref"] += "#/extraAttributes/%s/" % thetype
-                # jsotf["$ref"] += "%s" % (newatt)
-                for theid in self.j["CityObjects"]:
-                    if ( self.j["CityObjects"][theid]["type"] == thetype ):
-                        if newatt in self.j["CityObjects"][theid]["attributes"]:
-                            thep = self.j["CityObjects"][theid]["attributes"][newatt]
-                            print(thep)
-                            try:
-                                print(jsotf)
-                                validation.validate_against_schema(thep, jsotf)
-                            except Exception as e:
-                                es += str(e)
-                                isValid = False
+        # for ext in self.j["extensions"]:
+        #     print ('  %s' % (ext))
+        #     s = self.j["extensions"][ext]
+        #     s = s[s.rfind('/') + 1:]
+        #     schema = os.path.join(folder_schemas, "extensions")
+        #     schema = os.path.join(schema, s)
+        #     fins = open(schema)
+        #     js = json.loads(fins.read())
+        #     # print (js["extraAttributes"]["Building"])        
+        #     thetype = "Building"
+        #     for newatt in js["extraAttributes"][thetype]:
+        #         # print(newatt)
+        #         jsotf = js["extraAttributes"][thetype][newatt]
+        #         jsotf["$schema"] = "http://json-schema.org/draft-07/schema#"
+        #         # jsotf = {}
+        #         # jsotf["$schema"] = "http://json-schema.org/draft-07/schema#"
+        #         # jsotf["type"] = "object"
+        #         # jsotf["$ref"] = "file://"
+        #         # jsotf["$ref"] += schema 
+        #         # jsotf["$ref"] += "#/extraAttributes/%s/" % thetype
+        #         # jsotf["$ref"] += "%s" % (newatt)
+        #         for theid in self.j["CityObjects"]:
+        #             if ( self.j["CityObjects"][theid]["type"] == thetype ):
+        #                 if newatt in self.j["CityObjects"][theid]["attributes"]:
+        #                     thep = self.j["CityObjects"][theid]["attributes"][newatt]
+        #                     print(thep)
+        #                     try:
+        #                         print(jsotf)
+        #                         validation.validate_against_schema(thep, jsotf)
+        #                     except Exception as e:
+        #                         es += str(e)
+        #                         isValid = False
 
 
 
