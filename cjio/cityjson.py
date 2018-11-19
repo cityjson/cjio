@@ -216,6 +216,7 @@ class CityJSON:
         
         folder_schemas = os.path.abspath(folder_schemas)
         base_uri = os.path.join(folder_schemas, "extensions")
+        allnewco = set()
         #-- iterate over each Extensions, and verify each of the properties
         #-- in the file. Other way around is more cumbersome
         for ext in self.j["extensions"]:
@@ -227,7 +228,8 @@ class CityJSON:
 
             #-- 1. extraCityObjects
             for nco in js["extraCityObjects"]:
-                print (nco)
+                # print (nco)
+                allnewco.add(nco)
                 jtmp = {}
                 jtmp["$schema"] = "http://json-schema.org/draft-07/schema#"
                 jtmp["type"] = "object"
@@ -282,6 +284,14 @@ class CityJSON:
                             except Exception as e:
                                 es.append(str(e))
                                 isValid = False
+
+        #-- 4. check if there are CityObjects that do not have a schema
+        for theid in self.j["CityObjects"]:
+            if ( (self.j["CityObjects"][theid]["type"][0] == "+") and
+                 (self.j["CityObjects"][theid]["type"] not in allnewco) ):
+                s = "ERROR:   CityObject " + self.j["CityObjects"][theid]["type"] + " doesn't have a schema."
+                es.append(s)
+                isValid = False
 
         return (isValid, es)
 
