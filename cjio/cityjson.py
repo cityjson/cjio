@@ -228,7 +228,6 @@ class CityJSON:
 
             #-- 1. extraCityObjects
             for nco in js["extraCityObjects"]:
-                # print (nco)
                 allnewco.add(nco)
                 jtmp = {}
                 jtmp["$schema"] = "http://json-schema.org/draft-07/schema#"
@@ -237,17 +236,14 @@ class CityJSON:
                 jsotf = jsonref.loads(json.dumps(jtmp), jsonschema=True, base_uri=base_uri)
                 for theid in self.j["CityObjects"]:
                     if self.j["CityObjects"][theid]["type"] == nco:
-                        print(theid)
                         nco1 = self.j["CityObjects"][theid]
-                        try:
-                            validation.validate_against_schema(nco1, jsotf)
-                        except Exception as e:
-                            es.append(str(e))
+                        v, errs = validation.validate_against_schema(nco1, jsotf)
+                        if (v == False):
                             isValid = False
+                            es += errs
 
             #-- 2. extraRootProperties
             for nrp in js["extraRootProperties"]:
-                print (nrp)
                 jtmp = {}
                 jtmp["$schema"] = "http://json-schema.org/draft-07/schema#"
                 jtmp["type"] = "object"
@@ -256,11 +252,10 @@ class CityJSON:
                 for p in self.j:
                     if p == nrp:
                         thep = self.j[p]
-                        try:
-                            validation.validate_against_schema(thep, jsotf)
-                        except Exception as e:
-                            es.append(str(e))
+                        v, errs = validation.validate_against_schema(thep, jsotf)
+                        if (v == False):
                             isValid = False
+                            es += errs
 
             #-- 3. extraAttributes
             for thetype in js["extraAttributes"]:
@@ -269,7 +264,6 @@ class CityJSON:
                         ea2 = '+' + ext + "-" + ea[1:]
                     else:
                         ea2 = ea
-                    # print (ea2)
                     jtmp = {}
                     jtmp["$schema"] = "http://json-schema.org/draft-07/schema#"
                     jtmp["type"] = "object"
@@ -280,11 +274,11 @@ class CityJSON:
                              ("attributes" in self.j["CityObjects"][theid])    and
                              (ea2 in self.j["CityObjects"][theid]["attributes"]) ):
                             a = self.j["CityObjects"][theid]["attributes"][ea2]
-                            try:
-                                validation.validate_against_schema(a, jsotf)
-                            except Exception as e:
-                                es.append(str(e))
+                            v, errs = validation.validate_against_schema(a, jsotf)
+                            if (v == False):
                                 isValid = False
+                                es += errs
+
 
         #-- 4. check if there are CityObjects that do not have a schema
         for theid in self.j["CityObjects"]:
