@@ -352,6 +352,7 @@ class CityJSON:
             es += errs
         #-- 4. WARNINGS
         woWarnings = True
+        # TODO : validation of metadata to finish
         # b, errs = validation.metadata(self.j, js) 
         # if b == False:
         #     woWarnings = False
@@ -373,6 +374,8 @@ class CityJSON:
             woWarnings = False
             ws += errs
         #-- fetch schema cityobjects.json TODO: finish this
+        print(js["properties"]["CityObjects"])
+        # print(js["properties"]["CityObjects"]["Building"]["properties"]["attributes"])
         # b, jsco = self.fetch_schema_cityobjects(folder_schemas)
         # b, errs = validation.citygml_attributes(self.j, jsco)
         # if b == False:
