@@ -217,6 +217,7 @@ def validate_cmd(hide_errors, skip_schema, folder_schemas):
             print_cmd_status('===== Validation (schemas v%s) =====' % (cm.j['version']))
         #-- validate    
         bValid, woWarnings, errors, warnings = cm.validate(skip_schema=skip_schema, folder_schemas=folder_schemas)
+        click.echo('=====')
         if bValid == True:
             click.echo(click.style('File is valid', fg='green'))
         else:    

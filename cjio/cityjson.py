@@ -216,10 +216,8 @@ class CityJSON:
         if "extensions" not in self.j:
             print ("---No extensions in the file.")
             return (True, [])
-        
         isValid = True
         es = []
-        
         folder_schemas = os.path.abspath(folder_schemas)
         base_uri = os.path.join(folder_schemas, "extensions")
         allnewco = set()
@@ -228,7 +226,7 @@ class CityJSON:
         for ext in self.j["extensions"]:
             s = self.j["extensions"][ext]
             s = s[s.rfind('/') + 1:]
-            print ('  %s [%s]' % (ext, s))
+            print ('\t%s [%s]' % (ext, s))
             schemapath = os.path.join(base_uri, s)
             js = json.loads(open(schemapath).read())
 
