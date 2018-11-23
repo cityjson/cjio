@@ -199,9 +199,15 @@ class CityJSON:
                 return (False, None)
         else:
             schema = os.path.join(folder_schemas, 'cityjson.json')  
-        sco_path = os.path.abspath(os.path.dirname(schema))
-        sco_path += '/cityobjects.json'
-        jsco = json.loads(open(sco_path).read())
+        abs_path = os.path.abspath(os.path.dirname(schema))
+        sco_path = abs_path + '/cityobjects.json'
+        #-- because Windows uses \ and not /        
+        if platform == "darwin" or platform == "linux" or platform == "linux2":
+            base_uri = 'file://{}/'.format(abs_path)
+        else:
+            base_uri = 'file:///{}/'.format(abs_path.replace('\\', '/'))
+        jsco = jsonref.loads(open(sco_path).read(), jsonschema=True, base_uri=base_uri)
+        # jsco = json.loads(open(sco_path).read())
         return (True, jsco)
 
 
@@ -338,46 +344,56 @@ class CityJSON:
                 isValid = False
                 es += errs
 
+        print("\t--Vertex indices coherent")
         b, errs = validation.wrong_vertex_index(self.j)
         if b == False:
             isValid = False
             es += errs
+        print("\t--Specific for CityGroups")
         b, errs = validation.city_object_groups(self.j) 
         if b == False:
             isValid = False
             es += errs
+        print("\t--Semantic arrays coherent with geometry")
         b, errs = validation.semantics_array(self.j)
         if b == False:
             isValid = False
             es += errs
         #-- 4. WARNINGS
         woWarnings = True
+        # TODO : validation of metadata to finish
         # b, errs = validation.metadata(self.j, js) 
         # if b == False:
         #     woWarnings = False
         #     ws += errs
+        print("\t--Root properties")
         b, errs = validation.cityjson_properties(self.j, js)
         if b == False:
             woWarnings = False
             ws += errs
+        print("\t--Empty geometries")
         b, errs = validation.geometry_empty(self.j)
         if b == False:
             woWarnings = False
             ws += errs
+        print("\t--Duplicate vertices")
         b, errs = validation.duplicate_vertices(self.j)
         if b == False:
             woWarnings = False
             ws += errs
+        print("\t--Orphan vertices")
         b, errs = validation.orphan_vertices(self.j)
         if b == False:
             woWarnings = False
             ws += errs
-        #-- fetch schema cityobjects.json TODO: finish this
-        # b, jsco = self.fetch_schema_cityobjects(folder_schemas)
-        # b, errs = validation.citygml_attributes(self.j, jsco)
-        # if b == False:
-        #     woWarnings = False
-        #     ws += errs
+        #-- fetch schema cityobjects.json
+        print("\t--CityGML attributes")
+        b, jsco = self.fetch_schema_cityobjects(folder_schemas)
+        b, errs = validation.citygml_attributes(self.j, jsco)
+        if b == False:
+            woWarnings = False
+            ws += errs
+        # TODO: validate address attributes?
         return (isValid, woWarnings, es, ws)
 
 
