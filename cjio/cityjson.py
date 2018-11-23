@@ -344,14 +344,17 @@ class CityJSON:
                 isValid = False
                 es += errs
 
+        print("\t--Vertex indices coherent")
         b, errs = validation.wrong_vertex_index(self.j)
         if b == False:
             isValid = False
             es += errs
+        print("\t--Specific for CityGroups")
         b, errs = validation.city_object_groups(self.j) 
         if b == False:
             isValid = False
             es += errs
+        print("\t--Semantic arrays coherent with geometry")
         b, errs = validation.semantics_array(self.j)
         if b == False:
             isValid = False
@@ -363,30 +366,34 @@ class CityJSON:
         # if b == False:
         #     woWarnings = False
         #     ws += errs
+        print("\t--Root properties")
         b, errs = validation.cityjson_properties(self.j, js)
         if b == False:
             woWarnings = False
             ws += errs
+        print("\t--Empty geometries")
         b, errs = validation.geometry_empty(self.j)
         if b == False:
             woWarnings = False
             ws += errs
+        print("\t--Duplicate vertices")
         b, errs = validation.duplicate_vertices(self.j)
         if b == False:
             woWarnings = False
             ws += errs
+        print("\t--Orphan vertices")
         b, errs = validation.orphan_vertices(self.j)
         if b == False:
             woWarnings = False
             ws += errs
-        #-- fetch schema cityobjects.json TODO: finish this
-        print(js["properties"]["CityObjects"])
-        # print(js["properties"]["CityObjects"]["Building"]["properties"]["attributes"])
-        # b, jsco = self.fetch_schema_cityobjects(folder_schemas)
-        # b, errs = validation.citygml_attributes(self.j, jsco)
-        # if b == False:
-        #     woWarnings = False
-        #     ws += errs
+        #-- fetch schema cityobjects.json
+        print("\t--CityGML attributes")
+        b, jsco = self.fetch_schema_cityobjects(folder_schemas)
+        b, errs = validation.citygml_attributes(self.j, jsco)
+        if b == False:
+            woWarnings = False
+            ws += errs
+        # TODO: validate address attributes?
         return (isValid, woWarnings, es, ws)
 
 
