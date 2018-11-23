@@ -354,19 +354,6 @@ def orphan_vertices(j):
     return (isValid, ws)
 
 
-def metadata(j, js):
-    isValid = True
-    ws = []
-    jtmp = js['properties']['metadata']['properties']
-    if 'metadata' in j:
-        for each in j['metadata']:
-            if each not in jtmp:
-                isValid = False
-                s = "WARNING: Metadata '" + each + "' not in CityJSON schema."
-                ws.append(s)
-    return (isValid, ws)
-
-
 def validate_against_schema(j, js):
     isValid = True
     es = []

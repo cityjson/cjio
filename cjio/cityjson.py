@@ -361,11 +361,6 @@ class CityJSON:
             es += errs
         #-- 4. WARNINGS
         woWarnings = True
-        # TODO : validation of metadata to finish
-        # b, errs = validation.metadata(self.j, js) 
-        # if b == False:
-        #     woWarnings = False
-        #     ws += errs
         print("\t--Root properties")
         b, errs = validation.cityjson_properties(self.j, js)
         if b == False:
