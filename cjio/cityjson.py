@@ -199,9 +199,15 @@ class CityJSON:
                 return (False, None)
         else:
             schema = os.path.join(folder_schemas, 'cityjson.json')  
-        sco_path = os.path.abspath(os.path.dirname(schema))
-        sco_path += '/cityobjects.json'
-        jsco = json.loads(open(sco_path).read())
+        abs_path = os.path.abspath(os.path.dirname(schema))
+        sco_path = abs_path + '/cityobjects.json'
+        #-- because Windows uses \ and not /        
+        if platform == "darwin" or platform == "linux" or platform == "linux2":
+            base_uri = 'file://{}/'.format(abs_path)
+        else:
+            base_uri = 'file:///{}/'.format(abs_path.replace('\\', '/'))
+        jsco = jsonref.loads(open(sco_path).read(), jsonschema=True, base_uri=base_uri)
+        # jsco = json.loads(open(sco_path).read())
         return (True, jsco)
 
 

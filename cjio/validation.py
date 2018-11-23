@@ -2,6 +2,7 @@
 import os
 import json
 import jsonschema
+import jsonref
 
 #-- ERRORS
  # validate_against_schema
@@ -192,44 +193,62 @@ def semantics_array(j):
     return (isValid, es)
 
 
+def get_list_attributes_from_schema(n, ls):
+    if ( (type(n) is dict) or (type(n) is jsonref.JsonRef) ):
+        if "attributes" in n:
+            for each in n["attributes"]["properties"]:
+                ls.append(each)
+        for p in n:
+            if ( (type(n[p]) is list) or (type(n[p]) is dict) ):
+                get_list_attributes_from_schema(n[p], ls)
+    elif (type(n) is list):
+        for each in n:
+            if ( (type(each) is dict) or (type(each) is jsonref.JsonRef) or (type(each) is list) ):
+                get_list_attributes_from_schema(each, ls)
+
+
+    # if 'address' in j['CityObjects'][id]:
+    #     tmp = js[str(cotype)]["properties"]["address"]["properties"]                        
+    #     for a in j['CityObjects'][id]['address']:
+    #         if a not in tmp:
+    #             isValid = False;
+    #             s = "WARNING: address attributes '" + a + "' not in CityGML schema"
+    #             if s not in thewarnings:
+    #                 thewarnings[s] = [id]
+    #             else:
+    #                 thewarnings[s].append(id)                        
+
 def citygml_attributes(j, js):
     isValid = True
-    ws = []
     thewarnings = {}
     for id in j["CityObjects"]:
         cotype = j['CityObjects'][id]['type']
         if cotype[0] == "+":
             continue
-        tmp = js[str(cotype)]["properties"]["attributes"]["properties"]
+            # TODO : implement for attributes of Extensions?
+        ls = []
+        get_list_attributes_from_schema(js[cotype], ls)
         if 'attributes' in j['CityObjects'][id]:
             for a in j['CityObjects'][id]['attributes']:
-                if a not in tmp:
+                if ( (a[0] != "+") and (a not in ls) ):
                     isValid = False;
                     s = "WARNING: attributes '" + a + "' not in CityGML schema"
                     if s not in thewarnings:
                         thewarnings[s] = [id]
                     else:
                         thewarnings[s].append(id)
-        if 'address' in j['CityObjects'][id]:
-            tmp = js[str(cotype)]["properties"]["address"]["properties"]                        
-            for a in j['CityObjects'][id]['address']:
-                if a not in tmp:
-                    isValid = False;
-                    s = "WARNING: address attributes '" + a + "' not in CityGML schema"
-                    if s not in thewarnings:
-                        thewarnings[s] = [id]
-                    else:
-                        thewarnings[s].append(id)                        
-    # TODO: fix this
-    # for each in thewarnings:
-    #     ws += each
-    #     if len(thewarnings[each]) < 3:
-    #         ws += " ("
-    #         for coid in thewarnings[each]:
-    #             ws += " #" + coid + " "
-    #         ws += ")\n"
-    #     else:
-    #         ws += " (" + str(len(thewarnings[each])) + " CityObjects have this warning)\n"
+    ws = []
+    for each in thewarnings:
+        ws.append(each)
+        s = ""
+        if len(thewarnings[each]) < 3:
+            s += "\t("
+            for coid in thewarnings[each]:
+                s += " #" + coid + " "
+            s += ")"
+        else:
+            s += "\t(" + str(len(thewarnings[each])) + " CityObjects have this warning)"
+        ws.append(s)
     return (isValid, ws)
 
 
@@ -275,7 +294,7 @@ def cityjson_properties(j, js):
     ws = []
     thewarnings = {}
     for property in j:
-        if property not in js["properties"]:
+        if ( (property[0] != "+") and (property not in js["properties"]) ):
             isValid = False
             s = "WARNING: root property '" + property + "' not in CityJSON schema, might be ignored by some parsers"
             ws.append(s)
