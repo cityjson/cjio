@@ -29,7 +29,7 @@ from cjio import errors
 from cjio.errors import InvalidOperation
 
 
-CITYJSON_VERSIONS_SUPPORTED = ['0.6', '0.8']
+CITYJSON_VERSIONS_SUPPORTED = ['0.6', '0.8', '0.9']
 
 
 def reader(file, ignore_duplicate_keys=False):
@@ -117,7 +117,7 @@ class CityJSON:
         else: #-- create an empty one
             self.j = {}
             self.j["type"] = "CityJSON"
-            self.j["version"] = "0.9"
+            self.j["version"] = CITYJSON_VERSIONS_SUPPORTED[-1]
             self.j["CityObjects"] = {}
             self.j["vertices"] = []
 
@@ -806,14 +806,15 @@ class CityJSON:
         info["cityjson_version"] = self.get_version()
         info["epsg"] = self.get_epsg()
         if "extensions" in self.j:
-            info["extensions"] = True
-        else:
-            info["extensions"] = False
+            d = set()
+            for i in self.j["extensions"]:
+                d.add(i)
+            info["extensions"] = sorted(list(d))
         info["cityobjects_total"] = self.number_city_objects()
         d = set()
         for key in self.j["CityObjects"]:
             d.add(self.j['CityObjects'][key]['type'])
-        info["cityobjects_present"] = list(d)
+        info["cityobjects_present"] = sorted(list(d))
         info["vertices_total"] = len(self.j["vertices"])
         info["transform/compressed"] = "transform" in self.j
         d.clear()
@@ -1065,9 +1066,11 @@ class CityJSON:
         # self.remove_orphan_vertices()
         return True
 
+
     def upgrade_version(self, newversion):
+        reasons = ""
         if CITYJSON_VERSIONS_SUPPORTED.count(newversion) == 0:
-            return False
+            return (False, "This version is not supported")
         #-- v0.6 -> v0.8
         if ( (self.get_version() == CITYJSON_VERSIONS_SUPPORTED[0]) and
              (newversion         == CITYJSON_VERSIONS_SUPPORTED[1]) ):
@@ -1104,7 +1107,16 @@ class CityJSON:
                     #-- put the "parent" in each children
                     for child in children:
                         self.j['CityObjects'][child]['parent'] = id
-        return True        
+        #-- v0.8 -> v0.9
+        if ( (self.get_version() == CITYJSON_VERSIONS_SUPPORTED[1]) and
+             (newversion         == CITYJSON_VERSIONS_SUPPORTED[2]) ):
+            #-- version 
+            self.j["version"] = newversion
+            #-- extensions
+            if "extensions" in self.j:
+                reasons += "Extensions have changed completely at v0.9, update them manually."
+                return (False, reasons)
+        return (True, "")
 
 
     def triangulate_face(self, face, vnp):

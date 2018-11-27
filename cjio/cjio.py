@@ -432,8 +432,9 @@ def upgrade_version_cmd():
     def processor(cm):
         vlatest = cityjson.CITYJSON_VERSIONS_SUPPORTED[-1]
         print_cmd_status('Upgrade CityJSON file to v%s' % vlatest)
-        if (cm.upgrade_version(vlatest) == False):
-            click.echo("WARNING: File cannot be upgraded to this version.")
+        re, reasons = cm.upgrade_version(vlatest)
+        if (re == False):
+            click.echo(click.style("WARNING: %s" % (reasons), fg='red'))
         return cm
     return processor
 
