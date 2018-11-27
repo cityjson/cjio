@@ -29,7 +29,7 @@ from cjio import errors
 from cjio.errors import InvalidOperation
 
 
-CITYJSON_VERSIONS_SUPPORTED = ['0.6', '0.8']
+CITYJSON_VERSIONS_SUPPORTED = ['0.6', '0.8', '0.9']
 
 
 def reader(file, ignore_duplicate_keys=False):
@@ -117,7 +117,7 @@ class CityJSON:
         else: #-- create an empty one
             self.j = {}
             self.j["type"] = "CityJSON"
-            self.j["version"] = "0.9"
+            self.j["version"] = CITYJSON_VERSIONS_SUPPORTED[-1]
             self.j["CityObjects"] = {}
             self.j["vertices"] = []
 
@@ -169,11 +169,11 @@ class CityJSON:
             #-- fetch proper schema from the stored ones 
             v = self.j["version"].replace('.', '')
             try:
-                schema = resource_filename(__name__, '/schemas/v%s/cityjson.json' % (v))
+                schema = resource_filename(__name__, '/schemas/v%s/cityjson.schema.json' % (v))
             except:
                 return (False, None)
         else:
-            schema = os.path.join(folder_schemas, 'cityjson.json')  
+            schema = os.path.join(folder_schemas, 'cityjson.schema.json')  
         #-- open the schema
         try:
             fins = open(schema)
@@ -194,13 +194,13 @@ class CityJSON:
             #-- fetch proper schema from the stored ones 
             v = self.j["version"].replace('.', '')
             try:
-                schema = resource_filename(__name__, '/schemas/v%s/cityjson.json' % (v))
+                schema = resource_filename(__name__, '/schemas/v%s/cityjson.schema.json' % (v))
             except:
                 return (False, None)
         else:
-            schema = os.path.join(folder_schemas, 'cityjson.json')  
+            schema = os.path.join(folder_schemas, 'cityjson.schema.json')  
         abs_path = os.path.abspath(os.path.dirname(schema))
-        sco_path = abs_path + '/cityobjects.json'
+        sco_path = abs_path + '/cityobjects.schema.json'
         #-- because Windows uses \ and not /        
         if platform == "darwin" or platform == "linux" or platform == "linux2":
             base_uri = 'file://{}/'.format(abs_path)
@@ -216,9 +216,17 @@ class CityJSON:
         if "extensions" not in self.j:
             print ("---No extensions in the file.")
             return (True, [])
+
+        if folder_schemas is None:
+            #-- fetch proper schema from the stored ones 
+            v = self.j["version"].replace('.', '')
+            try:
+                schema = resource_filename(__name__, '/schemas/v%s/cityjson.schema.json' % (v))
+                folder_schemas = os.path.abspath(os.path.dirname(schema))
+            except:
+                return (False, None)
         isValid = True
         es = []
-        folder_schemas = os.path.abspath(folder_schemas)
         base_uri = os.path.join(folder_schemas, "extensions")
         allnewco = set()
         #-- iterate over each Extensions, and verify each of the properties
@@ -297,9 +305,10 @@ class CityJSON:
 
     def validate(self, skip_schema=False, folder_schemas=None):
         print ('-- Validating the syntax of the file (using the schemas)')
-        #-- only v0.6+
-        if float(self.j["version"]) < 0.6:
-            return (False, False, ["Only files with version 0.6+ can be validated."], "")
+        #-- only latest version, otherwise a mess with versions and different schemas
+        #-- this is it, sorry people
+        if (self.j["version"] != CITYJSON_VERSIONS_SUPPORTED[-1]):
+            return (False, False, ["Only files with version v%s can be validated." % (CITYJSON_VERSIONS_SUPPORTED[-1])], "")
         es = []
         ws = []
         #-- 1. schema
@@ -317,6 +326,7 @@ class CityJSON:
             b, es = self.validate_extensions(folder_schemas)
             if b == False:
                 return (b, True, es, [])
+
 
         #-- 3. ERRORS
         print ('-- Validating the internal consistency of the file (see docs for list)')
@@ -806,14 +816,15 @@ class CityJSON:
         info["cityjson_version"] = self.get_version()
         info["epsg"] = self.get_epsg()
         if "extensions" in self.j:
-            info["extensions"] = True
-        else:
-            info["extensions"] = False
+            d = set()
+            for i in self.j["extensions"]:
+                d.add(i)
+            info["extensions"] = sorted(list(d))
         info["cityobjects_total"] = self.number_city_objects()
         d = set()
         for key in self.j["CityObjects"]:
             d.add(self.j['CityObjects'][key]['type'])
-        info["cityobjects_present"] = list(d)
+        info["cityobjects_present"] = sorted(list(d))
         info["vertices_total"] = len(self.j["vertices"])
         info["transform/compressed"] = "transform" in self.j
         d.clear()
@@ -1065,9 +1076,11 @@ class CityJSON:
         # self.remove_orphan_vertices()
         return True
 
+
     def upgrade_version(self, newversion):
+        reasons = ""
         if CITYJSON_VERSIONS_SUPPORTED.count(newversion) == 0:
-            return False
+            return (False, "This version is not supported")
         #-- v0.6 -> v0.8
         if ( (self.get_version() == CITYJSON_VERSIONS_SUPPORTED[0]) and
              (newversion         == CITYJSON_VERSIONS_SUPPORTED[1]) ):
@@ -1104,7 +1117,16 @@ class CityJSON:
                     #-- put the "parent" in each children
                     for child in children:
                         self.j['CityObjects'][child]['parent'] = id
-        return True        
+        #-- v0.8 -> v0.9
+        if ( (self.get_version() == CITYJSON_VERSIONS_SUPPORTED[1]) and
+             (newversion         == CITYJSON_VERSIONS_SUPPORTED[2]) ):
+            #-- version 
+            self.j["version"] = newversion
+            #-- extensions
+            if "extensions" in self.j:
+                reasons += "Extensions have changed completely at v0.9, update them manually."
+                return (False, reasons)
+        return (True, "")
 
 
     def triangulate_face(self, face, vnp):
