@@ -272,10 +272,6 @@ class CityJSON:
             #-- 3. extraAttributes
             for thetype in js["extraAttributes"]:
                 for ea in js["extraAttributes"][thetype]:
-                    if (ea.find(ext) == -1):
-                        ea2 = '+' + ext + "-" + ea[1:]
-                    else:
-                        ea2 = ea
                     jtmp = {}
                     jtmp["$schema"] = "http://json-schema.org/draft-07/schema#"
                     jtmp["type"] = "object"
@@ -284,8 +280,8 @@ class CityJSON:
                     for theid in self.j["CityObjects"]:
                         if ( (self.j["CityObjects"][theid]["type"] == thetype) and 
                              ("attributes" in self.j["CityObjects"][theid])    and
-                             (ea2 in self.j["CityObjects"][theid]["attributes"]) ):
-                            a = self.j["CityObjects"][theid]["attributes"][ea2]
+                             (ea in self.j["CityObjects"][theid]["attributes"]) ):
+                            a = self.j["CityObjects"][theid]["attributes"][ea]
                             v, errs = validation.validate_against_schema(a, jsotf)
                             if (v == False):
                                 isValid = False
