@@ -314,9 +314,15 @@ class CityJSON:
                     return (False, False, es, [])
         #-- 2. schema for Extensions
         if "extensions" in self.j:
-            b, es = self.validate_extensions(folder_schemas)
-            if b == False:
-                return (b, True, es, [])
+            v = CITYJSON_VERSIONS_SUPPORTED.index(self.j["version"])
+            if (v > 2): #-- v0.9+ have Extensions, before no validation
+                b, es = self.validate_extensions(folder_schemas)
+                if b == False:
+                    return (b, True, es, [])
+            else:
+                es.append("Only Extensions in v0.9+ can be validated.")
+                return (False, True, es, [])
+
 
         #-- 3. ERRORS
         print ('-- Validating the internal consistency of the file (see docs for list)')
