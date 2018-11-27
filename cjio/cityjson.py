@@ -216,9 +216,17 @@ class CityJSON:
         if "extensions" not in self.j:
             print ("---No extensions in the file.")
             return (True, [])
+
+        if folder_schemas is None:
+            #-- fetch proper schema from the stored ones 
+            v = self.j["version"].replace('.', '')
+            try:
+                schema = resource_filename(__name__, '/schemas/v%s/cityjson.schema.json' % (v))
+                folder_schemas = os.path.abspath(os.path.dirname(schema))
+            except:
+                return (False, None)
         isValid = True
         es = []
-        folder_schemas = os.path.abspath(folder_schemas)
         base_uri = os.path.join(folder_schemas, "extensions")
         allnewco = set()
         #-- iterate over each Extensions, and verify each of the properties
