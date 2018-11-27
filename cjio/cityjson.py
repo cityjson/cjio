@@ -169,11 +169,11 @@ class CityJSON:
             #-- fetch proper schema from the stored ones 
             v = self.j["version"].replace('.', '')
             try:
-                schema = resource_filename(__name__, '/schemas/v%s/cityjson.json' % (v))
+                schema = resource_filename(__name__, '/schemas/v%s/cityjson.schema.json' % (v))
             except:
                 return (False, None)
         else:
-            schema = os.path.join(folder_schemas, 'cityjson.json')  
+            schema = os.path.join(folder_schemas, 'cityjson.schema.json')  
         #-- open the schema
         try:
             fins = open(schema)
@@ -194,13 +194,13 @@ class CityJSON:
             #-- fetch proper schema from the stored ones 
             v = self.j["version"].replace('.', '')
             try:
-                schema = resource_filename(__name__, '/schemas/v%s/cityjson.json' % (v))
+                schema = resource_filename(__name__, '/schemas/v%s/cityjson.schema.json' % (v))
             except:
                 return (False, None)
         else:
-            schema = os.path.join(folder_schemas, 'cityjson.json')  
+            schema = os.path.join(folder_schemas, 'cityjson.schema.json')  
         abs_path = os.path.abspath(os.path.dirname(schema))
-        sco_path = abs_path + '/cityobjects.json'
+        sco_path = abs_path + '/cityobjects.schema.json'
         #-- because Windows uses \ and not /        
         if platform == "darwin" or platform == "linux" or platform == "linux2":
             base_uri = 'file://{}/'.format(abs_path)
