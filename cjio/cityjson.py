@@ -297,9 +297,10 @@ class CityJSON:
 
     def validate(self, skip_schema=False, folder_schemas=None):
         print ('-- Validating the syntax of the file (using the schemas)')
-        #-- only v0.6+
-        if float(self.j["version"]) < 0.6:
-            return (False, False, ["Only files with version 0.6+ can be validated."], "")
+        #-- only latest version, otherwise a mess with versions and different schemas
+        #-- this is it, sorry people
+        if (self.j["version"] != CITYJSON_VERSIONS_SUPPORTED[-1]):
+            return (False, False, ["Only files with version v%s can be validated." % (CITYJSON_VERSIONS_SUPPORTED[-1])], "")
         es = []
         ws = []
         #-- 1. schema
@@ -314,14 +315,9 @@ class CityJSON:
                     return (False, False, es, [])
         #-- 2. schema for Extensions
         if "extensions" in self.j:
-            v = CITYJSON_VERSIONS_SUPPORTED.index(self.j["version"])
-            if (v > 2): #-- v0.9+ have Extensions, before no validation
-                b, es = self.validate_extensions(folder_schemas)
-                if b == False:
-                    return (b, True, es, [])
-            else:
-                es.append("Only Extensions in v0.9+ can be validated.")
-                return (False, True, es, [])
+            b, es = self.validate_extensions(folder_schemas)
+            if b == False:
+                return (b, True, es, [])
 
 
         #-- 3. ERRORS
