@@ -28,6 +28,23 @@ pip3 install --editable .
 
 Alternatively, you can use the included Pipfile to manage the virtual environment with [pipenv](https://pipenv.readthedocs.io/en/latest/).
 
+**Note for Windows users**
+
+If your installation fails based on a *pyproj* error there is a small hack to get around it.
+You can download a pyproj wheel (binary of a python package) based on the python version you have installed.
+A good website to use is [here](https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyproj).
+You then run:
+
+```console
+pip3 install [name of wheel file]
+```
+
+You can then continue with:
+
+```console
+pip3 install cjio
+```
+
 ## Usage
 
 After installation, you have a small program called `cjio`, to see its possibities:
