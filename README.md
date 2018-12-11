@@ -30,9 +30,9 @@ Alternatively, you can use the included Pipfile to manage the virtual environmen
 
 **Note for Windows users**
 
-If your installation fails based on a *pyproj* error there is a small hack to get around it.
-You can download a pyproj wheel (binary of a python package) based on the python version you have installed.
-A good website to use is [here](https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyproj).
+If your installation fails based on a *pyproj* or *pyrsistent* error there is a small hack to get around it.
+Based on the python version you have installed you can download a wheel (binary of a python package) of the problem package/s.
+A good website to use is [here](https://www.lfd.uci.edu/~gohlke/pythonlibs).
 You then run:
 
 ```console
