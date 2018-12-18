@@ -228,6 +228,7 @@ class CityJSON:
         isValid = True
         es = []
         base_uri = os.path.join(folder_schemas, "extensions")
+        base_uri = os.path.abspath(base_uri)
         allnewco = set()
         #-- iterate over each Extensions, and verify each of the properties
         #-- in the file. Other way around is more cumbersome
