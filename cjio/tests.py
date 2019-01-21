@@ -7,6 +7,10 @@ fin = open('/Users/hugo/Dropbox/data/cityjson/examples/denhaag/v08/DenHaag_01.js
 cm = json.loads(fin.read())
 
 
+class CityModel:
+    def __init__(self, js):
+        self.cityobjects = {}
+
 class COClass:
     def __init__(self, theid, js):
         self.id = theid
