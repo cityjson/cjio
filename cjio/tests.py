@@ -3,17 +3,31 @@
 import os
 import json
 
-fin = open('/Users/hugo/Dropbox/data/cityjson/examples/denhaag/v08/DenHaag_01.json')
-cm = json.loads(fin.read())
 
 
 class CityModel:
     def __init__(self, js):
+        self.js = js
         self.cityobjects = {}
+        Building = type('Building', (COClass,), dict())
+        for theid in js['CityObjects']:
+            if js['CityObjects'][theid]['type'] == "BuildingPart":
+                oneb = Building(theid, js['CityObjects'][theid])
+                oneb.add_attribute('potato', 'blue')
+                self.cityobjects[theid] = oneb
+                # break
+    def get_co(self, theid):
+        print(theid)
+        if theid not in self.cityobjects:
+            return None
+        else:
+            return self.cityobjects[theid]
+
 
 class COClass:
     def __init__(self, theid, js):
         self.id = theid
+        # print(theid)
         self.geometries = []
         if 'attributes' in js:
             self.attributes = js['attributes']
@@ -40,13 +54,25 @@ class GeomClass:
         pass
 
 
-Building = type('Building', (COClass,), dict())
 
-for theid in cm['CityObjects']:
-    if cm['CityObjects'][theid]['type'] == "BuildingPart":
-        oneb = Building(theid, cm['CityObjects'][theid])
-        oneb.add_attribute('potato', 'blue')
-        break
+
+fin = open('/Users/hugo/Dropbox/data/cityjson/examples/denhaag/v08/DenHaag_01.json')
+js = json.loads(fin.read())
+
+
+cm = CityModel(js)
+
+# print(cm.cityobjects)
+
+# Building = type('Building', (COClass,), dict())
+
+# for theid in cm['CityObjects']:
+#     if cm['CityObjects'][theid]['type'] == "BuildingPart":
+#         oneb = Building(theid, cm['CityObjects'][theid])
+#         oneb.add_attribute('potato', 'blue')
+#         break
+
+oneb = cm.get_co('GUID_8CE54418-E2F7-49A7-9A8D-C3D172BA62C4_2')
 
 print(oneb)
 print(oneb.id)
