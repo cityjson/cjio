@@ -240,53 +240,56 @@ class CityJSON:
             js = json.loads(open(schemapath).read())
 
             #-- 1. extraCityObjects
-            for nco in js["extraCityObjects"]:
-                allnewco.add(nco)
-                jtmp = {}
-                jtmp["$schema"] = "http://json-schema.org/draft-07/schema#"
-                jtmp["type"] = "object"
-                jtmp["$ref"] = "file://%s#/extraCityObjects/%s" % (schemapath, nco)
-                jsotf = jsonref.loads(json.dumps(jtmp), jsonschema=True, base_uri=base_uri)
-                for theid in self.j["CityObjects"]:
-                    if self.j["CityObjects"][theid]["type"] == nco:
-                        nco1 = self.j["CityObjects"][theid]
-                        v, errs = validation.validate_against_schema(nco1, jsotf)
-                        if (v == False):
-                            isValid = False
-                            es += errs
-
-            #-- 2. extraRootProperties
-            for nrp in js["extraRootProperties"]:
-                jtmp = {}
-                jtmp["$schema"] = "http://json-schema.org/draft-07/schema#"
-                jtmp["type"] = "object"
-                jtmp["$ref"] = "file://%s#/extraRootProperties/%s" % (schemapath, nrp)
-                jsotf = jsonref.loads(json.dumps(jtmp), jsonschema=True, base_uri=base_uri)
-                for p in self.j:
-                    if p == nrp:
-                        thep = self.j[p]
-                        v, errs = validation.validate_against_schema(thep, jsotf)
-                        if (v == False):
-                            isValid = False
-                            es += errs
-
-            #-- 3. extraAttributes
-            for thetype in js["extraAttributes"]:
-                for ea in js["extraAttributes"][thetype]:
+            if "extraCityObjects" in js:
+                for nco in js["extraCityObjects"]:
+                    allnewco.add(nco)
                     jtmp = {}
                     jtmp["$schema"] = "http://json-schema.org/draft-07/schema#"
                     jtmp["type"] = "object"
-                    jtmp["$ref"] = "file://%s#/extraAttributes/%s/%s" % (schemapath, thetype, ea)
+                    jtmp["$ref"] = "file://%s#/extraCityObjects/%s" % (schemapath, nco)
                     jsotf = jsonref.loads(json.dumps(jtmp), jsonschema=True, base_uri=base_uri)
                     for theid in self.j["CityObjects"]:
-                        if ( (self.j["CityObjects"][theid]["type"] == thetype) and 
-                             ("attributes" in self.j["CityObjects"][theid])    and
-                             (ea in self.j["CityObjects"][theid]["attributes"]) ):
-                            a = self.j["CityObjects"][theid]["attributes"][ea]
-                            v, errs = validation.validate_against_schema(a, jsotf)
+                        if self.j["CityObjects"][theid]["type"] == nco:
+                            nco1 = self.j["CityObjects"][theid]
+                            v, errs = validation.validate_against_schema(nco1, jsotf)
                             if (v == False):
                                 isValid = False
                                 es += errs
+
+            #-- 2. extraRootProperties
+            if "extraRootProperties" in js:
+                for nrp in js["extraRootProperties"]:
+                    jtmp = {}
+                    jtmp["$schema"] = "http://json-schema.org/draft-07/schema#"
+                    jtmp["type"] = "object"
+                    jtmp["$ref"] = "file://%s#/extraRootProperties/%s" % (schemapath, nrp)
+                    jsotf = jsonref.loads(json.dumps(jtmp), jsonschema=True, base_uri=base_uri)
+                    for p in self.j:
+                        if p == nrp:
+                            thep = self.j[p]
+                            v, errs = validation.validate_against_schema(thep, jsotf)
+                            if (v == False):
+                                isValid = False
+                                es += errs
+
+            #-- 3. extraAttributes
+            if "extraAttributes" in js:
+                for thetype in js["extraAttributes"]:
+                    for ea in js["extraAttributes"][thetype]:
+                        jtmp = {}
+                        jtmp["$schema"] = "http://json-schema.org/draft-07/schema#"
+                        jtmp["type"] = "object"
+                        jtmp["$ref"] = "file://%s#/extraAttributes/%s/%s" % (schemapath, thetype, ea)
+                        jsotf = jsonref.loads(json.dumps(jtmp), jsonschema=True, base_uri=base_uri)
+                        for theid in self.j["CityObjects"]:
+                            if ( (self.j["CityObjects"][theid]["type"] == thetype) and 
+                                 ("attributes" in self.j["CityObjects"][theid])    and
+                                 (ea in self.j["CityObjects"][theid]["attributes"]) ):
+                                a = self.j["CityObjects"][theid]["attributes"][ea]
+                                v, errs = validation.validate_against_schema(a, jsotf)
+                                if (v == False):
+                                    isValid = False
+                                    es += errs
 
 
         #-- 4. check if there are CityObjects that do not have a schema
