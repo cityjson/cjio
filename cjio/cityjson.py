@@ -1077,56 +1077,73 @@ class CityJSON:
         return True
 
 
+    def upgrade_version_v06_v08(self):
+        #-- version 
+        self.j["version"] = "0.8"
+        #-- crs/epgs
+        epsg = self.get_epsg()
+        self.j["metadata"] = {}
+        if epsg is not None:
+            if "crs" in self.j["metadata"]:
+                del self.j["metadata"]["crs"]
+            self.set_epsg(epsg)
+        #-- bbox
+        self.update_bbox()
+        for id in self.j["CityObjects"]:
+            if "bbox" in self.j['CityObjects'][id]:
+                self.j["CityObjects"][id]["geographicalExtent"] = self.j["CityObjects"][id]["bbox"]
+                del self.j["CityObjects"][id]["bbox"]
+        # #-- parent-children: do children have the parent too?
+        subs = ['Parts', 'Installations', 'ConstructionElements']
+        for id in self.j["CityObjects"]:
+            children = []
+            for sub in subs:
+                if sub in self.j['CityObjects'][id]:
+                    for each in self.j['CityObjects'][id][sub]:
+                        children.append(each)
+                        b = True
+            if len(children) > 0:
+                #-- remove the Parts/Installations
+                self.j['CityObjects'][id]['children'] = children
+                for sub in subs:
+                    if sub in self.j['CityObjects'][id]:
+                         del self.j['CityObjects'][id][sub]
+                #-- put the "parent" in each children
+                for child in children:
+                    if child in self.j['CityObjects']:
+                        self.j['CityObjects'][child]['parent'] = id
+
+
+    def upgrade_version_v08_v09(self, reasons):
+        #-- version 
+        self.j["version"] = "0.9"
+        #-- parent --> parents[]
+        allids = []
+        for id in self.j["CityObjects"]:
+            allids.append(id)
+        for id in allids:
+            if "parent" in self.j["CityObjects"][id]:
+                self.j["CityObjects"][id]["parents"] = [self.j["CityObjects"][id]["parent"]]
+                del self.j["CityObjects"][id]["parent"]
+        #-- extensions
+        if "extensions" in self.j:
+            reasons += "Extensions have changed completely in v0.9, update them manually."
+            return (False, reasons)
+        return (True, "")
+
+
     def upgrade_version(self, newversion):
+        re = True
         reasons = ""
         if CITYJSON_VERSIONS_SUPPORTED.count(newversion) == 0:
             return (False, "This version is not supported")
-        #-- v0.6 -> v0.8
-        if ( (self.get_version() == CITYJSON_VERSIONS_SUPPORTED[0]) and
-             (newversion         == CITYJSON_VERSIONS_SUPPORTED[1]) ):
-            #-- version 
-            self.j["version"] = newversion
-            #-- crs/epgs
-            epsg = self.get_epsg()
-            self.j["metadata"] = {}
-            if epsg is not None:
-                if "crs" in self.j["metadata"]:
-                    del self.j["metadata"]["crs"]
-                self.set_epsg(epsg)
-            #-- bbox
-            self.update_bbox()
-            for id in self.j["CityObjects"]:
-                if "bbox" in self.j['CityObjects'][id]:
-                    self.j["CityObjects"][id]["geographicalExtent"] = self.j["CityObjects"][id]["bbox"]
-                    del self.j["CityObjects"][id]["bbox"]
-            # #-- parent-children: do children have the parent too?
-            subs = ['Parts', 'Installations', 'ConstructionElements']
-            for id in self.j["CityObjects"]:
-                children = []
-                for sub in subs:
-                    if sub in self.j['CityObjects'][id]:
-                        for each in self.j['CityObjects'][id][sub]:
-                            children.append(each)
-                            b = True
-                if len(children) > 0:
-                    #-- remove the Parts/Installations
-                    self.j['CityObjects'][id]['children'] = children
-                    for sub in subs:
-                        if sub in self.j['CityObjects'][id]:
-                             del self.j['CityObjects'][id][sub]
-                    #-- put the "parent" in each children
-                    for child in children:
-                        self.j['CityObjects'][child]['parent'] = id
-        #-- v0.8 -> v0.9
-        if ( (self.get_version() == CITYJSON_VERSIONS_SUPPORTED[1]) and
-             (newversion         == CITYJSON_VERSIONS_SUPPORTED[2]) ):
-            #-- version 
-            self.j["version"] = newversion
-            #-- extensions
-            if "extensions" in self.j:
-                reasons += "Extensions have changed completely at v0.9, update them manually."
-                return (False, reasons)
-        return (True, "")
+        #-- from v0.6 
+        if (self.get_version() == CITYJSON_VERSIONS_SUPPORTED[0]):
+            self.upgrade_version_v06_v08()
+        #-- v0.8
+        if (self.get_version() == CITYJSON_VERSIONS_SUPPORTED[1]):
+            (re, reasons) = self.upgrade_version_v08_v09(reasons)
+        return (re, reasons)
 
 
     def triangulate_face(self, face, vnp):
