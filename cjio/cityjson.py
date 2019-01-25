@@ -31,6 +31,21 @@ from cjio.errors import InvalidOperation
 
 CITYJSON_VERSIONS_SUPPORTED = ['0.6', '0.8', '0.9']
 
+TOPLEVEL = ('Building',
+            'Bridge',
+            'CityObjectGroup',
+            'CityFurniture',
+            'GenericCityObject',
+            'LandUse',
+            'PlantCover',
+            'Railway',
+            'Road',
+            'SolitaryVegetationObject',
+            'TINRelief',
+            'TransportSquare',
+            'Tunnel',
+            'WaterBody')
+
 
 def reader(file, ignore_duplicate_keys=False):
     return CityJSON(file=file, ignore_duplicate_keys=ignore_duplicate_keys)
@@ -536,14 +551,10 @@ class CityJSON:
             if "children" in self.j['CityObjects'][theid]:
                 for child in self.j['CityObjects'][theid]['children']:
                     re.add(child)
-            if "parent" in self.j['CityObjects'][theid]:
-                re.add(self.j['CityObjects'][theid]['parent'])
+            if "parents" in self.j['CityObjects'][theid]:
+                for each in self.j['CityObjects'][theid]['parents']:
+                    re.add(self.j['CityObjects'][each])
 
-            # for each in ['Parts', 'Installations', 'ConstructionElements']:
-            #     if self.j["CityObjects"][theid]["type"].find(each[:-1]) > 0:
-            #         for coid in self.j["CityObjects"]:
-            #             if (each in self.j["CityObjects"][coid]) and (theid in self.j["CityObjects"][coid][each]):
-            #                 re.add(coid)
         
         for each in re:
             cm2.j["CityObjects"][each] = self.j["CityObjects"][each]
@@ -562,6 +573,17 @@ class CityJSON:
         return cm2
 
 
+    def is_co_toplevel(self, co):
+        if ('toplevel' in co):
+            return co['toplevel']
+        if co["type"] in TOPLEVEL:
+            return True
+        else:
+            return False
+
+
+
+
     def get_subset_random(self, number=1, invert=False):
         random.seed()
         total = len(self.j["CityObjects"])
@@ -572,7 +594,7 @@ class CityJSON:
         count = 0
         while (count < number):
             t = allkeys[random.randint(0, total - 1)]
-            if "parent" not in self.j["CityObjects"][t]:
+            if self.is_co_toplevel(self.j["CityObjects"][t]):
                 re.add(t)
                 count += 1
         if invert == True:
@@ -806,7 +828,7 @@ class CityJSON:
     def number_city_objects(self):
         total = 0
         for id in self.j["CityObjects"]:
-            if "parent" not in self.j["CityObjects"][id]:
+            if self.is_co_toplevel(self.j["CityObjects"][id]):
                 total += 1
         return total
 

@@ -53,27 +53,28 @@ def parent_children_consistency(j):
     isValid = True
     es = []
     #-- do children have the parent too?
-    for id in j["CityObjects"]:
-        if "children" in j['CityObjects'][id]:
-            for child in j['CityObjects'][id]['children']:
+    for theid in j["CityObjects"]:
+        if "children" in j['CityObjects'][theid]:
+            for child in j['CityObjects'][theid]['children']:
                 if (child not in j['CityObjects']):
                     s = "ERROR:   CityObject #" + child + " doesn't exist."
                     es.append(s)
-                    s = "\t(CityObject #" + id + " references it as children)"   
+                    s = "\t(CityObject #" + theid + " references it as children)"   
                     es.append(s)
                     isValid = False
                 else:
-                    if j['CityObjects'][child]['parent'] != id:    
+                    if theid not in j['CityObjects'][child]['parents']:    
                         s = "ERROR:   CityObject #" + child + " doesn't reference correct parent."
                         es.append(s)
-                        s = "\t(Parent should be CityObject #" + id + ")"   
+                        s = "\t(Parent should be CityObject #" + theid + ")"   
                         es.append(s)
                         isValid = False
     #-- are there orphans?
-    for id in j["CityObjects"]:
-        if "parent" in j['CityObjects'][id]:
-            if (j['CityObjects'][id]['parent'] not in j['CityObjects']):
-                    s = "ERROR:   CityObject #" + id + " is an orphan (no parent exists)."
+    for theid in j["CityObjects"]:
+        if "parents" in j['CityObjects'][theid]:
+            for parent in j['CityObjects'][theid]['parents']:
+                if (parent not in j['CityObjects']):
+                    s = "ERROR:   CityObject #" + theid + " is an orphan (parent #" + parent + " doesn't exist)."
                     es.append(s)
                     isValid = False
     return (isValid, es)
