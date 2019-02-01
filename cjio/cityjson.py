@@ -1247,5 +1247,15 @@ class CityJSON:
             self.compress()
 
 
-
-
+    def extract_lod(self, thelod):
+        for co in self.j["CityObjects"]:
+            re = []
+            for i, g in enumerate(self.j['CityObjects'][co]['geometry']):
+                if int(g['lod']) != thelod:
+                    re.append(g)  
+                    # print (g)      
+            for each in re:
+                self.j['CityObjects'][co]['geometry'].remove(each)
+        self.remove_duplicate_vertices()
+        self.remove_orphan_vertices()        
+        
