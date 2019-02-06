@@ -217,18 +217,25 @@ def validate_cmd(hide_errors, skip_schema, folder_schemas):
             print_cmd_status('===== Validation (schemas v%s) =====' % (cm.j['version']))
         #-- validate    
         bValid, woWarnings, errors, warnings = cm.validate(skip_schema=skip_schema, folder_schemas=folder_schemas)
+        click.echo('=====')
         if bValid == True:
             click.echo(click.style('File is valid', fg='green'))
         else:    
             click.echo(click.style('File is invalid', fg='red'))
-        if woWarnings == False:
+        if woWarnings == True:
+            click.echo(click.style('File has no warnings', fg='green'))
+        else:
             click.echo(click.style('File has warnings', fg='red'))
         if not hide_errors and bValid is False:
-            click.echo("--- ERRORS ---")
-            click.echo(errors)
+            click.echo("--- ERRORS (total = %d) ---" % len(errors))
+            for e in errors:
+                click.echo(e)
+                # for l in e:
+                    # click.echo(l)
         if not hide_errors and woWarnings is False:
             click.echo("--- WARNINGS ---")
-            click.echo(warnings)
+            for e in warnings:
+                click.echo(e)
         click.echo('=====================================')
         return cm
     return processor
@@ -429,8 +436,9 @@ def upgrade_version_cmd():
     def processor(cm):
         vlatest = cityjson.CITYJSON_VERSIONS_SUPPORTED[-1]
         print_cmd_status('Upgrade CityJSON file to v%s' % vlatest)
-        if (cm.upgrade_version(vlatest) == False):
-            click.echo("WARNING: File cannot be upgraded to this version.")
+        re, reasons = cm.upgrade_version(vlatest)
+        if (re == False):
+            click.echo(click.style("WARNING: %s" % (reasons), fg='red'))
         return cm
     return processor
 
@@ -461,3 +469,21 @@ def update_textures_cmd(newlocation, relative):
         cm.update_textures_location(newlocation, relative=relative)
         return cm
     return processor
+
+
+@cli.command('extract_lod')
+@click.argument('lod', type=int)
+def extract_lod_cmd(lod):
+    """
+    Extract only one LoD for a dataset.
+    To use on datasets having more than one LoD for the city objects.
+    For each city object, it keeps only the LoD passed as parameter,
+    if a city object doesn't have this LoD then it is deleted.
+    """
+    def processor(cm):
+        print_cmd_status('Extract LoD:%s' % lod)
+        cm.extract_lod(lod)
+        return cm
+    return processor
+
+

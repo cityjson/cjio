@@ -20,7 +20,7 @@ setup(
     author_email='h.ledoux@tudelft.nl, b.dukai@tudelft.nl',
     python_requires='~=3.5',
     packages=['cjio'],
-    package_data={'cjio': ['schemas/v06/*', 'schemas/v08/*']},
+    package_data={'cjio': ['schemas/v06/*', 'schemas/v08/*', 'schemas/v09/*']},
     # include_package_data=True,
     license = 'MIT',
     classifiers=[
@@ -39,6 +39,7 @@ setup(
         'jsonschema',
         'jsonref',
         'numpy',
+        'strict-rfc3339',
         'pyproj'
     ],
     entry_points='''

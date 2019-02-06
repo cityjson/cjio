@@ -15,4 +15,5 @@ jsonschema = "*"
 jsonref = "*"
 pyproj = "*"
 numpy = "*"
+strict-rfc3339 = "*"
 "e1839a8" = {editable = true, path = "."}

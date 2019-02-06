@@ -9,12 +9,12 @@ The different operators can be chained to perform several processing operations 
 
 ## Installation
 
-It uses Python 3.3+ only.
+It uses Python 3.35 only.
 
 To install the latest release:
 
 ```console
-pip3 install cjio
+pip install cjio
 ```
 
 To install the development branch, and still develop with it:
@@ -23,7 +23,7 @@ To install the development branch, and still develop with it:
 git checkout development
 virtualenv venv
 . venv/bin/activate
-pip3 install --editable .
+pip install --editable .
 ```
 
 Alternatively, you can use the included Pipfile to manage the virtual environment with [pipenv](https://pipenv.readthedocs.io/en/latest/).
@@ -56,7 +56,8 @@ Commands:
   assign_epsg                Assign a (new) EPSG.
   compress                   Compress a CityJSON file, ie stores its...
   decompress                 Decompress a CityJSON file, ie remove the...
-  export                     Export the CityJSON to an OBJ file.
+  export                     Export the CityJSON to another format.
+  extract_lod                Extract only one LoD for a dataset.
   info                       Output info in simple JSON.
   locate_textures            Output the location of the texture files.
   merge                      Merge the current CityJSON with others.
@@ -65,12 +66,12 @@ Commands:
   remove_orphan_vertices     Remove orphan vertices a CityJSON file.
   remove_textures            Remove all textures from a CityJSON file.
   reproject                  Reproject the CityJSON to a new EPSG.
-  save                       Save the CityJSON to a file.
+  save                       Save the city model to a CityJSON file.
   subset                     Create a subset of a CityJSON file.
   update_bbox                Update the bbox of a CityJSON file.
   update_textures            Update the location of the texture files.
   upgrade_version            Upgrade the CityJSON to the latest version.
-  validate                   Validate the CityJSON file: (1) against its...  
+  validate                   Validate the CityJSON file: (1) against its...
 ```
 
 
@@ -107,10 +108,11 @@ If you want to use your own schemas, give the folder where the master schema fil
 $ cjio example.json validate --folder_schemas /home/elvis/temp/myschemas/
 ```
 
+
 ## Example CityJSON datasets
 
-There are a few [example files on the CityJSON webpage](https://www.cityjson.org/en/0.8/datasets/).
+There are a few [example files on the CityJSON webpage](https://www.cityjson.org/en/0.9/datasets/).
 
-Alternatively, any [CityGML](https://www.citygml.org) file can be automatically converted to CityJSON with the open-source project [citygml4j](https://github.com/citygml4j/citygml4j).
+Alternatively, any [CityGML](https://www.citygml.org) file can be automatically converted to CityJSON with the open-source project [citygml-tools](https://github.com/citygml4j/citygml-tools) (based on [citygml4j](https://github.com/citygml4j/citygml4j)).
 
 

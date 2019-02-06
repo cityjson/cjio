@@ -29,7 +29,22 @@ from cjio import errors
 from cjio.errors import InvalidOperation
 
 
-CITYJSON_VERSIONS_SUPPORTED = ['0.6', '0.8']
+CITYJSON_VERSIONS_SUPPORTED = ['0.6', '0.8', '0.9']
+
+TOPLEVEL = ('Building',
+            'Bridge',
+            'CityObjectGroup',
+            'CityFurniture',
+            'GenericCityObject',
+            'LandUse',
+            'PlantCover',
+            'Railway',
+            'Road',
+            'SolitaryVegetationObject',
+            'TINRelief',
+            'TransportSquare',
+            'Tunnel',
+            'WaterBody')
 
 
 def reader(file, ignore_duplicate_keys=False):
@@ -117,7 +132,7 @@ class CityJSON:
         else: #-- create an empty one
             self.j = {}
             self.j["type"] = "CityJSON"
-            self.j["version"] = "0.9"
+            self.j["version"] = CITYJSON_VERSIONS_SUPPORTED[-1]
             self.j["CityObjects"] = {}
             self.j["vertices"] = []
 
@@ -169,11 +184,11 @@ class CityJSON:
             #-- fetch proper schema from the stored ones 
             v = self.j["version"].replace('.', '')
             try:
-                schema = resource_filename(__name__, '/schemas/v%s/cityjson.json' % (v))
+                schema = resource_filename(__name__, '/schemas/v%s/cityjson.schema.json' % (v))
             except:
                 return (False, None)
         else:
-            schema = os.path.join(folder_schemas, 'cityjson.json')  
+            schema = os.path.join(folder_schemas, 'cityjson.schema.json')  
         #-- open the schema
         try:
             fins = open(schema)
@@ -194,80 +209,142 @@ class CityJSON:
             #-- fetch proper schema from the stored ones 
             v = self.j["version"].replace('.', '')
             try:
-                schema = resource_filename(__name__, '/schemas/v%s/cityjson.json' % (v))
+                schema = resource_filename(__name__, '/schemas/v%s/cityjson.schema.json' % (v))
             except:
                 return (False, None)
         else:
-            schema = os.path.join(folder_schemas, 'cityjson.json')  
-        sco_path = os.path.abspath(os.path.dirname(schema))
-        sco_path += '/cityobjects.json'
-        jsco = json.loads(open(sco_path).read())
+            schema = os.path.join(folder_schemas, 'cityjson.schema.json')  
+        abs_path = os.path.abspath(os.path.dirname(schema))
+        sco_path = abs_path + '/cityobjects.schema.json'
+        #-- because Windows uses \ and not /        
+        if platform == "darwin" or platform == "linux" or platform == "linux2":
+            base_uri = 'file://{}/'.format(abs_path)
+        else:
+            base_uri = 'file:///{}/'.format(abs_path.replace('\\', '/'))
+        jsco = jsonref.loads(open(sco_path).read(), jsonschema=True, base_uri=base_uri)
+        # jsco = json.loads(open(sco_path).read())
         return (True, jsco)
 
 
     def validate_extensions(self, folder_schemas=None):
-        print ('-- Validating the extensions')
+        print ('-- Validating the Extensions')
         if "extensions" not in self.j:
             print ("---No extensions in the file.")
-            return (True, "")
+            return (True, [])
+
+        if folder_schemas is None:
+            #-- fetch proper schema from the stored ones 
+            v = self.j["version"].replace('.', '')
+            try:
+                schema = resource_filename(__name__, '/schemas/v%s/cityjson.schema.json' % (v))
+                folder_schemas = os.path.abspath(os.path.dirname(schema))
+            except:
+                return (False, None)
         isValid = True
-        es = ""
-        for theid in self.j["CityObjects"]:
-                if ( (self.j["CityObjects"][theid]["type"][0] == "+") and
-                     (self.j["CityObjects"][theid]["type"] not in self.j["extensions"]) ):
-                    isValid = False
-                    s = self.j["CityObjects"][theid]["type"] + " has no schema provided."
-                    es += s
-        folder_schemas = os.path.abspath(folder_schemas)
+        es = []
+        base_uri = os.path.join(folder_schemas, "extensions")
+        base_uri = os.path.abspath(base_uri)
+        allnewco = set()
+        #-- iterate over each Extensions, and verify each of the properties
+        #-- in the file. Other way around is more cumbersome
         for ext in self.j["extensions"]:
-            print ('  %s' % (ext))
             s = self.j["extensions"][ext]
             s = s[s.rfind('/') + 1:]
-            schema = os.path.join(folder_schemas, "extensions")
-            schema = os.path.join(schema, s)
-            jeval = {}
-            jeval["$schema"] = "http://json-schema.org/draft-04/schema#"
-            jeval["type"] = "object"
-            jeval["$ref"] = "file://"
-            jeval["$ref"] += schema 
-            jeval["$ref"] += "#/%s" % (ext)
-            for theid in self.j["CityObjects"]:
-                if self.j["CityObjects"][theid]["type"] == ext:
-                    oneco = self.j["CityObjects"][theid]
-                    try:
-                        validation.validate_against_schema(oneco, jeval)
-                    except Exception as e:
-                        es += str(e)
-                        isValid = False
+            print ('\t%s [%s]' % (ext, s))
+            schemapath = os.path.join(base_uri, s)
+            js = json.loads(open(schemapath).read())
+
+            #-- 1. extraCityObjects
+            if "extraCityObjects" in js:
+                for nco in js["extraCityObjects"]:
+                    allnewco.add(nco)
+                    jtmp = {}
+                    jtmp["$schema"] = "http://json-schema.org/draft-07/schema#"
+                    jtmp["type"] = "object"
+                    jtmp["$ref"] = "file://%s#/extraCityObjects/%s" % (schemapath, nco)
+                    jsotf = jsonref.loads(json.dumps(jtmp), jsonschema=True, base_uri=base_uri)
+                    for theid in self.j["CityObjects"]:
+                        if self.j["CityObjects"][theid]["type"] == nco:
+                            nco1 = self.j["CityObjects"][theid]
+                            v, errs = validation.validate_against_schema(nco1, jsotf)
+                            if (v == False):
+                                isValid = False
+                                es += errs
+
+            #-- 2. extraRootProperties
+            if "extraRootProperties" in js:
+                for nrp in js["extraRootProperties"]:
+                    jtmp = {}
+                    jtmp["$schema"] = "http://json-schema.org/draft-07/schema#"
+                    jtmp["type"] = "object"
+                    jtmp["$ref"] = "file://%s#/extraRootProperties/%s" % (schemapath, nrp)
+                    jsotf = jsonref.loads(json.dumps(jtmp), jsonschema=True, base_uri=base_uri)
+                    for p in self.j:
+                        if p == nrp:
+                            thep = self.j[p]
+                            v, errs = validation.validate_against_schema(thep, jsotf)
+                            if (v == False):
+                                isValid = False
+                                es += errs
+
+            #-- 3. extraAttributes
+            if "extraAttributes" in js:
+                for thetype in js["extraAttributes"]:
+                    for ea in js["extraAttributes"][thetype]:
+                        jtmp = {}
+                        jtmp["$schema"] = "http://json-schema.org/draft-07/schema#"
+                        jtmp["type"] = "object"
+                        jtmp["$ref"] = "file://%s#/extraAttributes/%s/%s" % (schemapath, thetype, ea)
+                        jsotf = jsonref.loads(json.dumps(jtmp), jsonschema=True, base_uri=base_uri)
+                        for theid in self.j["CityObjects"]:
+                            if ( (self.j["CityObjects"][theid]["type"] == thetype) and 
+                                 ("attributes" in self.j["CityObjects"][theid])    and
+                                 (ea in self.j["CityObjects"][theid]["attributes"]) ):
+                                a = self.j["CityObjects"][theid]["attributes"][ea]
+                                v, errs = validation.validate_against_schema(a, jsotf)
+                                if (v == False):
+                                    isValid = False
+                                    es += errs
+
+
+        #-- 4. check if there are CityObjects that do not have a schema
+        for theid in self.j["CityObjects"]:
+            if ( (self.j["CityObjects"][theid]["type"][0] == "+") and
+                 (self.j["CityObjects"][theid]["type"] not in allnewco) ):
+                s = "ERROR:   CityObject " + self.j["CityObjects"][theid]["type"] + " doesn't have a schema."
+                es.append(s)
+                isValid = False
+
         return (isValid, es)
 
 
     def validate(self, skip_schema=False, folder_schemas=None):
-        print ('-- Validating against the schema')
-        #-- only v0.6+
-        if float(self.j["version"]) < 0.6:
-            return (False, False, "Only files with version 0.6+ can be validated.", "")
-        es = ""
-        ws = ""
+        print ('-- Validating the syntax of the file (using the schemas)')
+        #-- only latest version, otherwise a mess with versions and different schemas
+        #-- this is it, sorry people
+        if (self.j["version"] != CITYJSON_VERSIONS_SUPPORTED[-1]):
+            return (False, False, ["Only files with version v%s can be validated." % (CITYJSON_VERSIONS_SUPPORTED[-1])], "")
+        es = []
+        ws = []
         #-- 1. schema
         if skip_schema == False:
             b, js = self.fetch_schema(folder_schemas)
             if b == False:
-                return (False, False, "Can't find the schema.", "")
+                return (False, False, ["Can't find the schema."], [])
             else:
-                try:
-                    validation.validate_against_schema(self.j, js)
-                except Exception as e:
-                    es += str(e)
-                    return (False, False, es, "")
+                isValid, errs = validation.validate_against_schema(self.j, js)
+                if (isValid == False):
+                    es += errs
+                    return (False, False, es, [])
         #-- 2. schema for Extensions
         if "extensions" in self.j:
             b, es = self.validate_extensions(folder_schemas)
             if b == False:
-                return (b, True, es, "")
+                return (b, True, es, [])
+
 
         #-- 3. ERRORS
-        print ('-- Validating extra options (see docs for list)')
+        print ('-- Validating the internal consistency of the file (see docs for list)')
         isValid = True
 
         if float(self.j["version"]) == 0.6:
@@ -290,46 +367,51 @@ class CityJSON:
                 isValid = False
                 es += errs
 
+        print("\t--Vertex indices coherent")
         b, errs = validation.wrong_vertex_index(self.j)
         if b == False:
             isValid = False
             es += errs
+        print("\t--Specific for CityGroups")
         b, errs = validation.city_object_groups(self.j) 
         if b == False:
             isValid = False
             es += errs
+        print("\t--Semantic arrays coherent with geometry")
         b, errs = validation.semantics_array(self.j)
         if b == False:
             isValid = False
             es += errs
         #-- 4. WARNINGS
         woWarnings = True
-        # b, errs = validation.metadata(self.j, js) 
-        # if b == False:
-        #     woWarnings = False
-        #     ws += errs
+        print("\t--Root properties")
         b, errs = validation.cityjson_properties(self.j, js)
         if b == False:
             woWarnings = False
             ws += errs
+        print("\t--Empty geometries")
         b, errs = validation.geometry_empty(self.j)
         if b == False:
             woWarnings = False
             ws += errs
+        print("\t--Duplicate vertices")
         b, errs = validation.duplicate_vertices(self.j)
         if b == False:
             woWarnings = False
             ws += errs
+        print("\t--Orphan vertices")
         b, errs = validation.orphan_vertices(self.j)
         if b == False:
             woWarnings = False
             ws += errs
         #-- fetch schema cityobjects.json
+        print("\t--CityGML attributes")
         b, jsco = self.fetch_schema_cityobjects(folder_schemas)
         b, errs = validation.citygml_attributes(self.j, jsco)
         if b == False:
             woWarnings = False
             ws += errs
+        # TODO: validate address attributes?
         return (isValid, woWarnings, es, ws)
 
 
@@ -469,14 +551,10 @@ class CityJSON:
             if "children" in self.j['CityObjects'][theid]:
                 for child in self.j['CityObjects'][theid]['children']:
                     re.add(child)
-            if "parent" in self.j['CityObjects'][theid]:
-                re.add(self.j['CityObjects'][theid]['parent'])
+            if "parents" in self.j['CityObjects'][theid]:
+                for each in self.j['CityObjects'][theid]['parents']:
+                    re.add(self.j['CityObjects'][each])
 
-            # for each in ['Parts', 'Installations', 'ConstructionElements']:
-            #     if self.j["CityObjects"][theid]["type"].find(each[:-1]) > 0:
-            #         for coid in self.j["CityObjects"]:
-            #             if (each in self.j["CityObjects"][coid]) and (theid in self.j["CityObjects"][coid][each]):
-            #                 re.add(coid)
         
         for each in re:
             cm2.j["CityObjects"][each] = self.j["CityObjects"][each]
@@ -495,6 +573,17 @@ class CityJSON:
         return cm2
 
 
+    def is_co_toplevel(self, co):
+        if ('toplevel' in co):
+            return co['toplevel']
+        if co["type"] in TOPLEVEL:
+            return True
+        else:
+            return False
+
+
+
+
     def get_subset_random(self, number=1, invert=False):
         random.seed()
         total = len(self.j["CityObjects"])
@@ -505,7 +594,7 @@ class CityJSON:
         count = 0
         while (count < number):
             t = allkeys[random.randint(0, total - 1)]
-            if "parent" not in self.j["CityObjects"][t]:
+            if self.is_co_toplevel(self.j["CityObjects"][t]):
                 re.add(t)
                 count += 1
         if invert == True:
@@ -739,7 +828,7 @@ class CityJSON:
     def number_city_objects(self):
         total = 0
         for id in self.j["CityObjects"]:
-            if "parent" not in self.j["CityObjects"][id]:
+            if self.is_co_toplevel(self.j["CityObjects"][id]):
                 total += 1
         return total
 
@@ -749,14 +838,15 @@ class CityJSON:
         info["cityjson_version"] = self.get_version()
         info["epsg"] = self.get_epsg()
         if "extensions" in self.j:
-            info["extensions"] = True
-        else:
-            info["extensions"] = False
+            d = set()
+            for i in self.j["extensions"]:
+                d.add(i)
+            info["extensions"] = sorted(list(d))
         info["cityobjects_total"] = self.number_city_objects()
         d = set()
         for key in self.j["CityObjects"]:
             d.add(self.j['CityObjects'][key]['type'])
-        info["cityobjects_present"] = list(d)
+        info["cityobjects_present"] = sorted(list(d))
         info["vertices_total"] = len(self.j["vertices"])
         info["transform/compressed"] = "transform" in self.j
         d.clear()
@@ -988,9 +1078,9 @@ class CityJSON:
                     if "appearance" not in self.j:
                         self.j["appearance"] = {}
                     if "textures" not in self.j["appearance"]:
-                        self.j["appearance"]["textures"] = {}
+                        self.j["appearance"]["textures"] = []
                     if "vertices-texture" not in self.j["appearance"]:
-                        self.j["appearance"]["vertices-texture"] = {}                        
+                        self.j["appearance"]["vertices-texture"] = []                        
                     toffset = 0
                     voffset = 0
                 #-- copy vertices-texture
@@ -1008,46 +1098,74 @@ class CityJSON:
         # self.remove_orphan_vertices()
         return True
 
-    def upgrade_version(self, newversion):
-        if CITYJSON_VERSIONS_SUPPORTED.count(newversion) == 0:
-            return False
-        #-- v0.6 -> v0.8
-        if ( (self.get_version() == CITYJSON_VERSIONS_SUPPORTED[0]) and
-             (newversion         == CITYJSON_VERSIONS_SUPPORTED[1]) ):
-            #-- version 
-            self.j["version"] = newversion
-            #-- crs/epgs
-            epsg = self.get_epsg()
-            self.j["metadata"] = {}
-            if epsg is not None:
-                if "crs" in self.j["metadata"]:
-                    del self.j["metadata"]["crs"]
-                self.set_epsg(epsg)
-            #-- bbox
-            self.update_bbox()
-            for id in self.j["CityObjects"]:
-                if "bbox" in self.j['CityObjects'][id]:
-                    self.j["CityObjects"][id]["geographicalExtent"] = self.j["CityObjects"][id]["bbox"]
-                    del self.j["CityObjects"][id]["bbox"]
-            # #-- parent-children: do children have the parent too?
-            subs = ['Parts', 'Installations', 'ConstructionElements']
-            for id in self.j["CityObjects"]:
-                children = []
+
+    def upgrade_version_v06_v08(self):
+        #-- version 
+        self.j["version"] = "0.8"
+        #-- crs/epgs
+        epsg = self.get_epsg()
+        self.j["metadata"] = {}
+        if epsg is not None:
+            if "crs" in self.j["metadata"]:
+                del self.j["metadata"]["crs"]
+            self.set_epsg(epsg)
+        #-- bbox
+        self.update_bbox()
+        for id in self.j["CityObjects"]:
+            if "bbox" in self.j['CityObjects'][id]:
+                self.j["CityObjects"][id]["geographicalExtent"] = self.j["CityObjects"][id]["bbox"]
+                del self.j["CityObjects"][id]["bbox"]
+        # #-- parent-children: do children have the parent too?
+        subs = ['Parts', 'Installations', 'ConstructionElements']
+        for id in self.j["CityObjects"]:
+            children = []
+            for sub in subs:
+                if sub in self.j['CityObjects'][id]:
+                    for each in self.j['CityObjects'][id][sub]:
+                        children.append(each)
+                        b = True
+            if len(children) > 0:
+                #-- remove the Parts/Installations
+                self.j['CityObjects'][id]['children'] = children
                 for sub in subs:
                     if sub in self.j['CityObjects'][id]:
-                        for each in self.j['CityObjects'][id][sub]:
-                            children.append(each)
-                            b = True
-                if len(children) > 0:
-                    #-- remove the Parts/Installations
-                    self.j['CityObjects'][id]['children'] = children
-                    for sub in subs:
-                        if sub in self.j['CityObjects'][id]:
-                             del self.j['CityObjects'][id][sub]
-                    #-- put the "parent" in each children
-                    for child in children:
+                         del self.j['CityObjects'][id][sub]
+                #-- put the "parent" in each children
+                for child in children:
+                    if child in self.j['CityObjects']:
                         self.j['CityObjects'][child]['parent'] = id
-        return True        
+
+
+    def upgrade_version_v08_v09(self, reasons):
+        #-- version 
+        self.j["version"] = "0.9"
+        #-- parent --> parents[]
+        allids = []
+        for id in self.j["CityObjects"]:
+            allids.append(id)
+        for id in allids:
+            if "parent" in self.j["CityObjects"][id]:
+                self.j["CityObjects"][id]["parents"] = [self.j["CityObjects"][id]["parent"]]
+                del self.j["CityObjects"][id]["parent"]
+        #-- extensions
+        if "extensions" in self.j:
+            reasons += "Extensions have changed completely in v0.9, update them manually."
+            return (False, reasons)
+        return (True, "")
+
+
+    def upgrade_version(self, newversion):
+        re = True
+        reasons = ""
+        if CITYJSON_VERSIONS_SUPPORTED.count(newversion) == 0:
+            return (False, "This version is not supported")
+        #-- from v0.6 
+        if (self.get_version() == CITYJSON_VERSIONS_SUPPORTED[0]):
+            self.upgrade_version_v06_v08()
+        #-- v0.8
+        if (self.get_version() == CITYJSON_VERSIONS_SUPPORTED[1]):
+            (re, reasons) = self.upgrade_version_v08_v09(reasons)
+        return (re, reasons)
 
 
     def triangulate_face(self, face, vnp):
@@ -1129,5 +1247,15 @@ class CityJSON:
             self.compress()
 
 
-
-
+    def extract_lod(self, thelod):
+        for co in self.j["CityObjects"]:
+            re = []
+            for i, g in enumerate(self.j['CityObjects'][co]['geometry']):
+                if int(g['lod']) != thelod:
+                    re.append(g)  
+                    # print (g)      
+            for each in re:
+                self.j['CityObjects'][co]['geometry'].remove(each)
+        self.remove_duplicate_vertices()
+        self.remove_orphan_vertices()        
+        
