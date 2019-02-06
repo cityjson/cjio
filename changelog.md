@@ -2,6 +2,18 @@
 # Changelog
 
 
+## [0.5.0] - 2019-02-06
+
+### Changed
+- CityJSON schemas v0.9 added
+- cjio supports only CityJSON v0.9, there's an operator to upgrade files ('upgrade_version')
+- validate supports CityJSON Extensions from v0.9
+
+### Added
+- new operators, like 'extract_lod', 'export' (to .obj), 'reproject'
+
+
+
 ## [0.4.0] - 2018-09-25
 
 ### Changed
