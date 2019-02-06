@@ -9,7 +9,7 @@ The different operators can be chained to perform several processing operations 
 
 ## Installation
 
-It uses Python 3.35 only.
+It uses Python 3.5+ only.
 
 To install the latest release:
 
