@@ -7,7 +7,8 @@ from cjio import cityjson
 
 @pytest.fixture(scope='session')
 def data_dir():
-    yield os.path.abspath('example_data')
+    package_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+    yield os.path.join(package_dir, 'example_data')
 
 @pytest.fixture(scope='session')
 def rotterdam(data_dir):
@@ -33,3 +34,14 @@ def dummy_noappearance(data_dir):
     with open(p, 'r') as f:
         yield cityjson.CityJSON(file=f)
 
+@pytest.fixture(scope='session')
+def cube(data_dir):
+    p = os.path.join(data_dir, 'dummy', 'cube.json')
+    with open(p, 'r') as f:
+        yield cityjson.CityJSON(file=f)
+
+@pytest.fixture(scope='session')
+def rectangle(data_dir):
+    p = os.path.join(data_dir, 'dummy', 'rectangle.json')
+    with open(p, 'r') as f:
+        yield cityjson.CityJSON(file=f)
