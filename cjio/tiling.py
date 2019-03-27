@@ -51,29 +51,48 @@ def _subdivide(bbox: List[float], iteration: int, octree: bool=False) -> List[Li
     else:
         return _subdivide_helper_quadtree(bbox, iteration, 0)
 
-def create_grid(j: CityJSON, cellsize: List[float]) -> None:
-    """Create an equal area, rectangular grid of the given cell size for the area
+
+def create_grid(j: CityJSON, nr_divisions: int, cellsize: List[float]=None) -> None:
+    """Create an equal area, rectangular octree or quadtree for the area
+
+    .. note:: Both the quadtree and octree is composed of 3D bounding boxes,
+    but in case of the octree the original bbox is also subdivided vertically. In
+    case of the quadtree the bbox is partitioned on the xy-plane, while the height
+    of each cell equals the height of the original bbox.
+
+    .. todo:: implement for cellsize
 
     :param j: The city model
+    :param nr_divisions: The number of times to subdivide the BBOX of the city model
     :param cellsize: Size of the grid cell. Values are floats and in
      the units of the CRS of the city model. Values are provided as (x, y, z).
      If you don't want to partition the city model with 3D cells, then omit the
      z-value.
+
+    :return: A nested list, containing the bounding boxes of the generated
+    octree/quadtree
     """
     bbox = j.update_bbox()
-    dx = bbox[3] - bbox[0]
-    dy = bbox[4] - bbox[1]
-    dz = bbox[5] - bbox[2]
 
-    if len(cellsize) > 2:
-        raise ValueError("Must provide at least 2 values for the cellsize")
-    elif len(cellsize) == 2:
-        print("2D partitioning")
-        cellsize.append(dz)
+    if cellsize:
+        dx = bbox[3] - bbox[0]
+        dy = bbox[4] - bbox[1]
+        dz = bbox[5] - bbox[2]
+
+        if len(cellsize) > 2:
+            raise ValueError("Must provide at least 2 values for the cellsize")
+        elif len(cellsize) == 2:
+            print("2D partitioning")
+            in3D = False
+        else:
+            print("3D partitioning")
+            in3D = True
+        if dx < cellsize[0] and dy < cellsize[1] and dz < cellsize[2]:
+            raise ValueError("Cellsize is larger than bounding box, returning")
     else:
-        print("3D partitioning")
-    if dx < cellsize[0] and dy < cellsize[1] and dz < cellsize[2]:
-        raise ValueError("Cellsize is larger than bounding box, returning")
+        in3D = False
+
+    return _subdivide(bbox, nr_divisions, octree=in3D)
 
 
 
