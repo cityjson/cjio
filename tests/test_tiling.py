@@ -7,7 +7,7 @@ from cjio import tiling
     ([0.0, 0.0, 0.0, 1.0, 1.0, 0.0], 2),
 ])
 def test_subdivide(bbox, iteration):
-    octree = tiling._subdivide(bbox, iteration)
+    octree = tiling._subdivide(bbox, iteration, octree=True)
     # some random tests
     # ne_1[ne_1] top corner
     assert octree[5][5][3:] == bbox[3:]
