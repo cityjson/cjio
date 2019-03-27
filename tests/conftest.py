@@ -11,12 +11,6 @@ def data_dir():
     yield os.path.join(package_dir, 'example_data')
 
 @pytest.fixture(scope='session')
-def rotterdam(data_dir):
-    p = os.path.join(data_dir, 'rotterdam', '3-20-DELFSHAVEN_uncompressed.json')
-    with open(p, 'r') as f:
-        yield cityjson.CityJSON(file=f)
-
-@pytest.fixture(scope='session')
 def rotterdam_subset(data_dir):
     p = os.path.join(data_dir, 'rotterdam', 'rotterdam_subset.json')
     with open(p, 'r') as f:
