@@ -36,7 +36,20 @@ class TestPartitioning():
     def test_point_in_cell(self, point, result):
         """Test that a point is within the bbox of a cell"""
         bbox = [0.0, 0.0, 0.0, 1.0, 1.0, 1.0]
-        assert tiling.point_in_bbox(bbox, point) == result
+        assert tiling._point_in_bbox(bbox, point) == result
+
+    @pytest.mark.parametrize("in3D, iteration", [
+        (True, 2),
+        (False, 2)
+    ])
+    def test_flatten_grid(self, in3D, iteration):
+        bbox = [0.0, 0.0, 0.0, 1.0, 1.0, 1.0]
+        # TODO B: what is the depth of an octree?
+        base = 8 if in3D else 4
+        grid = tiling._subdivide(bbox, iteration, octree=in3D)
+        partition = tiling._flatten_grid(grid)
+        print(len(partition))
+        assert len(partition) == base**iteration
 
     def test_partitioner(self):
         """Test if the city model is partitioned according to the grid"""

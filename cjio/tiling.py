@@ -6,7 +6,8 @@ from typing import List, Tuple
 from cjio.cityjson import CityJSON
 
 def _subdivide_helper_quadtree(bbox: List[float], iteration: int, cntr: int) -> List[List]:
-    if cntr == iteration:
+    # TODO B: is this == or >?
+    if cntr > iteration:
         return bbox
     else:
         cntr += 1
@@ -21,7 +22,8 @@ def _subdivide_helper_quadtree(bbox: List[float], iteration: int, cntr: int) -> 
 
 
 def _subdivide_helper_octree(bbox: List[float], iteration: int, cntr: int) -> List[List]:
-    if cntr == iteration:
+    # TODO B: is this == or >?
+    if cntr > iteration:
         return bbox
     else:
         cntr += 1
@@ -95,7 +97,7 @@ def create_grid(j: CityJSON, nr_divisions: int, cellsize: List[float]=None) -> N
     return _subdivide(bbox, nr_divisions, octree=in3D)
 
 
-def point_in_bbox(bbox: List[float], point: Tuple[float]) -> bool:
+def _point_in_bbox(bbox: List[float], point: Tuple[float]) -> bool:
     """Determine if a point is within a bounding box
 
     Within includes the bottom, south, west face of the cube,
@@ -113,5 +115,22 @@ def point_in_bbox(bbox: List[float], point: Tuple[float]) -> bool:
     z = bbox[2] <= point[1] < bbox[5]
     return all([x,y,z])
 
-def partitioner():
-    """Create a CityJSON for each cell in the partition"""
+def _flatten_grid(grid: List[List]) -> List[List]:
+    if grid == [] or isinstance(grid[0], float):
+        return grid
+    else:
+        return grid[0] + _flatten_grid(grid[1:])
+
+def partitioner(j: CityJSON, grid: List[List]) -> None:
+    """Create a CityJSON for each cell in the partition
+
+    .. todo:: implement with centroid of the object
+    .. todo:: How do we break the CM into partitions? Do we clip the geometry or not? Eg. a TIN must be clipped, but buildings are better as a whole.
+
+    It checks if the first vertex of a CityObject is within a
+    cell.
+
+    :param j: The city model
+    :param grid: The output from :py:func:`tiling.create_grid`
+    :return: Writes a CityJSON file for each cell in the partition
+    """
