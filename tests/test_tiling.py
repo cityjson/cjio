@@ -27,6 +27,17 @@ class TestPartitioning():
         # test with RDNew
         quadtree = tiling.create_grid(rotterdam_subset, nr_divisions=3)
 
+    @pytest.mark.parametrize("point, result", [
+        ((0.5, 0.5, 0.5), True),
+        ((0.0, 0.01, 0.5), True),
+        ((1.0, 0.75, 0.5), False),
+        ((1.1, 0.75, 1.5), False)
+    ])
+    def test_point_in_cell(self, point, result):
+        """Test that a point is within the bbox of a cell"""
+        bbox = [0.0, 0.0, 0.0, 1.0, 1.0, 1.0]
+        assert tiling.point_in_bbox(bbox, point) == result
+
     def test_partitioner(self):
         """Test if the city model is partitioned according to the grid"""
         pytest.fail("Not implemented")

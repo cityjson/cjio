@@ -1,7 +1,7 @@
 """Partitioning a CityJSON file"""
 
 import warnings
-from typing import List
+from typing import List, Tuple
 
 from cjio.cityjson import CityJSON
 
@@ -95,7 +95,23 @@ def create_grid(j: CityJSON, nr_divisions: int, cellsize: List[float]=None) -> N
     return _subdivide(bbox, nr_divisions, octree=in3D)
 
 
+def point_in_bbox(bbox: List[float], point: Tuple[float]) -> bool:
+    """Determine if a point is within a bounding box
 
+    Within includes the bottom, south, west face of the cube,
+    but does not include the top, north, east face.
+
+    :param bbox: A bounding box as defined in CityJSON
+    :param point: A tuple of (x,y,z) coordinates
+    """
+    if len(point) < 3:
+        raise ValueError("Must provide a tuple of (x,y,z) coordinates")
+    if len(bbox) < 6:
+        raise ValueError("Must provide a valid bbox")
+    x = bbox[0] <= point[0] < bbox[3]
+    y = bbox[1] <= point[1] < bbox[4]
+    z = bbox[2] <= point[1] < bbox[5]
+    return all([x,y,z])
 
 def partitioner():
     """Create a CityJSON for each cell in the partition"""
