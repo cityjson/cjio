@@ -2,7 +2,8 @@ import pytest
 
 from cjio import tiling
 
-class TestPartitioning():
+
+class TestPartitioning:
 
     @pytest.mark.parametrize("bbox, iteration", [
         ([0.0, 0.0, 0.0, 1.0, 1.0, 1.0], 2),
@@ -15,7 +16,6 @@ class TestPartitioning():
         assert octree[5][5][3:] == bbox[3:]
         # ne_1[ne_0] z-value
         assert octree[5][1][5] == bbox[5] - (bbox[5] / 2**iteration)
-
 
     def test_grid1(self, rectangle):
         """Test that each cell has the required size"""
@@ -38,7 +38,7 @@ class TestPartitioning():
         bbox = [0.0, 0.0, 0.0, 1.0, 1.0, 1.0]
         assert tiling._point_in_bbox(bbox, point) == result
 
-    @pytest.mark.parametrize("in3D, depth", [
+    @pytest.mark.parametrize("in3d, depth", [
         (True, 1),
         (False, 1),
         (True, 2),
@@ -46,12 +46,16 @@ class TestPartitioning():
         (True, 3),
         (False, 3)
     ])
-    def test_flatten_grid(self, in3D, depth):
+    def test_flatten_grid(self, in3d, depth):
         bbox = [0.0, 0.0, 0.0, 1.0, 1.0, 1.0]
-        base = 8 if in3D else 4
-        grid = tiling._subdivide(bbox, depth, octree=in3D)
+        base = 8 if in3d else 4
+        grid = tiling._subdivide(bbox, depth, octree=in3d)
         partition = tiling._flatten_grid(grid)
         assert len(partition) == base**depth
+
+    def test_generate_index(self):
+        grid = [[1], [2], [3], [4], [5]]
+        print(tiling._generate_index(grid))
 
     def test_partitioner(self):
         """Test if the city model is partitioned according to the grid"""

@@ -1,7 +1,7 @@
 """Partitioning a CityJSON file"""
 
 import warnings
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
 from cjio.cityjson import CityJSON
 
@@ -52,7 +52,7 @@ def _subdivide(bbox: List[float], depth: int, octree: bool=False) -> List[List]:
         return _subdivide_helper_quadtree(bbox, depth, 0)
 
 
-def create_grid(j: CityJSON, nr_divisions: int, cellsize: List[float]=None) -> None:
+def create_grid(j: CityJSON, nr_divisions: int, cellsize: List[float]=None) -> List[List]:
     """Create an equal area, rectangular octree or quadtree for the area
 
     .. note:: Both the quadtree and octree is composed of 3D bounding boxes,
@@ -95,7 +95,7 @@ def create_grid(j: CityJSON, nr_divisions: int, cellsize: List[float]=None) -> N
     return _subdivide(bbox, nr_divisions, octree=in3D)
 
 
-def _point_in_bbox(bbox: List[float], point: Tuple[float]) -> bool:
+def _point_in_bbox(bbox: List[float], point: Tuple[float, float, float]) -> bool:
     """Determine if a point is within a bounding box
 
     Within includes the bottom, south, west face of the cube,
@@ -121,6 +121,12 @@ def _flatten_grid(grid: List[List]) -> List[List]:
         return grid
     else:
         return grid[0] + _flatten_grid(grid[1:])
+
+def _generate_index(grid: List[List]) -> Dict:
+    """Creates an index for the grid
+    .. todo:: maybe use some spatial ordering for naming the cells (eg. Morton)
+    """
+    return {i: e for i,e in enumerate(grid)}
 
 def partitioner(j: CityJSON, grid: List[List]) -> None:
     """Create a CityJSON for each cell in the partition
