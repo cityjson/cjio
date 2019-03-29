@@ -5,9 +5,8 @@ from typing import List, Tuple
 
 from cjio.cityjson import CityJSON
 
-def _subdivide_helper_quadtree(bbox: List[float], iteration: int, cntr: int) -> List[List]:
-    # TODO B: is this == or >?
-    if cntr > iteration:
+def _subdivide_helper_quadtree(bbox: List[float], depth: int, cntr: int) -> List[List]:
+    if cntr == depth:
         return bbox
     else:
         cntr += 1
@@ -17,13 +16,12 @@ def _subdivide_helper_quadtree(bbox: List[float], iteration: int, cntr: int) -> 
         se_0 = [center_x, bbox[1], bbox[2], bbox[3], center_y, bbox[2]]
         ne_0 = [center_x, center_y, bbox[2], bbox[3], bbox[4], bbox[2]]
         nw_0 = [bbox[0], center_y, bbox[2], center_x, bbox[4], bbox[2]]
-        return [_subdivide_helper_quadtree(nw_0, iteration, cntr), _subdivide_helper_quadtree(ne_0, iteration, cntr),
-                _subdivide_helper_quadtree(sw_0, iteration, cntr), _subdivide_helper_quadtree(se_0, iteration, cntr)]
+        return [_subdivide_helper_quadtree(nw_0, depth, cntr), _subdivide_helper_quadtree(ne_0, depth, cntr),
+                _subdivide_helper_quadtree(sw_0, depth, cntr), _subdivide_helper_quadtree(se_0, depth, cntr)]
 
 
-def _subdivide_helper_octree(bbox: List[float], iteration: int, cntr: int) -> List[List]:
-    # TODO B: is this == or >?
-    if cntr > iteration:
+def _subdivide_helper_octree(bbox: List[float], depth: int, cntr: int) -> List[List]:
+    if cntr == depth:
         return bbox
     else:
         cntr += 1
@@ -38,20 +36,20 @@ def _subdivide_helper_octree(bbox: List[float], iteration: int, cntr: int) -> Li
         se_1 = [center_x, bbox[1], center_z, bbox[3], center_y, bbox[5]]
         ne_1 = [center_x, center_y, center_z, bbox[3], bbox[4], bbox[5]]
         nw_1 = [bbox[0], center_y, center_z, center_x, bbox[4], bbox[5]]
-        return [_subdivide_helper_octree(nw_0, iteration, cntr), _subdivide_helper_octree(ne_0, iteration, cntr),
-                _subdivide_helper_octree(sw_0, iteration, cntr), _subdivide_helper_octree(se_0, iteration, cntr),
-                _subdivide_helper_octree(nw_1, iteration, cntr), _subdivide_helper_octree(ne_1, iteration, cntr),
-                _subdivide_helper_octree(sw_1, iteration, cntr), _subdivide_helper_octree(se_1, iteration, cntr)]
+        return [_subdivide_helper_octree(nw_0, depth, cntr), _subdivide_helper_octree(ne_0, depth, cntr),
+                _subdivide_helper_octree(sw_0, depth, cntr), _subdivide_helper_octree(se_0, depth, cntr),
+                _subdivide_helper_octree(nw_1, depth, cntr), _subdivide_helper_octree(ne_1, depth, cntr),
+                _subdivide_helper_octree(sw_1, depth, cntr), _subdivide_helper_octree(se_1, depth, cntr)]
 
-def _subdivide(bbox: List[float], iteration: int, octree: bool=False) -> List[List]:
+def _subdivide(bbox: List[float], depth: int, octree: bool=False) -> List[List]:
     """Recursively subdivide the BBOX
 
     :param octree: If True, subdivide in 3D. If False, subdivide in 2D
     """
     if octree:
-        return _subdivide_helper_octree(bbox, iteration, 0)
+        return _subdivide_helper_octree(bbox, depth, 0)
     else:
-        return _subdivide_helper_quadtree(bbox, iteration, 0)
+        return _subdivide_helper_quadtree(bbox, depth, 0)
 
 
 def create_grid(j: CityJSON, nr_divisions: int, cellsize: List[float]=None) -> None:
@@ -110,12 +108,15 @@ def _point_in_bbox(bbox: List[float], point: Tuple[float]) -> bool:
         raise ValueError("Must provide a tuple of (x,y,z) coordinates")
     if len(bbox) < 6:
         raise ValueError("Must provide a valid bbox")
-    x = bbox[0] <= point[0] < bbox[3]
-    y = bbox[1] <= point[1] < bbox[4]
-    z = bbox[2] <= point[1] < bbox[5]
-    return all([x,y,z])
+    x_in_cell = bbox[0] <= point[0] < bbox[3]
+    y_in_cell = bbox[1] <= point[1] < bbox[4]
+    z_in_cell = bbox[2] <= point[1] < bbox[5]
+    return x_in_cell and y_in_cell and z_in_cell
 
 def _flatten_grid(grid: List[List]) -> List[List]:
+    """Recursively unnest a multi-level list of bbox-es
+    .. todo:: only works with depth 2, nothing else...
+    """
     if grid == [] or isinstance(grid[0], float):
         return grid
     else:

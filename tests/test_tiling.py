@@ -38,18 +38,20 @@ class TestPartitioning():
         bbox = [0.0, 0.0, 0.0, 1.0, 1.0, 1.0]
         assert tiling._point_in_bbox(bbox, point) == result
 
-    @pytest.mark.parametrize("in3D, iteration", [
+    @pytest.mark.parametrize("in3D, depth", [
+        (True, 1),
+        (False, 1),
         (True, 2),
-        (False, 2)
+        (False, 2),
+        (True, 3),
+        (False, 3)
     ])
-    def test_flatten_grid(self, in3D, iteration):
+    def test_flatten_grid(self, in3D, depth):
         bbox = [0.0, 0.0, 0.0, 1.0, 1.0, 1.0]
-        # TODO B: what is the depth of an octree?
         base = 8 if in3D else 4
-        grid = tiling._subdivide(bbox, iteration, octree=in3D)
+        grid = tiling._subdivide(bbox, depth, octree=in3D)
         partition = tiling._flatten_grid(grid)
-        print(len(partition))
-        assert len(partition) == base**iteration
+        assert len(partition) == base**depth
 
     def test_partitioner(self):
         """Test if the city model is partitioned according to the grid"""
