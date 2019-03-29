@@ -57,6 +57,15 @@ class TestPartitioning:
         grid = [[1], [2], [3], [4], [5]]
         print(tiling._generate_index(grid))
 
+    @pytest.mark.parametrize("boundary", [
+        [2, 44, 0, 7],
+        [[2, 3, 5], [77, 55, 212]],
+        [[[0, 3, 2, 1]], [[4, 5, 6, 7]], [[0, 1, 5, 4]]],
+        [[[[0, 3, 2, 1, 22]], [[4, 5, 6, 7]], [[0, 1, 5, 4]], [[1, 2, 6, 5]]], [[[240, 243, 124]], [[244, 246, 724]], [[34, 414, 45]], [[111, 246, 5]]]]
+    ])
+    def test_find_first_vertex(self, boundary):
+        assert isinstance(tiling._find_first_vertex(boundary), int)
+
     def test_partitioner(self):
         """Test if the city model is partitioned according to the grid"""
         pytest.fail("Not implemented")

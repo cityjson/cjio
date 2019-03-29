@@ -128,6 +128,13 @@ def _generate_index(grid: List[List]) -> Dict:
     """
     return {i: e for i,e in enumerate(grid)}
 
+def _find_first_vertex(boundary: List) -> int:
+    """Finds the index of the vertex in the geometry boundary that encountered first"""
+    if isinstance(boundary, int):
+        return boundary
+    else:
+        return _find_first_vertex(boundary[0])
+
 def partitioner(j: CityJSON, grid: List[List]) -> None:
     """Create a CityJSON for each cell in the partition
 
@@ -141,3 +148,18 @@ def partitioner(j: CityJSON, grid: List[List]) -> None:
     :param grid: The output from :py:func:`tiling.create_grid`
     :return: Writes a CityJSON file for each cell in the partition
     """
+
+    for theid in j['CityObjects']:
+        for geom in j['CityObjects'][theid]['geometry']:
+            if ((geom['type'] == 'MultiSurface') or (geom['type'] == 'CompositeSurface')):
+                for face in geom['boundaries']:
+                    re = self.triangulate_face(face, vnp)
+                    for t in re:
+                        out.write("f %d %d %d\n" % (t[0] + 1, t[1] + 1, t[2] + 1))
+            elif (geom['type'] == 'Solid'):
+                for shell in geom['boundaries']:
+                    for face in shell:
+                        re = self.triangulate_face(face, vnp)
+                        for t in re:
+                            out.write("f %d %d %d\n" % (t[0] + 1, t[1] + 1, t[2] + 1))
+
