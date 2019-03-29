@@ -1,7 +1,7 @@
 """Partitioning a CityJSON file"""
 
 import warnings
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Iterable
 
 from cjio.cityjson import CityJSON
 
@@ -12,10 +12,12 @@ def _subdivide_helper_quadtree(bbox: List[float], depth: int, cntr: int) -> List
         cntr += 1
         center_x = (bbox[0] + bbox[3]) / 2
         center_y = (bbox[1] + bbox[4]) / 2
-        sw_0 = [bbox[0], bbox[1], bbox[2], center_x, center_y, bbox[2]]
-        se_0 = [center_x, bbox[1], bbox[2], bbox[3], center_y, bbox[2]]
-        ne_0 = [center_x, center_y, bbox[2], bbox[3], bbox[4], bbox[2]]
-        nw_0 = [bbox[0], center_y, bbox[2], center_x, bbox[4], bbox[2]]
+        # need to lift the top a bit, because the top surface is not inclusive in the point_in_bbox
+        lifted_top = bbox[5] + (bbox[5] * 0.001)
+        sw_0 = [bbox[0], bbox[1], bbox[2], center_x, center_y, bbox[5]]
+        se_0 = [center_x, bbox[1], bbox[2], bbox[3], center_y, bbox[5]]
+        ne_0 = [center_x, center_y, bbox[2], bbox[3], bbox[4], bbox[5]]
+        nw_0 = [bbox[0], center_y, bbox[2], center_x, bbox[4], bbox[5]]
         return [_subdivide_helper_quadtree(nw_0, depth, cntr), _subdivide_helper_quadtree(ne_0, depth, cntr),
                 _subdivide_helper_quadtree(sw_0, depth, cntr), _subdivide_helper_quadtree(se_0, depth, cntr)]
 
@@ -46,13 +48,15 @@ def _subdivide(bbox: List[float], depth: int, octree: bool=False) -> List[List]:
 
     :param octree: If True, subdivide in 3D. If False, subdivide in 2D
     """
+    if depth != 2:
+        raise ValueError("Sorry, at the moment only depth=2 works")
     if octree:
         return _subdivide_helper_octree(bbox, depth, 0)
     else:
         return _subdivide_helper_quadtree(bbox, depth, 0)
 
 
-def create_grid(j: CityJSON, nr_divisions: int, cellsize: List[float]=None) -> List[List]:
+def create_grid(j: CityJSON, depth: int, cellsize: List[float]=None) -> List[List]:
     """Create an equal area, rectangular octree or quadtree for the area
 
     .. note:: Both the quadtree and octree is composed of 3D bounding boxes,
@@ -63,7 +67,7 @@ def create_grid(j: CityJSON, nr_divisions: int, cellsize: List[float]=None) -> L
     .. todo:: implement for cellsize
 
     :param j: The city model
-    :param nr_divisions: The number of times to subdivide the BBOX of the city model
+    :param depth: The number of times to subdivide the BBOX of the city model
     :param cellsize: Size of the grid cell. Values are floats and in
      the units of the CRS of the city model. Values are provided as (x, y, z).
      If you don't want to partition the city model with 3D cells, then omit the
@@ -75,6 +79,7 @@ def create_grid(j: CityJSON, nr_divisions: int, cellsize: List[float]=None) -> L
     bbox = j.update_bbox()
 
     if cellsize:
+        raise ValueError("Sorry, at the moment cellsize is not supported")
         dx = bbox[3] - bbox[0]
         dy = bbox[4] - bbox[1]
         dz = bbox[5] - bbox[2]
@@ -83,16 +88,16 @@ def create_grid(j: CityJSON, nr_divisions: int, cellsize: List[float]=None) -> L
             raise ValueError("Must provide at least 2 values for the cellsize")
         elif len(cellsize) == 2:
             print("2D partitioning")
-            in3D = False
+            in3d = False
         else:
             print("3D partitioning")
-            in3D = True
+            in3d = True
         if dx < cellsize[0] and dy < cellsize[1] and dz < cellsize[2]:
             raise ValueError("Cellsize is larger than bounding box, returning")
     else:
-        in3D = False
+        in3d = False
 
-    return _subdivide(bbox, nr_divisions, octree=in3D)
+    return _subdivide(bbox, depth, octree=in3d)
 
 
 def _point_in_bbox(bbox: List[float], point: Tuple[float, float, float]) -> bool:
@@ -110,7 +115,7 @@ def _point_in_bbox(bbox: List[float], point: Tuple[float, float, float]) -> bool
         raise ValueError("Must provide a valid bbox")
     x_in_cell = bbox[0] <= point[0] < bbox[3]
     y_in_cell = bbox[1] <= point[1] < bbox[4]
-    z_in_cell = bbox[2] <= point[1] < bbox[5]
+    z_in_cell = bbox[2] <= point[2] < bbox[5]
     return x_in_cell and y_in_cell and z_in_cell
 
 def _flatten_grid(grid: List[List]) -> List[List]:
@@ -128,14 +133,14 @@ def _generate_index(grid: List[List]) -> Dict:
     """
     return {i: e for i,e in enumerate(grid)}
 
-def _find_first_vertex(boundary: List) -> int:
+def _first_vertex(boundary: List) -> int:
     """Finds the index of the vertex in the geometry boundary that encountered first"""
     if isinstance(boundary, int):
         return boundary
     else:
-        return _find_first_vertex(boundary[0])
+        return _first_vertex(boundary[0])
 
-def partitioner(j: CityJSON, grid: List[List]) -> None:
+def partitioner(j: CityJSON, depth: int) -> Dict:
     """Create a CityJSON for each cell in the partition
 
     .. todo:: implement with centroid of the object
@@ -145,21 +150,33 @@ def partitioner(j: CityJSON, grid: List[List]) -> None:
     cell.
 
     :param j: The city model
-    :param grid: The output from :py:func:`tiling.create_grid`
+    :param depth: The number of times to subdivide the BBOX of the city model
     :return: Writes a CityJSON file for each cell in the partition
     """
+    quadtree = create_grid(j, depth)
+    grid = _flatten_grid(quadtree)
+    grid_idx = _generate_index(grid)
+    partitions = {idx: [] for idx in grid_idx.keys()}
 
-    for theid in j['CityObjects']:
-        for geom in j['CityObjects'][theid]['geometry']:
-            if ((geom['type'] == 'MultiSurface') or (geom['type'] == 'CompositeSurface')):
-                for face in geom['boundaries']:
-                    re = self.triangulate_face(face, vnp)
-                    for t in re:
-                        out.write("f %d %d %d\n" % (t[0] + 1, t[1] + 1, t[2] + 1))
-            elif (geom['type'] == 'Solid'):
-                for shell in geom['boundaries']:
-                    for face in shell:
-                        re = self.triangulate_face(face, vnp)
-                        for t in re:
-                            out.write("f %d %d %d\n" % (t[0] + 1, t[1] + 1, t[2] + 1))
+    try:
+        scale = (j.j['transform']['scale'][0],
+                 j.j['transform']['scale'][1],
+                 j.j['transform']['scale'][2])
+        translate = (j.j['transform']['translate'][0],
+                     j.j['transform']['translate'][1],
+                     j.j['transform']['translate'][2])
+    except KeyError:
+        scale = (1.0, 1.0, 1.0)
+        translate = (0.0, 0.0, 0.0)
 
+    for theid in j.j['CityObjects'].keys():
+        for geom in j.j['CityObjects'][theid]['geometry']:
+            vi = _first_vertex(geom['boundaries'])
+            for idx,bbox in grid_idx.items():
+                v = j.j['vertices'][vi]
+                x = (v[0] * scale[0]) + translate[0]
+                y = (v[1] * scale[1]) + translate[1]
+                z = (v[2] * scale[2]) + translate[2]
+                if _point_in_bbox(bbox, (x,y,z)):
+                    partitions[idx] += [theid]
+    return partitions

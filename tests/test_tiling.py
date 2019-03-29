@@ -27,16 +27,19 @@ class TestPartitioning:
         # test with RDNew
         quadtree = tiling.create_grid(rotterdam_subset, nr_divisions=3)
 
-    @pytest.mark.parametrize("point, result", [
-        ((0.5, 0.5, 0.5), True),
-        ((0.0, 0.01, 0.5), True),
-        ((1.0, 0.75, 0.5), False),
-        ((1.1, 0.75, 1.5), False)
+    @pytest.mark.parametrize("bbox, point, result", [
+        ([0.0, 0.0, 0.0, 1.0, 1.0, 1.0], (0.5, 0.5, 0.5), True),
+        ([0.0, 0.0, 0.0, 1.0, 1.0, 1.0], (0.0, 0.01, 0.5), True),
+        ([0.0, 0.0, 0.0, 1.0, 1.0, 1.0], (1.0, 0.75, 0.5), False),
+        ([0.0, 0.0, 0.0, 1.0, 1.0, 1.0], (1.1, 0.75, 1.5), False),
+        ([90865.3615, 435614.88, 0.0, 91002.41900000001, 435723.21425, 18.29],
+         (90966.26400000001, 435676.738, 15.581),
+         True)
     ])
-    def test_point_in_cell(self, point, result):
+    def test_point_in_bbox(self, bbox, point, result):
         """Test that a point is within the bbox of a cell"""
-        bbox = [0.0, 0.0, 0.0, 1.0, 1.0, 1.0]
         assert tiling._point_in_bbox(bbox, point) == result
+
 
     @pytest.mark.parametrize("in3d, depth", [
         (True, 1),
@@ -63,9 +66,10 @@ class TestPartitioning:
         [[[0, 3, 2, 1]], [[4, 5, 6, 7]], [[0, 1, 5, 4]]],
         [[[[0, 3, 2, 1, 22]], [[4, 5, 6, 7]], [[0, 1, 5, 4]], [[1, 2, 6, 5]]], [[[240, 243, 124]], [[244, 246, 724]], [[34, 414, 45]], [[111, 246, 5]]]]
     ])
-    def test_find_first_vertex(self, boundary):
-        assert isinstance(tiling._find_first_vertex(boundary), int)
+    def test_first_vertex(self, boundary):
+        assert isinstance(tiling._first_vertex(boundary), int)
 
-    def test_partitioner(self):
+    def test_partitioner(self, rotterdam_subset):
         """Test if the city model is partitioned according to the grid"""
-        pytest.fail("Not implemented")
+        partitions = tiling.partitioner(rotterdam_subset, 2)
+        print(partitions)
