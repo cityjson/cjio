@@ -1,7 +1,7 @@
 """Partitioning a CityJSON file"""
 
 import warnings
-from typing import List, Tuple, Dict, Iterable
+from typing import List, Tuple, Dict, Iterable, Generator
 
 from cjio.cityjson import CityJSON
 
@@ -56,27 +56,26 @@ def _subdivide(bbox: List[float], depth: int, octree: bool=False) -> List[List]:
         return _subdivide_helper_quadtree(bbox, depth, 0)
 
 
-def create_grid(j: CityJSON, depth: int, cellsize: List[float]=None) -> List[List]:
+def create_grid(bbox: List, depth: int, cellsize: List[float]=None) -> Dict:
     """Create an equal area, rectangular octree or quadtree for the area
 
     .. note:: Both the quadtree and octree is composed of 3D bounding boxes,
     but in case of the octree the original bbox is also subdivided vertically. In
     case of the quadtree the bbox is partitioned on the xy-plane, while the height
-    of each cell equals the height of the original bbox.
+    of each cell equals the height of the original bbox. Finally, this function
+    flattens the octree/quadtree into a simple grid.
 
     .. todo:: implement for cellsize
 
-    :param j: The city model
+    :param bbox: Bounding box of the city model
     :param depth: The number of times to subdivide the BBOX of the city model
     :param cellsize: Size of the grid cell. Values are floats and in
      the units of the CRS of the city model. Values are provided as (x, y, z).
      If you don't want to partition the city model with 3D cells, then omit the
      z-value.
 
-    :return: A nested list, containing the bounding boxes of the generated
-    octree/quadtree
+    :return: A nested list, containing the bounding boxes of the grid.
     """
-    bbox = j.update_bbox()
 
     if cellsize:
         raise ValueError("Sorry, at the moment cellsize is not supported")
@@ -97,7 +96,10 @@ def create_grid(j: CityJSON, depth: int, cellsize: List[float]=None) -> List[Lis
     else:
         in3d = False
 
-    return _subdivide(bbox, depth, octree=in3d)
+    tree = _subdivide(bbox, depth, octree=in3d)
+    grid = _flatten_grid(tree)
+    grid_idx = _generate_index(grid)
+    return grid_idx
 
 
 def _point_in_bbox(bbox: List[float], point: Tuple[float, float, float]) -> bool:
