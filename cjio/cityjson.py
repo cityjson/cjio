@@ -1,13 +1,11 @@
 
 import os
-import sys
 import re
 import shutil
 
 import json
 import collections
 import jsonref
-import urllib
 from pkg_resources import resource_filename
 import copy
 import random
@@ -25,7 +23,7 @@ except ImportError as e:
 from cjio import validation
 from cjio import subset
 from cjio import geom_help
-from cjio import errors
+from cjio import convert
 from cjio.errors import InvalidOperation
 
 
@@ -1205,6 +1203,14 @@ class CityJSON:
         
         # print (result.reshape(-1, 3))
         return result.reshape(-1, 3)
+
+
+    def export2gltf(self):
+        # TODO B: probably no need to double wrap this to_gltf(), but its long, and
+        # the current cityjson.py is long already
+        out_gltf, out_bin = convert.to_gltf(self.j)
+        return (out_gltf, out_bin)
+
 
 
     def export2obj(self):

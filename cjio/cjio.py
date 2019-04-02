@@ -113,7 +113,7 @@ def info_cmd(context):
 def export_cmd(filename):
     """Export the CityJSON to another format.
 
-    Currently only OBJ file are supported; textures are not supported, sorry.
+    Currently only OBJ and glTF files are supported; textures are not supported, sorry.
     """
     def processor(cm):
         #-- mapbox_earcut available?
@@ -124,23 +124,45 @@ def export_cmd(filename):
             click.echo(str)
             return cm
         #-- output allowed
-        extensions = ['.obj'] 
+        extensions = ['.obj', '.gltf']
         #--
-        print_cmd_status("Converting CityJSON to OBJ (%s)" % (filename))
+
         f = os.path.basename(filename)
         d = os.path.abspath(os.path.dirname(filename))
         if not os.path.isdir(d):
             os.makedirs(d)
         p = os.path.join(d, f)
-        try:
-            extension = os.path.splitext(p)[1].lower()
-            if (extension not in extensions):
-                raise IOError("Only .obj files supported")
-            fo = click.open_file(p, mode='w')
-            re = cm.export2obj()
-            fo.write(re.getvalue())
-        except IOError as e:
-            raise click.ClickException('Invalid output file: "%s".\n%s' % (p, e))                
+        fname = os.path.splitext(f)[0]
+        extension = os.path.splitext(f)[1].lower()
+        if (extension not in extensions):
+            raise IOError("Only .obj and .gltf files are supported")
+        if extension == '.obj':
+            print_cmd_status("Converting CityJSON to OBJ (%s)" % (filename))
+            try:
+                fo = click.open_file(p, mode='w')
+                re = cm.export2obj()
+                # TODO B: why don't you close the file @hugoledoux?
+                fo.write(re.getvalue())
+            except IOError as e:
+                raise click.ClickException('Invalid output file: "%s".\n%s' % (p, e))
+        elif extension == '.gltf':
+            bufferbin = fname + "_bin.bin"
+            binfile = os.path.join(d, bufferbin)
+            print_cmd_status("Converting CityJSON to glTF (%s, %s)" % (filename, bufferbin))
+            out_gltf, out_bin = cm.export2gltf()
+            # TODO B: how many buffer can there be in the 'buffers'?
+            out_gltf['buffers'][0]['uri'] = bufferbin
+            try:
+                with click.open_file(binfile, mode='wb') as bo:
+                    bo.write(out_bin)
+            except IOError as e:
+                raise click.ClickException('Invalid output file: "%s".\n%s' % (binfile, e))
+            try:
+                with click.open_file(p, mode='w') as fo:
+                    json_str = json.dumps(out_gltf, indent=2, sort_keys=True)
+                    fo.write(json_str)
+            except IOError as e:
+                raise click.ClickException('Invalid output file: "%s".\n%s' % (p, e))
         return cm
     return processor
 

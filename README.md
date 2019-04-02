@@ -116,3 +116,6 @@ There are a few [example files on the CityJSON webpage](https://www.cityjson.org
 Alternatively, any [CityGML](https://www.citygml.org) file can be automatically converted to CityJSON with the open-source project [citygml-tools](https://github.com/citygml4j/citygml-tools) (based on [citygml4j](https://github.com/citygml4j/citygml4j)).
 
 
+## Acknowledgements
+
+The glTF exporter is adapted from Kavisha's [CityJSON2glTF](https://github.com/tudelft3d/CityJSON2glTF).
