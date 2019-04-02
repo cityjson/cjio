@@ -13,4 +13,5 @@ jsonref = "*"
 pyproj = "*"
 numpy = "*"
 strict-rfc3339 = "*"
-"e1839a8" = {editable = true, path = "."}
+e1839a8 = {editable = true,path = "."}
+ipython = "*"

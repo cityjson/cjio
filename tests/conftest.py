@@ -11,6 +11,19 @@ def data_dir():
     yield os.path.join(package_dir, 'example_data')
 
 @pytest.fixture(scope='session')
+def data_output_dir():
+    package_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+    d = os.path.join(package_dir, "tmp")
+    os.makedirs(d, exist_ok=True)
+    yield d
+
+@pytest.fixture(scope='session')
+def delft(data_dir):
+    p = os.path.join(data_dir, 'delft.json')
+    with open(p, 'r') as f:
+        yield cityjson.CityJSON(file=f)
+
+@pytest.fixture(scope='session')
 def rotterdam_subset(data_dir):
     p = os.path.join(data_dir, 'rotterdam', 'rotterdam_subset.json')
     with open(p, 'r') as f:
