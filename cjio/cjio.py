@@ -9,6 +9,7 @@ import copy
 import glob
 import cjio
 from cjio import cityjson
+from cjio import tiling
 
 
 #-- https://stackoverflow.com/questions/47437472/in-python-click-how-do-i-see-help-for-subcommands-whose-parents-have-required
@@ -273,6 +274,53 @@ def merge_cmd(filepattern):
         return cm
     return processor
 
+@cli.command('partition')
+@click.option('--depth', type=int, default=2, help='Number of times to subdivide the BBOX.', show_default=True)
+@click.option('--folder_output', help='Specify a folder where to store the partitions.')
+def partition_cmd(folder_output, depth):
+    """
+    Partition the city model into tiles.
+    """
+    def processor(cm):
+        if folder_output is not None:
+            if os.path.exists(folder_output) == False:
+                click.echo(click.style("Folder for output unknown. Partitioning aborted.", fg='red'))
+                return cm
+            else:
+                print_cmd_status('===== Partitioning CityJSON (output: %s) =====' % (folder_output))
+        else:
+            click.echo(click.style("Must specify a folder for output. Partitioning aborted.", fg='red'))
+            return cm
+        bbox = cm.update_bbox()
+        grid_idx = tiling.create_grid(bbox, depth)
+        partitions = tiling.partitioner(cm, grid_idx)
+
+        textures = None
+        indent = 0
+        d = os.path.abspath(folder_output)
+
+        for idx, colist in partitions.items():
+            s = cm.get_subset_ids(colist)
+            filename = '{}.json'.format(idx)
+            f = os.path.basename(filename)
+            p = os.path.join(d, f)
+            print_cmd_status("Saving CityJSON partition to a file (%s)" % (p))
+            try:
+                fo = click.open_file(p, mode='w')
+                if textures:
+                    s.copy_textures(textures, p)
+                if indent == 0:
+                    json_str = json.dumps(s.j, separators=(',', ':'))
+                    fo.write(json_str)
+                else:
+                    json_str = json.dumps(s.j, indent=indent)
+                    fo.write(json_str)
+            except IOError as e:
+                raise click.ClickException('Invalid output file: "%s".\n%s' % (p, e))
+            del json_str
+            del s
+        return cm
+    return processor
 
 @cli.command('subset')
 @click.option('--id', multiple=True, help='The ID of the City Objects; can be used multiple times.')

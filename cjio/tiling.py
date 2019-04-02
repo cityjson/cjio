@@ -142,8 +142,8 @@ def _first_vertex(boundary: List) -> int:
     else:
         return _first_vertex(boundary[0])
 
-def partitioner(j: CityJSON, depth: int) -> Dict:
-    """Create a CityJSON for each cell in the partition
+def partitioner(j: CityJSON, grid_idx: Dict) -> Dict:
+    """Assign the CityObjects to the cell they belong
 
     .. todo:: implement with centroid of the object
     .. todo:: How do we break the CM into partitions? Do we clip the geometry or not? Eg. a TIN must be clipped, but buildings are better as a whole.
@@ -151,13 +151,9 @@ def partitioner(j: CityJSON, depth: int) -> Dict:
     It checks if the first vertex of a CityObject is within a
     cell.
 
-    :param j: The city model
-    :param depth: The number of times to subdivide the BBOX of the city model
-    :return: Writes a CityJSON file for each cell in the partition
+    :param grid_idx: The grid index, returned by `py:func:create_grid`
+    :return: A list of CityObject IDs for each cell
     """
-    quadtree = create_grid(j, depth)
-    grid = _flatten_grid(quadtree)
-    grid_idx = _generate_index(grid)
     partitions = {idx: [] for idx in grid_idx.keys()}
 
     try:

@@ -19,13 +19,13 @@ class TestPartitioning:
 
     def test_grid1(self, rectangle):
         """Test that each cell has the required size"""
-        quadtree = tiling.create_grid(rectangle, nr_divisions=3)
+        quadtree = tiling.create_grid(rectangle, depth=3)
         # test with sth WGS84
 
     def test_grid2(self, rotterdam_subset):
         """Test that each cell has the required size"""
         # test with RDNew
-        quadtree = tiling.create_grid(rotterdam_subset, nr_divisions=3)
+        quadtree = tiling.create_grid(rotterdam_subset, depth=3)
 
     @pytest.mark.parametrize("bbox, point, result", [
         ([0.0, 0.0, 0.0, 1.0, 1.0, 1.0], (0.5, 0.5, 0.5), True),
@@ -71,5 +71,4 @@ class TestPartitioning:
 
     def test_partitioner(self, rotterdam_subset):
         """Test if the city model is partitioned according to the grid"""
-        partitions = tiling.partitioner(rotterdam_subset, 2)
-        print(partitions)
+        pytest.fail("Not implemented")
