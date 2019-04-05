@@ -178,3 +178,14 @@ def partitioner(j: CityJSON, grid_idx: Dict) -> Dict:
                 if _point_in_bbox(bbox, (x,y,z)):
                     partitions[idx] += [theid]
     return partitions
+
+
+def generate_tileset_json():
+    """Generate the skeleton for tileset.json"""
+    t = {
+    "asset": { "version": "1.0" },
+    "properties": {} ,
+    "geometricError": 0.0,
+    "root": {}
+    }
+    return t
