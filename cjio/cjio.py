@@ -8,8 +8,7 @@ import sys
 import copy
 import glob
 import cjio
-from cjio import cityjson
-from cjio import tiling
+from cjio import cityjson, tiling, utils
 
 
 #-- https://stackoverflow.com/questions/47437472/in-python-click-how-do-i-see-help-for-subcommands-whose-parents-have-required
@@ -110,7 +109,10 @@ def info_cmd(context):
 
 @cli.command('export')
 @click.argument('filename')
-def export_cmd(filename):
+@click.option('--format',
+              type=click.Choice(['obj', 'gltf']),
+              help="Export format")
+def export_cmd(filename, format):
     """Export the CityJSON to another format.
 
     Currently only OBJ and glTF files are supported; textures are not supported, sorry.
@@ -118,37 +120,33 @@ def export_cmd(filename):
     def processor(cm):
         #-- mapbox_earcut available?
         if (cityjson.MODULE_EARCUT_AVAILABLE == False):
-            str = "OBJ export skipped: Python module 'mapbox_earcut' missing (to triangulate faces)"
+            str = "OBJ|glTF export skipped: Python module 'mapbox_earcut' missing (to triangulate faces)"
             click.echo(click.style(str, fg='red'))
             str = "Install it: https://github.com/skogler/mapbox_earcut_python"
             click.echo(str)
             return cm
-        #-- output allowed
-        extensions = ['.obj', '.gltf']
-        #--
-
-        f = os.path.basename(filename)
-        d = os.path.abspath(os.path.dirname(filename))
-        if not os.path.isdir(d):
-            os.makedirs(d)
-        p = os.path.join(d, f)
-        fname = os.path.splitext(f)[0]
-        extension = os.path.splitext(f)[1].lower()
-        if (extension not in extensions):
-            raise IOError("Only .obj and .gltf files are supported")
-        if extension == '.obj':
-            print_cmd_status("Converting CityJSON to OBJ (%s)" % (filename))
+        output = utils.verify_filename(filename)
+        if output['dir']:
+            os.makedirs(output['path'], exist_ok=True)
+            input_filename = os.path.splitext(os.path.basename(cm.path))[0]
+            output['path'] = os.path.join(output['path'], '{f}.{ext}'.format(
+                f=input_filename, ext=format))
+        else:
+            os.makedirs(os.path.dirname(output['path']), exist_ok=True)
+        if format.lower() == 'obj':
+            print_cmd_status("Converting CityJSON to OBJ (%s)" % (output['path']))
             try:
-                fo = click.open_file(p, mode='w')
+                fo = click.open_file(output['path'], mode='w')
                 re = cm.export2obj()
                 # TODO B: why don't you close the file @hugoledoux?
                 fo.write(re.getvalue())
             except IOError as e:
-                raise click.ClickException('Invalid output file: "%s".\n%s' % (p, e))
-        elif extension == '.gltf':
+                raise click.ClickException('Invalid output file: "%s".\n%s' % (output['path'], e))
+        elif format.lower() == 'gltf':
+            fname = os.path.splitext(os.path.basename(output['path']))[0]
             bufferbin = fname + "_bin.bin"
-            binfile = os.path.join(d, bufferbin)
-            print_cmd_status("Converting CityJSON to glTF (%s, %s)" % (filename, bufferbin))
+            binfile = os.path.join(os.path.dirname(output['path']), bufferbin)
+            print_cmd_status("Converting CityJSON to glTF (%s, %s)" % (output['path'], bufferbin))
             out_gltf, out_bin = cm.export2gltf()
             # TODO B: how many buffer can there be in the 'buffers'?
             out_gltf['buffers'][0]['uri'] = bufferbin
@@ -158,11 +156,11 @@ def export_cmd(filename):
             except IOError as e:
                 raise click.ClickException('Invalid output file: "%s".\n%s' % (binfile, e))
             try:
-                with click.open_file(p, mode='w') as fo:
+                with click.open_file(output['path'], mode='w') as fo:
                     json_str = json.dumps(out_gltf, indent=2, sort_keys=True)
                     fo.write(json_str)
             except IOError as e:
-                raise click.ClickException('Invalid output file: "%s".\n%s' % (p, e))
+                raise click.ClickException('Invalid output file: "%s".\n%s' % (output['path'], e))
         return cm
     return processor
 
