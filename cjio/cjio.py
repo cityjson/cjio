@@ -101,8 +101,12 @@ def process_pipeline(processors, input, ignore_duplicate_keys):
 def info_cmd(context):
     """Output info in simple JSON."""
     def processor(cm):
-        theinfo = cm.get_info()
-        click.echo(theinfo)
+        if isinstance(cm, list):
+            for subset in cm:
+                click.echo("=============== City model: %s ===============" % subset.path)
+                click.echo(subset.get_info())
+        else:
+            click.echo(cm.get_info())
         return cm
     return processor
 
@@ -117,14 +121,7 @@ def export_cmd(filename, format):
 
     Currently only OBJ and glTF files are supported; textures are not supported, sorry.
     """
-    def processor(cm):
-        #-- mapbox_earcut available?
-        if (cityjson.MODULE_EARCUT_AVAILABLE == False):
-            str = "OBJ|glTF export skipped: Python module 'mapbox_earcut' missing (to triangulate faces)"
-            click.echo(click.style(str, fg='red'))
-            str = "Install it: https://github.com/skogler/mapbox_earcut_python"
-            click.echo(str)
-            return cm
+    def exporter(cm):
         output = utils.verify_filename(filename)
         if output['dir']:
             os.makedirs(output['path'], exist_ok=True)
@@ -134,7 +131,7 @@ def export_cmd(filename, format):
         else:
             os.makedirs(os.path.dirname(output['path']), exist_ok=True)
         if format.lower() == 'obj':
-            print_cmd_status("Converting CityJSON to OBJ (%s)" % (output['path']))
+            print_cmd_status("Exporting CityJSON to OBJ (%s)" % (output['path']))
             try:
                 fo = click.open_file(output['path'], mode='w')
                 re = cm.export2obj()
@@ -146,10 +143,16 @@ def export_cmd(filename, format):
             fname = os.path.splitext(os.path.basename(output['path']))[0]
             bufferbin = fname + "_bin.bin"
             binfile = os.path.join(os.path.dirname(output['path']), bufferbin)
-            print_cmd_status("Converting CityJSON to glTF (%s, %s)" % (output['path'], bufferbin))
+            print_cmd_status("Exporting CityJSON to glTF (%s, %s)" % (output['path'], bufferbin))
             out_gltf, out_bin = cm.export2gltf()
             # TODO B: how many buffer can there be in the 'buffers'?
-            out_gltf['buffers'][0]['uri'] = bufferbin
+            try:
+                out_gltf['buffers'][0]['uri'] = bufferbin
+            except IndexError:
+                # NOTE BD: this is the case when the gltf is empty, because the input cityjson is empty,
+                # which happens when citymodel is partitoned and there are empty tiles,
+                # but in this case we still want to write out the empty file
+                pass
             try:
                 with click.open_file(binfile, mode='wb') as bo:
                     bo.write(out_bin)
@@ -160,7 +163,22 @@ def export_cmd(filename, format):
                     json_str = json.dumps(out_gltf, indent=2, sort_keys=True)
                     fo.write(json_str)
             except IOError as e:
-                raise click.ClickException('Invalid output file: "%s".\n%s' % (output['path'], e))
+                raise click.ClickException('Invalid output file: %s \n%s' % (output['path'], e))
+
+    def processor(cm):
+        #-- mapbox_earcut available?
+        if (cityjson.MODULE_EARCUT_AVAILABLE == False):
+            str = "OBJ|glTF export skipped: Python module 'mapbox_earcut' missing (to triangulate faces)"
+            click.echo(click.style(str, fg='red'))
+            str = "Install it: https://github.com/skogler/mapbox_earcut_python"
+            click.echo(str)
+            return cm
+        # NOTE BD: export_cmd can take a list of citymodels, which is the output of the partitioner
+        if isinstance(cm, list):
+            for subset in cm:
+                exporter(subset)
+        else:
+            exporter(cm)
         return cm
     return processor
 
@@ -173,17 +191,21 @@ def export_cmd(filename, format):
               help='Path to the new textures directory. This command copies the textures to a new location. Useful when creating an independent subset of a CityJSON file.')
 def save_cmd(filename, indent, textures):
     """Save the city model to a CityJSON file."""
-    def processor(cm):
-        print_cmd_status("Saving CityJSON to a file (%s)" % (filename))
-        f = os.path.basename(filename)
-        d = os.path.abspath(os.path.dirname(filename))
-        if not os.path.isdir(d):
-            os.makedirs(d)
-        p = os.path.join(d, f)
+    def saver(cm):
+        output = utils.verify_filename(filename)
+        if output['dir']:
+            os.makedirs(output['path'], exist_ok=True)
+            input_filename = os.path.splitext(os.path.basename(cm.path))[0]
+            output['path'] = os.path.join(output['path'], '{f}.{ext}'.format(
+                f=input_filename, ext='json'))
+        else:
+            os.makedirs(os.path.dirname(output['path']), exist_ok=True)
+
+        print_cmd_status("Saving CityJSON to a file %s" % output['path'])
         try:
-            fo = click.open_file(p, mode='w')
+            fo = click.open_file(output['path'], mode='w')
             if textures:
-                cm.copy_textures(textures, p)
+                cm.copy_textures(textures, output['path'])
             if indent == 0:
                 json_str = json.dumps(cm.j, separators=(',',':'))
                 fo.write(json_str)
@@ -191,7 +213,14 @@ def save_cmd(filename, indent, textures):
                 json_str = json.dumps(cm.j, indent=indent)
                 fo.write(json_str)
         except IOError as e:
-            raise click.ClickException('Invalid output file: "%s".\n%s' % (p, e))                
+            raise click.ClickException('Invalid output file: %s \n%s' % (output['path'], e))
+
+    def processor(cm):
+        if isinstance(cm, list):
+            for subset in cm:
+                saver(subset)
+        else:
+            saver(cm)
         return cm
     return processor
 
@@ -308,38 +337,38 @@ def partition_cmd(folder_output, depth):
                 return cm
             else:
                 print_cmd_status('===== Partitioning CityJSON (output: %s) =====' % (folder_output))
-        else:
-            click.echo(click.style("Must specify a folder for output. Partitioning aborted.", fg='red'))
-            return cm
         bbox = cm.update_bbox()
         grid_idx = tiling.create_grid(bbox, depth)
         partitions = tiling.partitioner(cm, grid_idx)
 
         textures = None
         indent = 0
-        d = os.path.abspath(folder_output)
 
+        # NOTE BD: for now i store the subsets in the list to they can be passed forward to the exporter, but probably there more memory efficient ways to do this
+        cms = []
         for idx, colist in partitions.items():
             s = cm.get_subset_ids(colist)
             filename = '{}.json'.format(idx)
-            f = os.path.basename(filename)
-            p = os.path.join(d, f)
-            print_cmd_status("Saving CityJSON partition to a file (%s)" % (p))
-            try:
-                fo = click.open_file(p, mode='w')
-                if textures:
-                    s.copy_textures(textures, p)
-                if indent == 0:
-                    json_str = json.dumps(s.j, separators=(',', ':'))
-                    fo.write(json_str)
-                else:
-                    json_str = json.dumps(s.j, indent=indent)
-                    fo.write(json_str)
-            except IOError as e:
-                raise click.ClickException('Invalid output file: "%s".\n%s' % (p, e))
-            del json_str
-            del s
-        return cm
+            s.path = filename
+            cms.append(s)
+            if folder_output:
+                f = os.path.basename(filename)
+                d = os.path.abspath(folder_output)
+                p = os.path.join(d, f)
+                print_cmd_status("Saving CityJSON partition to a file (%s)" % (p))
+                try:
+                    fo = click.open_file(p, mode='w')
+                    if textures:
+                        s.copy_textures(textures, p)
+                    if indent == 0:
+                        json_str = json.dumps(s.j, separators=(',', ':'))
+                        fo.write(json_str)
+                    else:
+                        json_str = json.dumps(s.j, indent=indent)
+                        fo.write(json_str)
+                except IOError as e:
+                    raise click.ClickException('Invalid output file: "%s".\n%s' % (p, e))
+        return cms
     return processor
 
 @cli.command('subset')

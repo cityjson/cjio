@@ -26,6 +26,11 @@ def to_gltf(cj):
         "scenes": []
     }
     lbin = bytearray()
+    try:
+        if len(cj['CityObjects']) == 0:
+            return (cm, lbin)
+    except KeyError as e:
+        raise TypeError("Not a CityJSON")
 
     # asset
     asset = dict()

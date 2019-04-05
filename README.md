@@ -122,10 +122,25 @@ Convert the CityJSON `example.json` to a glTF file `/home/elvis/test.gltf`
 $ cjio example.json export --format gltf /home/elvis/test.gltf
 ```
 
+### Partitioning
+
+**The `partition` command returns several subsets of the input city model and this functionality is not fully** 
+**integrated yet. At the moment only these commands can follow `partition`:**
+
++ `save`
++ `export`
++ `info`
+
 Partition the CityJSON `example.json` into 16 equal area parts (quadtree of depth 2) and export each part as glTF to `/home/elvis/gltfs`.
 
 ```console
 $ cjio example.json partiton --depth 2 export --format gltf /home/elvis/gltfs
+```
+
+Partition the CityJSON and get information about each part.
+
+```console
+$ cjio example.json partiton --depth 2 info
 ```
 
 ```console
