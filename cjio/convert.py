@@ -13,6 +13,17 @@ def flatten(x):
     return result
 
 
+def byte_offset(x):
+    """Compute the byteOffset for glTF bufferView
+
+    The bufferViews need to be aligned to a 4-byte boundary so the accessors can be aligned to them
+    """
+    remainder = x % 4
+    padding = 4 - remainder if remainder > 0 else 0
+    res = x + padding
+    return (res, padding)
+
+
 def to_gltf(cj):
     """Main function from CityJSON2glTF"""
     cm = {
@@ -44,18 +55,16 @@ def to_gltf(cj):
     meshList = []
 
     poscount = 0
-    indexcount = 0
     nodeList = []
-    nodeCount = []
+    nodes = []
     accessorsList = []
     matid = 0
     materialIDs = []
 
     vertexlist = np.array(cj["vertices"])
 
-    for theid in cj['CityObjects']:
+    for coi,theid in enumerate(cj['CityObjects']):
         forimax = []
-        forimax2 = []
 
         if len(cj['CityObjects'][theid]['geometry']) != 0:
 
@@ -84,122 +93,152 @@ def to_gltf(cj):
             materialIDs.append(matid)
 
             for geom in cj['CityObjects'][theid]['geometry']:
-                #                print (geom)
                 poscount = poscount + 1
                 if geom['type'] == "Solid":
-                    #                    print (geom['type'])
                     triList = []
                     for shell in geom['boundaries']:
                         for face in shell:
                             tri = geom_help.triangulate_face(face, vertexlist)
                             for t in tri:
-                                #                                print ("hi", type(t[0]))
                                 triList.append(list(t))
                     trigeom = (flatten(triList))
-                #                print (trigeom)
 
                 elif (geom['type'] == 'MultiSurface') or (geom['type'] == 'CompositeSurface'):
-                    #                    print (geom['type'])
                     triList = []
                     for face in geom['boundaries']:
-                        #                        print (face)
                         tri = geom_help.triangulate_face(face, vertexlist)
                         for t in tri:
-                            #                            print ("hi", type(t[0]))
                             triList.append(t)
                     trigeom = (flatten(triList))
-
-                #                print (trigeom)
                 flatgeom = trigeom
                 forimax.append(flatgeom)
-            #                print (forimax)
 
-            flatgeom_np = np.array(flatten(forimax))
-            #            print (flatgeom_np)
-            bin_geom = flatgeom_np.astype(np.uint32).tostring()
+            #----- buffer and bufferView
+            flatgeom = flatten(forimax)
+            vtx_np = np.zeros((len(flatgeom), 3))
+            vtx_idx_np = np.zeros(len(flatgeom))
+            # need to reindex the vertices, otherwise if the vtx index exceeds the nr. of vertices in the
+            # accessor then we get "ACCESSOR_INDEX_OOB" error
+            for i,v in enumerate(flatgeom):
+                vtx_np[i] = vertexlist[v]
+                vtx_idx_np[i] = i
+            bin_vtx = vtx_np.astype(np.float32).tostring()
+            # convert geometry indices to binary
+            bin_geom = vtx_idx_np.astype(np.uint32).tostring()
+            # convert batchid to binary
+            batchid_np = np.array([i for g in vtx_idx_np])
+            bin_batchid = batchid_np.astype(np.uint32).tostring()
 
-            lbin.extend(bin_geom)
-
-            #           forimax2.append(flatgeom)
+            #-- geometry indices bufferView
+            bpos = len(lbin)
+            offset, padding = byte_offset(bpos)
             bufferView = dict()
             bufferView["buffer"] = 0
+            bufferView["byteOffset"] = offset
             bufferView["byteLength"] = len(bin_geom)
-            bufferView["byteOffset"] = len(lbin) - len(bin_geom)
-            bufferView["target"] = 34963
+            bufferView["target"] = 34963 # For 'target' property constants see: https://github.com/KhronosGroup/glTF-Tutorials/blob/master/gltfTutorial/gltfTutorial_005_BuffersBufferViewsAccessors.md#bufferviews
+            # write to the buffer
+            lbin.extend(bin_geom)
+            lbin.extend(bytearray(padding))
             bufferViewList.append(bufferView)
 
-            # meshes
-            mesh = dict()
-            mesh["name"] = str(theid)
-            mesh["primitives"] = [{"indices": indexcount, "material": matid}]
-            meshList.append(mesh)
+            #-- geometry vertices bufferView
+            bpos = len(lbin)
+            offset, padding = byte_offset(bpos)
+            bufferView = dict()
+            bufferView["buffer"] = 0
+            bufferView["byteOffset"] = offset
+            bufferView["byteStride"] = 12
+            bufferView["byteLength"] = len(bin_vtx)
+            bufferView["target"] = 34962
+            # write to the buffer
+            lbin.extend(bin_vtx)
+            lbin.extend(bytearray(padding))
+            bufferViewList.append(bufferView)
 
-            node = {}
-            node["mesh"] = indexcount
-            node["name"] = str(theid)
-            nodeList.append(node)
+            #-- batchid bufferView
+            bpos = len(lbin)
+            offset, padding = byte_offset(bpos)
+            bufferView = dict()
+            bufferView["buffer"] = 0
+            bufferView["byteOffset"] = offset
+            bufferView["byteStride"] = 4
+            bufferView["byteLength"] = len(bin_batchid)
+            bufferView["target"] = 34962
+            # write to the buffer
+            lbin.extend(bin_batchid)
+            lbin.extend(bytearray(padding))
+            bufferViewList.append(bufferView)
 
-            nodeCount.append(indexcount)
+            # ----- accessors
 
+            # accessor for geometry indices bufferView
             accessor = dict()
-            accessor["bufferView"] = indexcount
-            accessor["byteOffset"] = 0
+            accessor["bufferView"] = 0 if coi == 0  else coi * 3
             accessor["componentType"] = 5125
-            accessor["count"] = len(flatten(forimax))
+            accessor["count"] = int(vtx_idx_np.size)
             accessor["type"] = "SCALAR"
-            accessor["max"] = [int(max(flatten(forimax)))]
-            accessor["min"] = [int(min(flatten(forimax)))]
+            accessor["max"] = [int(vtx_idx_np.max())]
+            accessor["min"] = [int(vtx_idx_np.min())]
             accessorsList.append(accessor)
 
-            indexcount = indexcount + 1
+            # accessor for geometry vertices bufferView
+            accessor = dict()
+            accessor["bufferView"] = 1 if coi == 0  else coi * 3 + 1
+            accessor["componentType"] = 5126
+            accessor["count"] = int(vtx_idx_np.size)
+            accessor["type"] = "VEC3"
+            accessor["max"] = [float(np.amax(vtx_np, axis=0)[0]),
+                               float(np.amax(vtx_np, axis=0)[1]),
+                               float(np.amax(vtx_np, axis=0)[2])]
+            accessor["min"] = [float(np.amin(vtx_np, axis=0)[0]),
+                               float(np.amin(vtx_np, axis=0)[1]),
+                               float(np.amin(vtx_np, axis=0)[2])]
+            accessorsList.append(accessor)
 
-    # scene
-    scene = dict()
-    scene["nodes"] = nodeCount
+            # accessor for batchid bufferView
+            accessor = dict()
+            accessor["bufferView"] = 2 if coi == 0  else coi * 3 + 2
+            accessor["componentType"] = 5123
+            accessor["count"] = int(vtx_idx_np.size)
+            accessor["type"] = "SCALAR"
+            accessorsList.append(accessor)
 
-    ibin_length = len(lbin)
+            # ----- meshes
+            # one mesh per CityObject
+            mesh = dict()
+            mesh["name"] = str(theid)
+            mesh["primitives"] = [{
+                "indices": len(accessorsList) - 3,
+                "material": matid,
+                "attributes": {
+                    "_BATCHID": len(accessorsList) - 1,
+                    "POSITION": len(accessorsList) - 2,
+                }
+            }]
+            meshList.append(mesh)
 
-    # vertex bufferview
-    vertex_bin = vertexlist.astype(np.float32).tostring()
-    lbin.extend(vertex_bin)
-    vertexBuffer = {
-        "buffer": 0,
-        "byteOffset": ibin_length,
-        "byteLength": len(vertex_bin),
-        "target": 34962
-    }
-    bufferViewList.append(vertexBuffer)
-    cm["bufferViews"] = bufferViewList
+            # ----- nodes
+            # a node has a mesh, and the mesh is referenced by its index in the meshList
+            nodeList.append({"mesh": coi})
+            # one node per CityObject
+            nodes.append(coi)
 
-    for m in meshList:
-        m["primitives"][0]["attributes"] = {"POSITION": poscount}
-    cm["meshes"] = meshList
-    cm["nodes"] = nodeList
-    cm["scenes"] = [scene]
-
-    # accessors
-    accessorsList.append({
-        "bufferView": len(bufferViewList) - 1,
-        "byteOffset": 0,
-        "componentType": 5126,
-        "count": len(cj["vertices"]),
-        "type": "VEC3",
-        "max": [float(np.amax(np.asarray(cj["vertices"]), axis=0)[0]),
-                float(np.amax(np.asarray(cj["vertices"]), axis=0)[1]),
-                float(np.amax(np.asarray(cj["vertices"]), axis=0)[2])],  # max(cj["vertices"]),
-        "min": [float(np.amin(np.asarray(cj["vertices"]), axis=0)[0]),
-                float(np.amin(np.asarray(cj["vertices"]), axis=0)[1]),
-                float(np.amin(np.asarray(cj["vertices"]), axis=0)[2])]  # min(cj["vertices"])
-    })
-    cm["accessors"] = accessorsList
-
-    # buffers
+    #-- buffers
     buffer = dict()
-    # buffer["uri"] = bufferbin
     buffer["byteLength"] = len(lbin)
     cm["buffers"] = [buffer]
 
-    # materials
+    cm["bufferViews"] = bufferViewList
+    cm["accessors"] = accessorsList
+    cm["meshes"] = meshList
+    cm["nodes"] = nodeList
+
+    scene = dict()
+    scene["nodes"] = nodes
+    cm["scenes"] = [scene]
+
+    #-- materials
     materialsList = [
         {  # building red
             "pbrMetallicRoughness": {
