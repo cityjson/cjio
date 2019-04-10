@@ -1,3 +1,5 @@
+from io import BytesIO
+import json
 import numpy as np
 
 from cjio import geom_help
@@ -13,18 +15,84 @@ def flatten(x):
     return result
 
 
-def byte_offset(x):
+def byte_offset(x, byte_boundary):
     """Compute the byteOffset for glTF bufferView
 
     The bufferViews need to be aligned to a 4-byte boundary so the accessors can be aligned to them
     """
-    remainder = x % 4
-    padding = 4 - remainder if remainder > 0 else 0
+    remainder = x % byte_boundary
+    padding = byte_boundary - remainder if remainder > 0 else 0
     res = x + padding
     return (res, padding)
 
 
-def to_gltf(cj):
+def to_b3dm(cm, gltf_bin):
+    """Convert a CityJSON to batched 3d model"""
+    # gltf_bin is a bytearray type, as the output of to_gltf()
+    assert isinstance(gltf_bin, bytearray)
+    b3dm_bin = BytesIO()
+
+    #-- Feature table
+    # the gltf must have a batchId per CityObject, and this setup expects that there is 1 mesh.primitive per CityObject
+    feature_table_header_b = json.dumps({
+        'BATCH_LENGTH': len(cm.j['CityObjects'])
+    }).encode('utf-8')
+    # The JSON header must end on an 8-byte boundary within the containing tile binary. The JSON header must be padded with trailing Space characters (0x20) to satisfy this requirement.
+    offset, padding = byte_offset(len(feature_table_header_b), 8)
+    for i in range(padding):
+        feature_table_header_b += ' '.encode('utf-8')
+
+    #-- Batch table
+    attributes = set()
+    for coid,co in cm.j['CityObjects'].items():
+        try:
+            attributes |= set(co['attributes'].keys())
+        except KeyError:
+            pass
+    if len(attributes) > 0:
+        batch_table = {attribute: [] for attribute in attributes}
+        for coid,co in cm.j['CityObjects'].items():
+            for attribute in attributes:
+                try:
+                    batch_table[attribute].append(co['attributes'][attribute])
+                except KeyError:
+                    batch_table[attribute].append(None)
+    else:
+        batch_table = dict()
+    # TODO B: write the attributes into the binary body of the the batch table
+    batch_table_header_b = json.dumps(batch_table).encode('utf-8')
+    offset, padding = byte_offset(len(batch_table_header_b), 8)
+    for i in range(padding):
+        batch_table_header_b += ' '.encode('utf-8')
+
+    #-- binary glTF
+    offset, padding = byte_offset(len(gltf_bin), 8)
+    gltf_bin.extend(bytearray(padding))
+
+    # the b3dm header is 28-bytes
+    byte_length = 28 + len(feature_table_header_b) + len(batch_table_header_b) + len(gltf_bin)
+    #-- b3dm Header
+    magic = "b3dm"
+    version = 1
+    feature_table_json_blen = len(feature_table_header_b)
+    feature_table_bin_blen = 0
+    batch_table_json_blen = len(batch_table_header_b)
+    batch_table_bin_blen = 0
+
+    b3dm_bin.write(magic.encode('utf-8'))
+    b3dm_bin.write(version.to_bytes(4, byteorder='little', signed=False))
+    b3dm_bin.write(byte_length.to_bytes(4, byteorder='little', signed=False))
+    b3dm_bin.write(feature_table_json_blen.to_bytes(4, byteorder='little', signed=False))
+    b3dm_bin.write(feature_table_bin_blen.to_bytes(4, byteorder='little', signed=False))
+    b3dm_bin.write(batch_table_json_blen.to_bytes(4, byteorder='little', signed=False))
+    b3dm_bin.write(batch_table_bin_blen.to_bytes(4, byteorder='little', signed=False))
+    b3dm_bin.write(feature_table_header_b)
+    b3dm_bin.write(batch_table_header_b)
+    b3dm_bin.write(gltf_bin)
+
+    return b3dm_bin
+
+def to_gltf(j):
     """Main function from CityJSON2glTF"""
     cm = {
         "asset": {},
@@ -38,7 +106,7 @@ def to_gltf(cj):
     }
     lbin = bytearray()
     try:
-        if len(cj['CityObjects']) == 0:
+        if len(j['CityObjects']) == 0:
             return (cm, lbin)
     except KeyError as e:
         raise TypeError("Not a CityJSON")
@@ -61,14 +129,14 @@ def to_gltf(cj):
     matid = 0
     materialIDs = []
 
-    vertexlist = np.array(cj["vertices"])
+    vertexlist = np.array(j["vertices"])
 
-    for coi,theid in enumerate(cj['CityObjects']):
+    for coi,theid in enumerate(j['CityObjects']):
         forimax = []
 
-        if len(cj['CityObjects'][theid]['geometry']) != 0:
+        if len(j['CityObjects'][theid]['geometry']) != 0:
 
-            comType = cj['CityObjects'][theid]['type']
+            comType = j['CityObjects'][theid]['type']
             if (comType == "Building" or comType == "BuildingPart" or comType == "BuildingInstallation"):
                 matid = 0
             elif (comType == "TINRelief"):
@@ -92,7 +160,7 @@ def to_gltf(cj):
                 matid = 9
             materialIDs.append(matid)
 
-            for geom in cj['CityObjects'][theid]['geometry']:
+            for geom in j['CityObjects'][theid]['geometry']:
                 poscount = poscount + 1
                 if geom['type'] == "Solid":
                     triList = []
@@ -131,7 +199,7 @@ def to_gltf(cj):
 
             #-- geometry indices bufferView
             bpos = len(lbin)
-            offset, padding = byte_offset(bpos)
+            offset, padding = byte_offset(bpos, 4)
             bufferView = dict()
             bufferView["buffer"] = 0
             bufferView["byteOffset"] = offset
@@ -144,7 +212,7 @@ def to_gltf(cj):
 
             #-- geometry vertices bufferView
             bpos = len(lbin)
-            offset, padding = byte_offset(bpos)
+            offset, padding = byte_offset(bpos, 4)
             bufferView = dict()
             bufferView["buffer"] = 0
             bufferView["byteOffset"] = offset
@@ -158,7 +226,7 @@ def to_gltf(cj):
 
             #-- batchid bufferView
             bpos = len(lbin)
-            offset, padding = byte_offset(bpos)
+            offset, padding = byte_offset(bpos, 4)
             bufferView = dict()
             bufferView["buffer"] = 0
             bufferView["byteOffset"] = offset

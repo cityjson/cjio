@@ -20,3 +20,10 @@ class TestGltf:
                                      'export',
                                      '--format', 'gltf',
                                      data_output_dir])
+
+
+class TestB3dm:
+
+    def test_convert_to_b3dm(self, delft):
+        out_gltf, out_bin = convert.to_gltf(delft.j)
+        b3dm = convert.to_b3dm(delft, out_bin)
