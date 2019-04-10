@@ -180,12 +180,69 @@ def partitioner(j: CityJSON, grid_idx: Dict) -> Dict:
     return partitions
 
 
+def compute_obb(bbox):
+    """Compute the oriented bounding box for 3dtiles, from the city model's bbox
+
+    The output is an array of 12 numbers that define an oriented bounding box in a
+    right-handed 3-axis (x, y, z) Cartesian coordinate system where the z-axis is up.
+    The first three elements define the x, y, and z values for the center of the box.
+    The next three elements (with indices 3, 4, and 5) define the x-axis direction and half-length.
+    The next three elements (indices 6, 7, and 8) define the y-axis direction and half-length.
+    The last three elements (indices 9, 10, and 11) define the z-axis direction and half-length.
+    """
+    obb = [
+        bbox[0], bbox[1], bbox[2],
+        bbox[3]/2, bbox[1], bbox[2],
+        bbox[0], bbox[4]/2, bbox[2],
+        bbox[0], bbox[1], bbox[5]/2
+    ]
+    return obb
+
 def generate_tileset_json():
     """Generate the skeleton for tileset.json"""
-    t = {
-    "asset": { "version": "1.0" },
-    "properties": {} ,
-    "geometricError": 0.0,
-    "root": {}
+    tileset = {
+        "asset": { "version": "1.0" },
+        "geometricError": 0.0,
+        "root": {
+            "boundingVolume": {"box": [0.0, 0.0, 0.0,
+                                       0.0, 0.0, 0.0,
+                                       0.0, 0.0, 0.0,
+                                       0.0, 0.0, 0.0]},
+            "geometricError": 0.0,
+            "refine": "ADD",
+            "content": {
+                "boundingVolume": {"box": [0.0, 0.0, 0.0,
+                                           0.0, 0.0, 0.0,
+                                           0.0, 0.0, 0.0,
+                                           0.0, 0.0, 0.0]},
+                "uri": "root_tile.b3dm"
+            },
+            "children": []
+        }
     }
-    return t
+    return tileset
+
+
+def generate_tile_json():
+    """Generate a skeleton for a tile in a tileset"""
+    tile = {
+        "boundingVolume": {"box": [0.0, 0.0, 0.0,
+                                   0.0, 0.0, 0.0,
+                                   0.0, 0.0, 0.0,
+                                   0.0, 0.0, 0.0]},
+        "geometricError": 0.0,
+        "content": {
+            "uri": "tile.b3dm"
+        }
+    }
+    return tile
+
+# convert the partitions to b3dm
+
+# convert the BBOX of CityJSON to boundingVolume region
+
+# generate the root tile for the whole city model
+
+# generate tiles for each partition, incl. reporject to EPSG:4979
+
+# assemble
