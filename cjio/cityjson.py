@@ -13,6 +13,7 @@ from io import StringIO
 import numpy as np
 import pyproj
 from sys import platform
+from click import progressbar
 
 MODULE_EARCUT_AVAILABLE = True
 try:
@@ -1248,11 +1249,12 @@ class CityJSON:
             wascompressed = True
         p1 = pyproj.Proj(init='epsg:%d' % (self.get_epsg()))
         p2 = pyproj.Proj(init='epsg:%d' % (epsg))
-        for v in self.j['vertices']:
-            x, y, z = pyproj.transform(p1, p2, v[0], v[1], v[2])
-            v[0] = x
-            v[1] = y
-            v[2] = z
+        with progressbar(self.j['vertices']) as vertices:
+            for v in vertices:
+                x, y, z = pyproj.transform(p1, p2, v[0], v[1], v[2])
+                v[0] = x
+                v[1] = y
+                v[2] = z
         self.set_epsg(epsg)
         if wascompressed == True:
             self.compress()
