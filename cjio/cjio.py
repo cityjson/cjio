@@ -174,6 +174,10 @@ def export_cmd(filename, format):
                     tile = tiling.generate_tile_json()
             else:
                 # if the citymodel is not partitioned, then the whole model is the root tile
+                print_cmd_status("Reprojecting CityJSON to EPSG:4979")
+                if (cm.get_epsg() == None):
+                    raise click.ClickException("CityJSON has no EPSG defined, can't be reprojected.")
+                cm.reproject(4979)
                 fname = os.path.splitext(os.path.basename(output['path']))[0]
                 b3dmbin = fname + ".b3dm"
                 binfile = os.path.join(os.path.dirname(output['path']), b3dmbin)
