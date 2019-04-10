@@ -114,7 +114,7 @@ def info_cmd(context):
 @cli.command('export')
 @click.argument('filename')
 @click.option('--format',
-              type=click.Choice(['obj', 'gltf']),
+              type=click.Choice(['obj', 'gltf', 'b3dm', '3dtiles']),
               help="Export format")
 def export_cmd(filename, format):
     """Export the CityJSON to another format.
@@ -164,21 +164,54 @@ def export_cmd(filename, format):
                     fo.write(json_str)
             except IOError as e:
                 raise click.ClickException('Invalid output file: %s \n%s' % (output['path'], e))
+        elif format.lower() == 'b3dm':
+            pass
+        elif format.lower() == '3dtiles':
+            tileset = tiling.generate_tileset_json()
+            if isinstance(cm, list):
+                for subset in cm:
+                    b3dm = subset.export2b3dm()
+                    tile = tiling.generate_tile_json()
+            else:
+                # if the citymodel is not partitioned, then the whole model is the root tile
+                fname = os.path.splitext(os.path.basename(output['path']))[0]
+                b3dmbin = fname + ".b3dm"
+                binfile = os.path.join(os.path.dirname(output['path']), b3dmbin)
+                tilesetfile = os.path.join(os.path.dirname(output['path']), 'tileset.json')
+                print_cmd_status("Converting CityJSON ot b3dm")
+                b3dm = cm.export2b3dm()
+                bbox = cm.update_bbox()
+                tileset['root']['boundingVolume'] = tiling.compute_obb(bbox)
+                tileset['root']['content']['boundingVolume'] = tiling.compute_obb(bbox)
+                tileset['root']['content']['uri'] = b3dmbin
+                print_cmd_status("Exporting CityJSON to 3dtiles (%s, %s)" % (tilesetfile, binfile))
+                try:
+                    b3dm.seek(0)
+                    with click.open_file(binfile, mode='wb') as bo:
+                        bo.write(b3dm.getvalue())
+                except IOError as e:
+                    raise click.ClickException('Invalid output file: "%s".\n%s' % (binfile, e))
+                try:
+                    with click.open_file(tilesetfile, mode='w') as fo:
+                        json_str = json.dumps(tileset, indent=2)
+                        fo.write(json_str)
+                except IOError as e:
+                    raise click.ClickException('Invalid output file: %s \n%s' % (output['path'], e))
 
     def processor(cm):
         #-- mapbox_earcut available?
         if (cityjson.MODULE_EARCUT_AVAILABLE == False):
-            str = "OBJ|glTF export skipped: Python module 'mapbox_earcut' missing (to triangulate faces)"
+            str = "OBJ|glTF|b3dm export skipped: Python module 'mapbox_earcut' missing (to triangulate faces)"
             click.echo(click.style(str, fg='red'))
             str = "Install it: https://github.com/skogler/mapbox_earcut_python"
             click.echo(str)
             return cm
         # NOTE BD: export_cmd can take a list of citymodels, which is the output of the partitioner
-        if isinstance(cm, list):
+        if format.lower() == '3dtiles' or not isinstance(cm, list):
+            exporter(cm)
+        else:
             for subset in cm:
                 exporter(subset)
-        else:
-            exporter(cm)
         return cm
     return processor
 

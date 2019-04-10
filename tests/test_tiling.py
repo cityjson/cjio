@@ -77,5 +77,5 @@ class Test3DTiles:
 
     def test_tileset_json(self):
         tileset = tiling.generate_tileset_json()
-        top_level = ['asset', 'properties', 'geometricError', 'root']
+        top_level = ['asset', 'geometricError', 'root']
         assert sorted(tileset.keys()) == sorted(top_level)
