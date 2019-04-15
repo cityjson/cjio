@@ -164,15 +164,15 @@ def export_cmd(filename, format):
                 # if the citymodel is not partitioned, then the whole model is the root tile
                 if (cm.get_epsg() == None):
                     raise click.ClickException("CityJSON has no EPSG defined, can't be reprojected.")
-                elif cm.get_epsg() != 3857:
-                    print_cmd_status("Reprojecting CityJSON to EPSG:3857")
+                elif cm.get_epsg() != 4326:
+                    print_cmd_status("Reprojecting CityJSON to EPSG:4326")
                     cm.reproject(3857)
                 fname = os.path.splitext(os.path.basename(output['path']))[0]
                 b3dmbin = fname + ".b3dm"
                 binfile = os.path.join(os.path.dirname(output['path']), b3dmbin)
                 tilesetfile = os.path.join(os.path.dirname(output['path']), 'tileset.json')
                 print_cmd_status("Converting CityJSON ot b3dm")
-                b3dm, b3dm_gltf = cm.export2b3dm()
+                b3dm = cm.export2b3dm()
                 bbox = cm.update_bbox()
                 tileset['root']['boundingVolume']['box'] = tiling.compute_obb(bbox)
                 tileset['root']['content']['boundingVolume']['box'] = tiling.compute_obb(bbox)
@@ -190,13 +190,7 @@ def export_cmd(filename, format):
                         fo.write(json_str)
                 except IOError as e:
                     raise click.ClickException('Invalid output file: %s \n%s' % (output['path'], e))
-                # B: debugging
-                gltffile = os.path.join(os.path.dirname(output['path']), "test.gltf")
-                try:
-                    with click.open_file(gltffile, mode='wb') as bo:
-                        bo.write(b3dm_gltf)
-                except IOError as e:
-                    raise click.ClickException('Invalid output file: "%s".\n%s' % (gltffile, e))
+
 
     def processor(cm):
         #-- mapbox_earcut available?

@@ -1207,9 +1207,9 @@ class CityJSON:
 
 
     def export2b3dm(self):
-        gltf, gltf_bin = convert.to_gltf(self.j)
-        b3dm, b3dm_gltf = convert.to_b3dm(self, gltf_bin)
-        return (b3dm, b3dm_gltf)
+        glb = convert.to_gltf(self.j)
+        b3dm = convert.to_b3dm(self, glb)
+        return b3dm
 
 
     def export2gltf(self):

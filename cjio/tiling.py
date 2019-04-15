@@ -202,8 +202,15 @@ def generate_tileset_json():
     """Generate the skeleton for tileset.json"""
     tileset = {
         "asset": { "version": "1.0" },
-        "geometricError": 0.0,
+        "geometricError": 100.0,
         "root": {
+            "transform":
+            [
+             1.0, 0.0,  0.0, 0.0,
+             0.0, 0.0, -1.0, 0.0,
+             0.0, 1.0,  0.0, 0.0,
+             0.0, 0.0,  0.0, 1.0
+             ],
             "boundingVolume": {"box": [0.0, 0.0, 0.0,
                                        0.0, 0.0, 0.0,
                                        0.0, 0.0, 0.0,

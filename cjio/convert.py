@@ -26,10 +26,10 @@ def byte_offset(x, byte_boundary):
     return (res, padding)
 
 
-def to_b3dm(cm, gltf_bin):
+def to_b3dm(cm, glb):
     """Convert a CityJSON to batched 3d model"""
-    # gltf_bin is a bytearray type, as the output of to_gltf()
-    assert isinstance(gltf_bin, bytearray)
+    # glb is a buffered I/O, as the output of to_gltf()
+    assert isinstance(glb, BytesIO)
     b3dm_bin = BytesIO()
 
     #-- Feature table
@@ -66,11 +66,11 @@ def to_b3dm(cm, gltf_bin):
         batch_table_header_b += ' '.encode('utf-8')
 
     #-- binary glTF
-    offset, padding = byte_offset(len(gltf_bin), 8)
-    gltf_bin.extend(bytearray(padding))
+    offset, padding = byte_offset(glb.tell(), 8)
+    glb.write(bytearray(padding))
 
     # the b3dm header is 28-bytes
-    byte_length = 28 + len(feature_table_header_b) + len(batch_table_header_b) + len(gltf_bin)
+    byte_length = 28 + len(feature_table_header_b) + len(batch_table_header_b) + glb.tell()
     #-- b3dm Header
     magic = "b3dm"
     version = 1
@@ -88,11 +88,11 @@ def to_b3dm(cm, gltf_bin):
     b3dm_bin.write(batch_table_bin_blen.to_bytes(4, byteorder='little', signed=False))
     b3dm_bin.write(feature_table_header_b)
     b3dm_bin.write(batch_table_header_b)
-    b3dm_bin.write(gltf_bin)
+    b3dm_bin.write(glb.getvalue())
 
     assert b3dm_bin.tell() == byte_length
 
-    return (b3dm_bin, gltf_bin)
+    return b3dm_bin
 
 def to_gltf(j):
     """Convert to Binary glTF (.glb)
