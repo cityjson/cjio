@@ -114,12 +114,12 @@ def info_cmd(context):
 @cli.command('export')
 @click.argument('filename')
 @click.option('--format',
-              type=click.Choice(['obj', 'gltf', 'b3dm', '3dtiles']),
+              type=click.Choice(['obj', 'glb', 'b3dm', '3dtiles']),
               help="Export format")
 def export_cmd(filename, format):
     """Export the CityJSON to another format.
 
-    Currently only OBJ and glTF files are supported; textures are not supported, sorry.
+    OBJ, Binary glTF, Batched 3DModel, Cesium 3D Tiles Currently textures are not supported, sorry.
     """
     def exporter(cm):
         output = utils.verify_filename(filename)
@@ -139,31 +139,19 @@ def export_cmd(filename, format):
                 fo.write(re.getvalue())
             except IOError as e:
                 raise click.ClickException('Invalid output file: "%s".\n%s' % (output['path'], e))
-        elif format.lower() == 'gltf':
+        elif format.lower() == 'glb':
             fname = os.path.splitext(os.path.basename(output['path']))[0]
-            bufferbin = fname + "_bin.bin"
+            bufferbin = fname + ".glb"
             binfile = os.path.join(os.path.dirname(output['path']), bufferbin)
-            print_cmd_status("Exporting CityJSON to glTF (%s, %s)" % (output['path'], bufferbin))
-            out_gltf, out_bin = cm.export2gltf()
+            print_cmd_status("Exporting CityJSON to glb %s" % binfile)
+            glb = cm.export2gltf()
             # TODO B: how many buffer can there be in the 'buffers'?
             try:
-                out_gltf['buffers'][0]['uri'] = bufferbin
-            except IndexError:
-                # NOTE BD: this is the case when the gltf is empty, because the input cityjson is empty,
-                # which happens when citymodel is partitoned and there are empty tiles,
-                # but in this case we still want to write out the empty file
-                pass
-            try:
+                glb.seek(0)
                 with click.open_file(binfile, mode='wb') as bo:
-                    bo.write(out_bin)
+                    bo.write(glb.getvalue())
             except IOError as e:
                 raise click.ClickException('Invalid output file: "%s".\n%s' % (binfile, e))
-            try:
-                with click.open_file(output['path'], mode='w') as fo:
-                    json_str = json.dumps(out_gltf, indent=2, sort_keys=True)
-                    fo.write(json_str)
-            except IOError as e:
-                raise click.ClickException('Invalid output file: %s \n%s' % (output['path'], e))
         elif format.lower() == 'b3dm':
             pass
         elif format.lower() == '3dtiles':
@@ -174,19 +162,20 @@ def export_cmd(filename, format):
                     tile = tiling.generate_tile_json()
             else:
                 # if the citymodel is not partitioned, then the whole model is the root tile
-                print_cmd_status("Reprojecting CityJSON to EPSG:4979")
                 if (cm.get_epsg() == None):
                     raise click.ClickException("CityJSON has no EPSG defined, can't be reprojected.")
-                cm.reproject(4979)
+                elif cm.get_epsg() != 3857:
+                    print_cmd_status("Reprojecting CityJSON to EPSG:3857")
+                    cm.reproject(3857)
                 fname = os.path.splitext(os.path.basename(output['path']))[0]
                 b3dmbin = fname + ".b3dm"
                 binfile = os.path.join(os.path.dirname(output['path']), b3dmbin)
                 tilesetfile = os.path.join(os.path.dirname(output['path']), 'tileset.json')
                 print_cmd_status("Converting CityJSON ot b3dm")
-                b3dm = cm.export2b3dm()
+                b3dm, b3dm_gltf = cm.export2b3dm()
                 bbox = cm.update_bbox()
-                tileset['root']['boundingVolume'] = tiling.compute_obb(bbox)
-                tileset['root']['content']['boundingVolume'] = tiling.compute_obb(bbox)
+                tileset['root']['boundingVolume']['box'] = tiling.compute_obb(bbox)
+                tileset['root']['content']['boundingVolume']['box'] = tiling.compute_obb(bbox)
                 tileset['root']['content']['uri'] = b3dmbin
                 print_cmd_status("Exporting CityJSON to 3dtiles (%s, %s)" % (tilesetfile, binfile))
                 try:
@@ -201,6 +190,13 @@ def export_cmd(filename, format):
                         fo.write(json_str)
                 except IOError as e:
                     raise click.ClickException('Invalid output file: %s \n%s' % (output['path'], e))
+                # B: debugging
+                gltffile = os.path.join(os.path.dirname(output['path']), "test.gltf")
+                try:
+                    with click.open_file(gltffile, mode='wb') as bo:
+                        bo.write(b3dm_gltf)
+                except IOError as e:
+                    raise click.ClickException('Invalid output file: "%s".\n%s' % (gltffile, e))
 
     def processor(cm):
         #-- mapbox_earcut available?

@@ -9,7 +9,7 @@ from cjio import cjio
 class TestGltf:
 
     def test_convert_to_gltf(self, delft):
-        out_gltf, out_bin = convert.to_gltf(delft.j)
+        glb = convert.to_gltf(delft.j)
 
     def test_export_gltf_cmd(self, data_dir, data_output_dir):
         """Debugging"""

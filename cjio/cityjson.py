@@ -1208,15 +1208,15 @@ class CityJSON:
 
     def export2b3dm(self):
         gltf, gltf_bin = convert.to_gltf(self.j)
-        b3dm = convert.to_b3dm(self, gltf_bin)
-        return b3dm
+        b3dm, b3dm_gltf = convert.to_b3dm(self, gltf_bin)
+        return (b3dm, b3dm_gltf)
 
 
     def export2gltf(self):
         # TODO B: probably no need to double wrap this to_gltf(), but its long, and
         # the current cityjson.py is long already
-        out_gltf, out_bin = convert.to_gltf(self.j)
-        return (out_gltf, out_bin)
+        glb = convert.to_gltf(self.j)
+        return glb
 
 
     def export2obj(self):

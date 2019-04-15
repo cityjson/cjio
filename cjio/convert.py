@@ -90,11 +90,16 @@ def to_b3dm(cm, gltf_bin):
     b3dm_bin.write(batch_table_header_b)
     b3dm_bin.write(gltf_bin)
 
-    return b3dm_bin
+    assert b3dm_bin.tell() == byte_length
+
+    return (b3dm_bin, gltf_bin)
 
 def to_gltf(j):
-    """Main function from CityJSON2glTF"""
-    cm = {
+    """Convert to Binary glTF (.glb)
+
+    Adapted from CityJSON2glTF: https://github.com/tudelft3d/CityJSON2glTF
+    """
+    gltf_json = {
         "asset": {},
         "buffers": [],
         "bufferViews": [],
@@ -104,10 +109,10 @@ def to_gltf(j):
         "nodes": [],
         "scenes": []
     }
-    lbin = bytearray()
+    gltf_bin = bytearray()
     try:
         if len(j['CityObjects']) == 0:
-            return (cm, lbin)
+            return (gltf_json, gltf_bin)
     except KeyError as e:
         raise TypeError("Not a CityJSON")
 
@@ -116,18 +121,17 @@ def to_gltf(j):
     asset["copyright"] = "Open data"
     asset["generator"] = "Generated using cjio's glTF exporter"
     asset["version"] = "2.0"
-    cm["asset"] = asset
+    gltf_json["asset"] = asset
 
     # index bufferview
-    bufferViewList = []
-    meshList = []
-
+    bufferViews = []
+    meshes = []
     poscount = 0
-    nodeList = []
     nodes = []
-    accessorsList = []
+    node_indices = []
+    accessors = []
     matid = 0
-    materialIDs = []
+    material_ids = []
 
     vertexlist = np.array(j["vertices"])
 
@@ -158,7 +162,7 @@ def to_gltf(j):
                 matid = 8
             elif (comType == "GenericCityObject"):
                 matid = 9
-            materialIDs.append(matid)
+            material_ids.append(matid)
 
             for geom in j['CityObjects'][theid]['geometry']:
                 poscount = poscount + 1
@@ -198,7 +202,7 @@ def to_gltf(j):
             bin_batchid = batchid_np.astype(np.uint32).tostring()
 
             #-- geometry indices bufferView
-            bpos = len(lbin)
+            bpos = len(gltf_bin)
             offset, padding = byte_offset(bpos, 4)
             bufferView = dict()
             bufferView["buffer"] = 0
@@ -206,12 +210,12 @@ def to_gltf(j):
             bufferView["byteLength"] = len(bin_geom)
             bufferView["target"] = 34963 # For 'target' property constants see: https://github.com/KhronosGroup/glTF-Tutorials/blob/master/gltfTutorial/gltfTutorial_005_BuffersBufferViewsAccessors.md#bufferviews
             # write to the buffer
-            lbin.extend(bin_geom)
-            lbin.extend(bytearray(padding))
-            bufferViewList.append(bufferView)
+            gltf_bin.extend(bin_geom)
+            gltf_bin.extend(bytearray(padding))
+            bufferViews.append(bufferView)
 
             #-- geometry vertices bufferView
-            bpos = len(lbin)
+            bpos = len(gltf_bin)
             offset, padding = byte_offset(bpos, 4)
             bufferView = dict()
             bufferView["buffer"] = 0
@@ -220,12 +224,12 @@ def to_gltf(j):
             bufferView["byteLength"] = len(bin_vtx)
             bufferView["target"] = 34962
             # write to the buffer
-            lbin.extend(bin_vtx)
-            lbin.extend(bytearray(padding))
-            bufferViewList.append(bufferView)
+            gltf_bin.extend(bin_vtx)
+            gltf_bin.extend(bytearray(padding))
+            bufferViews.append(bufferView)
 
             #-- batchid bufferView
-            bpos = len(lbin)
+            bpos = len(gltf_bin)
             offset, padding = byte_offset(bpos, 4)
             bufferView = dict()
             bufferView["buffer"] = 0
@@ -234,9 +238,9 @@ def to_gltf(j):
             bufferView["byteLength"] = len(bin_batchid)
             bufferView["target"] = 34962
             # write to the buffer
-            lbin.extend(bin_batchid)
-            lbin.extend(bytearray(padding))
-            bufferViewList.append(bufferView)
+            gltf_bin.extend(bin_batchid)
+            gltf_bin.extend(bytearray(padding))
+            bufferViews.append(bufferView)
 
             # ----- accessors
 
@@ -248,7 +252,7 @@ def to_gltf(j):
             accessor["type"] = "SCALAR"
             accessor["max"] = [int(vtx_idx_np.max())]
             accessor["min"] = [int(vtx_idx_np.min())]
-            accessorsList.append(accessor)
+            accessors.append(accessor)
 
             # accessor for geometry vertices bufferView
             accessor = dict()
@@ -262,7 +266,7 @@ def to_gltf(j):
             accessor["min"] = [float(np.amin(vtx_np, axis=0)[0]),
                                float(np.amin(vtx_np, axis=0)[1]),
                                float(np.amin(vtx_np, axis=0)[2])]
-            accessorsList.append(accessor)
+            accessors.append(accessor)
 
             # accessor for batchid bufferView
             accessor = dict()
@@ -270,44 +274,46 @@ def to_gltf(j):
             accessor["componentType"] = 5123
             accessor["count"] = int(vtx_idx_np.size)
             accessor["type"] = "SCALAR"
-            accessorsList.append(accessor)
+            accessors.append(accessor)
 
             # ----- meshes
             # one mesh per CityObject
             mesh = dict()
             mesh["name"] = str(theid)
             mesh["primitives"] = [{
-                "indices": len(accessorsList) - 3,
+                "indices": len(accessors) - 3,
                 "material": matid,
                 "attributes": {
-                    "_BATCHID": len(accessorsList) - 1,
-                    "POSITION": len(accessorsList) - 2,
+                    "_BATCHID": len(accessors) - 1,
+                    "POSITION": len(accessors) - 2,
                 }
             }]
-            meshList.append(mesh)
+            meshes.append(mesh)
 
             # ----- nodes
-            # a node has a mesh, and the mesh is referenced by its index in the meshList
-            nodeList.append({"mesh": coi})
+            # a node has a mesh, and the mesh is referenced by its index in the meshes
+            nodes.append({"mesh": coi})
             # one node per CityObject
-            nodes.append(coi)
+            node_indices.append(coi)
 
     #-- buffers
     buffer = dict()
-    buffer["byteLength"] = len(lbin)
-    cm["buffers"] = [buffer]
+    offset, padding = byte_offset(len(gltf_bin), 4)
+    gltf_bin.extend(bytearray(padding))
+    buffer["byteLength"] = len(gltf_bin)
+    gltf_json["buffers"] = [buffer]
 
-    cm["bufferViews"] = bufferViewList
-    cm["accessors"] = accessorsList
-    cm["meshes"] = meshList
-    cm["nodes"] = nodeList
+    gltf_json["bufferViews"] = bufferViews
+    gltf_json["accessors"] = accessors
+    gltf_json["meshes"] = meshes
+    gltf_json["nodes"] = nodes
 
     scene = dict()
-    scene["nodes"] = nodes
-    cm["scenes"] = [scene]
+    scene["nodes"] = node_indices
+    gltf_json["scenes"] = [scene]
 
     #-- materials
-    materialsList = [
+    materials = [
         {  # building red
             "pbrMetallicRoughness": {
                 "baseColorFactor": [1.000, 0.000, 0.000, 1.0],
@@ -379,7 +385,31 @@ def to_gltf(j):
             }
         }
     ]
+    gltf_json["materials"] = materials
+    
+    #-- Chunk 0 (JSON)
+    chunk_0 = json.dumps(gltf_json).encode('utf-8')
+    offset, padding = byte_offset(len(chunk_0), 4)
+    for i in range(padding):
+        chunk_0 += ' '.encode('utf-8')
+    #-- Binary glTF header
+    magic = 'glTF'
+    version = 2
+    length = 12 + 8 + len(chunk_0) + 8 + len(gltf_bin)
+    glb = BytesIO()
 
-    cm["materials"] = materialsList
+    # header
+    glb.write(magic.encode('utf-8'))
+    glb.write(version.to_bytes(4, byteorder='little', signed=False))
+    glb.write(length.to_bytes(4, byteorder='little', signed=False))
+    # chunk 0
+    glb.write(len(chunk_0).to_bytes(4, byteorder='little', signed=False))
+    glb.write('JSON'.encode('utf-8'))
+    glb.write(chunk_0)
+    # chunk 1
+    glb.write(len(gltf_bin).to_bytes(4, byteorder='little', signed=False))
+    glb.write(bytearray.fromhex('42494e00')) # == BIN + 1 empty byte for padding
+    glb.write(gltf_bin)
+    assert length == glb.tell()
 
-    return (cm, lbin)
+    return glb
