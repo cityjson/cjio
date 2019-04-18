@@ -1173,7 +1173,6 @@ class CityJSON:
         if "extensions" in self.j:
             for ext in self.j["extensions"]:
                 theurl = self.j["extensions"][ext]
-                print(theurl)
                 self.j["extensions"][ext] = {"url": theurl, "version": "0.1"}
         return (True, "")
 
