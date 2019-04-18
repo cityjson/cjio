@@ -1154,6 +1154,18 @@ class CityJSON:
         return (True, "")
 
 
+    def upgrade_version_v09_v10(self, reasons):
+        #-- version 
+        self.j["version"] = "1.0"
+        #-- extensions
+        if "extensions" in self.j:
+            for ext in self.j["extensions"]:
+                theurl = self.j["extensions"][ext]
+                print(theurl)
+                self.j["extensions"][ext] = {"url": theurl, "version": "0.1"}
+        return (True, "")
+
+
     def upgrade_version(self, newversion):
         re = True
         reasons = ""
@@ -1165,6 +1177,9 @@ class CityJSON:
         #-- v0.8
         if (self.get_version() == CITYJSON_VERSIONS_SUPPORTED[1]):
             (re, reasons) = self.upgrade_version_v08_v09(reasons)
+        #-- v0.9
+        if (self.get_version() == CITYJSON_VERSIONS_SUPPORTED[2]):
+            (re, reasons) = self.upgrade_version_v09_v10(reasons)
         return (re, reasons)
 
 
