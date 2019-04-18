@@ -29,7 +29,7 @@ from cjio import errors
 from cjio.errors import InvalidOperation
 
 
-CITYJSON_VERSIONS_SUPPORTED = ['0.6', '0.8', '0.9']
+CITYJSON_VERSIONS_SUPPORTED = ['0.6', '0.8', '0.9', '1.0']
 
 TOPLEVEL = ('Building',
             'Bridge',
@@ -248,7 +248,7 @@ class CityJSON:
         #-- iterate over each Extensions, and verify each of the properties
         #-- in the file. Other way around is more cumbersome
         for ext in self.j["extensions"]:
-            s = self.j["extensions"][ext]
+            s = self.j["extensions"][ext]["url"]
             s = s[s.rfind('/') + 1:]
             print ('\t%s [%s]' % (ext, s))
             schemapath = os.path.join(base_uri, s)
