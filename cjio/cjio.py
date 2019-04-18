@@ -81,7 +81,7 @@ def process_pipeline(processors, input, ignore_duplicate_keys):
                 allv = ""
                 for v in cityjson.CITYJSON_VERSIONS_SUPPORTED:
                     allv = allv + v + "/"
-                str = "CityJSON version %s not supported (only versions: %s), not every operators will work." % (cm.get_version(), allv)
+                str = "CityJSON version %s not supported (only versions: %s), not every operators will work.\nPerhaps it's time to upgrade cjio? 'pip install cjio -U'" % (cm.get_version(), allv)
                 raise click.ClickException(str)
             elif (cm.get_version() != cityjson.CITYJSON_VERSIONS_SUPPORTED[-1]):
                 str = "v%s is not the latest version, and not everything will work.\n" % cm.get_version()
@@ -212,9 +212,9 @@ def validate_cmd(hide_errors, skip_schema, folder_schemas):
                 click.echo(click.style("Folder for schemas unknown. Validation aborted.", fg='red'))
                 return cm
             else:
-                print_cmd_status('===== Validation (schemas: %s) =====' % (folder_schemas)) 
+                print_cmd_status('===== Validation (with provided schemas) =====') 
         else:
-            print_cmd_status('===== Validation (schemas v%s) =====' % (cm.j['version']))
+            print_cmd_status('===== Validation (with official CityJSON schemas) =====')
         #-- validate    
         bValid, woWarnings, errors, warnings = cm.validate(skip_schema=skip_schema, folder_schemas=folder_schemas)
         click.echo('=====')

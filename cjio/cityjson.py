@@ -9,6 +9,7 @@ import collections
 import jsonref
 import urllib
 from pkg_resources import resource_filename
+from pkg_resources import resource_listdir
 import copy
 import random
 from io import StringIO
@@ -180,20 +181,23 @@ class CityJSON:
 
             
     def fetch_schema(self, folder_schemas=None):
+        v = "-1"
         if folder_schemas is None:
-            #-- fetch proper schema from the stored ones 
-            v = self.j["version"].replace('.', '')
+            #-- fetch latest from x.y version (x.y.z)
+            tmp = resource_listdir(__name__, '/schemas/')
+            tmp.sort()
+            v = tmp[-1]
             try:
-                schema = resource_filename(__name__, '/schemas/v%s/cityjson.schema.json' % (v))
+                schema = resource_filename(__name__, '/schemas/%s/cityjson.schema.json' % (v))
             except:
-                return (False, None)
+                return (False, None, '')
         else:
             schema = os.path.join(folder_schemas, 'cityjson.schema.json')  
         #-- open the schema
         try:
             fins = open(schema)
         except: 
-            return (False, None)
+            return (False, None, '')
         abs_path = os.path.abspath(os.path.dirname(schema))
         #-- because Windows uses \ and not /        
         if platform == "darwin" or platform == "linux" or platform == "linux2":
@@ -201,15 +205,19 @@ class CityJSON:
         else:
             base_uri = 'file:///{}/'.format(abs_path.replace('\\', '/'))
         js = jsonref.loads(fins.read(), jsonschema=True, base_uri=base_uri)
-        return (True, js)
+        if v == "-1":
+            v = schema
+        return (True, js, v)
 
 
     def fetch_schema_cityobjects(self, folder_schemas=None):
         if folder_schemas is None:
             #-- fetch proper schema from the stored ones 
-            v = self.j["version"].replace('.', '')
+            tmp = resource_listdir(__name__, '/schemas/')
+            tmp.sort()
+            v = tmp[-1]
             try:
-                schema = resource_filename(__name__, '/schemas/v%s/cityjson.schema.json' % (v))
+                schema = resource_filename(__name__, '/schemas/%s/cityjson.schema.json' % (v))
             except:
                 return (False, None)
         else:
@@ -229,14 +237,15 @@ class CityJSON:
     def validate_extensions(self, folder_schemas=None):
         print ('-- Validating the Extensions')
         if "extensions" not in self.j:
-            print ("---No extensions in the file.")
+            print ("--- No extensions in the file.")
             return (True, [])
-
         if folder_schemas is None:
             #-- fetch proper schema from the stored ones 
-            v = self.j["version"].replace('.', '')
+            tmp = resource_listdir(__name__, '/schemas/')
+            tmp.sort()
+            v = tmp[-1]
             try:
-                schema = resource_filename(__name__, '/schemas/v%s/cityjson.schema.json' % (v))
+                schema = resource_filename(__name__, '/schemas/%s/cityjson.schema.json' % (v))
                 folder_schemas = os.path.abspath(os.path.dirname(schema))
             except:
                 return (False, None)
@@ -252,6 +261,8 @@ class CityJSON:
             s = s[s.rfind('/') + 1:]
             print ('\t%s [%s]' % (ext, s))
             schemapath = os.path.join(base_uri, s)
+            if os.path.isfile(schemapath) == False:
+                return (False, ["Schema file '%s' can't be found" % s])
             js = json.loads(open(schemapath).read())
 
             #-- 1. extraCityObjects
@@ -319,7 +330,6 @@ class CityJSON:
 
 
     def validate(self, skip_schema=False, folder_schemas=None):
-        print ('-- Validating the syntax of the file (using the schemas)')
         #-- only latest version, otherwise a mess with versions and different schemas
         #-- this is it, sorry people
         if (self.j["version"] != CITYJSON_VERSIONS_SUPPORTED[-1]):
@@ -328,10 +338,12 @@ class CityJSON:
         ws = []
         #-- 1. schema
         if skip_schema == False:
-            b, js = self.fetch_schema(folder_schemas)
+            print ('-- Validating the syntax of the file')
+            b, js, v = self.fetch_schema(folder_schemas)
             if b == False:
                 return (False, False, ["Can't find the schema."], [])
             else:
+                print ('\t(using the schemas %s)' % (v))
                 isValid, errs = validation.validate_against_schema(self.j, js)
                 if (isValid == False):
                     es += errs
