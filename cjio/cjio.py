@@ -282,7 +282,7 @@ def merge_cmd(filepattern):
     type=click.Choice(['Building', 'Bridge', 'Road', 'TransportSquare', 'LandUse', 'Railway', 'TINRelief', 'WaterBody', 'PlantCover', 'SolitaryVegetationObject', 'CityFurniture', 'GenericCityObject', 'Tunnel']), 
     help='The City Object type')
 @click.option('--exclude', is_flag=True, help='Excludes the selection, thus delete the selected object(s).')
-def subset_cmd(id, bbox, random, cotype, invert):
+def subset_cmd(id, bbox, random, cotype, exclude):
     """
     Create a subset of a CityJSON file.
     One can select City Objects by
@@ -299,14 +299,14 @@ def subset_cmd(id, bbox, random, cotype, invert):
         print_cmd_status('Subset of CityJSON') 
         s = copy.deepcopy(cm)
         if random is not None:
-            s = s.get_subset_random(random, invert=invert)
+            s = s.get_subset_random(random, exclude=exclude)
             return s
         if len(id) > 0:
-            s = s.get_subset_ids(id, invert=invert)
+            s = s.get_subset_ids(id, exclude=exclude)
         if len(bbox) > 0:
-            s = s.get_subset_bbox(bbox, invert=invert)
+            s = s.get_subset_bbox(bbox, exclude=exclude)
         if cotype is not None:
-            s = s.get_subset_cotype(cotype, invert=invert)
+            s = s.get_subset_cotype(cotype, exclude=exclude)
         return s 
     return processor
 
