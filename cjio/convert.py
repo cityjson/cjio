@@ -292,6 +292,7 @@ def to_gltf(j):
 
             # ----- nodes
             # a node has a mesh, and the mesh is referenced by its index in the meshes
+            # , "matrix": [1,0,0,0,0,0,-1,0,0,1,0,0,0,0,0,1]}
             nodes.append({"mesh": coi})
             # one node per CityObject
             node_indices.append(coi)

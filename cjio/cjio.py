@@ -156,17 +156,18 @@ def export_cmd(filename, format):
             pass
         elif format.lower() == '3dtiles':
             tileset = tiling.generate_tileset_json()
+            tile = tiling.generate_tile_json()
             if isinstance(cm, list):
                 for subset in cm:
                     b3dm = subset.export2b3dm()
                     tile = tiling.generate_tile_json()
             else:
                 # if the citymodel is not partitioned, then the whole model is the root tile
-                if (cm.get_epsg() == None):
-                    raise click.ClickException("CityJSON has no EPSG defined, can't be reprojected.")
-                elif cm.get_epsg() != 4326:
-                    print_cmd_status("Reprojecting CityJSON to EPSG:4326")
-                    cm.reproject(3857)
+                # if (cm.get_epsg() == None):
+                #     raise click.ClickException("CityJSON has no EPSG defined, can't be reprojected.")
+                # elif cm.get_epsg() != 4326:
+                #     print_cmd_status("Reprojecting CityJSON to EPSG:4326")
+                #     cm.reproject(3857)
                 fname = os.path.splitext(os.path.basename(output['path']))[0]
                 b3dmbin = fname + ".b3dm"
                 binfile = os.path.join(os.path.dirname(output['path']), b3dmbin)
@@ -174,9 +175,11 @@ def export_cmd(filename, format):
                 print_cmd_status("Converting CityJSON ot b3dm")
                 b3dm = cm.export2b3dm()
                 bbox = cm.update_bbox()
-                tileset['root']['boundingVolume']['box'] = tiling.compute_obb(bbox)
+                bbox_root = [coordinate * 1.1 for coordinate in bbox] # methinks the root boundingVolume should be larger than that of the children, even when there is only one child
+                tileset['root']['boundingVolume']['box'] = tiling.compute_obb(bbox_root)
                 tileset['root']['content']['boundingVolume']['box'] = tiling.compute_obb(bbox)
                 tileset['root']['content']['uri'] = b3dmbin
+                del tileset['root']['children']
                 print_cmd_status("Exporting CityJSON to 3dtiles (%s, %s)" % (tilesetfile, binfile))
                 try:
                     b3dm.seek(0)
