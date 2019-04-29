@@ -537,7 +537,7 @@ class CityJSON:
             return None
 
 
-    def get_subset_bbox(self, bbox, invert=False):
+    def get_subset_bbox(self, bbox, exclude=False):
         # print ('get_subset_bbox')
         #-- new sliced CityJSON object
         cm2 = CityJSON()
@@ -555,7 +555,7 @@ class CityJSON:
                 (centroid[1] <  bbox[3]) ):
                 re.add(coid)
         re2 = copy.deepcopy(re)
-        if invert == True:
+        if exclude == True:
             allkeys = set(self.j["CityObjects"].keys())
             re = allkeys ^ re
         #-- also add the parent-children
@@ -596,7 +596,7 @@ class CityJSON:
 
 
 
-    def get_subset_random(self, number=1, invert=False):
+    def get_subset_random(self, number=1, exclude=False):
         random.seed()
         total = len(self.j["CityObjects"])
         if number > total:
@@ -609,14 +609,14 @@ class CityJSON:
             if self.is_co_toplevel(self.j["CityObjects"][t]):
                 re.add(t)
                 count += 1
-        if invert == True:
+        if exclude == True:
             sallkeys = set(self.j["CityObjects"].keys())
             re = sallkeys ^ re
         re = list(re)
         return self.get_subset_ids(re)
 
 
-    def get_subset_ids(self, lsIDs, invert=False):
+    def get_subset_ids(self, lsIDs, exclude=False):
         #-- new sliced CityJSON object
         cm2 = CityJSON()
         cm2.j["version"] = self.j["version"]
@@ -625,7 +625,7 @@ class CityJSON:
             cm2.j["transform"] = self.j["transform"]
         #-- copy selected CO to the j2
         re = subset.select_co_ids(self.j, lsIDs)
-        if invert == True:
+        if exclude == True:
             allkeys = set(self.j["CityObjects"].keys())
             re = allkeys ^ re
         for each in re:
@@ -645,7 +645,7 @@ class CityJSON:
         return cm2
 
 
-    def get_subset_cotype(self, cotype, invert=False):
+    def get_subset_cotype(self, cotype, exclude=False):
         # print ('get_subset_cotype')
         lsCOtypes = [cotype]
         if cotype == 'Building':
@@ -666,7 +666,7 @@ class CityJSON:
             cm2.j["transform"] = self.j["transform"]
         #-- copy selected CO to the j2
         for theid in self.j["CityObjects"]:
-            if invert == False:
+            if exclude == False:
                 if self.j["CityObjects"][theid]["type"] in lsCOtypes:
                     cm2.j["CityObjects"][theid] = self.j["CityObjects"][theid]
             else:
