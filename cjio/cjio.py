@@ -81,7 +81,7 @@ def process_pipeline(processors, input, ignore_duplicate_keys):
                 allv = ""
                 for v in cityjson.CITYJSON_VERSIONS_SUPPORTED:
                     allv = allv + v + "/"
-                str = "CityJSON version %s not supported (only versions: %s), not every operators will work." % (cm.get_version(), allv)
+                str = "CityJSON version %s not supported (only versions: %s), not every operators will work.\nPerhaps it's time to upgrade cjio? 'pip install cjio -U'" % (cm.get_version(), allv)
                 raise click.ClickException(str)
             elif (cm.get_version() != cityjson.CITYJSON_VERSIONS_SUPPORTED[-1]):
                 str = "v%s is not the latest version, and not everything will work.\n" % cm.get_version()
@@ -195,8 +195,7 @@ def update_bbox_cmd():
 def validate_cmd(hide_errors, skip_schema, folder_schemas):
     """
     Validate the CityJSON file: (1) against its schemas; (2) extra validations.
-    Only files with version >0.6 can be validated.
-
+    
     The schemas are fetched automatically, based on the version of the file.
     It's possible to specify schemas with the '--folder_schemas' option.
     This is used when there are Extensions used.
@@ -212,9 +211,9 @@ def validate_cmd(hide_errors, skip_schema, folder_schemas):
                 click.echo(click.style("Folder for schemas unknown. Validation aborted.", fg='red'))
                 return cm
             else:
-                print_cmd_status('===== Validation (schemas: %s) =====' % (folder_schemas)) 
+                print_cmd_status('===== Validation (with provided schemas) =====') 
         else:
-            print_cmd_status('===== Validation (schemas v%s) =====' % (cm.j['version']))
+            print_cmd_status('===== Validation (with official CityJSON schemas) =====')
         #-- validate    
         bValid, woWarnings, errors, warnings = cm.validate(skip_schema=skip_schema, folder_schemas=folder_schemas)
         click.echo('=====')
@@ -281,8 +280,8 @@ def merge_cmd(filepattern):
 @click.option('--cotype',
     type=click.Choice(['Building', 'Bridge', 'Road', 'TransportSquare', 'LandUse', 'Railway', 'TINRelief', 'WaterBody', 'PlantCover', 'SolitaryVegetationObject', 'CityFurniture', 'GenericCityObject', 'Tunnel']), 
     help='The City Object type')
-@click.option('--invert', is_flag=True, help='Invert the selection, thus delete the selected object(s).')
-def subset_cmd(id, bbox, random, cotype, invert):
+@click.option('--exclude', is_flag=True, help='Excludes the selection, thus delete the selected object(s).')
+def subset_cmd(id, bbox, random, cotype, exclude):
     """
     Create a subset of a CityJSON file.
     One can select City Objects by
@@ -293,20 +292,20 @@ def subset_cmd(id, bbox, random, cotype, invert):
 
     These can be combined, except random which overwrites others.
 
-    Option '--invert' inverts the selection, thus delete the selected object(s).
+    Option '--exclude' excludes the selected objects, or "reverse" the selection.
     """
     def processor(cm):
         print_cmd_status('Subset of CityJSON') 
         s = copy.deepcopy(cm)
         if random is not None:
-            s = s.get_subset_random(random, invert=invert)
+            s = s.get_subset_random(random, exclude=exclude)
             return s
         if len(id) > 0:
-            s = s.get_subset_ids(id, invert=invert)
+            s = s.get_subset_ids(id, exclude=exclude)
         if len(bbox) > 0:
-            s = s.get_subset_bbox(bbox, invert=invert)
+            s = s.get_subset_bbox(bbox, exclude=exclude)
         if cotype is not None:
-            s = s.get_subset_cotype(cotype, invert=invert)
+            s = s.get_subset_cotype(cotype, exclude=exclude)
         return s 
     return processor
 
