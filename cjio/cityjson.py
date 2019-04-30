@@ -68,7 +68,7 @@ def off2cj(file):
         lstFaces.append(list(map(int, file.readline().split()[1:])))
     cm = {}
     cm["type"] = "CityJSON"
-    cm["version"] = "0.6"
+    cm["version"] = CITYJSON_VERSIONS_SUPPORTED[-1]
     cm["CityObjects"] = {}
     cm["vertices"] = []
     for v in lstVertices:
@@ -105,7 +105,7 @@ def poly2cj(file):
         lstFaces.append(face)
     cm = {}
     cm["type"] = "CityJSON"
-    cm["version"] = "0.6"
+    cm["version"] = CITYJSON_VERSIONS_SUPPORTED[-1]
     cm["CityObjects"] = {}
     cm["vertices"] = []
     for v in lstVertices:
