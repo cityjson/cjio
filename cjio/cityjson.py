@@ -26,6 +26,7 @@ from cjio import subset
 from cjio import geom_help
 from cjio import convert
 from cjio.errors import InvalidOperation
+from cjio.utils import print_cmd_warning
 
 
 CITYJSON_VERSIONS_SUPPORTED = ['0.6', '0.8', '0.9']
@@ -151,7 +152,11 @@ class CityJSON:
             return self.j["metadata"]["crs"]["epsg"]
         elif "referenceSystem" in self.j["metadata"]:
             s = self.j["metadata"]["referenceSystem"]
-            return int(s[s.find("::")+2:])
+            if "epsg" in s.lower():
+                return int(s[s.find("::")+2:])
+            else:
+                print_cmd_warning("Only EPSG codes are supported in the URN. CRS is set to undefined.")
+                return None
         else:
             return None
 

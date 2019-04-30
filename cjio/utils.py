@@ -2,6 +2,7 @@
 
 import os.path
 from click import ClickException
+from click import echo, style
 
 def verify_filename(filename):
     """Verify if the provided output filename is a file or a directory"""
@@ -26,3 +27,11 @@ def verify_filename(filename):
         else:
             res['dir'] = False
     return res
+
+
+def print_cmd_status(s):
+    echo(style(s, bg='cyan', fg='black'))
+
+
+def print_cmd_warning(s):
+    echo(style(s, fg='bright_yellow'))
