@@ -536,7 +536,7 @@ def update_crs_cmd(newepsg):
 def update_crs_cmd(epsg):
     """
     Reproject the CityJSON to a new EPSG.
-    The current file must have an EPSG defined (do it with function update_epsg()).
+    The current file must have an EPSG defined (do it with function assign_epsg).
     """
     def processor(cm):
         utils.print_cmd_status('Reproject to EPSG:%d' % epsg)

@@ -191,10 +191,10 @@ def compute_obb(bbox):
     The last three elements (indices 9, 10, and 11) define the z-axis direction and half-length.
     """
     obb = [
-        bbox[0], bbox[1], bbox[2],
-        bbox[3]/2, bbox[1], bbox[2],
-        bbox[0], bbox[4]/2, bbox[2],
-        bbox[0], bbox[1], bbox[5]/2
+        bbox[3]/2, bbox[4]/2, bbox[5]/2,
+        (bbox[3]-bbox[0])/2, 0, 0,
+        0, (bbox[4]-bbox[1])/2, 0,
+        0, 0, (bbox[5]-bbox[2])/2
     ]
     return obb
 
@@ -204,13 +204,6 @@ def generate_tileset_json():
         "asset": { "version": "1.0" },
         "geometricError": 100.0,
         "root": {
-            "transform":
-            [
-             1.0, 0.0,  0.0, 0.0,
-             0.0, 0.0, -1.0, 0.0,
-             0.0, 1.0,  0.0, 0.0,
-             0.0, 0.0,  0.0, 1.0
-             ],
             "boundingVolume": {"box": [0.0, 0.0, 0.0,
                                        0.0, 0.0, 0.0,
                                        0.0, 0.0, 0.0,
