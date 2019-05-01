@@ -149,7 +149,17 @@ def export_cmd(filename, format):
             except IOError as e:
                 raise click.ClickException('Invalid output file: "%s".\n%s' % (binfile, e))
         elif format.lower() == 'b3dm':
-            pass
+            fname = os.path.splitext(os.path.basename(output['path']))[0]
+            b3dmbin = fname + ".b3dm"
+            binfile = os.path.join(os.path.dirname(output['path']), b3dmbin)
+            b3dm = cm.export2b3dm()
+            utils.print_cmd_status("Exporting CityJSON to b3dm %s" % binfile)
+            try:
+                b3dm.seek(0)
+                with click.open_file(binfile, mode='wb') as bo:
+                    bo.write(b3dm.getvalue())
+            except IOError as e:
+                raise click.ClickException('Invalid output file: "%s".\n%s' % (binfile, e))
         elif format.lower() == '3dtiles':
             tileset = tiling.generate_tileset_json()
             tile = tiling.generate_tile_json()
