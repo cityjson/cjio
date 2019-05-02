@@ -31,6 +31,8 @@ def to_b3dm(cm, glb):
     # glb is a buffered I/O, as the output of to_gltf()
     assert isinstance(glb, BytesIO)
     b3dm_bin = BytesIO()
+    if glb.tell() == 0:
+        return b3dm_bin
 
     #-- Feature table
     # the gltf must have a batchId per CityObject, and this setup expects that there is 1 mesh.primitive per CityObject
@@ -110,9 +112,10 @@ def to_gltf(j):
         "scenes": []
     }
     gltf_bin = bytearray()
+    glb = BytesIO()
     try:
         if len(j['CityObjects']) == 0:
-            return (gltf_json, gltf_bin)
+            return glb
     except KeyError as e:
         raise TypeError("Not a CityJSON")
 
@@ -397,7 +400,6 @@ def to_gltf(j):
     magic = 'glTF'
     version = 2
     length = 12 + 8 + len(chunk_0) + 8 + len(gltf_bin)
-    glb = BytesIO()
 
     # header
     glb.write(magic.encode('utf-8'))

@@ -4,6 +4,13 @@ import os.path
 from click import ClickException
 from click import echo, style
 
+def generate_filepath(filename, extension):
+    # TODO B: write function
+    """Generate a full path to the output file"""
+    output = verify_filename(filename)
+    filepath = output
+    return filepath
+
 def verify_filename(filename):
     """Verify if the provided output filename is a file or a directory"""
     res = {'dir': False, 'path': ''}
@@ -32,6 +39,8 @@ def verify_filename(filename):
 def print_cmd_status(s):
     echo(style(s, bg='cyan', fg='black'))
 
+def print_cmd_substatus(s):
+    echo(style(s, fg='cyan'))
 
 def print_cmd_warning(s):
     echo(style(s, fg='bright_yellow'))

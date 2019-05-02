@@ -115,19 +115,25 @@ def info_cmd(context):
 def export_cmd(filename, format):
     """Export the CityJSON to another format.
 
-    OBJ, Binary glTF, Batched 3DModel, Cesium 3D Tiles Currently textures are not supported, sorry.
+    OBJ, Binary glTF, Batched 3DModel, Cesium 3D Tiles. Currently textures are not supported, sorry.
     """
     def exporter(cm):
+        # TODO B: refactor for handling partitions for each format
         output = utils.verify_filename(filename)
         if output['dir']:
             os.makedirs(output['path'], exist_ok=True)
-            input_filename = os.path.splitext(os.path.basename(cm.path))[0]
-            output['path'] = os.path.join(output['path'], '{f}.{ext}'.format(
-                f=input_filename, ext=format))
+            if isinstance(cm, list):
+                pass
+            else:
+                input_filename = os.path.splitext(os.path.basename(cm.path))[0]
+                output['path'] = os.path.join(output['path'], '{f}.{ext}'.format(
+                    f=input_filename, ext=format))
         else:
             os.makedirs(os.path.dirname(output['path']), exist_ok=True)
         if format.lower() == 'obj':
             utils.print_cmd_status("Exporting CityJSON to OBJ (%s)" % (output['path']))
+            if isinstance(cm, list):
+                click.ClickException("Not implemented for exporting multiple citymodels")
             try:
                 fo = click.open_file(output['path'], mode='w')
                 re = cm.export2obj()
@@ -136,8 +142,10 @@ def export_cmd(filename, format):
             except IOError as e:
                 raise click.ClickException('Invalid output file: "%s".\n%s' % (output['path'], e))
         elif format.lower() == 'glb':
+            if isinstance(cm, list):
+                click.ClickException("Not implemented for exporting multiple citymodels")
             fname = os.path.splitext(os.path.basename(output['path']))[0]
-            bufferbin = fname + ".glb"
+            bufferbin = "{}.glb".format(fname)
             binfile = os.path.join(os.path.dirname(output['path']), bufferbin)
             utils.print_cmd_status("Exporting CityJSON to glb %s" % binfile)
             glb = cm.export2gltf()
@@ -149,8 +157,10 @@ def export_cmd(filename, format):
             except IOError as e:
                 raise click.ClickException('Invalid output file: "%s".\n%s' % (binfile, e))
         elif format.lower() == 'b3dm':
+            if isinstance(cm, list):
+                click.ClickException("Not implemented for exporting multiple citymodels")
             fname = os.path.splitext(os.path.basename(output['path']))[0]
-            b3dmbin = fname + ".b3dm"
+            b3dmbin = "{}.b3dm".format(fname)
             binfile = os.path.join(os.path.dirname(output['path']), b3dmbin)
             b3dm = cm.export2b3dm()
             utils.print_cmd_status("Exporting CityJSON to b3dm %s" % binfile)
@@ -161,12 +171,39 @@ def export_cmd(filename, format):
             except IOError as e:
                 raise click.ClickException('Invalid output file: "%s".\n%s' % (binfile, e))
         elif format.lower() == '3dtiles':
+            utils.print_cmd_status("Exporting CityJSON to 3dtiles")
             tileset = tiling.generate_tileset_json()
-            tile = tiling.generate_tile_json()
             if isinstance(cm, list):
-                for subset in cm:
+                bbox_list = []
+                for i,subset in enumerate(cm):
+                    fname = os.path.splitext(os.path.basename(subset.path))[0]
+                    b3dmbin = "{}.b3dm".format(fname)
+                    binfile = os.path.join(output['path'], b3dmbin)
+                    bbox = subset.update_bbox()
                     b3dm = subset.export2b3dm()
+                    bbox_list.append(bbox)
                     tile = tiling.generate_tile_json()
+                    tile['boundingVolume']['box'] = tiling.compute_obb(bbox)
+                    tile['content']['uri'] = b3dmbin
+                    tileset['root']['children'].append(tile)
+                    utils.print_cmd_substatus("Exporting b3dm %s" % binfile)
+                    try:
+                        b3dm.seek(0)
+                        with click.open_file(binfile, mode='wb') as bo:
+                            bo.write(b3dm.getvalue())
+                    except IOError as e:
+                        raise click.ClickException('Invalid output file: "%s".\n%s' % (binfile, e))
+                tilesetfile = os.path.join(output['path'], 'tileset.json')
+                bbox_root = tiling.compute_root_obb(bbox_list)
+                tileset['root']['boundingVolume']['box'] = tiling.compute_obb(bbox_root)
+                del tileset['root']['content']
+                utils.print_cmd_substatus("Exporting tileset.json %s" % tilesetfile)
+                try:
+                    with click.open_file(tilesetfile, mode='w') as fo:
+                        json_str = json.dumps(tileset, indent=2)
+                        fo.write(json_str)
+                except IOError as e:
+                    raise click.ClickException('Invalid output file: %s \n%s' % (output['path'], e))
             else:
                 # if the citymodel is not partitioned, then the whole model is the root tile
                 # if (cm.get_epsg() == None):
@@ -175,24 +212,24 @@ def export_cmd(filename, format):
                 #     utils.print_cmd_status("Reprojecting CityJSON to EPSG:4326")
                 #     cm.reproject(3857)
                 fname = os.path.splitext(os.path.basename(output['path']))[0]
-                b3dmbin = fname + ".b3dm"
+                b3dmbin = "{}.b3dm".format(fname)
                 binfile = os.path.join(os.path.dirname(output['path']), b3dmbin)
                 tilesetfile = os.path.join(os.path.dirname(output['path']), 'tileset.json')
-                utils.print_cmd_status("Converting CityJSON ot b3dm")
-                b3dm = cm.export2b3dm()
                 bbox = cm.update_bbox()
+                b3dm = cm.export2b3dm()
                 bbox_root = [coordinate * 1.1 for coordinate in bbox] # methinks the root boundingVolume should be larger than that of the children, even when there is only one child
                 tileset['root']['boundingVolume']['box'] = tiling.compute_obb(bbox_root)
                 tileset['root']['content']['boundingVolume']['box'] = tiling.compute_obb(bbox)
                 tileset['root']['content']['uri'] = b3dmbin
                 del tileset['root']['children']
-                utils.print_cmd_status("Exporting CityJSON to 3dtiles (%s, %s)" % (tilesetfile, binfile))
+                utils.print_cmd_status("Exporting b3dm %s" % binfile)
                 try:
                     b3dm.seek(0)
                     with click.open_file(binfile, mode='wb') as bo:
                         bo.write(b3dm.getvalue())
                 except IOError as e:
                     raise click.ClickException('Invalid output file: "%s".\n%s' % (binfile, e))
+                utils.print_cmd_status("Exporting tileset.json %s" % tilesetfile)
                 try:
                     with click.open_file(tilesetfile, mode='w') as fo:
                         json_str = json.dumps(tileset, indent=2)
@@ -382,9 +419,10 @@ def partition_cmd(folder_output, depth):
 
         # NOTE BD: for now i store the subsets in the list to they can be passed forward to the exporter, but probably there more memory efficient ways to do this
         cms = []
+        input_filename = os.path.splitext(os.path.basename(cm.path))[0]
         for idx, colist in partitions.items():
             s = cm.get_subset_ids(colist)
-            filename = '{}.json'.format(idx)
+            filename = '{}_{}.json'.format(input_filename, idx)
             s.path = filename
             cms.append(s)
             if folder_output:

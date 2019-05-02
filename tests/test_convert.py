@@ -1,5 +1,4 @@
 import os.path
-import pytest
 from click.testing import CliRunner
 
 from cjio import convert
@@ -36,6 +35,17 @@ class Test3dtiles:
         runner = CliRunner()
         result = runner.invoke(cjio.cli,
                                args=[p,
+                                     'export',
+                                     '--format', '3dtiles',
+                                     data_output_dir])
+
+    def test_export_3dtiles_partition_cmd(self, data_dir, data_output_dir):
+        """Debugging"""
+        p = os.path.join(data_dir, 'delft.json')
+        runner = CliRunner()
+        result = runner.invoke(cjio.cli,
+                               args=[p,
+                                     'partition',
                                      'export',
                                      '--format', '3dtiles',
                                      data_output_dir])
