@@ -1,4 +1,5 @@
 import pytest
+from math import isclose
 
 from cjio import tiling
 
@@ -79,3 +80,25 @@ class Test3DTiles:
         tileset = tiling.generate_tileset_json()
         top_level = ['asset', 'geometricError', 'root']
         assert sorted(tileset.keys()) == sorted(top_level)
+
+class TestOBB:
+
+    @pytest.mark.parametrize("bbox_list, obb", [
+        ([
+            [0,0,0,25,25,25],
+            [25,0,0,50,25,25],
+            [0,25,0,25,50,25],
+            [25,25,0,50,50,25],
+            [0,50,0,25,75,25],
+            [25,50,0,50,75,25]
+        ],[
+            25.0,37.5,12.5,
+            25.0,0.0,0.0,
+            0.0,37.5,0.0,
+            0.0,0.0,12.5
+        ])
+    ])
+    def test_compute_root_obb(self, bbox_list, obb):
+        res = tiling.compute_root_obb(bbox_list)
+        t = [isclose(obb[i], v, rel_tol=1e-6) for i,v in enumerate(res)]
+        assert all(t)

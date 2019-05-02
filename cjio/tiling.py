@@ -198,6 +198,20 @@ def compute_obb(bbox):
     ]
     return obb
 
+
+def compute_root_obb(bbox_list):
+    """Compute the BBOX for the root node from the BBOXes of the children"""
+    bbox = [9e9, 9e9, 9e9, -9e9, -9e9, -9e9]
+    for b in bbox_list:
+        for i in range(3):
+            if b[i] < bbox[i]:
+                bbox[i] = b[i]
+        for i in range(3,6):
+            if b[i] > bbox[i]:
+                bbox[i] = b[i]
+    return compute_obb(bbox)
+
+
 def generate_tileset_json():
     """Generate the skeleton for tileset.json"""
     tileset = {
