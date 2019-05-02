@@ -5,6 +5,9 @@ url = "https://pypi.org/simple"
 
 [dev-packages]
 pytest = "*"
+sphinx = "*"
+sphinx-rtd-theme = "*"
+html-theme = "*"
 
 [packages]
 click = "*"
