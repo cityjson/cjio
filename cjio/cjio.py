@@ -8,7 +8,7 @@ import sys
 import copy
 import glob
 import cjio
-from cjio import cityjson
+from cjio import cityjson, tiling, utils
 
 
 #-- https://stackoverflow.com/questions/47437472/in-python-click-how-do-i-see-help-for-subcommands-whose-parents-have-required
@@ -25,10 +25,6 @@ class PerCommandArgWantSubCmdHelp(click.Argument):
                     args = [arg] + args
         return super(PerCommandArgWantSubCmdHelp, self).handle_parse_result(
             ctx, opts, args)
-
-
-def print_cmd_status(s):
-    click.echo(click.style(s, bg='cyan', fg='black'))
 
 
 @click.group(chain=True)
@@ -67,15 +63,15 @@ def process_pipeline(processors, input, ignore_duplicate_keys):
             raise IOError("File type not supported (only .json, .off, and .poly).")
         #-- OFF file
         if (extension == '.off'):
-            print_cmd_status("Converting %s to CityJSON" % (input))
+            utils.print_cmd_status("Converting %s to CityJSON" % (input))
             cm = cityjson.off2cj(f)
         #-- POLY file
         elif (extension == '.poly'):
-            print_cmd_status("Converting %s to CityJSON" % (input))
+            utils.print_cmd_status("Converting %s to CityJSON" % (input))
             cm = cityjson.poly2cj(f)            
         #-- CityJSON file
         else: 
-            print_cmd_status("Parsing %s" % (input))
+            utils.print_cmd_status("Parsing %s" % (input))
             cm = cityjson.reader(file=f, ignore_duplicate_keys=ignore_duplicate_keys)
             if (cm.get_version() not in cityjson.CITYJSON_VERSIONS_SUPPORTED):
                 allv = ""
@@ -101,45 +97,161 @@ def process_pipeline(processors, input, ignore_duplicate_keys):
 def info_cmd(context):
     """Output info in simple JSON."""
     def processor(cm):
-        theinfo = cm.get_info()
-        click.echo(theinfo)
+        if isinstance(cm, list):
+            for subset in cm:
+                click.echo("=============== City model: %s ===============" % subset.path)
+                click.echo(subset.get_info())
+        else:
+            click.echo(cm.get_info())
         return cm
     return processor
 
 
 @cli.command('export')
 @click.argument('filename')
-def export_cmd(filename):
+@click.option('--format',
+              type=click.Choice(['obj', 'glb', 'b3dm', '3dtiles']),
+              help="Export format")
+def export_cmd(filename, format):
     """Export the CityJSON to another format.
 
-    Currently only OBJ file are supported; textures are not supported, sorry.
+    OBJ, Binary glTF, Batched 3DModel, Cesium 3D Tiles. Currently textures are not supported, sorry.
     """
+    def exporter(cm):
+        # TODO B: refactor for handling partitions for each format
+        output = utils.verify_filename(filename)
+        if output['dir']:
+            os.makedirs(output['path'], exist_ok=True)
+            if isinstance(cm, list):
+                pass
+            else:
+                input_filename = os.path.splitext(os.path.basename(cm.path))[0]
+                output['path'] = os.path.join(output['path'], '{f}.{ext}'.format(
+                    f=input_filename, ext=format))
+        else:
+            os.makedirs(os.path.dirname(output['path']), exist_ok=True)
+        if format.lower() == 'obj':
+            utils.print_cmd_status("Exporting CityJSON to OBJ (%s)" % (output['path']))
+            if isinstance(cm, list):
+                click.ClickException("Not implemented for exporting multiple citymodels")
+            try:
+                fo = click.open_file(output['path'], mode='w')
+                re = cm.export2obj()
+                # TODO B: why don't you close the file @hugoledoux?
+                fo.write(re.getvalue())
+            except IOError as e:
+                raise click.ClickException('Invalid output file: "%s".\n%s' % (output['path'], e))
+        elif format.lower() == 'glb':
+            if isinstance(cm, list):
+                click.ClickException("Not implemented for exporting multiple citymodels")
+            fname = os.path.splitext(os.path.basename(output['path']))[0]
+            bufferbin = "{}.glb".format(fname)
+            binfile = os.path.join(os.path.dirname(output['path']), bufferbin)
+            utils.print_cmd_status("Exporting CityJSON to glb %s" % binfile)
+            glb = cm.export2gltf()
+            # TODO B: how many buffer can there be in the 'buffers'?
+            try:
+                glb.seek(0)
+                with click.open_file(binfile, mode='wb') as bo:
+                    bo.write(glb.getvalue())
+            except IOError as e:
+                raise click.ClickException('Invalid output file: "%s".\n%s' % (binfile, e))
+        elif format.lower() == 'b3dm':
+            if isinstance(cm, list):
+                click.ClickException("Not implemented for exporting multiple citymodels")
+            fname = os.path.splitext(os.path.basename(output['path']))[0]
+            b3dmbin = "{}.b3dm".format(fname)
+            binfile = os.path.join(os.path.dirname(output['path']), b3dmbin)
+            b3dm = cm.export2b3dm()
+            utils.print_cmd_status("Exporting CityJSON to b3dm %s" % binfile)
+            try:
+                b3dm.seek(0)
+                with click.open_file(binfile, mode='wb') as bo:
+                    bo.write(b3dm.getvalue())
+            except IOError as e:
+                raise click.ClickException('Invalid output file: "%s".\n%s' % (binfile, e))
+        elif format.lower() == '3dtiles':
+            utils.print_cmd_status("Exporting CityJSON to 3dtiles")
+            tileset = tiling.generate_tileset_json()
+            if isinstance(cm, list):
+                bbox_list = []
+                for i,subset in enumerate(cm):
+                    fname = os.path.splitext(os.path.basename(subset.path))[0]
+                    b3dmbin = "{}.b3dm".format(fname)
+                    binfile = os.path.join(output['path'], b3dmbin)
+                    bbox = subset.update_bbox()
+                    b3dm = subset.export2b3dm()
+                    bbox_list.append(bbox)
+                    tile = tiling.generate_tile_json()
+                    tile['boundingVolume']['box'] = tiling.compute_obb(bbox)
+                    tile['content']['uri'] = b3dmbin
+                    tileset['root']['children'].append(tile)
+                    utils.print_cmd_substatus("Exporting b3dm %s" % binfile)
+                    try:
+                        b3dm.seek(0)
+                        with click.open_file(binfile, mode='wb') as bo:
+                            bo.write(b3dm.getvalue())
+                    except IOError as e:
+                        raise click.ClickException('Invalid output file: "%s".\n%s' % (binfile, e))
+                tilesetfile = os.path.join(output['path'], 'tileset.json')
+                bbox_root = tiling.compute_root_obb(bbox_list)
+                tileset['root']['boundingVolume']['box'] = tiling.compute_obb(bbox_root)
+                del tileset['root']['content']
+                utils.print_cmd_substatus("Exporting tileset.json %s" % tilesetfile)
+                try:
+                    with click.open_file(tilesetfile, mode='w') as fo:
+                        json_str = json.dumps(tileset, indent=2)
+                        fo.write(json_str)
+                except IOError as e:
+                    raise click.ClickException('Invalid output file: %s \n%s' % (output['path'], e))
+            else:
+                # if the citymodel is not partitioned, then the whole model is the root tile
+                # if (cm.get_epsg() == None):
+                #     raise click.ClickException("CityJSON has no EPSG defined, can't be reprojected.")
+                # elif cm.get_epsg() != 4326:
+                #     utils.print_cmd_status("Reprojecting CityJSON to EPSG:4326")
+                #     cm.reproject(3857)
+                fname = os.path.splitext(os.path.basename(output['path']))[0]
+                b3dmbin = "{}.b3dm".format(fname)
+                binfile = os.path.join(os.path.dirname(output['path']), b3dmbin)
+                tilesetfile = os.path.join(os.path.dirname(output['path']), 'tileset.json')
+                bbox = cm.update_bbox()
+                b3dm = cm.export2b3dm()
+                bbox_root = [coordinate * 1.1 for coordinate in bbox] # methinks the root boundingVolume should be larger than that of the children, even when there is only one child
+                tileset['root']['boundingVolume']['box'] = tiling.compute_obb(bbox_root)
+                tileset['root']['content']['boundingVolume']['box'] = tiling.compute_obb(bbox)
+                tileset['root']['content']['uri'] = b3dmbin
+                del tileset['root']['children']
+                utils.print_cmd_status("Exporting b3dm %s" % binfile)
+                try:
+                    b3dm.seek(0)
+                    with click.open_file(binfile, mode='wb') as bo:
+                        bo.write(b3dm.getvalue())
+                except IOError as e:
+                    raise click.ClickException('Invalid output file: "%s".\n%s' % (binfile, e))
+                utils.print_cmd_status("Exporting tileset.json %s" % tilesetfile)
+                try:
+                    with click.open_file(tilesetfile, mode='w') as fo:
+                        json_str = json.dumps(tileset, indent=2)
+                        fo.write(json_str)
+                except IOError as e:
+                    raise click.ClickException('Invalid output file: %s \n%s' % (output['path'], e))
+
+
     def processor(cm):
         #-- mapbox_earcut available?
         if (cityjson.MODULE_EARCUT_AVAILABLE == False):
-            str = "OBJ export skipped: Python module 'mapbox_earcut' missing (to triangulate faces)"
+            str = "OBJ|glTF|b3dm export skipped: Python module 'mapbox_earcut' missing (to triangulate faces)"
             click.echo(click.style(str, fg='red'))
             str = "Install it: https://github.com/skogler/mapbox_earcut_python"
             click.echo(str)
             return cm
-        #-- output allowed
-        extensions = ['.obj'] 
-        #--
-        print_cmd_status("Converting CityJSON to OBJ (%s)" % (filename))
-        f = os.path.basename(filename)
-        d = os.path.abspath(os.path.dirname(filename))
-        if not os.path.isdir(d):
-            os.makedirs(d)
-        p = os.path.join(d, f)
-        try:
-            extension = os.path.splitext(p)[1].lower()
-            if (extension not in extensions):
-                raise IOError("Only .obj files supported")
-            fo = click.open_file(p, mode='w')
-            re = cm.export2obj()
-            fo.write(re.getvalue())
-        except IOError as e:
-            raise click.ClickException('Invalid output file: "%s".\n%s' % (p, e))                
+        # NOTE BD: export_cmd can take a list of citymodels, which is the output of the partitioner
+        if format.lower() == '3dtiles' or not isinstance(cm, list):
+            exporter(cm)
+        else:
+            for subset in cm:
+                exporter(subset)
         return cm
     return processor
 
@@ -152,17 +264,21 @@ def export_cmd(filename):
               help='Path to the new textures directory. This command copies the textures to a new location. Useful when creating an independent subset of a CityJSON file.')
 def save_cmd(filename, indent, textures):
     """Save the city model to a CityJSON file."""
-    def processor(cm):
-        print_cmd_status("Saving CityJSON to a file (%s)" % (filename))
-        f = os.path.basename(filename)
-        d = os.path.abspath(os.path.dirname(filename))
-        if not os.path.isdir(d):
-            os.makedirs(d)
-        p = os.path.join(d, f)
+    def saver(cm):
+        output = utils.verify_filename(filename)
+        if output['dir']:
+            os.makedirs(output['path'], exist_ok=True)
+            input_filename = os.path.splitext(os.path.basename(cm.path))[0]
+            output['path'] = os.path.join(output['path'], '{f}.{ext}'.format(
+                f=input_filename, ext='json'))
+        else:
+            os.makedirs(os.path.dirname(output['path']), exist_ok=True)
+
+        utils.print_cmd_status("Saving CityJSON to a file %s" % output['path'])
         try:
-            fo = click.open_file(p, mode='w')
+            fo = click.open_file(output['path'], mode='w')
             if textures:
-                cm.copy_textures(textures, p)
+                cm.copy_textures(textures, output['path'])
             if indent == 0:
                 json_str = json.dumps(cm.j, separators=(',',':'))
                 fo.write(json_str)
@@ -170,7 +286,14 @@ def save_cmd(filename, indent, textures):
                 json_str = json.dumps(cm.j, indent=indent)
                 fo.write(json_str)
         except IOError as e:
-            raise click.ClickException('Invalid output file: "%s".\n%s' % (p, e))                
+            raise click.ClickException('Invalid output file: %s \n%s' % (output['path'], e))
+
+    def processor(cm):
+        if isinstance(cm, list):
+            for subset in cm:
+                saver(subset)
+        else:
+            saver(cm)
         return cm
     return processor
 
@@ -182,7 +305,7 @@ def update_bbox_cmd():
     If there is none then it is added.
     """
     def processor(cm):
-        print_cmd_status("Updating bbox")
+        utils.print_cmd_status("Updating bbox")
         cm.update_bbox()
         return cm
     return processor
@@ -195,7 +318,7 @@ def update_bbox_cmd():
 def validate_cmd(hide_errors, skip_schema, folder_schemas):
     """
     Validate the CityJSON file: (1) against its schemas; (2) extra validations.
-    
+
     The schemas are fetched automatically, based on the version of the file.
     It's possible to specify schemas with the '--folder_schemas' option.
     This is used when there are Extensions used.
@@ -211,9 +334,9 @@ def validate_cmd(hide_errors, skip_schema, folder_schemas):
                 click.echo(click.style("Folder for schemas unknown. Validation aborted.", fg='red'))
                 return cm
             else:
-                print_cmd_status('===== Validation (with provided schemas) =====') 
+                utils.print_cmd_status('===== Validation (with provided schemas) =====')
         else:
-            print_cmd_status('===== Validation (with official CityJSON schemas) =====')
+            utils.print_cmd_status('===== Validation (with official CityJSON schemas) =====')
         #-- validate    
         bValid, woWarnings, errors, warnings = cm.validate(skip_schema=skip_schema, folder_schemas=folder_schemas)
         click.echo('=====')
@@ -252,7 +375,7 @@ def merge_cmd(filepattern):
         $ cjio myfile.json merge '/home/elvis/temp/*.json' info
     """
     def processor(cm):
-        print_cmd_status('Merging files') 
+        utils.print_cmd_status('Merging files')
         lsCMs = []
         g = glob.glob(filepattern)
         for i in g:
@@ -272,6 +395,54 @@ def merge_cmd(filepattern):
         return cm
     return processor
 
+@cli.command('partition')
+@click.option('--depth', type=int, default=2, help='Number of times to subdivide the BBOX.', show_default=True)
+@click.option('--folder_output', help='Specify a folder where to store the partitions.')
+def partition_cmd(folder_output, depth):
+    """
+    Partition the city model into tiles.
+    """
+    def processor(cm):
+        if folder_output is not None:
+            if os.path.exists(folder_output) == False:
+                click.echo(click.style("Folder for output unknown. Partitioning aborted.", fg='red'))
+                return cm
+            else:
+                utils.print_cmd_status('===== Partitioning CityJSON (output: %s) =====' % (folder_output))
+        bbox = cm.update_bbox()
+        grid_idx = tiling.create_grid(bbox, depth)
+        partitions = tiling.partitioner(cm, grid_idx)
+
+        textures = None
+        indent = 0
+
+        # NOTE BD: for now i store the subsets in the list to they can be passed forward to the exporter, but probably there more memory efficient ways to do this
+        cms = []
+        input_filename = os.path.splitext(os.path.basename(cm.path))[0]
+        for idx, colist in partitions.items():
+            s = cm.get_subset_ids(colist)
+            filename = '{}_{}.json'.format(input_filename, idx)
+            s.path = filename
+            cms.append(s)
+            if folder_output:
+                f = os.path.basename(filename)
+                d = os.path.abspath(folder_output)
+                p = os.path.join(d, f)
+                utils.print_cmd_status("Saving CityJSON partition to a file (%s)" % (p))
+                try:
+                    fo = click.open_file(p, mode='w')
+                    if textures:
+                        s.copy_textures(textures, p)
+                    if indent == 0:
+                        json_str = json.dumps(s.j, separators=(',', ':'))
+                        fo.write(json_str)
+                    else:
+                        json_str = json.dumps(s.j, indent=indent)
+                        fo.write(json_str)
+                except IOError as e:
+                    raise click.ClickException('Invalid output file: "%s".\n%s' % (p, e))
+        return cms
+    return processor
 
 @cli.command('subset')
 @click.option('--id', multiple=True, help='The ID of the City Objects; can be used multiple times.')
@@ -295,7 +466,7 @@ def subset_cmd(id, bbox, random, cotype, exclude):
     Option '--exclude' excludes the selected objects, or "reverse" the selection.
     """
     def processor(cm):
-        print_cmd_status('Subset of CityJSON') 
+        utils.print_cmd_status('Subset of CityJSON')
         s = copy.deepcopy(cm)
         if random is not None:
             s = s.get_subset_random(random, exclude=exclude)
@@ -318,7 +489,7 @@ def remove_duplicate_vertices_cmd():
     and not those of the textures/templates.
     """
     def processor(cm):
-        print_cmd_status('Remove duplicate vertices')
+        utils.print_cmd_status('Remove duplicate vertices')
         cm.remove_duplicate_vertices()
         return cm
     return processor
@@ -332,7 +503,7 @@ def remove_orphan_vertices_cmd():
     and not those of the textures/templates.
     """
     def processor(cm):
-        print_cmd_status('Remove orphan vertices')
+        utils.print_cmd_status('Remove orphan vertices')
         cm.remove_orphan_vertices()
         return cm
     return processor
@@ -344,7 +515,7 @@ def remove_materials_cmd():
     Remove all materials from a CityJSON file.
     """
     def processor(cm):
-        print_cmd_status('Remove all material')
+        utils.print_cmd_status('Remove all material')
         cm.remove_materials()
         return cm
     return processor
@@ -357,7 +528,7 @@ def compress_cmd(digit):
     Compress a CityJSON file, ie stores its vertices with integers.
     """
     def processor(cm):
-        print_cmd_status('Compressing the CityJSON (with %d digit)' % digit)
+        utils.print_cmd_status('Compressing the CityJSON (with %d digit)' % digit)
         try:
             cm.compress(digit)
         except Exception as e:
@@ -372,7 +543,7 @@ def decompress_cmd():
     Decompress a CityJSON file, ie remove the "tranform".
     """
     def processor(cm):
-        print_cmd_status('Decompressing the CityJSON')
+        utils.print_cmd_status('Decompressing the CityJSON')
         if (cm.decompress() == False):
             click.echo("File is not compressed, nothing done.")
         return cm
@@ -385,7 +556,7 @@ def remove_textures_cmd():
     Remove all textures from a CityJSON file.
     """
     def processor(cm):
-        print_cmd_status('Remove all textures')
+        utils.print_cmd_status('Remove all textures')
         cm.remove_textures()
         return cm
     return processor
@@ -401,7 +572,7 @@ def update_crs_cmd(newepsg):
     To reproject (and thus modify all the values of the coordinates) use reproject().
     """
     def processor(cm):
-        print_cmd_status('Assign EPSG:%d' % newepsg)
+        utils.print_cmd_status('Assign EPSG:%d' % newepsg)
         cm.set_epsg(newepsg)
         return cm
     return processor
@@ -412,10 +583,10 @@ def update_crs_cmd(newepsg):
 def update_crs_cmd(epsg):
     """
     Reproject the CityJSON to a new EPSG.
-    The current file must have an EPSG defined (do it with function update_epsg()).
+    The current file must have an EPSG defined (do it with function assign_epsg).
     """
     def processor(cm):
-        print_cmd_status('Reproject to EPSG:%d' % epsg)
+        utils.print_cmd_status('Reproject to EPSG:%d' % epsg)
         if (cm.get_epsg() == None):
             click.echo("WARNING: CityJSON has no EPSG defined, can't be reprojected.")
         else:    
@@ -434,7 +605,7 @@ def upgrade_version_cmd():
     """
     def processor(cm):
         vlatest = cityjson.CITYJSON_VERSIONS_SUPPORTED[-1]
-        print_cmd_status('Upgrade CityJSON file to v%s' % vlatest)
+        utils.print_cmd_status('Upgrade CityJSON file to v%s' % vlatest)
         re, reasons = cm.upgrade_version(vlatest)
         if (re == False):
             click.echo(click.style("WARNING: %s" % (reasons), fg='red'))
@@ -448,7 +619,7 @@ def locate_textures_cmd():
     Output the location of the texture files.
     """
     def processor(cm):
-        print_cmd_status('Locate the textures')
+        utils.print_cmd_status('Locate the textures')
         loc = cm.get_textures_location()
         click.echo(loc)
         return cm
@@ -464,7 +635,7 @@ def update_textures_cmd(newlocation, relative):
     Can be used if the texture files were moved to new directory.
     """
     def processor(cm):
-        print_cmd_status('Update location of textures')
+        utils.print_cmd_status('Update location of textures')
         cm.update_textures_location(newlocation, relative=relative)
         return cm
     return processor
@@ -480,7 +651,7 @@ def extract_lod_cmd(lod):
     if a city object doesn't have this LoD then it is deleted.
     """
     def processor(cm):
-        print_cmd_status('Extract LoD:%s' % lod)
+        utils.print_cmd_status('Extract LoD:%s' % lod)
         cm.extract_lod(lod)
         return cm
     return processor

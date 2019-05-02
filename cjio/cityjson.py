@@ -1,13 +1,11 @@
 
 import os
-import sys
 import re
 import shutil
 
 import json
 import collections
 import jsonref
-import urllib
 from pkg_resources import resource_filename
 from pkg_resources import resource_listdir
 import copy
@@ -16,6 +14,7 @@ from io import StringIO
 import numpy as np
 import pyproj
 from sys import platform
+from click import progressbar
 
 MODULE_EARCUT_AVAILABLE = True
 try:
@@ -26,8 +25,9 @@ except ImportError as e:
 from cjio import validation
 from cjio import subset
 from cjio import geom_help
-from cjio import errors
+from cjio import convert
 from cjio.errors import InvalidOperation
+from cjio.utils import print_cmd_warning
 
 
 CITYJSON_VERSIONS_SUPPORTED = ['0.6', '0.8', '0.9', '1.0']
@@ -153,7 +153,11 @@ class CityJSON:
             return self.j["metadata"]["crs"]["epsg"]
         elif "referenceSystem" in self.j["metadata"]:
             s = self.j["metadata"]["referenceSystem"]
-            return int(s[s.find("::")+2:])
+            if "epsg" in s.lower():
+                return int(s[s.find("::")+2:])
+            else:
+                print_cmd_warning("Only EPSG codes are supported in the URN. CRS is set to undefined.")
+                return None
         else:
             return None
 
@@ -1233,6 +1237,19 @@ class CityJSON:
         return result.reshape(-1, 3)
 
 
+    def export2b3dm(self):
+        glb = convert.to_gltf(self.j)
+        b3dm = convert.to_b3dm(self, glb)
+        return b3dm
+
+
+    def export2gltf(self):
+        # TODO B: probably no need to double wrap this to_gltf(), but its long, and
+        # the current cityjson.py is long already
+        glb = convert.to_gltf(self.j)
+        return glb
+
+
     def export2obj(self):
         out = StringIO()
         #-- vertices
@@ -1263,11 +1280,12 @@ class CityJSON:
             wascompressed = True
         p1 = pyproj.Proj(init='epsg:%d' % (self.get_epsg()))
         p2 = pyproj.Proj(init='epsg:%d' % (epsg))
-        for v in self.j['vertices']:
-            x, y, z = pyproj.transform(p1, p2, v[0], v[1], v[2])
-            v[0] = x
-            v[1] = y
-            v[2] = z
+        with progressbar(self.j['vertices']) as vertices:
+            for v in vertices:
+                x, y, z = pyproj.transform(p1, p2, v[0], v[1], v[2])
+                v[0] = x
+                v[1] = y
+                v[2] = z
         self.set_epsg(epsg)
         if wascompressed == True:
             self.compress()

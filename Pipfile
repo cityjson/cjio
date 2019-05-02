@@ -6,9 +6,6 @@ url = "https://pypi.org/simple"
 [dev-packages]
 pytest = "*"
 
-[requires]
-python_version = "3.5"
-
 [packages]
 click = "*"
 jsonschema = "*"
@@ -16,4 +13,5 @@ jsonref = "*"
 pyproj = "*"
 numpy = "*"
 strict-rfc3339 = "*"
-"e1839a8" = {editable = true, path = "."}
+e1839a8 = {editable = true,path = "."}
+mapbox-earcut = "*"
