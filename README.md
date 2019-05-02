@@ -61,6 +61,7 @@ Commands:
   info                       Output info in simple JSON.
   locate_textures            Output the location of the texture files.
   merge                      Merge the current CityJSON with others.
+  partition                  Partition the city model into tiles.
   remove_duplicate_vertices  Remove duplicate vertices a CityJSON file.
   remove_materials           Remove all materials from a CityJSON file.
   remove_orphan_vertices     Remove orphan vertices a CityJSON file.
@@ -108,18 +109,18 @@ If you want to use your own schemas, give the folder where the master schema fil
 $ cjio example.json validate --folder_schemas /home/elvis/temp/myschemas/
 ```
 
-## Generating 3DTiles from a CityJSON
+## Generating Binary glTF or Cesium 3DTiles from a CityJSON
 
-Convert the CityJSON `example.json` to a glTF file `/home/elvis/gltfs/example.gltf`
+Convert the CityJSON `example.json` to a glb file `/home/elvis/gltfs/example.glb`
 
 ```console
-$ cjio example.json export --format gltf /home/elvis/gltfs
+$ cjio example.json export --format glb /home/elvis/gltfs
 ```
 
-Convert the CityJSON `example.json` to a glTF file `/home/elvis/test.gltf`
+Convert the CityJSON `example.json` to a glb file `/home/elvis/test.glb`
 
 ```console
-$ cjio example.json export --format gltf /home/elvis/test.gltf
+$ cjio example.json export --format glb /home/elvis/test.glb
 ```
 
 ### Partitioning
@@ -131,10 +132,10 @@ $ cjio example.json export --format gltf /home/elvis/test.gltf
 + `export`
 + `info`
 
-Partition the CityJSON `example.json` into 16 equal area parts (quadtree of depth 2) and export each part as glTF to `/home/elvis/gltfs`.
+Partition the CityJSON `example.json` into 16 equal area parts (quadtree of depth 2) and export each part as binary glTF to `/home/elvis/gltfs`.
 
 ```console
-$ cjio example.json partiton --depth 2 export --format gltf /home/elvis/gltfs
+$ cjio example.json partiton --depth 2 export --format glb /home/elvis/gltfs
 ```
 
 Partition the CityJSON and get information about each part.
@@ -143,12 +144,12 @@ Partition the CityJSON and get information about each part.
 $ cjio example.json partiton --depth 2 info
 ```
 
-```console
-$ cjio example.json partiton --depth 2 export --format 3dtiles /home/elvis/tileset
-```
+### Export to 3DTiles
+
+Partition the CityJSON `example.json` and export as 3DTiles into `/home/elvis/3dtiles`. The exporter creates the `tileset.json` master file which links to each partition which are converted to `b3dm`.
 
 ```console
-$ cjio example.json partiton --cellsize 500 500 export --format 3dtiles /home/elvis/tileset
+$ cjio example.json partition --depth 2 export --format 3dtiles /home/elvis/3dtiles
 ```
 
 ## Example CityJSON datasets
