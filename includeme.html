@@ -1,0 +1,270 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>cjio, or CityJSON/io &#8212; cjio 0.5.2 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Welcome to cjio’s documentation!" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="cjio-or-cityjson-io">
+<h1>cjio, or CityJSON/io<a class="headerlink" href="#cjio-or-cityjson-io" title="Permalink to this headline">¶</a></h1>
+<p><a class="reference external" href="https://github.com/tudelft3d/cjio/blob/master/LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" /></a> <a class="reference external" href="https://pypi.org/project/cjio/"><img alt="image1" src="https://badge.fury.io/py/cjio.svg" /></a></p>
+<p>Python CLI to process and manipulate
+<a class="reference external" href="http://www.cityjson.org">CityJSON</a> files. The different operators
+can be chained to perform several processing operations in one step, the
+CityJSON model goes through them and different versions of the CityJSON
+model can be saved as files along the pipeline.</p>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>It uses Python 3.5+ only.</p>
+<p>To install the latest release:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">pip install cjio</span>
+</pre></div>
+</div>
+<p>To install the development branch, and still develop with it:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">git checkout development</span>
+<span class="go">virtualenv venv</span>
+<span class="go">. venv/bin/activate</span>
+<span class="go">pip install --editable .</span>
+</pre></div>
+</div>
+<p>Alternatively, you can use the included Pipfile to manage the virtual
+environment with <a class="reference external" href="https://pipenv.readthedocs.io/en/latest/">pipenv</a>.</p>
+<p><strong>Note for Windows users</strong></p>
+<p>If your installation fails based on a <em>pyproj</em> or <em>pyrsistent</em> error
+there is a small hack to get around it. Based on the python version you
+have installed you can download a wheel (binary of a python package) of
+the problem package/s. A good website to use is
+<a class="reference external" href="https://www.lfd.uci.edu/~gohlke/pythonlibs">here</a>. You then run:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">pip3 install [name of wheel file]</span>
+</pre></div>
+</div>
+<p>You can then continue with:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">pip3 install cjio</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
+<p>After installation, you have a small program called <code class="docutils literal notranslate"><span class="pre">cjio</span></code>, to see its
+possibities:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">cjio --help</span>
+
+<span class="go">Commands:</span>
+<span class="go">  assign_epsg                Assign a (new) EPSG.</span>
+<span class="go">  compress                   Compress a CityJSON file, ie stores its...</span>
+<span class="go">  decompress                 Decompress a CityJSON file, ie remove the...</span>
+<span class="go">  export                     Export the CityJSON to another format.</span>
+<span class="go">  extract_lod                Extract only one LoD for a dataset.</span>
+<span class="go">  info                       Output info in simple JSON.</span>
+<span class="go">  locate_textures            Output the location of the texture files.</span>
+<span class="go">  merge                      Merge the current CityJSON with others.</span>
+<span class="go">  partition                  Partition the city model into tiles.</span>
+<span class="go">  remove_duplicate_vertices  Remove duplicate vertices a CityJSON file.</span>
+<span class="go">  remove_materials           Remove all materials from a CityJSON file.</span>
+<span class="go">  remove_orphan_vertices     Remove orphan vertices a CityJSON file.</span>
+<span class="go">  remove_textures            Remove all textures from a CityJSON file.</span>
+<span class="go">  reproject                  Reproject the CityJSON to a new EPSG.</span>
+<span class="go">  save                       Save the city model to a CityJSON file.</span>
+<span class="go">  subset                     Create a subset of a CityJSON file.</span>
+<span class="go">  update_bbox                Update the bbox of a CityJSON file.</span>
+<span class="go">  update_textures            Update the location of the texture files.</span>
+<span class="go">  upgrade_version            Upgrade the CityJSON to the latest version.</span>
+<span class="go">  validate                   Validate the CityJSON file: (1) against its...</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="pipelines-of-operators">
+<h2>Pipelines of operators<a class="headerlink" href="#pipelines-of-operators" title="Permalink to this headline">¶</a></h2>
+<p>The 3D city model opened is passed through all the operators, and it
+gets modified by some operators. Operators like <code class="docutils literal notranslate"><span class="pre">info</span></code> and
+<code class="docutils literal notranslate"><span class="pre">validate</span></code> output information in the console and just pass the 3D city
+model to the next operator.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> cjio example.json subset --id house12 info remove_materials info save out.json
+<span class="gp">$</span> cjio example.json remove_textures compress info
+<span class="gp">$</span> cjio example.json upgrade_version save new.json
+<span class="gp">$</span> cjio myfile.json merge <span class="s1">&#39;/home/elvis/temp/*.json&#39;</span> save all_merged.json
+</pre></div>
+</div>
+</div>
+<div class="section" id="validation-of-cityjson-files-against-the-schema">
+<h2>Validation of CityJSON files against the schema<a class="headerlink" href="#validation-of-cityjson-files-against-the-schema" title="Permalink to this headline">¶</a></h2>
+<p>To validate a CityJSON file against the <a class="reference external" href="https://github.com/tudelft3d/cityjson/tree/master/schema">schemas of
+CityJSON</a>
+(this will automatically fetch the schemas for the version of CityJSON):</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> cjio myfile.json validate
+</pre></div>
+</div>
+<p>If the file is too large (and thus validation is slow), an option is to
+crop a subset and just validate it:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> cjio myfile.json subset --random <span class="m">2</span> validate
+</pre></div>
+</div>
+<p>If you want to use your own schemas, give the folder where the master
+schema file <code class="docutils literal notranslate"><span class="pre">cityjson.json</span></code> is located:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> cjio example.json validate --folder_schemas /home/elvis/temp/myschemas/
+</pre></div>
+</div>
+</div>
+<div class="section" id="generating-binary-gltf-or-cesium-3dtiles-from-a-cityjson">
+<h2>Generating Binary glTF or Cesium 3DTiles from a CityJSON<a class="headerlink" href="#generating-binary-gltf-or-cesium-3dtiles-from-a-cityjson" title="Permalink to this headline">¶</a></h2>
+<p>Convert the CityJSON <code class="docutils literal notranslate"><span class="pre">example.json</span></code> to a glb file
+<code class="docutils literal notranslate"><span class="pre">/home/elvis/gltfs/example.glb</span></code></p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> cjio example.json <span class="nb">export</span> --format glb /home/elvis/gltfs
+</pre></div>
+</div>
+<p>Convert the CityJSON <code class="docutils literal notranslate"><span class="pre">example.json</span></code> to a glb file
+<code class="docutils literal notranslate"><span class="pre">/home/elvis/test.glb</span></code></p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> cjio example.json <span class="nb">export</span> --format glb /home/elvis/test.glb
+</pre></div>
+</div>
+<div class="section" id="partitioning">
+<h3>Partitioning<a class="headerlink" href="#partitioning" title="Permalink to this headline">¶</a></h3>
+<p><strong>The ``partition`` command returns several subsets of the input city
+model and this functionality is not fully</strong> <strong>integrated yet. At the
+moment only these commands can follow ``partition``:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">save</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">export</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">info</span></code></p></li>
+</ul>
+<p>Partition the CityJSON <code class="docutils literal notranslate"><span class="pre">example.json</span></code> into 16 equal area parts
+(quadtree of depth 2) and export each part as binary glTF to
+<code class="docutils literal notranslate"><span class="pre">/home/elvis/gltfs</span></code>.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> cjio example.json partiton --depth <span class="m">2</span> <span class="nb">export</span> --format glb /home/elvis/gltfs
+</pre></div>
+</div>
+<p>Partition the CityJSON and get information about each part.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> cjio example.json partiton --depth <span class="m">2</span> info
+</pre></div>
+</div>
+</div>
+<div class="section" id="export-to-3dtiles">
+<h3>Export to 3DTiles<a class="headerlink" href="#export-to-3dtiles" title="Permalink to this headline">¶</a></h3>
+<p>Partition the CityJSON <code class="docutils literal notranslate"><span class="pre">example.json</span></code> and export as 3DTiles into
+<code class="docutils literal notranslate"><span class="pre">/home/elvis/3dtiles</span></code>. The exporter creates the <code class="docutils literal notranslate"><span class="pre">tileset.json</span></code>
+master file which links to each partition which are converted to
+<code class="docutils literal notranslate"><span class="pre">b3dm</span></code>.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> cjio example.json partition --depth <span class="m">2</span> <span class="nb">export</span> --format 3dtiles /home/elvis/3dtiles
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="example-cityjson-datasets">
+<h2>Example CityJSON datasets<a class="headerlink" href="#example-cityjson-datasets" title="Permalink to this headline">¶</a></h2>
+<p>There are a few <a class="reference external" href="https://www.cityjson.org/en/0.9/datasets/">example files on the CityJSON
+webpage</a>.</p>
+<p>Alternatively, any <a class="reference external" href="https://www.citygml.org">CityGML</a> file can be
+automatically converted to CityJSON with the open-source project
+<a class="reference external" href="https://github.com/citygml4j/citygml-tools">citygml-tools</a> (based on
+<a class="reference external" href="https://github.com/citygml4j/citygml4j">citygml4j</a>).</p>
+</div>
+<div class="section" id="acknowledgements">
+<h2>Acknowledgements<a class="headerlink" href="#acknowledgements" title="Permalink to this headline">¶</a></h2>
+<p>The glTF exporter is adapted from Kavisha’s
+<a class="reference external" href="https://github.com/tudelft3d/CityJSON2glTF">CityJSON2glTF</a>.</p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">cjio</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">cjio, or CityJSON/io</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#usage">Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pipelines-of-operators">Pipelines of operators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#validation-of-cityjson-files-against-the-schema">Validation of CityJSON files against the schema</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#generating-binary-gltf-or-cesium-3dtiles-from-a-cityjson">Generating Binary glTF or Cesium 3DTiles from a CityJSON</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#example-cityjson-datasets">Example CityJSON datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#acknowledgements">Acknowledgements</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Welcome to cjio’s documentation!</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Hugo Ledoux,Balázs Dukai.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/includeme.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
