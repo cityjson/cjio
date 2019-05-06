@@ -27,6 +27,12 @@ cm.waterbody()
 
 Using a single getter function, and pass the type as argument. It should get both 1st-level and 2nd-level city objects. But in case of 2nd-level objects, how do we keep the reference to the parents?
 ```python
+def get_cityobjects(type):
+    if type is None:
+        return all cityobjects
+    else:
+        return cityobjects of the given type
+
 cm = cjio.load("some_model.json")
 cm.get_cityobjects("building")
 cm.get_cityobjects("buildingpart")
@@ -53,16 +59,49 @@ Python libraries with 3D geoms:
 + http://www.open3d.org/docs/python_api/open3d.geometry.Geometry3D.html#open3d.geometry.Geometry3D
 
 
-Compute the volume of a building.
+### Compute the volume of a building.
 
 ```python
+class Geometry:
+    def __init__(self, co):
+        self.lod = co['geometry']['lod']
+        self.type = co['geometry']['type']
+        self.boundaries = self._get_boundary(co)
+        # also need to handle surface semantics here somewhere
+        self.semantics = self._get_semantics(co)
+    
+    def _get_geometry(self, co):
+        loop through co['geometry']['boundaries'] and get the vertex coordinates
+        return geometry sf style
+        
+    def _get_semantics(self, co):
+        return set(of semantics that the current geometry has; can be empty)
+
+def compute_volume(geometry):
+    if geometry.lod < 2:
+        figure out what surface is what
+    else:
+        use the surface semantics # okay, but how to get them?
+        surface_types = geometry.semantics
+    if geometry.type == 'Solid':
+        compute the volume
+    elif geometry.type == 'Point':
+        raise TypeError("Cannot compute the volume of Point geometry")
+    return volume
+
 cm = cjio.load("some_model.json")
 for building in cm.get_cityobjects("building"):
     if building.children is None:
-        # so, what exactly does this geometry object contain?
-        geometry = building.get_geometry()        
-        # or just dump all the vertices of the geometry
+        # so, what exactly does this geometry object contain? For now, we only return the Geometry object from JSON as it is. The same as cm['CityObjects'][0]['geometry']. Later we can think about converting the json to something.
+        geometry = building.get_geometry()
+        isinstance(geometry, Geometry)
+        geometry.lod
+        geometry.type
+        geometry.boundaries # I think we should return the boundaries simple feature style, verticies included. It makes it much easier to operate on it.    
+        # or just dump all the vertices of the geometry as [(x,y,z),(x,y,z),...]
         vertices = building.get_vertices()
+        
+        volume = compute_volume(geometry)
 ```
 
 Get shape descriptors from the footrpints
