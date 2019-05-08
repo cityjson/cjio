@@ -111,7 +111,7 @@ $ cjio example.json validate --folder_schemas /home/elvis/temp/myschemas/
 
 ## Example CityJSON datasets
 
-There are a few [example files on the CityJSON webpage](https://www.cityjson.org/en/0.9/datasets/).
+There are a few [example files on the CityJSON webpage](https://www.cityjson.org/datasets/).
 
 Alternatively, any [CityGML](https://www.citygml.org) file can be automatically converted to CityJSON with the open-source project [citygml-tools](https://github.com/citygml4j/citygml-tools) (based on [citygml4j](https://github.com/citygml4j/citygml4j)).
 
