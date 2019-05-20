@@ -85,36 +85,52 @@ How to work with a 3d model and its pointcloud?
 
 ### Working with semantics
 
+```json
+"boundaries": [
+    [
+      [ [[0, 3, 2, 1, 22]], [[4, 5, 6, 7]], [[0, 1, 5, 4]], [[1, 2, 6, 5]] ],
+      [ [[240, 243, 124]], [[244, 246, 724]], [[34, 414, 45]], [[111, 246, 5]] ]
+    ],
+    [
+      [ [[666, 667, 668]], [[74, 75, 76]], [[880, 881, 885]], [[111, 122, 226]] ] 
+    ]    
+  ]
+```
+
 ```python
-class Geometry:
+class Geometry(object):
     def __init__(self, co):
         self.lod = co['geometry']['lod']
         self.type = co['geometry']['type']
-        self.boundaries = self._get_boundary(co)
+        self.boundaries = list(Boundary(co))
         # also need to handle surface semantics here somewhere
         self.semantics = self._get_semantics(co)
-    
-    def _get_geometry(self, co):
-        loop through co['geometry']['boundaries'] and get the vertex coordinates
-        return geometry sf style
         
     def _get_semantics(self, co):
         """Return a set of semantic surfaces that the CityObject has"""
         return set([sem['type'] for sem in co['geometry']['semantics']['surfaces']])
 
-class SemanticSurface(Geometry):
+class SemanticSurface(object):
     def __init__(self):
         self.type = "RoofSurface"
-        self.children = list()
-        self.parent = int()
+        self.children = List[int]
+        self.parent = int
         self.attributes = dict()
-        self.boundaries = self._get_geometry() 
+        self.boundaries = Boundary() 
     
     def _get_geometry(self):
         """Get the geometry of the surface"""
         # this might duplicate the geometry, because the full geometry is already exists, dereferenced in the parent Geometry object
         extract the related parts of the CityObject geometry
 
+class Boundary(object):
+    def __init__(self,co):
+        self.vertices = list(of the veritces) # no need to duplicate these, enough to extract from the geometry
+        self.geom = self._get_geometry(co)
+        
+    def _get_geometry(self, co):
+        loop through co['geometry']['boundaries'] and dereference the geometry
+        return geometry sf style
 
 cm = cjio.load("some_model.json")
 for building in cm.get_cityobjects("building"):
@@ -127,11 +143,32 @@ for building in cm.get_cityobjects("building"):
     # or just dump all the vertices of the geometry as [(x,y,z),(x,y,z),...]
     vertices = building.get_vertices()
     
-    roofs = building.get_surface('roofsurface')
-    walls = building.get_surface('wallsurface')
-    grounds = building.get_surface('groundsurface')
+    roofs = building.get_surfaces('roofsurface')
+    walls = building.get_surfaces('wallsurface')
+    grounds = building.get_surfaces('groundsurface')
     for roof in roofs:
+        geometry = roof.geometry
+        geometry.boundaries
+        roof.type
+        roof.attributes
         children = roof.get_children()
+```
+
+```python
+cm = cjio.load("some_model.json")
+for building in cm.get_cityobjects("building"):
+    # so, what exactly does this geometry object contain? For now, we only return the Geometry object from JSON as it is. The same as cm['CityObjects'][0]['geometry']. Later we can think about converting the json to something.
+    geometry = building.get_geometry()
+    isinstance(geometry, Geometry)
+    geometry.lod
+    geometry.type
+    geometry.boundaries # I think we should return the boundaries simple feature style, verticies included. It makes it much easier to operate on it.    
+    # or just dump all the vertices of the geometry as [(x,y,z),(x,y,z),...]
+    vertices = building.get_vertices()
+    
+    geometry.semantics
+    roofs = geometry.get_surface('roofsurface')
+
 ```
 
 ## ML Features
@@ -171,6 +208,7 @@ def compute_volume(geometry):
 
 cm = cjio.load("some_model.json")
 for building in cm.get_cityobjects("building"):
+    # we need to check if the parent has geometry, but also if the child has geometry, because it is not prescribed how this should be
     geometry = building.get_geometry()
     volume_parent = compute_volume(geometry)
     
