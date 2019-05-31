@@ -35,25 +35,21 @@ class CityObject(object):
         self.geometry = geometry
 
 
-class SemanticSurface(object):
-    """SemanticSurface class
-
-    It doesn't store the coordinates as Geometry, just pointers to parts of the Geometry
-    """
-    def __init__(self, type, values, children=None, parent=None, attributes=None):
+class Geometry(object):
+    """CityJSON Geometry object"""
+    def __init__(self, type: str=None, lod: int=None,
+                 boundaries: List=None, semantics_obj: Dict=None,
+                 vertices=None):
         self.type = type
-        self.children = children
-        self.parent = parent
-        self.attributes = attributes
-        self.surface_idx = values
+        self.lod = lod
+        self.boundaries = self._dereference_boundary(type, boundaries, vertices)
+        self.surfaces = self._dereference_surfaces(semantics_obj)
 
-    @property
-    def surface_idx(self):
-        return self._surface_idx
-
-    @surface_idx.setter
-    def surface_idx(self, values):
-        self._surface_idx = self._index_surface_boundaries(values)
+    @staticmethod
+    def _vertex_mapper(boundary, vertices):
+        """Maps vertex coordinates to vertex indices"""
+        # NOTE BD: it might be ok to simply return the iterator from map()
+        return list(map(lambda x: vertices[x], boundary))
 
     @staticmethod
     def _index_surface_boundaries(values):
@@ -100,23 +96,6 @@ class SemanticSurface(object):
                         else:
                             surface_idx[idx].append([i])
             return surface_idx
-
-
-class Geometry(object):
-    """CityJSON Geometry object"""
-    def __init__(self, type: str=None, lod: int=None,
-                 boundaries: List=None, semantics_obj: Dict=None,
-                 vertices=None):
-        self.type = type
-        self.lod = lod
-        self.boundaries = self._dereference_boundary(type, boundaries, vertices)
-        self.surfaces = self._dereference_surfaces(semantics_obj)
-
-    @staticmethod
-    def _vertex_mapper(boundary, vertices):
-        """Maps vertex coordinates to vertex indices"""
-        # NOTE BD: it might be ok to simply return the iterator from map()
-        return list(map(lambda x: vertices[x], boundary))
 
     @staticmethod
     def _get_surface_boundaries(boundaries, surface_idx):
@@ -183,22 +162,21 @@ class Geometry(object):
         if not semantics_obj or not semantics_obj['values']:
             return semantic_surfaces
         else:
+            srf_idx = self._index_surface_boundaries(semantics_obj['values'])
             for i,srf in enumerate(semantics_obj['surfaces']):
                 attributes = dict()
+                semantic_surfaces[i] = {'surface_idx': srf_idx[i]}
                 for key,value in srf.items():
                     if key == 'type':
-                        type = value
+                        semantic_surfaces[i]['type'] = value
                     elif key == 'children':
-                        children = value
+                        semantic_surfaces[i]['children'] = value
                     elif key == 'parent':
-                        parent = value
+                        semantic_surfaces[i]['parent'] = value
                     else:
                         attributes[key] = value
-                # TODO B: link to geometry
-                semantic_surfaces[i] = SemanticSurface(type=type,
-                                                        children=children,
-                                                        parent=parent,
-                                                        attributes=attributes)
+                if len(attributes) > 0:
+                    semantic_surfaces[i]['attributes'] = attributes
             return semantic_surfaces
 
 

@@ -91,6 +91,28 @@ class TestGeometry:
         geom = model.Geometry(type=type, boundaries=boundary, vertices=vertices)
         assert geom.boundaries == result
 
+
+    @pytest.mark.parametrize('values, surface_idx', [
+        (
+            None,
+            dict()
+        ),
+        (
+            [None],
+            dict()
+        ),
+        (
+            [[[0, 1, 2, None], [0, 1, 2, None]], [None]],
+            {0: [[0, 0, 0],[0, 1, 0]],
+             1: [[0, 0, 1],[0, 1, 1]],
+             2: [[0, 0, 2],[0, 1, 2]]}
+        )
+    ])
+    def test_index_surface_boundaries(self, values, surface_idx):
+        res = model.Geometry._index_surface_boundaries(values)
+        assert res == surface_idx
+
+
     @pytest.mark.parametrize('surface_idx, boundaries, surfaces', [
         (
                 (),
@@ -129,46 +151,38 @@ class TestGeometry:
         res = model.Geometry._get_surface_boundaries(boundaries, surface_idx)
         assert res == surfaces
 
-
-class TestSemanticSurface:
-
-    @pytest.mark.parametrize('values, surface_idx', [
-        (
-            None,
-            dict()
-        ),
-        (
-            [None],
-            dict()
-        ),
-        (
-            [[[0, 1, 2, None], [0, 1, 2, None]], [None]],
-            {0: [[0, 0, 0],[0, 1, 0]],
-             1: [[0, 0, 1],[0, 1, 1]],
-             2: [[0, 0, 2],[0, 1, 2]]}
-        )
-    ])
-    def test_index_surface_boundaries(self, values, surface_idx):
-        res = model.SemanticSurface._index_surface_boundaries(values)
-        assert res == surface_idx
-
-    def test_dereference_surfaces(self, data_semantic):
+    def test_dereference_surfaces(self, data_semantics):
         boundary, semantics_obj = data_semantics
         geom = model.Geometry(type='CompositeSurface')
         geom.boundaries = boundary
         geom.semantics = geom._dereference_surfaces(semantics_obj)
-        result = [
-            model.SemanticSurface(
-                type='WallSurface',
-                surface_idx=[[[2],[2]]],
-                children=[2]
-            ),
-            model.SemanticSurface(
-                type='RoofSurface',
-                surface_idx=[[[1],[1]]],
-                children=[0]
-            )
-        ]
+        result = {
+            0: {
+                "type": "WallSurface",
+                "attributes": {
+                    "slope": 33.4,
+                },
+                "children": [2],
+                "parent": 1,
+                "surface_idx": [[0, 0, 2],[0, 1, 2]]
+            },
+            1: {
+                "type": "RoofSurface",
+                "attributes": {
+                    "slope": 66.6,
+                },
+                "children": [0],
+                "surface_idx": [[0, 0, 1],[0, 1, 1]]
+            },
+            2: {
+                "type": "Door",
+                "attributes": {
+                    "colour": "blue"
+                },
+                "parent": 0,
+                "surface_idx": [[0, 0, 0],[0, 1, 0]]
+            }
+        }
         assert geom.semantics == result
 
 
