@@ -87,7 +87,7 @@ class TestGeometry:
          ]
          )
     ])
-    def test_dereference_boundary(self, vertices, type, boundary, result):
+    def test_dereference_boundaries(self, vertices, type, boundary, result):
         geom = model.Geometry(type=type, boundaries=boundary, vertices=vertices)
         assert geom.boundaries == result
 
@@ -190,25 +190,76 @@ class TestGeometry:
         boundary, semantics = data_semantics
         geom = model.Geometry(type='CompositeSurface')
         geom.boundaries = boundary
-        geom.semantics = [
-            model.SemanticSurface(
-                type='WallSurface',
-                surface_idx=[[[2],[2]]],
-                children=model.SemanticSurface(
-                    type='Door',
-                    surface_idx=[[[0],[0]]]
-                )
-            ),
-            model.SemanticSurface(
-                type='RoofSurface',
-                surface_idx=[[[1],[1]]]
-            )
+        geom.surfaces = {
+            0: {
+                "type": "WallSurface",
+                "attributes": {
+                    "slope": 33.4,
+                },
+                "children": [2],
+                "parent": 1,
+                "surface_idx": [[0, 0, 2],[0, 1, 2]]
+            },
+            1: {
+                "type": "RoofSurface",
+                "attributes": {
+                    "slope": 66.6,
+                },
+                "children": [0],
+                "surface_idx": [[0, 0, 1],[0, 1, 1]]
+            },
+            2: {
+                "type": "Door",
+                "attributes": {
+                    "colour": "blue"
+                },
+                "parent": 0,
+                "surface_idx": [[0, 0, 0],[0, 1, 0]]
+            },
+            3: {
+                "type": "Door",
+                "attributes": {
+                    "colour": "red"
+                },
+                "parent": 0,
+                "surface_idx": [[0, 0, 3], [0, 1, 3]]
+            }
+        }
+        roof = list(geom.get_surfaces('roofsurface'))
+        wall = list(geom.get_surfaces('wallsurface'))
+        door = list(geom.get_surfaces('door'))
+        assert roof == [{
+            "type": "RoofSurface",
+            "attributes": {
+                "slope": 66.6,
+            },
+            "children": [0],
+            "surface_idx": [[0, 0, 1], [0, 1, 1]]
+        }]
+        assert wall == [{
+            "type": "WallSurface",
+            "attributes": {
+                "slope": 33.4,
+            },
+            "children": [2],
+            "parent": 1,
+            "surface_idx": [[0, 0, 2], [0, 1, 2]]
+        }]
+        assert door == [
+            {
+                "type": "Door",
+                "attributes": {
+                    "colour": "blue"
+                },
+                "parent": 0,
+                "surface_idx": [[0, 0, 0], [0, 1, 0]]
+            },
+            {
+                "type": "Door",
+                "attributes": {
+                    "colour": "red"
+                },
+                "parent": 0,
+                "surface_idx": [[0, 0, 3], [0, 1, 3]]
+            }
         ]
-        roof = geom.get_surfaces('roofsurface')
-        wall = geom.get_surfaces('wallsurface')
-        door = geom.get_surfaces('door')
-        assert roof == [ [[4, 5, 6, 7]], [[244, 246, 724]] ]
-        assert wall == [ [[0, 1, 5, 4]], [[34, 414, 45]] ]
-        assert door == [ [[0, 3, 2, 1, 22]], [[240, 243, 124]] ]
-
-
