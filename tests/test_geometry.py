@@ -135,15 +135,17 @@ class TestSemanticSurface:
     @pytest.mark.parametrize('values, surface_idx', [
         (
             None,
-            []
+            dict()
         ),
         (
             [None],
-            []
+            dict()
         ),
         (
             [[[0, 1, 2, None], [0, 1, 2, None]], [None]],
-            [[0, 0, 0], [0, 0, 1], [0, 0, 2], [0, 1, 0], [0, 1, 1], [0, 1, 2]]
+            {0: [[0, 0, 0],[0, 1, 0]],
+             1: [[0, 0, 1],[0, 1, 1]],
+             2: [[0, 0, 2],[0, 1, 2]]}
         )
     ])
     def test_index_surface_boundaries(self, values, surface_idx):

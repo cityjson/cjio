@@ -40,29 +40,38 @@ class SemanticSurface(object):
 
     It doesn't store the coordinates as Geometry, just pointers to parts of the Geometry
     """
-    def __init__(self, type, boundaries, children=None, parent=None, attributes=None):
+    def __init__(self, type, values, children=None, parent=None, attributes=None):
         self.type = type
         self.children = children
         self.parent = parent
         self.attributes = attributes
-        self.surface_idx = boundaries
+        self.surface_idx = values
+
+    @property
+    def surface_idx(self):
+        return self._surface_idx
+
+    @surface_idx.setter
+    def surface_idx(self, values):
+        self._surface_idx = self._index_surface_boundaries(values)
 
     @staticmethod
     def _index_surface_boundaries(values):
         """Create an index of the Surfaces which have semantic value in a Geometry boundary
 
-        It returns a list of indicies to the Surfaces in a boundary that have semantics. The
-        idea is that by using the index, the geometry of the Surface can be retrieved from
+        It creates a lookup table for the indicies to the Surfaces in a boundary that have semantics.
+        The key of the lookup table are the indices of the SemanticSurface objects in the Geometry.surfaces array.
+        The idea is that by using the index, the geometry of the Surface can be retrieved from
         the boundary in O(1) time, instead of looping through the 'semantics.values' and
         'boundaries' each time the geometry of a semantic surface needs to be retrieved.
 
         .. note:: Only works with MultiSurface or more complex boundaries
 
         :param values: The array of values from a Geometry Object's `semantics` member
-        :return: A list of indices to the surfaces in a boundary.
+        :return: A dict of indices to the surfaces in a boundary.
         """
         # TODO BD optimize: Again, here recursion seems to be like a nice alternative
-        surface_idx = list()
+        surface_idx = dict()
         if not values or len(values) == 0:
             return surface_idx
         else:
@@ -76,11 +85,20 @@ class SemanticSurface(object):
                                         if isinstance(kdx, list):
                                             raise TypeError("The 'values' member of 'semantics' is too many levels deep")
                                         if kdx is not None:
-                                            surface_idx.append([i] + [j] + [k])
+                                            if kdx not in surface_idx.keys():
+                                                surface_idx[kdx] = [[i,j,k]]
+                                            else:
+                                                surface_idx[kdx].append([i,j,k])
                                 else:
-                                    surface_idx.append([i] + [j])
+                                    if jdx not in surface_idx.keys():
+                                        surface_idx[jdx] = [[i,j]]
+                                    else:
+                                        surface_idx[jdx].append([i,j])
                     else:
-                        surface_idx.append([i])
+                        if idx not in surface_idx.keys():
+                            surface_idx[idx] = [[i]]
+                        else:
+                            surface_idx[idx].append([i])
             return surface_idx
 
 
