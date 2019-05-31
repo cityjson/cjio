@@ -47,6 +47,42 @@ class SemanticSurface(object):
         self.attributes = attributes
         self.surface_idx = boundaries
 
+    @staticmethod
+    def _index_surface_boundaries(values):
+        """Create an index of the Surfaces which have semantic value in a Geometry boundary
+
+        It returns a list of indicies to the Surfaces in a boundary that have semantics. The
+        idea is that by using the index, the geometry of the Surface can be retrieved from
+        the boundary in O(1) time, instead of looping through the 'semantics.values' and
+        'boundaries' each time the geometry of a semantic surface needs to be retrieved.
+
+        .. note:: Only works with MultiSurface or more complex boundaries
+
+        :param values: The array of values from a Geometry Object's `semantics` member
+        :return: A list of indices to the surfaces in a boundary.
+        """
+        # TODO BD optimize: Again, here recursion seems to be like a nice alternative
+        surface_idx = list()
+        if not values or len(values) == 0:
+            return surface_idx
+        else:
+            for i, idx in enumerate(values):
+                if idx is not None:
+                    if isinstance(idx, list):
+                        for j, jdx in enumerate(idx):
+                            if jdx is not None:
+                                if isinstance(jdx, list):
+                                    for k, kdx in enumerate(jdx):
+                                        if isinstance(kdx, list):
+                                            raise TypeError("The 'values' member of 'semantics' is too many levels deep")
+                                        if kdx is not None:
+                                            surface_idx.append([i] + [j] + [k])
+                                else:
+                                    surface_idx.append([i] + [j])
+                    else:
+                        surface_idx.append([i])
+            return surface_idx
+
 
 class Geometry(object):
     """CityJSON Geometry object"""
@@ -88,7 +124,7 @@ class Geometry(object):
 
     def _dereference_boundary(self, btype, boundary, vertices):
         """Replace vertex indices with vertex coordinates in the geomery boundary"""
-        # TODO BD: would be much faster with recursion
+        # TODO BD optimize: would be much faster with recursion
         if not boundary:
             return list()
         if btype.lower() == 'multipoint':

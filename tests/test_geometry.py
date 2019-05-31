@@ -131,6 +131,25 @@ class TestGeometry:
 
 
 class TestSemanticSurface:
+
+    @pytest.mark.parametrize('values, surface_idx', [
+        (
+            None,
+            []
+        ),
+        (
+            [None],
+            []
+        ),
+        (
+            [[[0, 1, 2, None], [0, 1, 2, None]], [None]],
+            [[0, 0, 0], [0, 0, 1], [0, 0, 2], [0, 1, 0], [0, 1, 1], [0, 1, 2]]
+        )
+    ])
+    def test_index_surface_boundaries(self, values, surface_idx):
+        res = model.SemanticSurface._index_surface_boundaries(values)
+        assert res == surface_idx
+
     def test_dereference_surfaces(self, data_semantic):
         boundary, semantics_obj = data_semantics
         geom = model.Geometry(type='CompositeSurface')
