@@ -18,7 +18,7 @@ def data_geometry():
     ]
     
     geometry = [{
-        'type': 'CompositeSurface',
+        'type': 'CompositeSolid',
         'lod': 2,
         'boundaries': [
             [
@@ -103,6 +103,16 @@ class TestGeometry:
         vertices = data_geometry[1]
         geom = models.Geometry(type=type, boundaries=boundary, vertices=vertices)
         assert geom.boundaries == result
+
+
+    def test_dereference_boundaries_wrong_type(self, data_geometry):
+        geometry, vertices = data_geometry
+        geometry[0]['type'] = 'CompositeSurface'
+        with pytest.raises(TypeError) as e:
+            models.Geometry(type=geometry[0]['type'],
+                            boundaries=geometry[0]['boundaries'],
+                            vertices=vertices)
+            assert e == "Boundary definition does not correspond to MultiSurface or CompositeSurface"
 
 
     @pytest.mark.parametrize('values, surface_idx', [
@@ -283,5 +293,11 @@ class TestGeometryIntegration:
 
     These tests mainly meant to mimic user workflow and test concepts
     """
-    def test_semantic_surface_boundaries(self):
+    def test_semantic_surface_boundaries(self, data_geometry):
         """Test how is it to get the boundaries of semantic surfaces"""
+        geometry, vertices = data_geometry
+        geom = models.Geometry(type=geometry[0]['type'],
+                               lod=geometry[0]['lod'],
+                               boundaries=geometry[0]['boundaries'],
+                               semantics_obj=geometry[0]['semantics'],
+                               vertices=vertices)

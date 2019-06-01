@@ -46,12 +46,6 @@ class Geometry(object):
         self.surfaces = self._dereference_surfaces(semantics_obj)
 
     @staticmethod
-    def _vertex_mapper(boundary, vertices):
-        """Maps vertex coordinates to vertex indices"""
-        # NOTE BD: it might be ok to simply return the iterator from map()
-        return list(map(lambda x: vertices[x], boundary))
-
-    @staticmethod
     def _index_surface_boundaries(values):
         """Create an index of the Surfaces which have semantic value in a Geometry boundary
 
@@ -119,6 +113,12 @@ class Geometry(object):
                     else boundaries[i[0]][i[1]][i[2]]
                     for i in surface_idx]
 
+    @staticmethod
+    def _vertex_mapper(boundary, vertices):
+        """Maps vertex coordinates to vertex indices"""
+        # NOTE BD: it might be ok to simply return the iterator from map()
+        return list(map(lambda x: vertices[x], boundary))
+
     def _dereference_boundaries(self, btype, boundaries, vertices):
         """Replace vertex indices with vertex coordinates in the geomery boundary
         :param btype: Boundary type
@@ -130,16 +130,24 @@ class Geometry(object):
         if not boundaries:
             return list()
         if btype.lower() == 'multipoint':
+            if not isinstance(boundaries[0], int):
+                raise TypeError("Boundary definition does not correspond to MultiPoint")
             return self._vertex_mapper(boundaries, vertices)
         elif btype.lower() == 'multilinestring':
+            if not isinstance(boundaries[0][0], int):
+                raise TypeError("Boundary definition does not correspond to MultiPoint")
             return [self._vertex_mapper(b, vertices) for b in boundaries]
         elif btype.lower() == 'multisurface' or btype.lower() == 'compositesurface':
             s = list()
+            if not isinstance(boundaries[0][0][0], int):
+                raise TypeError("Boundary definition does not correspond to MultiSurface or CompositeSurface")
             for surface in boundaries:
                 s.append([self._vertex_mapper(b, vertices) for b in surface])
             return s
         elif btype.lower() == 'solid':
             sh = list()
+            if not isinstance(boundaries[0][0][0][0], int):
+                raise TypeError("Boundary definition does not correspond to Solid")
             for shell in boundaries:
                 s = list()
                 for surface in shell:
@@ -148,6 +156,8 @@ class Geometry(object):
             return sh
         elif btype.lower() == 'multisolid' or btype.lower() == 'compositesolid':
             solids = list()
+            if not isinstance(boundaries[0][0][0][0][0], int):
+                raise TypeError("Boundary definition does not correspond to MultiSolid or CompositeSolid")
             for solid in boundaries:
                 sh = list()
                 for shell in solid:
@@ -157,6 +167,8 @@ class Geometry(object):
                     sh.append(s)
                 solids.append(sh)
             return solids
+        else:
+            raise TypeError("Unknown geometry type: {}".format(btype))
 
 
     def _dereference_surfaces(self, semantics_obj):
