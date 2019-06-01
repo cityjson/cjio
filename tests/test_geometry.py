@@ -342,6 +342,39 @@ class TestGeometryIntegration:
                                boundaries=geometry[0]['boundaries'],
                                semantics_obj=geometry[0]['semantics'],
                                vertices=vertices)
-        roofsurfaces = list(geom.get_surfaces('roofsurface'))
+        roofsurfaces = geom.get_surfaces('roofsurface')
+        for i, rsrf in roofsurfaces.items():
+            if 'attributes' in rsrf.keys():
+                rsrf['attributes']['colour'] = 'red'
+            else:
+                rsrf['attributes'] = {}
+                rsrf['attributes']['colour'] = 'red'
+            # overwrite the surface directly in the Geometry object
+            geom.surfaces[i] = rsrf
+        roofsurfaces_new = geom.get_surfaces('roofsurface')
+        for i,rsrf in roofsurfaces_new.items():
+            assert rsrf['attributes']['colour'] == 'red'
+
+
+    def test_create_new_semantics(self, data_geometry):
+        """Test how to set attributes on semantic surfaces"""
+        geometry, vertices = data_geometry
+        geom = models.Geometry(type=geometry[0]['type'],
+                               lod=geometry[0]['lod'],
+                               boundaries=geometry[0]['boundaries'],
+                               semantics_obj=geometry[0]['semantics'],
+                               vertices=vertices)
+        roofsurfaces = geom.get_surfaces('roofsurface')
         rsrf_bndry = [geom.get_surface_boundaries(rsrf['surface_idx'])
-                      for rsrf in roofsurfaces]
+                      for i,rsrf in roofsurfaces.items()]
+        for i,rsrf in roofsurfaces.items():
+            bndry = geom.get_surface_boundaries(rsrf['surface_idx'])
+            for b in bndry:
+                for multisurface in b:
+                    # Do any geometry operation here
+                    x,y,z = multisurface[0][0]
+                    # if x < 2.0:
+
+
+
+

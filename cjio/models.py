@@ -202,11 +202,11 @@ class Geometry(object):
         or the surface type is not provided.
         :param type: Semantic Surface type. If not provided, the whole boundary is returned.
         :param lod: Level of Detail
-        :return: Return a generator over the specific surfaces of the geometry
+        :return: Return a subset of the specific surfaces of the geometry
         """
         if (type is None) or (lod and lod < 2.0) or len(self.surfaces) == 0:
             return self.boundaries
         else:
-            return (srf for i,srf in self.surfaces.items() if srf['type'].lower() == type.lower())
+            return {i:srf for i,srf in self.surfaces.items() if srf['type'].lower() == type.lower()}
 
 
