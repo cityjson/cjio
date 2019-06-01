@@ -98,7 +98,7 @@ class Geometry(object):
             return surface_idx
 
     @staticmethod
-    def _get_surface_boundaries(boundaries, surface_idx):
+    def get_surface_boundaries(boundaries, surface_idx):
         """Get the surface at the index location from the Geometry boundary
 
         .. note: Interior surfaces don't have semantics and they are returned with the
