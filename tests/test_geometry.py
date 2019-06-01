@@ -294,6 +294,13 @@ class TestGeometry:
             }
         ]
 
+    def test_get_surface_children(self, data_geometry):
+        # TODO BD: get surface children
+        pytest.xfail("not implemented")
+
+    def test_get_surface_parent(self, data_geometry):
+        # TODO BD: get surface parent
+        pytest.xfail("not implemented")
 
 class TestGeometryIntegration:
     """Integration tests for operations on Geometry objects
@@ -355,9 +362,8 @@ class TestGeometryIntegration:
         for i,rsrf in roofsurfaces_new.items():
             assert rsrf['attributes']['colour'] == 'red'
 
-
-    def test_create_new_semantics(self, data_geometry):
-        """Test how to set attributes on semantic surfaces"""
+    def test_split_semantics(self, data_geometry):
+        """Test how to split surfaces by creating new semantics"""
         geometry, vertices = data_geometry
         geom = models.Geometry(type=geometry[0]['type'],
                                lod=geometry[0]['lod'],
@@ -365,15 +371,49 @@ class TestGeometryIntegration:
                                semantics_obj=geometry[0]['semantics'],
                                vertices=vertices)
         roofsurfaces = geom.get_surfaces('roofsurface')
-        rsrf_bndry = [geom.get_surface_boundaries(rsrf['surface_idx'])
-                      for i,rsrf in roofsurfaces.items()]
+        max_id = max(geom.surfaces.keys()) # surface keys are always integers
+        old_ids = []
         for i,rsrf in roofsurfaces.items():
-            bndry = geom.get_surface_boundaries(rsrf['surface_idx'])
-            for b in bndry:
-                for multisurface in b:
+            old_ids.append(i)
+            boundaries = geom.get_surface_boundaries(rsrf['surface_idx'])
+            for i,boundary_geometry in enumerate(boundaries):
+                surface_index = rsrf['surface_idx'][i]
+                for multisurface in boundary_geometry:
                     # Do any geometry operation here
-                    x,y,z = multisurface[0][0]
-                    # if x < 2.0:
+                    x,y,z = multisurface[0]
+                    if x < 2.0:
+                        new_srf = {
+                            'type': rsrf['type'],
+                            'children': rsrf['children'], # it should be checked if surface has children
+                            'surface_idx': surface_index
+                        }
+                        if 'attributes' in rsrf.keys():
+                            rsrf['attributes']['orientation'] = 'north'
+                        else:
+                            rsrf['attributes'] = {}
+                            rsrf['attributes']['orientation'] = 'north'
+                        new_srf['attributes'] = rsrf['attributes']
+                    else:
+                        new_srf = {
+                            'type': rsrf['type'],
+                            'children': rsrf['children'],
+                            'surface_idx': surface_index
+                        }
+                        if 'attributes' in rsrf.keys():
+                            rsrf['attributes']['orientation'] = 'south'
+                        else:
+                            rsrf['attributes'] = {}
+                            rsrf['attributes']['orientation'] = 'south'
+                        new_srf['attributes'] = rsrf['attributes']
+                    if i in geom.surfaces.keys():
+                        del geom.surfaces[i]
+                    max_id = max_id + 1
+                    geom.surfaces[max_id] = new_srf
+
+        roofsurfaces_new = geom.get_surfaces('roofsurface')
+        for i,rsrf in roofsurfaces_new.items():
+            assert i not in old_ids
+            assert 'orientation' in rsrf['attributes'].keys()
 
 
 
