@@ -50,10 +50,15 @@ def data_geometry():
                     'type': 'Door',
                     'parent': 0,
                     'colour': 'blue'
+                },
+                {
+                    'type': 'Door',
+                    'parent': 0,
+                    'colour': 'blue'
                 }
             ],
             'values': [
-                [[2, 1, 0, None], [2, 1, 0, None]],
+                [[2, 1, 0, 3], [2, 1, 0, 3]],
                 [None]
             ]
         }
@@ -171,7 +176,9 @@ class TestGeometry:
         )
     ])
     def test_get_surface_boundaries(self, boundaries, surface_idx, surfaces):
-        res = models.Geometry.get_surface_boundaries(boundaries, surface_idx)
+        geom = models.Geometry()
+        geom.boundaries = boundaries
+        res = geom.get_surface_boundaries(surface_idx)
         assert res == surfaces
 
     def test_dereference_surfaces(self, data_geometry):
@@ -293,11 +300,48 @@ class TestGeometryIntegration:
 
     These tests mainly meant to mimic user workflow and test concepts
     """
-    def test_semantic_surface_boundaries(self, data_geometry):
-        """Test how is it to get the boundaries of semantic surfaces"""
+    def test_get_surface_boundaries(self, data_geometry):
+        """Test how to get the boundaries (geometry) of semantic surfaces"""
         geometry, vertices = data_geometry
         geom = models.Geometry(type=geometry[0]['type'],
                                lod=geometry[0]['lod'],
                                boundaries=geometry[0]['boundaries'],
                                semantics_obj=geometry[0]['semantics'],
                                vertices=vertices)
+        roofsurfaces = geom.get_surfaces('roofsurface')
+        rsrf_bndry = [geom.get_surface_boundaries(rsrf['surface_idx'])
+                      for rsrf in roofsurfaces]
+        roof_geom = [
+            [
+                [[(1.0, 1.0, 0.0), (1.0, 1.0, 0.0), (1.0, 1.0, 0.0), (1.0, 1.0, 0.0)]],
+                [[(3.0, 1.0, 0.0), (3.0, 1.0, 0.0), (3.0, 1.0, 0.0), (3.0, 1.0, 0.0)]]
+            ]
+        ]
+        assert rsrf_bndry == roof_geom
+
+        doorsurfaces = geom.get_surfaces('door')
+        dsrf_bndry = [geom.get_surface_boundaries(dsrf['surface_idx'])
+                      for dsrf in doorsurfaces]
+        door_geom = [
+            [
+                [[(0.0, 1.0, 0.0), (0.0, 1.0, 0.0), (0.0, 1.0, 0.0), (0.0, 1.0, 0.0), (0.0, 1.0, 0.0)]],
+                [[(2.0, 1.0, 0.0), (2.0, 1.0, 0.0), (2.0, 1.0, 0.0), (2.0, 1.0, 0.0)]]
+            ],
+            [
+                [[(3.0, 1.0, 0.0), (3.0, 1.0, 0.0), (3.0, 1.0, 0.0), (3.0, 1.0, 0.0)]],
+                [[(5.0, 1.0, 0.0), (5.0, 1.0, 0.0), (5.0, 1.0, 0.0), (5.0, 1.0, 0.0)]]
+            ]
+        ]
+        assert dsrf_bndry == door_geom
+
+    def test_set_surface_attributes(self, data_geometry):
+        """Test how to set attributes on semantic surfaces"""
+        geometry, vertices = data_geometry
+        geom = models.Geometry(type=geometry[0]['type'],
+                               lod=geometry[0]['lod'],
+                               boundaries=geometry[0]['boundaries'],
+                               semantics_obj=geometry[0]['semantics'],
+                               vertices=vertices)
+        roofsurfaces = list(geom.get_surfaces('roofsurface'))
+        rsrf_bndry = [geom.get_surface_boundaries(rsrf['surface_idx'])
+                      for rsrf in roofsurfaces]

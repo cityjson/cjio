@@ -91,8 +91,7 @@ class Geometry(object):
                             surface_idx[idx].append([i])
             return surface_idx
 
-    @staticmethod
-    def get_surface_boundaries(boundaries, surface_idx):
+    def get_surface_boundaries(self, surface_idx):
         """Get the surface at the index location from the Geometry boundary
 
         .. note: Interior surfaces don't have semantics and they are returned with the
@@ -108,9 +107,9 @@ class Geometry(object):
         if not surface_idx or len(surface_idx) == 0:
             return []
         else:
-            return [boundaries[i[0]] if len(i) == 1
-                    else boundaries[i[0]][i[1]] if len(i) == 2
-                    else boundaries[i[0]][i[1]][i[2]]
+            return [self.boundaries[i[0]] if len(i) == 1
+                    else self.boundaries[i[0]][i[1]] if len(i) == 2
+                    else self.boundaries[i[0]][i[1]][i[2]]
                     for i in surface_idx]
 
     @staticmethod
@@ -198,12 +197,14 @@ class Geometry(object):
 
 
     def get_surfaces(self, type=None, lod=None):
-        """Return a generator over the specific surfaces of the geometry
-
-        If the surface type is not provided, or semantic surfaces are not present (eg. LoD1), then the whole boundary
-        is returned.
+        """Get the semantic surfaces of the given type
+        The whole boundary is returned if a geometry does not have semantics, or has a LoD < 2,
+        or the surface type is not provided.
+        :param type: Semantic Surface type. If not provided, the whole boundary is returned.
+        :param lod: Level of Detail
+        :return: Return a generator over the specific surfaces of the geometry
         """
-        if type is None or (lod and lod < 2.0):
+        if (type is None) or (lod and lod < 2.0) or len(self.surfaces) == 0:
             return self.boundaries
         else:
             return (srf for i,srf in self.surfaces.items() if srf['type'].lower() == type.lower())
