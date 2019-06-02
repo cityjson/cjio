@@ -38,7 +38,7 @@ def data_geometry():
                 {
                     'type': 'WallSurface',
                     'slope': 33.4,
-                    'children': [2],
+                    'children': [2,3],
                     'parent': 1
                 },
                 {
@@ -54,7 +54,7 @@ def data_geometry():
                 {
                     'type': 'Door',
                     'parent': 0,
-                    'colour': 'blue'
+                    'colour': 'red'
                 }
             ],
             'values': [
@@ -260,64 +260,29 @@ class TestGeometry:
         geometry, vertices = data_geometry
         geom = models.Geometry(type='CompositeSolid')
         geom.boundaries = geometry[0]['boundaries']
-        # geom.surfaces = {
-        #     0: {
-        #         'type': 'WallSurface',
-        #         'attributes': {
-        #             'slope': 33.4,
-        #         },
-        #         'children': [2],
-        #         'parent': 1,
-        #         'surface_idx': [[0, 0, 2],[0, 1, 2]]
-        #     },
-        #     1: {
-        #         'type': 'RoofSurface',
-        #         'attributes': {
-        #             'slope': 66.6,
-        #         },
-        #         'children': [0],
-        #         'surface_idx': [[0, 0, 1],[0, 1, 1]]
-        #     },
-        #     2: {
-        #         'type': 'Door',
-        #         'attributes': {
-        #             'colour': 'blue'
-        #         },
-        #         'parent': 0,
-        #         'surface_idx': [[0, 0, 0],[0, 1, 0]]
-        #     },
-        #     3: {
-        #         'type': 'Door',
-        #         'attributes': {
-        #             'colour': 'red'
-        #         },
-        #         'parent': 0,
-        #         'surface_idx': [[0, 0, 3], [0, 1, 3]]
-        #     }
-        # }
         geom.surfaces = surfaces
-        roof = list(geom.get_surfaces('roofsurface'))
-        wall = list(geom.get_surfaces('wallsurface'))
-        door = list(geom.get_surfaces('door'))
-        assert roof == [{
+        roof = geom.get_surfaces('roofsurface')
+        wall = geom.get_surfaces('wallsurface')
+        door = geom.get_surfaces('door')
+        assert roof == {1: {
             'type': 'RoofSurface',
             'attributes': {
                 'slope': 66.6,
             },
             'children': [0],
             'surface_idx': [[0, 0, 1], [0, 1, 1]]
-        }]
-        assert wall == [{
+        }}
+        assert wall == {0: {
             'type': 'WallSurface',
             'attributes': {
                 'slope': 33.4,
             },
-            'children': [2],
+            'children': [2,3],
             'parent': 1,
             'surface_idx': [[0, 0, 2], [0, 1, 2]]
-        }]
-        assert door == [
-            {
+        }}
+        assert door == {
+            2: {
                 'type': 'Door',
                 'attributes': {
                     'colour': 'blue'
@@ -325,7 +290,7 @@ class TestGeometry:
                 'parent': 0,
                 'surface_idx': [[0, 0, 0], [0, 1, 0]]
             },
-            {
+            3: {
                 'type': 'Door',
                 'attributes': {
                     'colour': 'red'
@@ -333,7 +298,7 @@ class TestGeometry:
                 'parent': 0,
                 'surface_idx': [[0, 0, 3], [0, 1, 3]]
             }
-        ]
+        }
 
     def test_get_surface_children(self, surfaces):
         geom = models.Geometry(type='CompositeSolid')
@@ -372,9 +337,36 @@ class TestGeometry:
             children = {j:geom.surfaces[j] for j in surface['children']}
         assert children == res
 
-    def test_get_surface_parent(self, data_geometry):
-        # TODO BD: get surface parent
-        pytest.xfail("not implemented")
+    def test_get_surface_parent(self, surfaces):
+        geom = models.Geometry(type='CompositeSolid')
+        geom.surfaces = surfaces
+        door = {
+            2: {
+            'type': 'Door',
+            'attributes': {
+                'colour': 'blue'
+            },
+            'parent': 0,
+            'surface_idx': [[0, 0, 0], [0, 1, 0]]
+            },
+        }
+        res = {
+            0: {
+                'type': 'WallSurface',
+                'attributes': {
+                    'slope': 33.4,
+                },
+                'children': [2, 3],
+                'parent': 1,
+                'surface_idx': [[0, 0, 2], [0, 1, 2]]
+            }
+        }
+        surface = door[2]
+        if 'parent' in surface:
+            i = surface['parent']
+            parent = {i: geom.surfaces[i]}
+        assert parent == res
+
 
 class TestGeometryIntegration:
     """Integration tests for operations on Geometry objects
@@ -391,7 +383,7 @@ class TestGeometryIntegration:
                                vertices=vertices)
         roofsurfaces = geom.get_surfaces('roofsurface')
         rsrf_bndry = [geom.get_surface_boundaries(rsrf['surface_idx'])
-                      for rsrf in roofsurfaces]
+                      for i,rsrf in roofsurfaces.items()]
         roof_geom = [
             [
                 [[(1.0, 1.0, 0.0), (1.0, 1.0, 0.0), (1.0, 1.0, 0.0), (1.0, 1.0, 0.0)]],
@@ -402,7 +394,7 @@ class TestGeometryIntegration:
 
         doorsurfaces = geom.get_surfaces('door')
         dsrf_bndry = [geom.get_surface_boundaries(dsrf['surface_idx'])
-                      for dsrf in doorsurfaces]
+                      for i,dsrf in doorsurfaces.items()]
         door_geom = [
             [
                 [[(0.0, 1.0, 0.0), (0.0, 1.0, 0.0), (0.0, 1.0, 0.0), (0.0, 1.0, 0.0), (0.0, 1.0, 0.0)]],
