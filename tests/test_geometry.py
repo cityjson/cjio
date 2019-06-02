@@ -67,6 +67,46 @@ def data_geometry():
     yield (geometry, vertices)
 
 
+@pytest.fixture(scope='module')
+def surfaces():
+    srf = {
+        0: {
+            'type': 'WallSurface',
+            'attributes': {
+                'slope': 33.4,
+            },
+            'children': [2,3],
+            'parent': 1,
+            'surface_idx': [[0, 0, 2], [0, 1, 2]]
+        },
+        1: {
+            'type': 'RoofSurface',
+            'attributes': {
+                'slope': 66.6,
+            },
+            'children': [0],
+            'surface_idx': [[0, 0, 1], [0, 1, 1]]
+        },
+        2: {
+            'type': 'Door',
+            'attributes': {
+                'colour': 'blue'
+            },
+            'parent': 0,
+            'surface_idx': [[0, 0, 0], [0, 1, 0]]
+        },
+        3: {
+            'type': 'Door',
+            'attributes': {
+                'colour': 'red'
+            },
+            'parent': 0,
+            'surface_idx': [[0, 0, 3], [0, 1, 3]]
+        }
+    }
+    yield srf
+
+
 class TestGeometry:
     @pytest.mark.parametrize('type, boundary, result', [
         ('multipoint', [], []),
@@ -181,11 +221,11 @@ class TestGeometry:
         res = geom.get_surface_boundaries(surface_idx)
         assert res == surfaces
 
-    def test_dereference_surfaces(self, data_geometry):
+    def test_dereference_surfaces(self, data_geometry, surfaces):
         geometry, vertices = data_geometry
-        geom = models.Geometry(type='CompositeSurface')
+        geom = models.Geometry(type='CompositeSolid')
         geom.boundaries = geometry[0]['boundaries']
-        geom.semantics = geom._dereference_surfaces(geometry[0]['semantics'])
+        geom.surfaces = geom._dereference_surfaces(geometry[0]['semantics'])
         result = {
             0: {
                 'type': 'WallSurface',
@@ -213,48 +253,49 @@ class TestGeometry:
                 'surface_idx': [[0, 0, 0],[0, 1, 0]]
             }
         }
-        assert geom.semantics == result
+        assert geom.surfaces == surfaces
 
 
-    def test_get_surfaces(self, data_geometry):
+    def test_get_surfaces(self, data_geometry, surfaces):
         geometry, vertices = data_geometry
-        geom = models.Geometry(type='CompositeSurface')
+        geom = models.Geometry(type='CompositeSolid')
         geom.boundaries = geometry[0]['boundaries']
-        geom.surfaces = {
-            0: {
-                'type': 'WallSurface',
-                'attributes': {
-                    'slope': 33.4,
-                },
-                'children': [2],
-                'parent': 1,
-                'surface_idx': [[0, 0, 2],[0, 1, 2]]
-            },
-            1: {
-                'type': 'RoofSurface',
-                'attributes': {
-                    'slope': 66.6,
-                },
-                'children': [0],
-                'surface_idx': [[0, 0, 1],[0, 1, 1]]
-            },
-            2: {
-                'type': 'Door',
-                'attributes': {
-                    'colour': 'blue'
-                },
-                'parent': 0,
-                'surface_idx': [[0, 0, 0],[0, 1, 0]]
-            },
-            3: {
-                'type': 'Door',
-                'attributes': {
-                    'colour': 'red'
-                },
-                'parent': 0,
-                'surface_idx': [[0, 0, 3], [0, 1, 3]]
-            }
-        }
+        # geom.surfaces = {
+        #     0: {
+        #         'type': 'WallSurface',
+        #         'attributes': {
+        #             'slope': 33.4,
+        #         },
+        #         'children': [2],
+        #         'parent': 1,
+        #         'surface_idx': [[0, 0, 2],[0, 1, 2]]
+        #     },
+        #     1: {
+        #         'type': 'RoofSurface',
+        #         'attributes': {
+        #             'slope': 66.6,
+        #         },
+        #         'children': [0],
+        #         'surface_idx': [[0, 0, 1],[0, 1, 1]]
+        #     },
+        #     2: {
+        #         'type': 'Door',
+        #         'attributes': {
+        #             'colour': 'blue'
+        #         },
+        #         'parent': 0,
+        #         'surface_idx': [[0, 0, 0],[0, 1, 0]]
+        #     },
+        #     3: {
+        #         'type': 'Door',
+        #         'attributes': {
+        #             'colour': 'red'
+        #         },
+        #         'parent': 0,
+        #         'surface_idx': [[0, 0, 3], [0, 1, 3]]
+        #     }
+        # }
+        geom.surfaces = surfaces
         roof = list(geom.get_surfaces('roofsurface'))
         wall = list(geom.get_surfaces('wallsurface'))
         door = list(geom.get_surfaces('door'))
@@ -294,9 +335,42 @@ class TestGeometry:
             }
         ]
 
-    def test_get_surface_children(self, data_geometry):
-        # TODO BD: get surface children
-        pytest.xfail("not implemented")
+    def test_get_surface_children(self, surfaces):
+        geom = models.Geometry(type='CompositeSolid')
+        geom.surfaces = surfaces
+        res = {
+            2: {
+            'type': 'Door',
+            'attributes': {
+                'colour': 'blue'
+            },
+            'parent': 0,
+            'surface_idx': [[0, 0, 0], [0, 1, 0]]
+            },
+            3: {
+                'type': 'Door',
+                'attributes': {
+                    'colour': 'red'
+                },
+                'parent': 0,
+                'surface_idx': [[0, 0, 3], [0, 1, 3]]
+            }
+        }
+        wall = {
+            0: {
+                'type': 'WallSurface',
+                'attributes': {
+                    'slope': 33.4,
+                },
+                'children': [2, 3],
+                'parent': 1,
+                'surface_idx': [[0, 0, 2], [0, 1, 2]]
+            }
+        }
+        surface = wall[0]
+        if 'children' in surface:
+            children = {j:geom.surfaces[j] for j in surface['children']}
+        assert children == res
 
     def test_get_surface_parent(self, data_geometry):
         # TODO BD: get surface parent
