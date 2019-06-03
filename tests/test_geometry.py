@@ -226,33 +226,6 @@ class TestGeometry:
         geom = models.Geometry(type='CompositeSolid')
         geom.boundaries = geometry[0]['boundaries']
         geom.surfaces = geom._dereference_surfaces(geometry[0]['semantics'])
-        result = {
-            0: {
-                'type': 'WallSurface',
-                'attributes': {
-                    'slope': 33.4,
-                },
-                'children': [2],
-                'parent': 1,
-                'surface_idx': [[0, 0, 2],[0, 1, 2]]
-            },
-            1: {
-                'type': 'RoofSurface',
-                'attributes': {
-                    'slope': 66.6,
-                },
-                'children': [0],
-                'surface_idx': [[0, 0, 1],[0, 1, 1]]
-            },
-            2: {
-                'type': 'Door',
-                'attributes': {
-                    'colour': 'blue'
-                },
-                'parent': 0,
-                'surface_idx': [[0, 0, 0],[0, 1, 0]]
-            }
-        }
         assert geom.surfaces == surfaces
 
 
@@ -335,7 +308,9 @@ class TestGeometry:
         surface = wall[0]
         if 'children' in surface:
             children = {j:geom.surfaces[j] for j in surface['children']}
-        assert children == res
+            assert children == res
+        else:
+            pytest.xfail("surface does not have children")
 
     def test_get_surface_parent(self, surfaces):
         geom = models.Geometry(type='CompositeSolid')
@@ -365,7 +340,9 @@ class TestGeometry:
         if 'parent' in surface:
             i = surface['parent']
             parent = {i: geom.surfaces[i]}
-        assert parent == res
+            assert parent == res
+        else:
+            pytest.xfail("surface does not have parent")
 
 
 class TestGeometryIntegration:

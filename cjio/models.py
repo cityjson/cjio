@@ -29,10 +29,11 @@ class CityModel(object):
 
 class CityObject(object):
     """CityObject class"""
-    def __init__(self, id, type, geometry):
+    def __init__(self, id, type=None, geometry=None, attributes=None):
         self.id = id
         self.type = type
         self.geometry = geometry
+        self.attributes = attributes
 
 
 class Geometry(object):
