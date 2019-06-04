@@ -22,10 +22,7 @@ try:
 except ImportError as e:
     MODULE_EARCUT_AVAILABLE = False
 
-from cjio import validation
-from cjio import subset
-from cjio import geom_help
-from cjio import convert
+from cjio import validation, subset, geom_help, convert, models
 from cjio.errors import InvalidOperation
 from cjio.utils import print_cmd_warning
 
@@ -47,6 +44,43 @@ TOPLEVEL = ('Building',
             'Tunnel',
             'WaterBody')
 
+def load(path):
+    """Load a CityJSON file for working with it though the API
+    :param path: Absolute path to a CityJSON file
+    :return: A CityJSON object
+    """
+    with open(path, 'r') as fin:
+        try:
+            cm = CityJSON(file=fin)
+        except OSError as e:
+            raise FileNotFoundError
+    cm.cityobjects = dict()
+    for co_id, co in cm.j['CityObjects'].items():
+        # TODO BD: do some verification here
+        children = co['children'] if 'children' in co else None
+        parents = co['parents'] if 'parents' in co else None
+        attributes = co['attributes'] if 'attributes' in co else None
+        geometry = []
+        for geom in co['geometry']:
+            semantics = geom['semantics'] if 'semantics' in geom else None
+            geometry.append(
+                models.Geometry(
+                    type=geom['type'],
+                    lod=geom['lod'],
+                    boundaries=geom['boundaries'],
+                    semantics_obj=semantics,
+                    vertices=cm.j['vertices']
+                )
+            )
+        cm.cityobjects[co_id] = models.CityObject(
+            id=id,
+            type=co['type'],
+            attributes=attributes,
+            children=children,
+            parents=parents,
+            geometry=geometry
+        )
+    return cm
 
 def reader(file, ignore_duplicate_keys=False):
     return CityJSON(file=file, ignore_duplicate_keys=ignore_duplicate_keys)
