@@ -44,7 +44,7 @@ TOPLEVEL = ('Building',
             'Tunnel',
             'WaterBody')
 
-def load(path):
+def load(path: str):
     """Load a CityJSON file for working with it though the API
     :param path: Absolute path to a CityJSON file
     :return: A CityJSON object
