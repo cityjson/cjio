@@ -29,11 +29,14 @@ class CityModel(object):
 
 class CityObject(object):
     """CityObject class"""
-    def __init__(self, id, type=None, geometry=None, attributes=None):
+    def __init__(self, id, type=None, geometry=None, attributes=None,
+                 children=None, parents=None):
         self.id = id
         self.type = type
         self.geometry = geometry
         self.attributes = attributes
+        self.children = children
+        self.parents = parents
 
 
 class Geometry(object):
@@ -105,6 +108,9 @@ class Geometry(object):
         # TODO BD: essentially, this function is meant to returns a MultiSurface,
         # which is a collection of surfaces that have semantics --> consider returning
         # a Geometry object of MultiSufrace type
+
+        # TODO BD: take a semantic surface as parameter, so the user doesn't have to
+        #  get_surface_boundaries(surface['surface_idx']), but just get_surface_boundaries(surface)
         if not surface_idx or len(surface_idx) == 0:
             return []
         else:
@@ -123,7 +129,7 @@ class Geometry(object):
         """Replace vertex indices with vertex coordinates in the geomery boundary
         :param btype: Boundary type
         :param boundaries: Boundary list
-        :param vertices: Vertex list
+        :param vertices: Vertex list of CityJSON
         :return: Boundary list with the vertex indices replaced with vertex coordinates from the vertex list
         """
         # TODO BD optimize: would be much faster with recursion

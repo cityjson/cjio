@@ -424,6 +424,7 @@ class TestGeometryIntegration:
                 for multisurface in boundary_geometry:
                     # Do any geometry operation here
                     x,y,z = multisurface[0]
+                    # Assign new semantics based on the result
                     if x < 2.0:
                         new_srf = {
                             'type': rsrf['type'],
