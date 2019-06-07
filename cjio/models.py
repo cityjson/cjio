@@ -5,28 +5,6 @@
 from typing import List, Dict
 
 
-class CityModel(object):
-    """Equivalent to the main CityJSON object in the data model"""
-    type = 'CityJSON'
-    cityjson_version = '1.0'
-
-    def __init__(self, cityobjects):
-        self.cityobjects = cityobjects
-
-    def get_cityobjects(self, type=None):
-        """Return a generator over the CityObjects of the given type
-
-        If type=None, return all CityObjects
-        """
-        if type is None:
-            return self.cityobjects
-        else:
-            if not isinstance(type, str):
-                raise TypeError("type parameter must be a string")
-            target = type.lower()
-            return (co for co in self.cityobjects if co.type.lower() == target)
-
-
 class CityObject(object):
     """CityObject class"""
     def __init__(self, id, type=None, geometry=None, attributes=None,

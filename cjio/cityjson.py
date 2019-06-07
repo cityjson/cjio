@@ -162,19 +162,52 @@ class CityJSON:
         if file is not None:
             self.read(file, ignore_duplicate_keys)
             self.path = os.path.abspath(file.name)
+            self.cityobjects = None
         elif j is not None:
             self.j = j
+            self.cityobjects = None
         else: #-- create an empty one
             self.j = {}
             self.j["type"] = "CityJSON"
             self.j["version"] = CITYJSON_VERSIONS_SUPPORTED[-1]
             self.j["CityObjects"] = {}
             self.j["vertices"] = []
+            self.cityobjects = None
 
 
     def __repr__(self):
         return self.get_info()
 
+    ##-- API functions
+    # TODO BD: refactor this whole thing
+    def get_cityobjects(self, type=None, id=None):
+        """Return a subset of CityObjects
+        :param type: CityObject type. If a list of types is given, then all types in the list are returned.
+        :param id: CityObject ID. If a list of types is given, then all types in the list are returned.
+        """
+        if type is None and id is None:
+            return self.cityobjects
+        elif (type is not None) and (id is not None):
+            raise AttributeError("Please provide either 'type' or 'id'")
+        elif type is not None:
+            if isinstance(type, str):
+                type_list = [type.lower()]
+            elif isinstance(type, list) and isinstance(type[0], str):
+                type_list = [t.lower() for t in type]
+            else:
+                raise TypeError("'type' must be a string or list of strings")
+            return {i:co for i,co in self.cityobjects.items() if co.type.lower() in type_list}
+        elif id is not None:
+            if isinstance(id, str):
+                id_list = [id]
+            elif isinstance(id, list) and isinstance(id[0], str):
+                id_list = id
+            else:
+                raise TypeError("'id' must be a string or list of strings")
+            return {i:co for i,co in self.cityobjects.items() if co.id in id_list}
+
+
+    ##-- end API functions
 
     def get_version(self):
         return self.j["version"]
