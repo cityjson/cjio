@@ -155,6 +155,40 @@ class Geometry(object):
             raise TypeError("Unknown geometry type: {}".format(btype))
 
 
+    def get_vertices(self):
+        """Dump the vertex coordinates into a list"""
+        # TODO BD optimize: would be much faster with recursion
+        if not self.boundaries:
+            return list()
+        if self.type.lower() == 'multipoint':
+            return self.boundaries
+        elif self.type.lower() == 'multilinestring':
+            return [b for b in self.boundaries]
+        elif self.type.lower() == 'multisurface' or self.type.lower() == 'compositesurface':
+            vtx = list()
+            for surface in self.boundaries:
+                for ring in surface:
+                    vtx += ring
+            return vtx
+        elif self.type.lower() == 'solid':
+            vtx = list()
+            for shell in self.boundaries:
+                for surface in shell:
+                    for ring in surface:
+                        vtx += ring
+            return vtx
+        elif self.type.lower() == 'multisolid' or self.type.lower() == 'compositesolid':
+            vtx = list()
+            for solid in self.boundaries:
+                for shell in solid:
+                    for surface in shell:
+                        for ring in surface:
+                            vtx += ring
+            return vtx
+        else:
+            raise TypeError("Unknown geometry type: {}".format(self.type))
+
+
     def _dereference_surfaces(self, semantics_obj):
         """Dereferene a semantic surface
         :param semantics_obj: Semantic Surface object as extracted from CityJSON file
@@ -193,5 +227,3 @@ class Geometry(object):
             return self.boundaries
         else:
             return {i:srf for i,srf in self.surfaces.items() if srf['type'].lower() == type.lower()}
-
-
