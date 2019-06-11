@@ -233,6 +233,20 @@ class TestGeometry:
                             vertices=vertices)
             assert e == "Boundary definition does not correspond to MultiSurface or CompositeSurface"
 
+    def test_build_index(self, data_geometry, data_vtx_idx):
+        type, boundary, result, vertex_list = data_vtx_idx
+        vertices = data_geometry[1]
+        geom = models.Geometry(type=type, boundaries=boundary, vertices=vertices)
+        geom_idx, vertex_lookup, vertex_index = geom.build_index()
+        print(geom_idx, vertex_lookup)
+
+    def test_to_json(self, data_geometry,data_vtx_idx):
+        type, boundary, result, vertex_list = data_vtx_idx
+        vertices = data_geometry[1]
+        geom = models.Geometry(type=type, boundaries=boundary, vertices=vertices)
+        j = geom.to_json()
+        print(j)
+
     def test_vertices(self, data_geometry, data_vtx_idx):
         type, boundary, result, vertex_list = data_vtx_idx
         vertices = data_geometry[1]

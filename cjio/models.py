@@ -16,6 +16,35 @@ class CityObject(object):
         self.children = children
         self.parents = parents
 
+    def get_vertices(self):
+        """Dump the vertex coordinates of the CityObject into a list"""
+        vtx = []
+        for geom in self.geometry:
+            vtx += geom.get_vertices()
+        return vtx
+
+    def build_index(self, vtx_lookup=dict(), vtx_idx=0):
+        """Build a coordinate list and index the vertices for Geometry objects in the CityObject"""
+        geometry = []
+        for geom in self.geometry:
+            geom_idx, vtx_lookup, vtx_idx = geom.build_index(vtx_lookup, vtx_idx)
+            j = geom.to_json()
+            j['boundaries'] = geom_idx
+            geometry.append(j)
+        return (geometry, vtx_lookup, vtx_idx)
+
+    def to_json(self):
+        """Return a dict that in the CityJSON schema"""
+        j = dict()
+        j['type'] = self.type
+        j['geometry'] = []
+        if self.attributes:
+            j['attributes'] = self.attributes
+        if self.children:
+            j['children'] = self.children
+        if self.parents:
+            j['parents'] = self.parents
+        return j
 
 class Geometry(object):
     """CityJSON Geometry object"""
@@ -26,6 +55,16 @@ class Geometry(object):
         self.lod = lod
         self.boundaries = self._dereference_boundaries(type, boundaries, vertices)
         self.surfaces = self._dereference_surfaces(semantics_obj)
+
+    def to_json(self):
+        """Return a dict that in the CityJSON schema"""
+        j = dict()
+        j['type'] = self.type
+        j['lod'] = self.lod
+        j['boundaries'] = []
+        if self.surfaces:
+            j['surfaces'] = self.surfaces
+        return j
 
     @staticmethod
     def _index_surface_boundaries(values):
@@ -185,6 +224,74 @@ class Geometry(object):
                         for ring in surface:
                             vtx += ring
             return vtx
+        else:
+            raise TypeError("Unknown geometry type: {}".format(self.type))
+
+    @staticmethod
+    def _vertex_indexer(geom, vtx_lookup, vtx_idx):
+        ret = []
+        for g in geom:
+            if not isinstance(g, tuple):
+                gt = tuple(g)
+            else:
+                gt = g
+            if gt not in vtx_lookup:
+                vtx_lookup[gt] = vtx_idx
+                ret.append(vtx_idx)
+                vtx_idx += 1
+            else:
+                ret.append(vtx_lookup[gt])
+        return (ret, vtx_lookup, vtx_idx)
+
+    def build_index(self, vtx_lookup=dict(), vtx_idx=0):
+        """Build a coordinate list and index the vertices"""
+        if not self.boundaries:
+            return ([], vtx_lookup, vtx_idx)
+        if self.type.lower() == 'multipoint':
+            bdry, vtx_lookup, vtx_idx = self._vertex_indexer(self.boundaries, vtx_lookup, vtx_idx)
+            return (bdry, vtx_lookup, vtx_idx)
+        elif self.type.lower() == 'multilinestring':
+            mline = list()
+            for boundary in self.boundaries:
+                bdry, vtx_lookup, vtx_idx = self._vertex_indexer(boundary, vtx_lookup, vtx_idx)
+                mline.append(bdry)
+            return (mline, vtx_lookup, vtx_idx)
+        elif self.type.lower() == 'multisurface' or self.type.lower() == 'compositesurface':
+            msurface = list()
+            for surface in self.boundaries:
+                r = list()
+                for ring in surface:
+                    bdry, vtx_lookup, vtx_idx = self._vertex_indexer(ring, vtx_lookup, vtx_idx)
+                    r.append(bdry)
+                msurface.append(r)
+            return (msurface, vtx_lookup, vtx_idx)
+        elif self.type.lower() == 'solid':
+            shell = list()
+            for shell in self.boundaries:
+                msurface = list()
+                for surface in shell:
+                    r = list()
+                    for ring in surface:
+                        bdry, vtx_lookup, vtx_idx = self._vertex_indexer(ring, vtx_lookup, vtx_idx)
+                        r.append(bdry)
+                    msurface.append(r)
+                shell.append(msurface)
+            return (shell, vtx_lookup, vtx_idx)
+        elif self.type.lower() == 'multisolid' or self.type.lower() == 'compositesolid':
+            msolid = list()
+            for solid in self.boundaries:
+                shell = list()
+                for shell in solid:
+                    msurface = list()
+                    for surface in shell:
+                        r = list()
+                        for ring in surface:
+                            bdry, vtx_lookup, vtx_idx = self._vertex_indexer(ring, vtx_lookup, vtx_idx)
+                            r.append(bdry)
+                        msurface.append(r)
+                    shell.append(msurface)
+                msolid.append(shell)
+            return (msolid, vtx_lookup, vtx_idx)
         else:
             raise TypeError("Unknown geometry type: {}".format(self.type))
 

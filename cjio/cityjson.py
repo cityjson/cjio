@@ -73,7 +73,7 @@ def load(path: str):
                 )
             )
         cm.cityobjects[co_id] = models.CityObject(
-            id=id,
+            id=co_id,
             type=co['type'],
             attributes=attributes,
             children=children,
@@ -81,6 +81,23 @@ def load(path: str):
             geometry=geometry
         )
     return cm
+
+def save(citymodel, path: str):
+    """Save a city model to a CityJSON file
+    :param citymodel: A CityJSON object
+    :param path: Absolute path to a CityJSON file
+    """
+    cityobjects, vertex_lookup = citymodel.reference_geometry()
+    citymodel.j['vertices'] = list(vertex_lookup.keys())
+    citymodel.j['CityObjects'] = cityobjects
+    citymodel.remove_duplicate_vertices()
+    citymodel.remove_orphan_vertices()
+    try:
+        with open(path, 'w') as fout:
+            json_str = json.dumps(citymodel.j, indent=2)
+            fout.write(json_str)
+    except IOError as e:
+        raise IOError('Invalid output file: %s \n%s' % (path, e))
 
 def reader(file, ignore_duplicate_keys=False):
     return CityJSON(file=file, ignore_duplicate_keys=ignore_duplicate_keys)
@@ -179,11 +196,11 @@ class CityJSON:
         return self.get_info()
 
     ##-- API functions
-    # TODO BD: refactor this whole thing
+    # TODO BD: refactor this whole CityJSON class
     def get_cityobjects(self, type=None, id=None):
         """Return a subset of CityObjects
-        :param type: CityObject type. If a list of types is given, then all types in the list are returned.
-        :param id: CityObject ID. If a list of types is given, then all types in the list are returned.
+        :param type: CityObject type. If a list of types are given, then all types in the list are returned.
+        :param id: CityObject ID. If a list of IDs are given, then all objects matching the IDs in the list are returned.
         """
         if type is None and id is None:
             return self.cityobjects
@@ -206,6 +223,30 @@ class CityJSON:
                 raise TypeError("'id' must be a string or list of strings")
             return {i:co for i,co in self.cityobjects.items() if co.id in id_list}
 
+    def set_cityobjects(self, cityobjects):
+        """Creates or updates CityObjects
+        .. note:: If a CityObject with the same ID already exists in the model, it will be overwritten
+        :param cityobjects: Dictionary of CityObjects, where keys are the CityObject IDs. Same structure as returned by
+        get_cityobjects()
+        """
+        for co_id, co in cityobjects.items():
+            self.cityobjects[co_id] = co
+
+    def to_dataframe(self):
+        """Converts the city model to a Pandas data frame where fields are CityObject attributes"""
+
+    def reference_geometry(self):
+        """Build a coordinate list and index the vertices"""
+        cityobjects = dict()
+        cityobjects = dict()
+        vertex_lookup = dict()
+        vertex_idx = 0
+        for co_id, co in self.cityobjects.items():
+            j_co = co.to_json()
+            geometry, vertex_lookup, vertex_idx = co.build_index(vertex_lookup, vertex_idx)
+            j_co['geometry'] = geometry
+            cityobjects[co_id] = j_co
+        return (cityobjects, vertex_lookup)
 
     ##-- end API functions
 
