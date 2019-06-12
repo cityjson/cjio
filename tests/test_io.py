@@ -23,3 +23,9 @@ class TestExport:
         cm.cityobjects = new_cos
         p_out = os.path.join(data_dir, 'rotterdam_subset_cjio_test.json')
         cityjson.save(cm, p_out)
+
+    def test_to_dataframe(self, data_dir):
+        p = os.path.join(data_dir, 'rotterdam', 'rotterdam_subset.json')
+        cm = cityjson.load(p)
+        df = cm.to_dataframe()
+        assert len(df) == len(cm.cityobjects)

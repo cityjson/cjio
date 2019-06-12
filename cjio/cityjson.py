@@ -17,10 +17,16 @@ from sys import platform
 from click import progressbar
 
 MODULE_EARCUT_AVAILABLE = True
+MODULE_PANDAS_AVAILABLE = True
+
 try:
     import mapbox_earcut
 except ImportError as e:
     MODULE_EARCUT_AVAILABLE = False
+try:
+    import pandas
+except ImportError as e:
+    MODULE_PANDAS_AVAILABLE = False
 
 from cjio import validation, subset, geom_help, convert, models
 from cjio.errors import InvalidOperation
@@ -195,6 +201,7 @@ class CityJSON:
     def __repr__(self):
         return self.get_info()
 
+
     ##-- API functions
     # TODO BD: refactor this whole CityJSON class
     def get_cityobjects(self, type=None, id=None):
@@ -223,6 +230,7 @@ class CityJSON:
                 raise TypeError("'id' must be a string or list of strings")
             return {i:co for i,co in self.cityobjects.items() if co.id in id_list}
 
+
     def set_cityobjects(self, cityobjects):
         """Creates or updates CityObjects
         .. note:: If a CityObject with the same ID already exists in the model, it will be overwritten
@@ -232,8 +240,14 @@ class CityJSON:
         for co_id, co in cityobjects.items():
             self.cityobjects[co_id] = co
 
+
     def to_dataframe(self):
         """Converts the city model to a Pandas data frame where fields are CityObject attributes"""
+        if not MODULE_PANDAS_AVAILABLE:
+            raise ModuleNotFoundError("pandas is not available, please install it")
+        return pandas.DataFrame([co.attributes for co_id,co in self.cityobjects.items()],
+                                index=list(self.cityobjects.keys()))
+
 
     def reference_geometry(self):
         """Build a coordinate list and index the vertices"""
@@ -247,6 +261,7 @@ class CityJSON:
             j_co['geometry'] = geometry
             cityobjects[co_id] = j_co
         return (cityobjects, vertex_lookup)
+
 
     ##-- end API functions
 
