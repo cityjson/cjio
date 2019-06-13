@@ -2,13 +2,15 @@ from setuptools import setup
 import re
 from pathlib import Path
 import cjio
-import os.path
 
 CURRENT_DIR = Path(__file__).parent
 
-with open(os.path.join(CURRENT_DIR,"README.md"), "r") as fh:
-    long_description = fh.read()
+# with open("README.md", "r") as fh:
+#     long_description = fh.read()
 
+# BD: this is just a hack for making Binder work until I figure out how to do it properly, because
+# I don't know how to manage paths in Binder
+long_description=""
 
 setup(
     name='cjio',
