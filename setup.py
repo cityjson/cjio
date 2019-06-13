@@ -2,10 +2,11 @@ from setuptools import setup
 import re
 from pathlib import Path
 import cjio
+import os.path
 
 CURRENT_DIR = Path(__file__).parent
 
-with open("README.md", "r") as fh:
+with open(os.path.join(CURRENT_DIR,"README.md"), "r") as fh:
     long_description = fh.read()
 
 
