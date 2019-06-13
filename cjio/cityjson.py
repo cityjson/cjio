@@ -989,10 +989,22 @@ class CityJSON:
         info["vertices_total"] = len(self.j["vertices"])
         info["transform/compressed"] = "transform" in self.j
         d.clear()
+        lod = set()
+        sem_srf = set()
+        co_attributes = set()
         for key in self.j["CityObjects"]:
+            for attr in self.j['CityObjects'][key]['attributes'].keys():
+                co_attributes.add(attr)
             for geom in self.j['CityObjects'][key]['geometry']:
                 d.add(geom["type"])
+                lod.add(geom["lod"])
+                if "semantics" in geom:
+                    for srf in geom["semantics"]["surfaces"]:
+                        sem_srf.add(srf["type"])
         info["geom_primitives_present"] = list(d)
+        info["level_of_detail"] = list(lod)
+        info["semantics_surfaces_present"] = list(sem_srf)
+        info["cityobject_attributes"] = list(co_attributes)
         if 'appearance' in self.j:
             info["materials"] = 'materials' in self.j['appearance']
             info["textures"] = 'textures' in self.j['appearance']
