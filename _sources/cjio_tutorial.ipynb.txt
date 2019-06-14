@@ -17,7 +17,9 @@
     "$ cjio some_city_model.json validate\n",
     "```\n",
     "\n",
-    "The API is what you use from `cjio` when working with a city model in a Python script."
+    "The API is what you use from `cjio` when working with a city model in a Python script.\n",
+    "\n",
+    "**You can play with the executable version of this notebook on Binder** [here](https://mybinder.org/v2/gh/tudelft3d/cjio/develop?filepath=docs%2Fsource%2Fcjio_tutorial.ipynb)"
    ]
   },
   {
