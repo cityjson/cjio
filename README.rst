@@ -52,8 +52,8 @@ You can then continue with:
 
     pip3 install cjio
 
-Usage
------
+Usage of the CLI
+----------------
 
 After installation, you have a small program called ``cjio``, to see its
 possibities:
@@ -177,6 +177,14 @@ master file which links to each partition which are converted to
 .. code:: console
 
     $ cjio example.json partition --depth 2 export --format 3dtiles /home/elvis/3dtiles
+
+Usage of the API
+----------------
+
+.. image:: https://mybinder.org/badge_logo.svg
+   :target: https://mybinder.org/v2/gh/tudelft3d/cjio/develop?filepath=docs%2Fsource%2Fcjio_tutorial.ipynb
+
+The API is experimental at the moment, but you can play around with what we already have on Binder.
 
 Example CityJSON datasets
 -------------------------
