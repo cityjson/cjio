@@ -1,6 +1,6 @@
 {
-   "title":"CityJSON metadata schema v0.8",
    "$schema":"http://json-schema.org/draft-04/schema#",
+   "title":"CityJSON metadata schema v1.0.0",
    "definitions":{
       "presentLoDs":{
          "type":"object",
