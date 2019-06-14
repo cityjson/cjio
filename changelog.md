@@ -1,7 +1,18 @@
 
 # Changelog
 
+## [Unreleased]
+### Added
+- Convert to Binary glTF (glb)
+- Convert to Batched 3D Models (b3dm) - Output is probably incorrect though
+- `tiling` module for partitioning a city model - The partitioner needs some attention because the number of partitions are fixed to 16
+- Export to 3D Tiles - Due to the b3dm conversion issue, this is also experimental
+- Progress bar for the `reproject` command
 
+### Changed
+- click messages, warnings got their functions and placed into the `utils` module
+- `save`, `info`, `export` commands work with `partition`, thus they process each part
+- only EPSG codes are supported for the CRS's URN
 
 ## [0.5.2] - 2019-04-29
 ### Changed
