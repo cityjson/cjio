@@ -115,7 +115,7 @@ def info_cmd(context):
 def export_cmd(filename, format):
     """Export the CityJSON to another format.
 
-    OBJ, Binary glTF, Batched 3DModel, Cesium 3D Tiles. Currently textures are not supported, sorry.
+    OBJ, Binary glTF (glb), Batched 3DModel, Cesium 3D Tiles. Currently textures are not supported, sorry.
     """
     def exporter(cm):
         # TODO B: refactor for handling partitions for each format
@@ -164,6 +164,7 @@ def export_cmd(filename, format):
             binfile = os.path.join(os.path.dirname(output['path']), b3dmbin)
             b3dm = cm.export2b3dm()
             utils.print_cmd_status("Exporting CityJSON to b3dm %s" % binfile)
+            utils.print_cmd_warning("Although the conversion works, the output is probably incorrect.")
             try:
                 b3dm.seek(0)
                 with click.open_file(binfile, mode='wb') as bo:
@@ -172,6 +173,7 @@ def export_cmd(filename, format):
                 raise click.ClickException('Invalid output file: "%s".\n%s' % (binfile, e))
         elif format.lower() == '3dtiles':
             utils.print_cmd_status("Exporting CityJSON to 3dtiles")
+            utils.print_cmd_warning("Although the conversion works, the output is probably incorrect.")
             tileset = tiling.generate_tileset_json()
             if isinstance(cm, list):
                 bbox_list = []

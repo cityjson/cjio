@@ -60,8 +60,8 @@ class TestCityJSON:
     def test_reference_geometry(self, cm_zur_subset):
         """Test build a coordinate list and index the vertices"""
         cm = cm_zur_subset
-        j,vertex_lookup = cm.reference_geometry()
-        assert len(j['CityObjects']) == len(cm.j['CityObjects'])
+        cityobjects, vertex_lookup = cm.reference_geometry()
+        assert len(cityobjects) == len(cm.j['CityObjects'])
 
     def test_get_children(self):
         """# TODO BD: Get all childeren of a CityObject"""

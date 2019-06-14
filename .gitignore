@@ -1,6 +1,4 @@
 # Data
-example_data/rotterdam/appearances
-example_data/rotterdam/textures*
 tmp
 
 # Byte-compiled / optimized / DLL files
@@ -112,3 +110,9 @@ ENV/
 # Eclipse
 .project
 .pydevproject
+
+# PyCharm
+.idea*
+
+# KDE
+.directory

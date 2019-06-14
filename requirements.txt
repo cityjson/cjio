@@ -1,6 +1,0 @@
-click
-jsonschema
-jsonref
-pyproj
-numpy
-pandas

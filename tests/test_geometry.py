@@ -6,7 +6,7 @@ import pytest
 from cjio import models
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='function')
 def data_geometry():
     vertices = [
         (0.0,1.0,0.0),
@@ -67,7 +67,7 @@ def data_geometry():
     yield (geometry, vertices)
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='function')
 def surfaces():
     srf = {
         0: {
@@ -107,7 +107,7 @@ def surfaces():
     yield srf
 
 
-@pytest.fixture(scope='module',
+@pytest.fixture(scope='function',
                 params=[
                     ('multipoint', [], [], []),
                     ('multipoint',
@@ -274,45 +274,61 @@ class TestGeometry:
         assert res == surface_idx
 
 
-    @pytest.mark.parametrize('surface_idx, boundaries, surfaces', [
+    @pytest.mark.parametrize('surface, boundaries, surfaces', [
         (
-                [],
-                [],
-                []
-        ),
-        (
-                None,
+                {'surface_idx': []},
                 [],
                 []
         ),
         (
-                [[0]],  # 1. surface in a MultiSurface
+                {'surface_idx': None},
+                [],
+                []
+        ),
+        (
+                {'surface_idx': [[0]]},  # 1. surface in a MultiSurface
                 [[[0]], [[1]]],
                 [[[0]]]
         ),
         (
-                [[0], [1]],  # 1.,2. surface in a MultiSurface
+                {'surface_idx': [[0], [1]]},  # 1.,2. surface in a MultiSurface
                 [[[0], [1]], [[2]]],
                 [[[0], [1]], [[2]]]
         ),
         (
-                [[0, 1], [0, 2], [1, 0]],
+                {'surface_idx': [[0, 1], [0, 2], [1, 0]]},
                 # 2.,3. surface in exterior shell of Solid, 1. surface in interior shell of Solid
                 [[[[0, 0]], [[0, 1]], [[0, 2]]], [[[1, 0]], [[1, 1]], [[1, 2]]]],
                 [[[0, 1]], [[0, 2]], [[1, 0]]]
         ),
         (
-                [[0, 0, 0], [0, 0, 2], [1, 0, 0]],
+                {'surface_idx': [[0, 0, 0], [0, 0, 2], [1, 0, 0]]},
                 # 1.,3. surf. of exterior of 1. Solid, 1. surface of exterior of 2. Solid
                 [[[[[0, 0, 0]], [[0, 0, 1]], [[0, 0, 2]]]], [[[[1, 0, 0]], [[1, 0, 1]], [[1, 0, 2]]]]],
                 [[[0, 0, 0]], [[0, 0, 2]], [[1, 0, 0]]]
         )
     ])
-    def test_get_surface_boundaries(self, boundaries, surface_idx, surfaces):
+    def test_get_surface_boundaries(self, boundaries, surface, surfaces):
         geom = models.Geometry()
         geom.boundaries = boundaries
-        res = geom.get_surface_boundaries(surface_idx)
+        res = geom.get_surface_boundaries(surface)
         assert res == surfaces
+
+
+    @pytest.mark.parametrize('surface', [
+        {
+            0: {'surface_idx': [[0]]},
+            1: {'surface_idx': [[0]]}
+        },
+        [
+            {'surface_idx': [[0]]}
+        ]
+    ])
+    def test_get_surface_boundaries_errors(self, surface):
+        geom = models.Geometry()
+        with pytest.raises(TypeError):
+            geom.get_surface_boundaries(surface)
+
 
     def test_dereference_surfaces(self, data_geometry, surfaces):
         geometry, vertices = data_geometry
@@ -452,7 +468,7 @@ class TestGeometryIntegration:
                                semantics_obj=geometry[0]['semantics'],
                                vertices=vertices)
         roofsurfaces = geom.get_surfaces('roofsurface')
-        rsrf_bndry = [geom.get_surface_boundaries(rsrf['surface_idx'])
+        rsrf_bndry = [geom.get_surface_boundaries(rsrf)
                       for i,rsrf in roofsurfaces.items()]
         roof_geom = [
             [
@@ -463,7 +479,7 @@ class TestGeometryIntegration:
         assert rsrf_bndry == roof_geom
 
         doorsurfaces = geom.get_surfaces('door')
-        dsrf_bndry = [geom.get_surface_boundaries(dsrf['surface_idx'])
+        dsrf_bndry = [geom.get_surface_boundaries(dsrf)
                       for i,dsrf in doorsurfaces.items()]
         door_geom = [
             [
@@ -511,7 +527,7 @@ class TestGeometryIntegration:
         old_ids = []
         for i,rsrf in roofsurfaces.items():
             old_ids.append(i)
-            boundaries = geom.get_surface_boundaries(rsrf['surface_idx'])
+            boundaries = geom.get_surface_boundaries(rsrf)
             for i,boundary_geometry in enumerate(boundaries):
                 surface_index = rsrf['surface_idx'][i]
                 for multisurface in boundary_geometry:

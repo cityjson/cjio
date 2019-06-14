@@ -252,7 +252,6 @@ class CityJSON:
     def reference_geometry(self):
         """Build a coordinate list and index the vertices"""
         cityobjects = dict()
-        cityobjects = dict()
         vertex_lookup = dict()
         vertex_idx = 0
         for co_id, co in self.cityobjects.items():
@@ -1373,7 +1372,7 @@ class CityJSON:
 
 
     def export2b3dm(self):
-        glb = convert.to_gltf(self.j)
+        glb = convert.to_glb(self.j)
         b3dm = convert.to_b3dm(self, glb)
         return b3dm
 
@@ -1381,7 +1380,7 @@ class CityJSON:
     def export2gltf(self):
         # TODO B: probably no need to double wrap this to_gltf(), but its long, and
         # the current cityjson.py is long already
-        glb = convert.to_gltf(self.j)
+        glb = convert.to_glb(self.j)
         return glb
 
 

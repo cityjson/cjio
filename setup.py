@@ -5,12 +5,8 @@ import cjio
 
 CURRENT_DIR = Path(__file__).parent
 
-# with open("README.md", "r") as fh:
-#     long_description = fh.read()
-
-# BD: this is just a hack for making Binder work until I figure out how to do it properly, because
-# I don't know how to manage paths in Binder
-long_description=""
+with open("README.md", "r") as fh:
+    long_description = fh.read()
 
 setup(
     name='cjio',

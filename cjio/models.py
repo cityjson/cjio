@@ -274,6 +274,10 @@ class Geometry(object):
         # TODO BD: essentially, this function is meant to returns a MultiSurface,
         # which is a collection of surfaces that have semantics --> consider returning
         # a Geometry object of MultiSufrace type
+        if not isinstance(surface, dict):
+            raise TypeError("surface must be a dict")
+        if (len(surface) > 0 and 'surface_idx' not in surface):
+            raise TypeError("surface must be a single surface")
         if not surface['surface_idx'] or len(surface['surface_idx']) == 0:
             return []
         else:
