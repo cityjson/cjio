@@ -1,7 +1,7 @@
 # Data
 example_data/rotterdam/appearances
 example_data/rotterdam/textures*
-
+tmp
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -78,6 +78,9 @@ target/
 
 # pyenv
 .python-version
+
+# pipenv
+Pipfile.lock
 
 # celery beat schedule file
 celerybeat-schedule
