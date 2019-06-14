@@ -406,11 +406,11 @@ div.rendered_html tbody tr:hover {
 </div>
 <p>Set up the paths for the tutorial.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">package_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="s1">&#39;../&#39;</span><span class="p">)</span>
+<span></span><span class="n">package_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="s1">&#39;../../&#39;</span><span class="p">)</span>
 <span class="n">schema_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">package_dir</span><span class="p">,</span> <span class="s1">&#39;cjio&#39;</span><span class="p">,</span> <span class="s1">&#39;schemas&#39;</span><span class="p">,</span> <span class="s1">&#39;1.0.0&#39;</span><span class="p">)</span>
 <span class="n">data_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">package_dir</span><span class="p">,</span> <span class="s1">&#39;example_data&#39;</span><span class="p">)</span>
 </pre></div>
@@ -421,7 +421,7 @@ div.rendered_html tbody tr:hover {
 <p>We are working with a subset of the city model of Rotterdam. This file is included with <code class="docutils literal notranslate"><span class="pre">cjio</span></code> as an example data set. We can use the online CityJSON viewer at <a class="reference external" href="https://viewer.cityjson.org">viewer.cityjson.org</a> to quickly visualise the city model. <img alt="image0" src="_images/rotterdam_subset.png" /></p>
 <p>The <code class="docutils literal notranslate"><span class="pre">load()</span></code> method loads a CityJSON file into a CityJSON object.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -444,7 +444,7 @@ div.rendered_html tbody tr:hover {
 <h2>Using the CLI commands in the API<a class="headerlink" href="#Using-the-CLI-commands-in-the-API" title="Permalink to this headline">¶</a></h2>
 <p>You can use any of the CLI commands on a CityJSON object. However, not all CLI commands are mapped 1-to-1 to CityJSON methods, plus you need to provide the parameters yourself, as for example in case of the <code class="docutils literal notranslate"><span class="pre">validate()</span></code> method. The reason for this is that the CLI commands are wrapper functions that take care of passing parameters and parsing outputs. And we haven’t harmonized the CLI and the API yet.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -458,7 +458,7 @@ div.rendered_html tbody tr:hover {
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 -- Validating the syntax of the file
-        (using the schemas ../cjio/schemas/1.0.0/cityjson.schema.json)
+        (using the schemas ../../cjio/schemas/1.0.0/cityjson.schema.json)
 -- Validating the internal consistency of the file (see docs for list)
         --Vertex indices coherent
         --Specific for CityGroups
@@ -471,7 +471,7 @@ div.rendered_html tbody tr:hover {
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -496,7 +496,7 @@ div.rendered_html tbody tr:hover {
 <h2>Explore the city model<a class="headerlink" href="#Explore-the-city-model" title="Permalink to this headline">¶</a></h2>
 <p>We can print the basic information about the city model. Note that <code class="docutils literal notranslate"><span class="pre">print()</span></code> returns the same information as the <code class="docutils literal notranslate"><span class="pre">info</span></code> command in the CLI.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -525,15 +525,15 @@ div.rendered_html tbody tr:hover {
     2
   ],
   &#34;semantics_surfaces_present&#34;: [
-    &#34;RoofSurface&#34;,
     &#34;GroundSurface&#34;,
+    &#34;RoofSurface&#34;,
     &#34;WallSurface&#34;
   ],
   &#34;cityobject_attributes&#34;: [
+    &#34;voll_tex&#34;,
     &#34;TerrainHeight&#34;,
     &#34;bron_tex&#34;,
     &#34;bron_geo&#34;,
-    &#34;voll_tex&#34;,
     &#34;status&#34;
   ],
   &#34;materials&#34;: false,
@@ -548,7 +548,7 @@ div.rendered_html tbody tr:hover {
 <h3>Getting objects from the model<a class="headerlink" href="#Getting-objects-from-the-model" title="Permalink to this headline">¶</a></h3>
 <p>We can get CityObjects by their <em>type</em>, or a list of types. Also by their IDs. If no type or ID is provided, <code class="docutils literal notranslate"><span class="pre">get_cityobjects()</span></code> returns all of them, which is equivalent to <code class="docutils literal notranslate"><span class="pre">cm_r.cityobjects</span></code>.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -565,7 +565,7 @@ div.rendered_html tbody tr:hover {
 <div class="section" id="Getting-the-properties-and-geometry-of-objects">
 <h3>Getting the properties and geometry of objects<a class="headerlink" href="#Getting-the-properties-and-geometry-of-objects" title="Permalink to this headline">¶</a></h3>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -598,8 +598,8 @@ div.rendered_html tbody tr:hover {
     2
   ],
   &#34;semantic_surfaces&#34;: [
-    &#34;RoofSurface&#34;,
     &#34;GroundSurface&#34;,
+    &#34;RoofSurface&#34;,
     &#34;WallSurface&#34;
   ]
 }
@@ -607,7 +607,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <p>The attributes are stored as a dictionary</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -616,7 +616,7 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -630,7 +630,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <p>CityObjects can have <em>children</em> and <em>parents</em></p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -639,7 +639,7 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -649,7 +649,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <p>CityObject geometry is a list of <code class="docutils literal notranslate"><span class="pre">Geometry</span></code> objects. That is because a CityObject can have multiple geometry representations in different levels of detail, eg. a geometry in LoD1 and a second geometry in LoD2.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -658,16 +658,16 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>[&lt;cjio.models.Geometry at 0x7ff579d0ff28&gt;]
+<span></span>[&lt;cjio.models.Geometry at 0x7efec2ba2748&gt;]
 </pre></div>
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -690,7 +690,7 @@ MultiSurface, lod 2
 <p>On the contrary to a CityJSON file, the geometry boundaries are dereferenced when working with the API. This means that the vertex coordinates are included in the boundary definition, not only the vertex indices.</p>
 <p><code class="docutils literal notranslate"><span class="pre">cjio</span></code> doesn’t provide specific geometry classes (yet), eg. MultiSurface or Solid class. If you are working with the geometry boundaries, you need to the geometric operations yourself, or cast the boundary to a geometry-class of some other library. For example <code class="docutils literal notranslate"><span class="pre">shapely</span></code> if 2D is enough.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -700,7 +700,7 @@ MultiSurface, lod 2
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -714,7 +714,7 @@ MultiSurface, lod 2
 </div>
 <p>Semantic Surfaces are stored in a similar fashion as in a CityJSON file, in the <code class="docutils literal notranslate"><span class="pre">surfaces</span></code> attribute of a Geometry object.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -723,7 +723,7 @@ MultiSurface, lod 2
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -751,7 +751,7 @@ MultiSurface, lod 2
 </div>
 <p>The main difference is the presence of the <code class="docutils literal notranslate"><span class="pre">surface_idx</span></code> property. The <code class="docutils literal notranslate"><span class="pre">surface_idx</span></code> is used by the <code class="docutils literal notranslate"><span class="pre">get_surface_boundaries()</span></code> method to efficiently extract the relevant geometry boundaries.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -761,7 +761,7 @@ MultiSurface, lod 2
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -770,7 +770,7 @@ MultiSurface, lod 2
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -782,7 +782,7 @@ MultiSurface, lod 2
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -823,7 +823,7 @@ MultiSurface, lod 2
 <li><p>overwrite the CityObjects with the changes.</p></li>
 </ol>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -860,7 +860,7 @@ MultiSurface, lod 2
 <h3>Create new Semantic Surfaces<a class="headerlink" href="#Create-new-Semantic-Surfaces" title="Permalink to this headline">¶</a></h3>
 <p>The process is similar as previously. However, in this example we create new SemanticSurfaces that hold the values which we compute from the geometry. The input city model has a single semantic “WallSurface”, without attributes, for all the walls of a building. The snippet below illustrates how to separate surfaces and assign the semantics to them.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -931,7 +931,7 @@ MultiSurface, lod 2
 <h2>Save or Export<a class="headerlink" href="#Save-or-Export" title="Permalink to this headline">¶</a></h2>
 <p>At the end, the <code class="docutils literal notranslate"><span class="pre">save()</span></code> method saves the edited city model into a CityJSON file.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -942,7 +942,7 @@ MultiSurface, lod 2
 </div>
 <p>It is also possible to export the city model into a pandas DataFrame. Note that only the CityObject attributes are exported into the dataframe, with CityObject IDs as the index of the dataframe. Thus if you want to export the attributes of SemanticSurfaces for example, then you need to add them as CityObject attributes.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -962,7 +962,7 @@ MultiSurface, lod 2
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -972,7 +972,7 @@ MultiSurface, lod 2
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
