@@ -265,9 +265,7 @@ class Geometry(object):
 
     def get_surface_boundaries(self, surface):
         """Get the surface at the index location from the Geometry boundary
-
-        .. note: Interior surfaces don't have semantics and they are returned with the
-        exterior.
+        .. note:: Interior surfaces don't have semantics and they are returned with the exterior.
 
         :return: Surfaces from the boundary that correspond to the index.
         """

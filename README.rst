@@ -9,6 +9,8 @@ can be chained to perform several processing operations in one step, the
 CityJSON model goes through them and different versions of the CityJSON
 model can be saved as files along the pipeline.
 
+Also see the `complete documentation <https://tudelft3d.github.io/cjio/>`__
+
 Installation
 ------------
 

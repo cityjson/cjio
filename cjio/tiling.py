@@ -58,7 +58,6 @@ def _subdivide(bbox: List[float], depth: int, octree: bool=False) -> List[List]:
 
 def create_grid(bbox: List, depth: int, cellsize: List[float]=None) -> Dict:
     """Create an equal area, rectangular octree or quadtree for the area
-
     .. note:: Both the quadtree and octree is composed of 3D bounding boxes,
     but in case of the octree the original bbox is also subdivided vertically. In
     case of the quadtree the bbox is partitioned on the xy-plane, while the height
