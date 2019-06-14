@@ -260,7 +260,8 @@ def export_cmd(filename, format):
 
 @cli.command('save')
 @click.argument('filename')
-@click.option('--indent', default=0)
+@click.option('--indent', is_flag=True,
+              help='Indent the file. Helpful when you want to examine the file in a text editor.')
 @click.option('--textures', default=None, 
               type=str,
               help='Path to the new textures directory. This command copies the textures to a new location. Useful when creating an independent subset of a CityJSON file.')
@@ -281,11 +282,11 @@ def save_cmd(filename, indent, textures):
             fo = click.open_file(output['path'], mode='w')
             if textures:
                 cm.copy_textures(textures, output['path'])
-            if indent == 0:
-                json_str = json.dumps(cm.j, separators=(',',':'))
+            if indent:
+                json_str = json.dumps(cm.j, indent="\t")
                 fo.write(json_str)
             else:
-                json_str = json.dumps(cm.j, indent=indent)
+                json_str = json.dumps(cm.j, separators=(',',':'))
                 fo.write(json_str)
         except IOError as e:
             raise click.ClickException('Invalid output file: %s \n%s' % (output['path'], e))
