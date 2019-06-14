@@ -1,0 +1,318 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cjio.subset &mdash; cjio 0.5.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> cjio
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../includeme.html">cjio, or CityJSON/io</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../cjio_tutorial.html">cjio API tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">Reference</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">cjio</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>cjio.subset</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for cjio.subset</h1><div class="highlight"><pre>
+<span></span>
+<span class="kn">import</span> <span class="nn">json</span>
+
+<div class="viewcode-block" id="select_co_bbox"><a class="viewcode-back" href="../../cjio.html#cjio.subset.select_co_bbox">[docs]</a><span class="k">def</span> <span class="nf">select_co_bbox</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">bbox</span><span class="p">):</span>
+    <span class="c1">#-- select the CO whose</span>
+    <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="select_co_ids"><a class="viewcode-back" href="../../cjio.html#cjio.subset.select_co_ids">[docs]</a><span class="k">def</span> <span class="nf">select_co_ids</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">IDs</span><span class="p">):</span>
+    <span class="n">IDs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">IDs</span><span class="p">)</span>
+    <span class="n">re</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">theid</span> <span class="ow">in</span> <span class="n">j</span><span class="p">[</span><span class="s2">&quot;CityObjects&quot;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">theid</span> <span class="ow">in</span> <span class="n">IDs</span><span class="p">:</span>
+            <span class="n">re</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">theid</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">theid</span> <span class="ow">in</span> <span class="n">IDs</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">theid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">j</span><span class="p">[</span><span class="s2">&quot;CityObjects&quot;</span><span class="p">]:</span>
+            <span class="n">IDs</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">theid</span><span class="p">)</span>
+            <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;WARNING: ID&quot;</span><span class="p">,</span> <span class="n">theid</span><span class="p">,</span> <span class="s2">&quot;not found in input file; ignored.&quot;</span><span class="p">)</span>
+    <span class="c1">#-- deal with CityObjectGroup</span>
+    <span class="k">for</span> <span class="n">each</span> <span class="ow">in</span> <span class="n">j</span><span class="p">[</span><span class="s2">&quot;CityObjects&quot;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">each</span> <span class="ow">in</span> <span class="n">IDs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">j</span><span class="p">[</span><span class="s2">&quot;CityObjects&quot;</span><span class="p">][</span><span class="n">each</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;CityObjectGroup&quot;</span> <span class="ow">and</span> <span class="s2">&quot;members&quot;</span> <span class="ow">in</span> <span class="n">j</span><span class="p">[</span><span class="s2">&quot;CityObjects&quot;</span><span class="p">][</span><span class="n">each</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">member</span> <span class="ow">in</span> <span class="n">j</span><span class="p">[</span><span class="s2">&quot;CityObjects&quot;</span><span class="p">][</span><span class="n">each</span><span class="p">][</span><span class="s2">&quot;members&quot;</span><span class="p">]:</span>
+                    <span class="n">re</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">member</span><span class="p">)</span>
+    <span class="c1">#-- also add the children</span>
+    <span class="k">for</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">j</span><span class="p">[</span><span class="s2">&quot;CityObjects&quot;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">IDs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;children&quot;</span> <span class="ow">in</span> <span class="n">j</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">][</span><span class="nb">id</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">j</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">][</span><span class="nb">id</span><span class="p">][</span><span class="s1">&#39;children&#39;</span><span class="p">]:</span>
+                    <span class="n">re</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s2">&quot;parent&quot;</span> <span class="ow">in</span> <span class="n">j</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">][</span><span class="nb">id</span><span class="p">]:</span>
+                <span class="n">re</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">][</span><span class="nb">id</span><span class="p">][</span><span class="s1">&#39;parent&#39;</span><span class="p">])</span> 
+                <span class="c1">#-- add siblings</span>
+                <span class="k">if</span> <span class="s2">&quot;children&quot;</span> <span class="ow">in</span> <span class="n">j</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">][</span><span class="nb">id</span><span class="p">][</span><span class="s1">&#39;parent&#39;</span><span class="p">]:</span>
+                    <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">j</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">][</span><span class="nb">id</span><span class="p">][</span><span class="s1">&#39;parent&#39;</span><span class="p">]:</span>
+                        <span class="n">re</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">re</span>                </div>
+
+
+
+<div class="viewcode-block" id="process_geometry"><a class="viewcode-back" href="../../cjio.html#cjio.subset.process_geometry">[docs]</a><span class="k">def</span> <span class="nf">process_geometry</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">j2</span><span class="p">):</span>
+    <span class="c1">#-- update vertex indices</span>
+    <span class="n">oldnewids</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">newvertices</span> <span class="o">=</span> <span class="p">[]</span>    
+    <span class="k">for</span> <span class="n">each</span> <span class="ow">in</span> <span class="n">j2</span><span class="p">[</span><span class="s2">&quot;CityObjects&quot;</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">geom</span> <span class="ow">in</span> <span class="n">j2</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">][</span><span class="n">each</span><span class="p">][</span><span class="s1">&#39;geometry&#39;</span><span class="p">]:</span>
+            <span class="n">update_array_indices</span><span class="p">(</span><span class="n">geom</span><span class="p">[</span><span class="s2">&quot;boundaries&quot;</span><span class="p">],</span> <span class="n">oldnewids</span><span class="p">,</span> <span class="n">j</span><span class="p">[</span><span class="s2">&quot;vertices&quot;</span><span class="p">],</span> <span class="n">newvertices</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">j2</span><span class="p">[</span><span class="s2">&quot;vertices&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">newvertices</span></div>
+
+
+<div class="viewcode-block" id="process_templates"><a class="viewcode-back" href="../../cjio.html#cjio.subset.process_templates">[docs]</a><span class="k">def</span> <span class="nf">process_templates</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">j2</span><span class="p">):</span>
+    <span class="n">dOldNewIDs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">newones</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">each</span> <span class="ow">in</span> <span class="n">j2</span><span class="p">[</span><span class="s2">&quot;CityObjects&quot;</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">geom</span> <span class="ow">in</span> <span class="n">j2</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">][</span><span class="n">each</span><span class="p">][</span><span class="s1">&#39;geometry&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;GeometryInstance&quot;</span><span class="p">:</span> 
+                <span class="n">t</span> <span class="o">=</span> <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;template&quot;</span><span class="p">]</span> 
+                <span class="k">if</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">dOldNewIDs</span><span class="p">:</span>
+                    <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;template&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dOldNewIDs</span><span class="p">[</span><span class="n">t</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;template&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">newones</span><span class="p">)</span>
+                    <span class="n">dOldNewIDs</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">newones</span><span class="p">)</span>
+                    <span class="n">newones</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;geometry-templates&quot;</span><span class="p">][</span><span class="s2">&quot;templates&quot;</span><span class="p">][</span><span class="n">t</span><span class="p">])</span>      
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">newones</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">j2</span><span class="p">[</span><span class="s2">&quot;geometry-templates&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">j2</span><span class="p">[</span><span class="s2">&quot;geometry-templates&quot;</span><span class="p">][</span><span class="s2">&quot;vertices-templates&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">j</span><span class="p">[</span><span class="s2">&quot;geometry-templates&quot;</span><span class="p">][</span><span class="s2">&quot;vertices-templates&quot;</span><span class="p">]</span>
+        <span class="n">j2</span><span class="p">[</span><span class="s2">&quot;geometry-templates&quot;</span><span class="p">][</span><span class="s2">&quot;templates&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">newones</span></div>
+
+
+<div class="viewcode-block" id="process_appearance"><a class="viewcode-back" href="../../cjio.html#cjio.subset.process_appearance">[docs]</a><span class="k">def</span> <span class="nf">process_appearance</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">j2</span><span class="p">):</span>
+    <span class="c1">#-- materials</span>
+    <span class="n">dOldNewIDs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">newmats</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">each</span> <span class="ow">in</span> <span class="n">j2</span><span class="p">[</span><span class="s2">&quot;CityObjects&quot;</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">geom</span> <span class="ow">in</span> <span class="n">j2</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">][</span><span class="n">each</span><span class="p">][</span><span class="s1">&#39;geometry&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="s2">&quot;material&quot;</span> <span class="ow">in</span> <span class="n">geom</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">each</span> <span class="ow">in</span> <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;material&quot;</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="s1">&#39;value&#39;</span> <span class="ow">in</span> <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;material&quot;</span><span class="p">][</span><span class="n">each</span><span class="p">]:</span>
+                        <span class="n">v</span> <span class="o">=</span> <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;material&quot;</span><span class="p">][</span><span class="n">each</span><span class="p">][</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">dOldNewIDs</span><span class="p">:</span>
+                            <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;material&quot;</span><span class="p">][</span><span class="n">each</span><span class="p">][</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dOldNewIDs</span><span class="p">[</span><span class="n">v</span><span class="p">]</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;material&quot;</span><span class="p">][</span><span class="n">each</span><span class="p">][</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">newmats</span><span class="p">)</span>
+                            <span class="n">dOldNewIDs</span><span class="p">[</span><span class="n">v</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">newmats</span><span class="p">)</span>
+                            <span class="n">newmats</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;appearance&quot;</span><span class="p">][</span><span class="s2">&quot;materials&quot;</span><span class="p">][</span><span class="n">v</span><span class="p">])</span>      
+                    <span class="k">if</span> <span class="s1">&#39;values&#39;</span> <span class="ow">in</span> <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;material&quot;</span><span class="p">][</span><span class="n">each</span><span class="p">]:</span>
+                        <span class="n">update_array_indices</span><span class="p">(</span><span class="n">geom</span><span class="p">[</span><span class="s2">&quot;material&quot;</span><span class="p">][</span><span class="n">each</span><span class="p">][</span><span class="s1">&#39;values&#39;</span><span class="p">],</span> <span class="n">dOldNewIDs</span><span class="p">,</span> <span class="n">j</span><span class="p">[</span><span class="s2">&quot;appearance&quot;</span><span class="p">][</span><span class="s2">&quot;materials&quot;</span><span class="p">],</span> <span class="n">newmats</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">newmats</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">j2</span><span class="p">[</span><span class="s2">&quot;appearance&quot;</span><span class="p">][</span><span class="s2">&quot;materials&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">newmats</span>
+
+    <span class="c1">#-- textures references (first int in the arrays)</span>
+    <span class="n">dOldNewIDs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">newtextures</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">each</span> <span class="ow">in</span> <span class="n">j2</span><span class="p">[</span><span class="s2">&quot;CityObjects&quot;</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">geom</span> <span class="ow">in</span> <span class="n">j2</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">][</span><span class="n">each</span><span class="p">][</span><span class="s1">&#39;geometry&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="s2">&quot;texture&quot;</span> <span class="ow">in</span> <span class="n">geom</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">each</span> <span class="ow">in</span> <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;texture&quot;</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="s1">&#39;values&#39;</span> <span class="ow">in</span> <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;texture&quot;</span><span class="p">][</span><span class="n">each</span><span class="p">]:</span>
+                        <span class="n">update_array_indices</span><span class="p">(</span><span class="n">geom</span><span class="p">[</span><span class="s2">&quot;texture&quot;</span><span class="p">][</span><span class="n">each</span><span class="p">][</span><span class="s1">&#39;values&#39;</span><span class="p">],</span> <span class="n">dOldNewIDs</span><span class="p">,</span> <span class="n">j</span><span class="p">[</span><span class="s2">&quot;appearance&quot;</span><span class="p">][</span><span class="s2">&quot;textures&quot;</span><span class="p">],</span> <span class="n">newtextures</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">newtextures</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">j2</span><span class="p">[</span><span class="s2">&quot;appearance&quot;</span><span class="p">][</span><span class="s2">&quot;textures&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">newtextures</span>
+    <span class="c1">#-- textures vertices references (1+ int in the arrays)</span>
+    <span class="n">dOldNewIDs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">newtextures</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">each</span> <span class="ow">in</span> <span class="n">j2</span><span class="p">[</span><span class="s2">&quot;CityObjects&quot;</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">geom</span> <span class="ow">in</span> <span class="n">j2</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">][</span><span class="n">each</span><span class="p">][</span><span class="s1">&#39;geometry&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="s2">&quot;texture&quot;</span> <span class="ow">in</span> <span class="n">geom</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">each</span> <span class="ow">in</span> <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;texture&quot;</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="s1">&#39;values&#39;</span> <span class="ow">in</span> <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;texture&quot;</span><span class="p">][</span><span class="n">each</span><span class="p">]:</span>
+                        <span class="n">update_array_indices</span><span class="p">(</span><span class="n">geom</span><span class="p">[</span><span class="s2">&quot;texture&quot;</span><span class="p">][</span><span class="n">each</span><span class="p">][</span><span class="s1">&#39;values&#39;</span><span class="p">],</span> <span class="n">dOldNewIDs</span><span class="p">,</span> <span class="n">j</span><span class="p">[</span><span class="s2">&quot;appearance&quot;</span><span class="p">][</span><span class="s2">&quot;vertices-texture&quot;</span><span class="p">],</span> <span class="n">newtextures</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">newtextures</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">j2</span><span class="p">[</span><span class="s2">&quot;appearance&quot;</span><span class="p">][</span><span class="s2">&quot;vertices-texture&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">newtextures</span></div>
+
+
+<div class="viewcode-block" id="update_array_indices"><a class="viewcode-back" href="../../cjio.html#cjio.subset.update_array_indices">[docs]</a><span class="k">def</span> <span class="nf">update_array_indices</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">dOldNewIDs</span><span class="p">,</span> <span class="n">oldarray</span><span class="p">,</span> <span class="n">newarray</span><span class="p">,</span> <span class="n">slicearray</span><span class="p">):</span>
+    <span class="c1">#-- slicearray: -1=none ; 0=use-only-first (for textures) ; 1=use-1+ (for textures)</span>
+    <span class="c1">#-- a must be an array</span>
+    <span class="c1">#-- issue with passing integer is that it&#39;s non-mutable, thus can&#39;t update</span>
+    <span class="c1">#-- (or I don&#39;t know how...)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">each</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">each</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">update_array_indices</span><span class="p">(</span><span class="n">each</span><span class="p">,</span> <span class="n">dOldNewIDs</span><span class="p">,</span> <span class="n">oldarray</span><span class="p">,</span> <span class="n">newarray</span><span class="p">,</span> <span class="n">slicearray</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">each</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span> <span class="p">(</span><span class="n">slicearray</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">slicearray</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">slicearray</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">):</span>
+                <span class="k">if</span> <span class="n">each</span> <span class="ow">in</span> <span class="n">dOldNewIDs</span><span class="p">:</span>
+                    <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dOldNewIDs</span><span class="p">[</span><span class="n">each</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">newarray</span><span class="p">)</span>
+                    <span class="n">dOldNewIDs</span><span class="p">[</span><span class="n">each</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">newarray</span><span class="p">)</span>
+                    <span class="n">newarray</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">oldarray</span><span class="p">[</span><span class="n">each</span><span class="p">])</span>      </div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Hugo Ledoux
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

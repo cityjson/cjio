@@ -1,0 +1,607 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cjio.convert &mdash; cjio 0.5.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> cjio
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../includeme.html">cjio, or CityJSON/io</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../cjio_tutorial.html">cjio API tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">Reference</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">cjio</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>cjio.convert</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for cjio.convert</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">io</span> <span class="k">import</span> <span class="n">BytesIO</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">cjio</span> <span class="k">import</span> <span class="n">geom_help</span>
+
+
+<div class="viewcode-block" id="flatten"><a class="viewcode-back" href="../../cjio.html#cjio.convert.flatten">[docs]</a><span class="k">def</span> <span class="nf">flatten</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">x</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="s2">&quot;__iter__&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">flatten</span><span class="p">(</span><span class="n">el</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="byte_offset"><a class="viewcode-back" href="../../cjio.html#cjio.convert.byte_offset">[docs]</a><span class="k">def</span> <span class="nf">byte_offset</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">byte_boundary</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compute the byteOffset for glTF bufferView</span>
+
+<span class="sd">    The bufferViews need to be aligned to a 4-byte boundary so the accessors can be aligned to them</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">remainder</span> <span class="o">=</span> <span class="n">x</span> <span class="o">%</span> <span class="n">byte_boundary</span>
+    <span class="n">padding</span> <span class="o">=</span> <span class="n">byte_boundary</span> <span class="o">-</span> <span class="n">remainder</span> <span class="k">if</span> <span class="n">remainder</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">padding</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">padding</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="to_b3dm"><a class="viewcode-back" href="../../cjio.html#cjio.convert.to_b3dm">[docs]</a><span class="k">def</span> <span class="nf">to_b3dm</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">glb</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert a CityJSON to batched 3d model&quot;&quot;&quot;</span>
+    <span class="c1"># glb is a buffered I/O, as the output of to_gltf()</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">glb</span><span class="p">,</span> <span class="n">BytesIO</span><span class="p">)</span>
+    <span class="n">b3dm_bin</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">glb</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">b3dm_bin</span>
+
+    <span class="c1">#-- Feature table</span>
+    <span class="c1"># the gltf must have a batchId per CityObject, and this setup expects that there is 1 mesh.primitive per CityObject</span>
+    <span class="n">feature_table_header_b</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span>
+        <span class="s1">&#39;BATCH_LENGTH&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">])</span>
+    <span class="p">})</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+    <span class="c1"># The JSON header must end on an 8-byte boundary within the containing tile binary. The JSON header must be padded with trailing Space characters (0x20) to satisfy this requirement.</span>
+    <span class="n">offset</span><span class="p">,</span> <span class="n">padding</span> <span class="o">=</span> <span class="n">byte_offset</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">feature_table_header_b</span><span class="p">),</span> <span class="mi">8</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">padding</span><span class="p">):</span>
+        <span class="n">feature_table_header_b</span> <span class="o">+=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+
+    <span class="c1">#-- Batch table</span>
+    <span class="n">attributes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">coid</span><span class="p">,</span><span class="n">co</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">attributes</span> <span class="o">|=</span> <span class="nb">set</span><span class="p">(</span><span class="n">co</span><span class="p">[</span><span class="s1">&#39;attributes&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">pass</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">attributes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">batch_table</span> <span class="o">=</span> <span class="p">{</span><span class="n">attribute</span><span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">attribute</span> <span class="ow">in</span> <span class="n">attributes</span><span class="p">}</span>
+        <span class="k">for</span> <span class="n">coid</span><span class="p">,</span><span class="n">co</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">attribute</span> <span class="ow">in</span> <span class="n">attributes</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">batch_table</span><span class="p">[</span><span class="n">attribute</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">co</span><span class="p">[</span><span class="s1">&#39;attributes&#39;</span><span class="p">][</span><span class="n">attribute</span><span class="p">])</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="n">batch_table</span><span class="p">[</span><span class="n">attribute</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">batch_table</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="c1"># TODO B: write the attributes into the binary body of the the batch table</span>
+    <span class="n">batch_table_header_b</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">batch_table</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+    <span class="n">offset</span><span class="p">,</span> <span class="n">padding</span> <span class="o">=</span> <span class="n">byte_offset</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">batch_table_header_b</span><span class="p">),</span> <span class="mi">8</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">padding</span><span class="p">):</span>
+        <span class="n">batch_table_header_b</span> <span class="o">+=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+
+    <span class="c1">#-- binary glTF</span>
+    <span class="n">offset</span><span class="p">,</span> <span class="n">padding</span> <span class="o">=</span> <span class="n">byte_offset</span><span class="p">(</span><span class="n">glb</span><span class="o">.</span><span class="n">tell</span><span class="p">(),</span> <span class="mi">8</span><span class="p">)</span>
+    <span class="n">glb</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">bytearray</span><span class="p">(</span><span class="n">padding</span><span class="p">))</span>
+
+    <span class="c1"># the b3dm header is 28-bytes</span>
+    <span class="n">byte_length</span> <span class="o">=</span> <span class="mi">28</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">feature_table_header_b</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">batch_table_header_b</span><span class="p">)</span> <span class="o">+</span> <span class="n">glb</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span>
+    <span class="c1">#-- b3dm Header</span>
+    <span class="n">magic</span> <span class="o">=</span> <span class="s2">&quot;b3dm&quot;</span>
+    <span class="n">version</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">feature_table_json_blen</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">feature_table_header_b</span><span class="p">)</span>
+    <span class="n">feature_table_bin_blen</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">batch_table_json_blen</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">batch_table_header_b</span><span class="p">)</span>
+    <span class="n">batch_table_bin_blen</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="n">b3dm_bin</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">magic</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span>
+    <span class="n">b3dm_bin</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">version</span><span class="o">.</span><span class="n">to_bytes</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">byteorder</span><span class="o">=</span><span class="s1">&#39;little&#39;</span><span class="p">,</span> <span class="n">signed</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+    <span class="n">b3dm_bin</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">byte_length</span><span class="o">.</span><span class="n">to_bytes</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">byteorder</span><span class="o">=</span><span class="s1">&#39;little&#39;</span><span class="p">,</span> <span class="n">signed</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+    <span class="n">b3dm_bin</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">feature_table_json_blen</span><span class="o">.</span><span class="n">to_bytes</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">byteorder</span><span class="o">=</span><span class="s1">&#39;little&#39;</span><span class="p">,</span> <span class="n">signed</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+    <span class="n">b3dm_bin</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">feature_table_bin_blen</span><span class="o">.</span><span class="n">to_bytes</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">byteorder</span><span class="o">=</span><span class="s1">&#39;little&#39;</span><span class="p">,</span> <span class="n">signed</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+    <span class="n">b3dm_bin</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">batch_table_json_blen</span><span class="o">.</span><span class="n">to_bytes</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">byteorder</span><span class="o">=</span><span class="s1">&#39;little&#39;</span><span class="p">,</span> <span class="n">signed</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+    <span class="n">b3dm_bin</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">batch_table_bin_blen</span><span class="o">.</span><span class="n">to_bytes</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">byteorder</span><span class="o">=</span><span class="s1">&#39;little&#39;</span><span class="p">,</span> <span class="n">signed</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+    <span class="n">b3dm_bin</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">feature_table_header_b</span><span class="p">)</span>
+    <span class="n">b3dm_bin</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">batch_table_header_b</span><span class="p">)</span>
+    <span class="n">b3dm_bin</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">glb</span><span class="o">.</span><span class="n">getvalue</span><span class="p">())</span>
+
+    <span class="k">assert</span> <span class="n">b3dm_bin</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span> <span class="o">==</span> <span class="n">byte_length</span>
+
+    <span class="k">return</span> <span class="n">b3dm_bin</span></div>
+
+<div class="viewcode-block" id="to_glb"><a class="viewcode-back" href="../../cjio.html#cjio.convert.to_glb">[docs]</a><span class="k">def</span> <span class="nf">to_glb</span><span class="p">(</span><span class="n">j</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert to Binary glTF (.glb)</span>
+
+<span class="sd">    Adapted from CityJSON2glTF: https://github.com/tudelft3d/CityJSON2glTF</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">gltf_json</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;asset&quot;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s2">&quot;buffers&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;bufferViews&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;accessors&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;materials&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;meshes&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;nodes&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">&quot;scenes&quot;</span><span class="p">:</span> <span class="p">[]</span>
+    <span class="p">}</span>
+    <span class="n">gltf_bin</span> <span class="o">=</span> <span class="nb">bytearray</span><span class="p">()</span>
+    <span class="n">glb</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">glb</span>
+    <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Not a CityJSON&quot;</span><span class="p">)</span>
+
+    <span class="c1"># asset</span>
+    <span class="n">asset</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="n">asset</span><span class="p">[</span><span class="s2">&quot;copyright&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Open data&quot;</span>
+    <span class="n">asset</span><span class="p">[</span><span class="s2">&quot;generator&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Generated using cjio&#39;s glTF exporter&quot;</span>
+    <span class="n">asset</span><span class="p">[</span><span class="s2">&quot;version&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;2.0&quot;</span>
+    <span class="n">gltf_json</span><span class="p">[</span><span class="s2">&quot;asset&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">asset</span>
+
+    <span class="c1"># index bufferview</span>
+    <span class="n">bufferViews</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">meshes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">poscount</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">nodes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">node_indices</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">accessors</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">matid</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">material_ids</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">vertexlist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;vertices&quot;</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">coi</span><span class="p">,</span><span class="n">theid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">]):</span>
+        <span class="n">forimax</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">][</span><span class="n">theid</span><span class="p">][</span><span class="s1">&#39;geometry&#39;</span><span class="p">])</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+
+            <span class="n">comType</span> <span class="o">=</span> <span class="n">j</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">][</span><span class="n">theid</span><span class="p">][</span><span class="s1">&#39;type&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">comType</span> <span class="o">==</span> <span class="s2">&quot;Building&quot;</span> <span class="ow">or</span> <span class="n">comType</span> <span class="o">==</span> <span class="s2">&quot;BuildingPart&quot;</span> <span class="ow">or</span> <span class="n">comType</span> <span class="o">==</span> <span class="s2">&quot;BuildingInstallation&quot;</span><span class="p">):</span>
+                <span class="n">matid</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">comType</span> <span class="o">==</span> <span class="s2">&quot;TINRelief&quot;</span><span class="p">):</span>
+                <span class="n">matid</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">comType</span> <span class="o">==</span> <span class="s2">&quot;Road&quot;</span> <span class="ow">or</span> <span class="n">comType</span> <span class="o">==</span> <span class="s2">&quot;Railway&quot;</span> <span class="ow">or</span> <span class="n">comType</span> <span class="o">==</span> <span class="s2">&quot;TransportSquare&quot;</span><span class="p">):</span>
+                <span class="n">matid</span> <span class="o">=</span> <span class="mi">2</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">comType</span> <span class="o">==</span> <span class="s2">&quot;WaterBody&quot;</span><span class="p">):</span>
+                <span class="n">matid</span> <span class="o">=</span> <span class="mi">3</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">comType</span> <span class="o">==</span> <span class="s2">&quot;PlantCover&quot;</span> <span class="ow">or</span> <span class="n">comType</span> <span class="o">==</span> <span class="s2">&quot;SolitaryVegetationObject&quot;</span><span class="p">):</span>
+                <span class="n">matid</span> <span class="o">=</span> <span class="mi">4</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">comType</span> <span class="o">==</span> <span class="s2">&quot;LandUse&quot;</span><span class="p">):</span>
+                <span class="n">matid</span> <span class="o">=</span> <span class="mi">5</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">comType</span> <span class="o">==</span> <span class="s2">&quot;CityFurniture&quot;</span><span class="p">):</span>
+                <span class="n">matid</span> <span class="o">=</span> <span class="mi">6</span>
+            <span class="k">elif</span> <span class="p">(</span>
+                    <span class="n">comType</span> <span class="o">==</span> <span class="s2">&quot;Bridge&quot;</span> <span class="ow">or</span> <span class="n">comType</span> <span class="o">==</span> <span class="s2">&quot;BridgePart&quot;</span> <span class="ow">or</span> <span class="n">comType</span> <span class="o">==</span> <span class="s2">&quot;BridgeInstallation&quot;</span> <span class="ow">or</span> <span class="n">comType</span> <span class="o">==</span> <span class="s2">&quot;BridgeConstructionElement&quot;</span><span class="p">):</span>
+                <span class="n">matid</span> <span class="o">=</span> <span class="mi">7</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">comType</span> <span class="o">==</span> <span class="s2">&quot;Tunnel&quot;</span> <span class="ow">or</span> <span class="n">comType</span> <span class="o">==</span> <span class="s2">&quot;TunnelPart&quot;</span> <span class="ow">or</span> <span class="n">comType</span> <span class="o">==</span> <span class="s2">&quot;TunnelInstallation&quot;</span><span class="p">):</span>
+                <span class="n">matid</span> <span class="o">=</span> <span class="mi">8</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">comType</span> <span class="o">==</span> <span class="s2">&quot;GenericCityObject&quot;</span><span class="p">):</span>
+                <span class="n">matid</span> <span class="o">=</span> <span class="mi">9</span>
+            <span class="n">material_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">matid</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">geom</span> <span class="ow">in</span> <span class="n">j</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">][</span><span class="n">theid</span><span class="p">][</span><span class="s1">&#39;geometry&#39;</span><span class="p">]:</span>
+                <span class="n">poscount</span> <span class="o">=</span> <span class="n">poscount</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">geom</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Solid&quot;</span><span class="p">:</span>
+                    <span class="n">triList</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="k">for</span> <span class="n">shell</span> <span class="ow">in</span> <span class="n">geom</span><span class="p">[</span><span class="s1">&#39;boundaries&#39;</span><span class="p">]:</span>
+                        <span class="k">for</span> <span class="n">face</span> <span class="ow">in</span> <span class="n">shell</span><span class="p">:</span>
+                            <span class="n">tri</span> <span class="o">=</span> <span class="n">geom_help</span><span class="o">.</span><span class="n">triangulate_face</span><span class="p">(</span><span class="n">face</span><span class="p">,</span> <span class="n">vertexlist</span><span class="p">)</span>
+                            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tri</span><span class="p">:</span>
+                                <span class="n">triList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">t</span><span class="p">))</span>
+                    <span class="n">trigeom</span> <span class="o">=</span> <span class="p">(</span><span class="n">flatten</span><span class="p">(</span><span class="n">triList</span><span class="p">))</span>
+
+                <span class="k">elif</span> <span class="p">(</span><span class="n">geom</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;MultiSurface&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">geom</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;CompositeSurface&#39;</span><span class="p">):</span>
+                    <span class="n">triList</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="k">for</span> <span class="n">face</span> <span class="ow">in</span> <span class="n">geom</span><span class="p">[</span><span class="s1">&#39;boundaries&#39;</span><span class="p">]:</span>
+                        <span class="n">tri</span> <span class="o">=</span> <span class="n">geom_help</span><span class="o">.</span><span class="n">triangulate_face</span><span class="p">(</span><span class="n">face</span><span class="p">,</span> <span class="n">vertexlist</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tri</span><span class="p">:</span>
+                            <span class="n">triList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+                    <span class="n">trigeom</span> <span class="o">=</span> <span class="p">(</span><span class="n">flatten</span><span class="p">(</span><span class="n">triList</span><span class="p">))</span>
+                <span class="n">flatgeom</span> <span class="o">=</span> <span class="n">trigeom</span>
+                <span class="n">forimax</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">flatgeom</span><span class="p">)</span>
+
+            <span class="c1">#----- buffer and bufferView</span>
+            <span class="n">flatgeom</span> <span class="o">=</span> <span class="n">flatten</span><span class="p">(</span><span class="n">forimax</span><span class="p">)</span>
+            <span class="n">vtx_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">flatgeom</span><span class="p">),</span> <span class="mi">3</span><span class="p">))</span>
+            <span class="n">vtx_idx_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">flatgeom</span><span class="p">))</span>
+            <span class="c1"># need to reindex the vertices, otherwise if the vtx index exceeds the nr. of vertices in the</span>
+            <span class="c1"># accessor then we get &quot;ACCESSOR_INDEX_OOB&quot; error</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">flatgeom</span><span class="p">):</span>
+                <span class="n">vtx_np</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">vertexlist</span><span class="p">[</span><span class="n">v</span><span class="p">]</span>
+                <span class="n">vtx_idx_np</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+            <span class="n">bin_vtx</span> <span class="o">=</span> <span class="n">vtx_np</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span><span class="o">.</span><span class="n">tostring</span><span class="p">()</span>
+            <span class="c1"># convert geometry indices to binary</span>
+            <span class="n">bin_geom</span> <span class="o">=</span> <span class="n">vtx_idx_np</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">)</span><span class="o">.</span><span class="n">tostring</span><span class="p">()</span>
+            <span class="c1"># convert batchid to binary</span>
+            <span class="n">batchid_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">i</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">vtx_idx_np</span><span class="p">])</span>
+            <span class="n">bin_batchid</span> <span class="o">=</span> <span class="n">batchid_np</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint32</span><span class="p">)</span><span class="o">.</span><span class="n">tostring</span><span class="p">()</span>
+
+            <span class="c1">#-- geometry indices bufferView</span>
+            <span class="n">bpos</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gltf_bin</span><span class="p">)</span>
+            <span class="n">offset</span><span class="p">,</span> <span class="n">padding</span> <span class="o">=</span> <span class="n">byte_offset</span><span class="p">(</span><span class="n">bpos</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+            <span class="n">bufferView</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+            <span class="n">bufferView</span><span class="p">[</span><span class="s2">&quot;buffer&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">bufferView</span><span class="p">[</span><span class="s2">&quot;byteOffset&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">offset</span>
+            <span class="n">bufferView</span><span class="p">[</span><span class="s2">&quot;byteLength&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">bin_geom</span><span class="p">)</span>
+            <span class="n">bufferView</span><span class="p">[</span><span class="s2">&quot;target&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">34963</span> <span class="c1"># For &#39;target&#39; property constants see: https://github.com/KhronosGroup/glTF-Tutorials/blob/master/gltfTutorial/gltfTutorial_005_BuffersBufferViewsAccessors.md#bufferviews</span>
+            <span class="c1"># write to the buffer</span>
+            <span class="n">gltf_bin</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">bin_geom</span><span class="p">)</span>
+            <span class="n">gltf_bin</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">bytearray</span><span class="p">(</span><span class="n">padding</span><span class="p">))</span>
+            <span class="n">bufferViews</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bufferView</span><span class="p">)</span>
+
+            <span class="c1">#-- geometry vertices bufferView</span>
+            <span class="n">bpos</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gltf_bin</span><span class="p">)</span>
+            <span class="n">offset</span><span class="p">,</span> <span class="n">padding</span> <span class="o">=</span> <span class="n">byte_offset</span><span class="p">(</span><span class="n">bpos</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+            <span class="n">bufferView</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+            <span class="n">bufferView</span><span class="p">[</span><span class="s2">&quot;buffer&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">bufferView</span><span class="p">[</span><span class="s2">&quot;byteOffset&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">offset</span>
+            <span class="n">bufferView</span><span class="p">[</span><span class="s2">&quot;byteStride&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">12</span>
+            <span class="n">bufferView</span><span class="p">[</span><span class="s2">&quot;byteLength&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">bin_vtx</span><span class="p">)</span>
+            <span class="n">bufferView</span><span class="p">[</span><span class="s2">&quot;target&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">34962</span>
+            <span class="c1"># write to the buffer</span>
+            <span class="n">gltf_bin</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">bin_vtx</span><span class="p">)</span>
+            <span class="n">gltf_bin</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">bytearray</span><span class="p">(</span><span class="n">padding</span><span class="p">))</span>
+            <span class="n">bufferViews</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bufferView</span><span class="p">)</span>
+
+            <span class="c1">#-- batchid bufferView</span>
+            <span class="n">bpos</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gltf_bin</span><span class="p">)</span>
+            <span class="n">offset</span><span class="p">,</span> <span class="n">padding</span> <span class="o">=</span> <span class="n">byte_offset</span><span class="p">(</span><span class="n">bpos</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+            <span class="n">bufferView</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+            <span class="n">bufferView</span><span class="p">[</span><span class="s2">&quot;buffer&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">bufferView</span><span class="p">[</span><span class="s2">&quot;byteOffset&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">offset</span>
+            <span class="n">bufferView</span><span class="p">[</span><span class="s2">&quot;byteStride&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span>
+            <span class="n">bufferView</span><span class="p">[</span><span class="s2">&quot;byteLength&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">bin_batchid</span><span class="p">)</span>
+            <span class="n">bufferView</span><span class="p">[</span><span class="s2">&quot;target&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">34962</span>
+            <span class="c1"># write to the buffer</span>
+            <span class="n">gltf_bin</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">bin_batchid</span><span class="p">)</span>
+            <span class="n">gltf_bin</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">bytearray</span><span class="p">(</span><span class="n">padding</span><span class="p">))</span>
+            <span class="n">bufferViews</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bufferView</span><span class="p">)</span>
+
+            <span class="c1"># ----- accessors</span>
+
+            <span class="c1"># accessor for geometry indices bufferView</span>
+            <span class="n">accessor</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+            <span class="n">accessor</span><span class="p">[</span><span class="s2">&quot;bufferView&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">coi</span> <span class="o">==</span> <span class="mi">0</span>  <span class="k">else</span> <span class="n">coi</span> <span class="o">*</span> <span class="mi">3</span>
+            <span class="n">accessor</span><span class="p">[</span><span class="s2">&quot;componentType&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">5125</span>
+            <span class="n">accessor</span><span class="p">[</span><span class="s2">&quot;count&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">vtx_idx_np</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+            <span class="n">accessor</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;SCALAR&quot;</span>
+            <span class="n">accessor</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">vtx_idx_np</span><span class="o">.</span><span class="n">max</span><span class="p">())]</span>
+            <span class="n">accessor</span><span class="p">[</span><span class="s2">&quot;min&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">vtx_idx_np</span><span class="o">.</span><span class="n">min</span><span class="p">())]</span>
+            <span class="n">accessors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">accessor</span><span class="p">)</span>
+
+            <span class="c1"># accessor for geometry vertices bufferView</span>
+            <span class="n">accessor</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+            <span class="n">accessor</span><span class="p">[</span><span class="s2">&quot;bufferView&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">coi</span> <span class="o">==</span> <span class="mi">0</span>  <span class="k">else</span> <span class="n">coi</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">accessor</span><span class="p">[</span><span class="s2">&quot;componentType&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">5126</span>
+            <span class="n">accessor</span><span class="p">[</span><span class="s2">&quot;count&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">vtx_idx_np</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+            <span class="n">accessor</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;VEC3&quot;</span>
+            <span class="n">accessor</span><span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">vtx_np</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">]),</span>
+                               <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">vtx_np</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span><span class="mi">1</span><span class="p">]),</span>
+                               <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">vtx_np</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span><span class="mi">2</span><span class="p">])]</span>
+            <span class="n">accessor</span><span class="p">[</span><span class="s2">&quot;min&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">vtx_np</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">]),</span>
+                               <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">vtx_np</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span><span class="mi">1</span><span class="p">]),</span>
+                               <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">vtx_np</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[</span><span class="mi">2</span><span class="p">])]</span>
+            <span class="n">accessors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">accessor</span><span class="p">)</span>
+
+            <span class="c1"># accessor for batchid bufferView</span>
+            <span class="n">accessor</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+            <span class="n">accessor</span><span class="p">[</span><span class="s2">&quot;bufferView&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span> <span class="k">if</span> <span class="n">coi</span> <span class="o">==</span> <span class="mi">0</span>  <span class="k">else</span> <span class="n">coi</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">+</span> <span class="mi">2</span>
+            <span class="n">accessor</span><span class="p">[</span><span class="s2">&quot;componentType&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">5123</span>
+            <span class="n">accessor</span><span class="p">[</span><span class="s2">&quot;count&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">vtx_idx_np</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+            <span class="n">accessor</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;SCALAR&quot;</span>
+            <span class="n">accessors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">accessor</span><span class="p">)</span>
+
+            <span class="c1"># ----- meshes</span>
+            <span class="c1"># one mesh per CityObject</span>
+            <span class="n">mesh</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+            <span class="n">mesh</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">theid</span><span class="p">)</span>
+            <span class="n">mesh</span><span class="p">[</span><span class="s2">&quot;primitives&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[{</span>
+                <span class="s2">&quot;indices&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">accessors</span><span class="p">)</span> <span class="o">-</span> <span class="mi">3</span><span class="p">,</span>
+                <span class="s2">&quot;material&quot;</span><span class="p">:</span> <span class="n">matid</span><span class="p">,</span>
+                <span class="s2">&quot;attributes&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;_BATCHID&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">accessors</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span>
+                    <span class="s2">&quot;POSITION&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">accessors</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">}]</span>
+            <span class="n">meshes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span>
+
+            <span class="c1"># ----- nodes</span>
+            <span class="c1"># a node has a mesh, and the mesh is referenced by its index in the meshes</span>
+            <span class="c1"># , &quot;matrix&quot;: [1,0,0,0,0,0,-1,0,0,1,0,0,0,0,0,1]}</span>
+            <span class="n">nodes</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;mesh&quot;</span><span class="p">:</span> <span class="n">coi</span><span class="p">})</span>
+            <span class="c1"># one node per CityObject</span>
+            <span class="n">node_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coi</span><span class="p">)</span>
+
+    <span class="c1">#-- buffers</span>
+    <span class="n">buffer</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="n">offset</span><span class="p">,</span> <span class="n">padding</span> <span class="o">=</span> <span class="n">byte_offset</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gltf_bin</span><span class="p">),</span> <span class="mi">4</span><span class="p">)</span>
+    <span class="n">gltf_bin</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">bytearray</span><span class="p">(</span><span class="n">padding</span><span class="p">))</span>
+    <span class="n">buffer</span><span class="p">[</span><span class="s2">&quot;byteLength&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gltf_bin</span><span class="p">)</span>
+    <span class="n">gltf_json</span><span class="p">[</span><span class="s2">&quot;buffers&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">buffer</span><span class="p">]</span>
+
+    <span class="n">gltf_json</span><span class="p">[</span><span class="s2">&quot;bufferViews&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bufferViews</span>
+    <span class="n">gltf_json</span><span class="p">[</span><span class="s2">&quot;accessors&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">accessors</span>
+    <span class="n">gltf_json</span><span class="p">[</span><span class="s2">&quot;meshes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">meshes</span>
+    <span class="n">gltf_json</span><span class="p">[</span><span class="s2">&quot;nodes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nodes</span>
+
+    <span class="n">scene</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="n">scene</span><span class="p">[</span><span class="s2">&quot;nodes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">node_indices</span>
+    <span class="n">gltf_json</span><span class="p">[</span><span class="s2">&quot;scenes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">scene</span><span class="p">]</span>
+
+    <span class="c1">#-- materials</span>
+    <span class="n">materials</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">{</span>  <span class="c1"># building red</span>
+            <span class="s2">&quot;pbrMetallicRoughness&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;baseColorFactor&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.000</span><span class="p">,</span> <span class="mf">0.000</span><span class="p">,</span> <span class="mf">0.000</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+                <span class="s2">&quot;metallicFactor&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+                <span class="s2">&quot;roughnessFactor&quot;</span><span class="p">:</span> <span class="mf">1.0</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="p">{</span>  <span class="c1"># terrain brown</span>
+            <span class="s2">&quot;pbrMetallicRoughness&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;baseColorFactor&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.588</span><span class="p">,</span> <span class="mf">0.403</span><span class="p">,</span> <span class="mf">0.211</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+                <span class="s2">&quot;metallicFactor&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+                <span class="s2">&quot;roughnessFactor&quot;</span><span class="p">:</span> <span class="mf">1.0</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="p">{</span>  <span class="c1"># transport grey</span>
+            <span class="s2">&quot;pbrMetallicRoughness&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;baseColorFactor&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.631</span><span class="p">,</span> <span class="mf">0.607</span><span class="p">,</span> <span class="mf">0.592</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+                <span class="s2">&quot;metallicFactor&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+                <span class="s2">&quot;roughnessFactor&quot;</span><span class="p">:</span> <span class="mf">1.0</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="p">{</span>  <span class="c1"># waterbody blue</span>
+            <span class="s2">&quot;pbrMetallicRoughness&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;baseColorFactor&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.070</span><span class="p">,</span> <span class="mf">0.949</span><span class="p">,</span> <span class="mf">0.972</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+                <span class="s2">&quot;metallicFactor&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+                <span class="s2">&quot;roughnessFactor&quot;</span><span class="p">:</span> <span class="mf">1.0</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="p">{</span>  <span class="c1"># vegetation green</span>
+            <span class="s2">&quot;pbrMetallicRoughness&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;baseColorFactor&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.000</span><span class="p">,</span> <span class="mf">1.000</span><span class="p">,</span> <span class="mf">0.000</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+                <span class="s2">&quot;metallicFactor&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+                <span class="s2">&quot;roughnessFactor&quot;</span><span class="p">:</span> <span class="mf">1.0</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="p">{</span>  <span class="c1"># landuse yellow</span>
+            <span class="s2">&quot;pbrMetallicRoughness&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;baseColorFactor&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.909</span><span class="p">,</span> <span class="mf">0.945</span><span class="p">,</span> <span class="mf">0.196</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+                <span class="s2">&quot;metallicFactor&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+                <span class="s2">&quot;roughnessFactor&quot;</span><span class="p">:</span> <span class="mf">1.0</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="p">{</span>  <span class="c1"># CityFurniture orange</span>
+            <span class="s2">&quot;pbrMetallicRoughness&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;baseColorFactor&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.894</span><span class="p">,</span> <span class="mf">0.494</span><span class="p">,</span> <span class="mf">0.145</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+                <span class="s2">&quot;metallicFactor&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+                <span class="s2">&quot;roughnessFactor&quot;</span><span class="p">:</span> <span class="mf">1.0</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="p">{</span>  <span class="c1"># bridge purple</span>
+            <span class="s2">&quot;pbrMetallicRoughness&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;baseColorFactor&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.466</span><span class="p">,</span> <span class="mf">0.094</span><span class="p">,</span> <span class="mf">0.905</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+                <span class="s2">&quot;metallicFactor&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+                <span class="s2">&quot;roughnessFactor&quot;</span><span class="p">:</span> <span class="mf">1.0</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="p">{</span>  <span class="c1"># tunnel black</span>
+            <span class="s2">&quot;pbrMetallicRoughness&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;baseColorFactor&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.011</span><span class="p">,</span> <span class="mf">0.011</span><span class="p">,</span> <span class="mf">0.007</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+                <span class="s2">&quot;metallicFactor&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+                <span class="s2">&quot;roughnessFactor&quot;</span><span class="p">:</span> <span class="mf">1.0</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="p">{</span>  <span class="c1"># GenericCityObject pink</span>
+            <span class="s2">&quot;pbrMetallicRoughness&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;baseColorFactor&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.909</span><span class="p">,</span> <span class="mf">0.188</span><span class="p">,</span> <span class="mf">0.827</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+                <span class="s2">&quot;metallicFactor&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+                <span class="s2">&quot;roughnessFactor&quot;</span><span class="p">:</span> <span class="mf">1.0</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">]</span>
+    <span class="n">gltf_json</span><span class="p">[</span><span class="s2">&quot;materials&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">materials</span>
+    
+    <span class="c1">#-- Chunk 0 (JSON)</span>
+    <span class="n">chunk_0</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">gltf_json</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+    <span class="n">offset</span><span class="p">,</span> <span class="n">padding</span> <span class="o">=</span> <span class="n">byte_offset</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">chunk_0</span><span class="p">),</span> <span class="mi">4</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">padding</span><span class="p">):</span>
+        <span class="n">chunk_0</span> <span class="o">+=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+    <span class="c1">#-- Binary glTF header</span>
+    <span class="n">magic</span> <span class="o">=</span> <span class="s1">&#39;glTF&#39;</span>
+    <span class="n">version</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">length</span> <span class="o">=</span> <span class="mi">12</span> <span class="o">+</span> <span class="mi">8</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk_0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">8</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">gltf_bin</span><span class="p">)</span>
+
+    <span class="c1"># header</span>
+    <span class="n">glb</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">magic</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span>
+    <span class="n">glb</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">version</span><span class="o">.</span><span class="n">to_bytes</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">byteorder</span><span class="o">=</span><span class="s1">&#39;little&#39;</span><span class="p">,</span> <span class="n">signed</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+    <span class="n">glb</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">length</span><span class="o">.</span><span class="n">to_bytes</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">byteorder</span><span class="o">=</span><span class="s1">&#39;little&#39;</span><span class="p">,</span> <span class="n">signed</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+    <span class="c1"># chunk 0</span>
+    <span class="n">glb</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">chunk_0</span><span class="p">)</span><span class="o">.</span><span class="n">to_bytes</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">byteorder</span><span class="o">=</span><span class="s1">&#39;little&#39;</span><span class="p">,</span> <span class="n">signed</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+    <span class="n">glb</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;JSON&#39;</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span>
+    <span class="n">glb</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chunk_0</span><span class="p">)</span>
+    <span class="c1"># chunk 1</span>
+    <span class="n">glb</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gltf_bin</span><span class="p">)</span><span class="o">.</span><span class="n">to_bytes</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">byteorder</span><span class="o">=</span><span class="s1">&#39;little&#39;</span><span class="p">,</span> <span class="n">signed</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+    <span class="n">glb</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">bytearray</span><span class="o">.</span><span class="n">fromhex</span><span class="p">(</span><span class="s1">&#39;42494e00&#39;</span><span class="p">))</span> <span class="c1"># == BIN + 1 empty byte for padding</span>
+    <span class="n">glb</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">gltf_bin</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">length</span> <span class="o">==</span> <span class="n">glb</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">glb</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Hugo Ledoux
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

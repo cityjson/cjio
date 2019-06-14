@@ -1,0 +1,951 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cjio package &mdash; cjio 0.5.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Reference" href="modules.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> cjio
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="includeme.html">cjio, or CityJSON/io</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cjio_tutorial.html">cjio API tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">cjio package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module-cjio.cityjson">cjio.cityjson module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-cjio.cjio">cjio.cjio module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-cjio.convert">cjio.convert module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-cjio.errors">cjio.errors module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-cjio.geom_help">cjio.geom_help module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-cjio.models">cjio.models module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-cjio.remove_textures">cjio.remove_textures module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-cjio.subset">cjio.subset module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-cjio.tiling">cjio.tiling module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-cjio.utils">cjio.utils module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-cjio.validation">cjio.validation module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-cjio">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">cjio</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="modules.html">Reference</a> &raquo;</li>
+        
+      <li>cjio package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/cjio.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast,
+.nboutput.nblast {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast + .nbinput {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<div class="section" id="cjio-package">
+<h1>cjio package<a class="headerlink" href="#cjio-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-cjio.cityjson">
+<span id="cjio-cityjson-module"></span><h2>cjio.cityjson module<a class="headerlink" href="#module-cjio.cityjson" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="cjio.cityjson.CityJSON">
+<em class="property">class </em><code class="sig-prename descclassname">cjio.cityjson.</code><code class="sig-name descname">CityJSON</code><span class="sig-paren">(</span><em class="sig-param">file=None</em>, <em class="sig-param">j=None</em>, <em class="sig-param">ignore_duplicate_keys=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.add_bbox_each_cityobjects">
+<code class="sig-name descname">add_bbox_each_cityobjects</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.add_bbox_each_cityobjects"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.add_bbox_each_cityobjects" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.compress">
+<code class="sig-name descname">compress</code><span class="sig-paren">(</span><em class="sig-param">important_digits=3</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.compress"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.compress" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.copy_textures">
+<code class="sig-name descname">copy_textures</code><span class="sig-paren">(</span><em class="sig-param">new_loc</em>, <em class="sig-param">json_path</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.copy_textures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.copy_textures" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy the texture files to a new location        
+:param new_loc: path to new texture directory
+:type new_loc: string
+:param json_path: path to the CityJSON file directory
+:type json_path: string
+:returns: None – modifies the CityJSON
+:raises: InvalidOperation, IOError</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.decompress">
+<code class="sig-name descname">decompress</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.decompress"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.decompress" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.export2b3dm">
+<code class="sig-name descname">export2b3dm</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.export2b3dm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.export2b3dm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.export2gltf">
+<code class="sig-name descname">export2gltf</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.export2gltf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.export2gltf" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.export2obj">
+<code class="sig-name descname">export2obj</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.export2obj"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.export2obj" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.extract_lod">
+<code class="sig-name descname">extract_lod</code><span class="sig-paren">(</span><em class="sig-param">thelod</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.extract_lod"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.extract_lod" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.fetch_schema">
+<code class="sig-name descname">fetch_schema</code><span class="sig-paren">(</span><em class="sig-param">folder_schemas=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.fetch_schema"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.fetch_schema" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.fetch_schema_cityobjects">
+<code class="sig-name descname">fetch_schema_cityobjects</code><span class="sig-paren">(</span><em class="sig-param">folder_schemas=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.fetch_schema_cityobjects"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.fetch_schema_cityobjects" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.get_centroid">
+<code class="sig-name descname">get_centroid</code><span class="sig-paren">(</span><em class="sig-param">coid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.get_centroid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.get_centroid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.get_cityobjects">
+<code class="sig-name descname">get_cityobjects</code><span class="sig-paren">(</span><em class="sig-param">type=None</em>, <em class="sig-param">id=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.get_cityobjects"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.get_cityobjects" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a subset of CityObjects
+:param type: CityObject type. If a list of types are given, then all types in the list are returned.
+:param id: CityObject ID. If a list of IDs are given, then all objects matching the IDs in the list are returned.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.get_epsg">
+<code class="sig-name descname">get_epsg</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.get_epsg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.get_epsg" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.get_info">
+<code class="sig-name descname">get_info</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.get_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.get_info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.get_subset_bbox">
+<code class="sig-name descname">get_subset_bbox</code><span class="sig-paren">(</span><em class="sig-param">bbox</em>, <em class="sig-param">exclude=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.get_subset_bbox"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.get_subset_bbox" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.get_subset_cotype">
+<code class="sig-name descname">get_subset_cotype</code><span class="sig-paren">(</span><em class="sig-param">cotype</em>, <em class="sig-param">exclude=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.get_subset_cotype"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.get_subset_cotype" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.get_subset_ids">
+<code class="sig-name descname">get_subset_ids</code><span class="sig-paren">(</span><em class="sig-param">lsIDs</em>, <em class="sig-param">exclude=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.get_subset_ids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.get_subset_ids" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.get_subset_random">
+<code class="sig-name descname">get_subset_random</code><span class="sig-paren">(</span><em class="sig-param">number=1</em>, <em class="sig-param">exclude=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.get_subset_random"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.get_subset_random" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.get_textures_location">
+<code class="sig-name descname">get_textures_location</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.get_textures_location"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.get_textures_location" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the location of the texture files</p>
+<p>Assumes that all textures are in the same location. Relative paths
+are expanded to absolute paths.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>path to the directory or URL of the texture files</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>string (path) or None (on failure)</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p>NotADirectoryError</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.get_version">
+<code class="sig-name descname">get_version</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.get_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.get_version" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.is_co_toplevel">
+<code class="sig-name descname">is_co_toplevel</code><span class="sig-paren">(</span><em class="sig-param">co</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.is_co_toplevel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.is_co_toplevel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.is_empty">
+<code class="sig-name descname">is_empty</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.is_empty"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.is_empty" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.merge">
+<code class="sig-name descname">merge</code><span class="sig-paren">(</span><em class="sig-param">lsCMs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.merge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.merge" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.number_city_objects">
+<code class="sig-name descname">number_city_objects</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.number_city_objects"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.number_city_objects" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.read">
+<code class="sig-name descname">read</code><span class="sig-paren">(</span><em class="sig-param">file</em>, <em class="sig-param">ignore_duplicate_keys=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.read"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.reference_geometry">
+<code class="sig-name descname">reference_geometry</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.reference_geometry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.reference_geometry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build a coordinate list and index the vertices</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.remove_duplicate_vertices">
+<code class="sig-name descname">remove_duplicate_vertices</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.remove_duplicate_vertices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.remove_duplicate_vertices" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.remove_materials">
+<code class="sig-name descname">remove_materials</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.remove_materials"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.remove_materials" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.remove_orphan_vertices">
+<code class="sig-name descname">remove_orphan_vertices</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.remove_orphan_vertices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.remove_orphan_vertices" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.remove_textures">
+<code class="sig-name descname">remove_textures</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.remove_textures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.remove_textures" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.reproject">
+<code class="sig-name descname">reproject</code><span class="sig-paren">(</span><em class="sig-param">epsg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.reproject"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.reproject" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.set_cityobjects">
+<code class="sig-name descname">set_cityobjects</code><span class="sig-paren">(</span><em class="sig-param">cityobjects</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.set_cityobjects"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.set_cityobjects" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates or updates CityObjects
+.. note:: If a CityObject with the same ID already exists in the model, it will be overwritten
+:param cityobjects: Dictionary of CityObjects, where keys are the CityObject IDs. Same structure as returned by
+get_cityobjects()</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.set_epsg">
+<code class="sig-name descname">set_epsg</code><span class="sig-paren">(</span><em class="sig-param">newepsg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.set_epsg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.set_epsg" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.to_dataframe">
+<code class="sig-name descname">to_dataframe</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.to_dataframe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.to_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts the city model to a Pandas data frame where fields are CityObject attributes</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.triangulate_face">
+<code class="sig-name descname">triangulate_face</code><span class="sig-paren">(</span><em class="sig-param">face</em>, <em class="sig-param">vnp</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.triangulate_face"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.triangulate_face" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.update_bbox">
+<code class="sig-name descname">update_bbox</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.update_bbox"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.update_bbox" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the bbox ([“metadata”][“bbox”]) of the CityJSON.
+If there is none then it is added.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.update_textures_location">
+<code class="sig-name descname">update_textures_location</code><span class="sig-paren">(</span><em class="sig-param">new_loc</em>, <em class="sig-param">relative=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.update_textures_location"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.update_textures_location" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the location of the texture files</p>
+<p>If the new location is a directory in the local file system, it is
+expected to exists with the texture files in it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>new_loc</strong> (<em>string</em>) – path to new texture directory</p></li>
+<li><p><strong>relative</strong> (<em>boolean</em>) – create texture links relative to the CityJSON file</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>None – modifies the CityJSON</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p>InvalidOperation, NotADirectoryError</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.upgrade_version">
+<code class="sig-name descname">upgrade_version</code><span class="sig-paren">(</span><em class="sig-param">newversion</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.upgrade_version"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.upgrade_version" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.upgrade_version_v06_v08">
+<code class="sig-name descname">upgrade_version_v06_v08</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.upgrade_version_v06_v08"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.upgrade_version_v06_v08" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.upgrade_version_v08_v09">
+<code class="sig-name descname">upgrade_version_v08_v09</code><span class="sig-paren">(</span><em class="sig-param">reasons</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.upgrade_version_v08_v09"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.upgrade_version_v08_v09" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.upgrade_version_v09_v10">
+<code class="sig-name descname">upgrade_version_v09_v10</code><span class="sig-paren">(</span><em class="sig-param">reasons</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.upgrade_version_v09_v10"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.upgrade_version_v09_v10" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.validate">
+<code class="sig-name descname">validate</code><span class="sig-paren">(</span><em class="sig-param">skip_schema=False</em>, <em class="sig-param">folder_schemas=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.validate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.validate_extensions">
+<code class="sig-name descname">validate_extensions</code><span class="sig-paren">(</span><em class="sig-param">folder_schemas=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.validate_extensions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.validate_extensions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cjio.cityjson.CityJSON.validate_textures">
+<code class="sig-name descname">validate_textures</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.validate_textures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.validate_textures" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the texture files exist</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="cjio.cityjson.load">
+<code class="sig-prename descclassname">cjio.cityjson.</code><code class="sig-name descname">load</code><span class="sig-paren">(</span><em class="sig-param">path: str</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load a CityJSON file for working with it though the API
+:param path: Absolute path to a CityJSON file
+:return: A CityJSON object</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cjio.cityjson.off2cj">
+<code class="sig-prename descclassname">cjio.cityjson.</code><code class="sig-name descname">off2cj</code><span class="sig-paren">(</span><em class="sig-param">file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#off2cj"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.off2cj" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cjio.cityjson.poly2cj">
+<code class="sig-prename descclassname">cjio.cityjson.</code><code class="sig-name descname">poly2cj</code><span class="sig-paren">(</span><em class="sig-param">file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#poly2cj"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.poly2cj" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cjio.cityjson.reader">
+<code class="sig-prename descclassname">cjio.cityjson.</code><code class="sig-name descname">reader</code><span class="sig-paren">(</span><em class="sig-param">file</em>, <em class="sig-param">ignore_duplicate_keys=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#reader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.reader" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cjio.cityjson.save">
+<code class="sig-prename descclassname">cjio.cityjson.</code><code class="sig-name descname">save</code><span class="sig-paren">(</span><em class="sig-param">citymodel</em>, <em class="sig-param">path: str</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save a city model to a CityJSON file
+:param citymodel: A CityJSON object
+:param path: Absolute path to a CityJSON file</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-cjio.cjio">
+<span id="cjio-cjio-module"></span><h2>cjio.cjio module<a class="headerlink" href="#module-cjio.cjio" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="cjio.cjio.PerCommandArgWantSubCmdHelp">
+<em class="property">class </em><code class="sig-prename descclassname">cjio.cjio.</code><code class="sig-name descname">PerCommandArgWantSubCmdHelp</code><span class="sig-paren">(</span><em class="sig-param">param_decls</em>, <em class="sig-param">required=None</em>, <em class="sig-param">**attrs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cjio.html#PerCommandArgWantSubCmdHelp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cjio.PerCommandArgWantSubCmdHelp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">click.core.Argument</span></code></p>
+<dl class="method">
+<dt id="cjio.cjio.PerCommandArgWantSubCmdHelp.handle_parse_result">
+<code class="sig-name descname">handle_parse_result</code><span class="sig-paren">(</span><em class="sig-param">ctx</em>, <em class="sig-param">opts</em>, <em class="sig-param">args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cjio.html#PerCommandArgWantSubCmdHelp.handle_parse_result"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cjio.PerCommandArgWantSubCmdHelp.handle_parse_result" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="cjio.cjio.process_pipeline">
+<code class="sig-prename descclassname">cjio.cjio.</code><code class="sig-name descname">process_pipeline</code><span class="sig-paren">(</span><em class="sig-param">processors</em>, <em class="sig-param">input</em>, <em class="sig-param">ignore_duplicate_keys</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cjio.html#process_pipeline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cjio.process_pipeline" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-cjio.convert">
+<span id="cjio-convert-module"></span><h2>cjio.convert module<a class="headerlink" href="#module-cjio.convert" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="cjio.convert.byte_offset">
+<code class="sig-prename descclassname">cjio.convert.</code><code class="sig-name descname">byte_offset</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">byte_boundary</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/convert.html#byte_offset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.convert.byte_offset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the byteOffset for glTF bufferView</p>
+<p>The bufferViews need to be aligned to a 4-byte boundary so the accessors can be aligned to them</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cjio.convert.flatten">
+<code class="sig-prename descclassname">cjio.convert.</code><code class="sig-name descname">flatten</code><span class="sig-paren">(</span><em class="sig-param">x</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/convert.html#flatten"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.convert.flatten" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cjio.convert.to_b3dm">
+<code class="sig-prename descclassname">cjio.convert.</code><code class="sig-name descname">to_b3dm</code><span class="sig-paren">(</span><em class="sig-param">cm</em>, <em class="sig-param">glb</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/convert.html#to_b3dm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.convert.to_b3dm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a CityJSON to batched 3d model</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cjio.convert.to_glb">
+<code class="sig-prename descclassname">cjio.convert.</code><code class="sig-name descname">to_glb</code><span class="sig-paren">(</span><em class="sig-param">j</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/convert.html#to_glb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.convert.to_glb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert to Binary glTF (.glb)</p>
+<p>Adapted from CityJSON2glTF: <a class="reference external" href="https://github.com/tudelft3d/CityJSON2glTF">https://github.com/tudelft3d/CityJSON2glTF</a></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-cjio.errors">
+<span id="cjio-errors-module"></span><h2>cjio.errors module<a class="headerlink" href="#module-cjio.errors" title="Permalink to this headline">¶</a></h2>
+<dl class="exception">
+<dt id="cjio.errors.InvalidOperation">
+<em class="property">exception </em><code class="sig-prename descclassname">cjio.errors.</code><code class="sig-name descname">InvalidOperation</code><span class="sig-paren">(</span><em class="sig-param">msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/errors.html#InvalidOperation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.errors.InvalidOperation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-cjio.geom_help">
+<span id="cjio-geom-help-module"></span><h2>cjio.geom_help module<a class="headerlink" href="#module-cjio.geom_help" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="cjio.geom_help.get_normal_newell">
+<code class="sig-prename descclassname">cjio.geom_help.</code><code class="sig-name descname">get_normal_newell</code><span class="sig-paren">(</span><em class="sig-param">poly</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/geom_help.html#get_normal_newell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.geom_help.get_normal_newell" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cjio.geom_help.to_2d">
+<code class="sig-prename descclassname">cjio.geom_help.</code><code class="sig-name descname">to_2d</code><span class="sig-paren">(</span><em class="sig-param">p</em>, <em class="sig-param">n</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/geom_help.html#to_2d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.geom_help.to_2d" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cjio.geom_help.triangulate_face">
+<code class="sig-prename descclassname">cjio.geom_help.</code><code class="sig-name descname">triangulate_face</code><span class="sig-paren">(</span><em class="sig-param">face</em>, <em class="sig-param">vnp</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/geom_help.html#triangulate_face"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.geom_help.triangulate_face" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-cjio.models">
+<span id="cjio-models-module"></span><h2>cjio.models module<a class="headerlink" href="#module-cjio.models" title="Permalink to this headline">¶</a></h2>
+<p>Demonstrate what is when we define the CityModel-objects in a top-down approach</p>
+<dl class="class">
+<dt id="cjio.models.CityObject">
+<em class="property">class </em><code class="sig-prename descclassname">cjio.models.</code><code class="sig-name descname">CityObject</code><span class="sig-paren">(</span><em class="sig-param">id</em>, <em class="sig-param">type=None</em>, <em class="sig-param">geometry=None</em>, <em class="sig-param">attributes=None</em>, <em class="sig-param">children=None</em>, <em class="sig-param">parents=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#CityObject"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.CityObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>CityObject class</p>
+<dl class="method">
+<dt id="cjio.models.CityObject.build_index">
+<code class="sig-name descname">build_index</code><span class="sig-paren">(</span><em class="sig-param">vtx_lookup={}</em>, <em class="sig-param">vtx_idx=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#CityObject.build_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.CityObject.build_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build a coordinate list and index the vertices for Geometry objects in the CityObject</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cjio.models.CityObject.get_info">
+<code class="sig-name descname">get_info</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#CityObject.get_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.CityObject.get_info" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="cjio.models.CityObject.get_vertices">
+<code class="sig-name descname">get_vertices</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#CityObject.get_vertices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.CityObject.get_vertices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dump the vertex coordinates of the CityObject into a list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cjio.models.CityObject.to_json">
+<code class="sig-name descname">to_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#CityObject.to_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.CityObject.to_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a dict that in the CityJSON schema</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="cjio.models.Geometry">
+<em class="property">class </em><code class="sig-prename descclassname">cjio.models.</code><code class="sig-name descname">Geometry</code><span class="sig-paren">(</span><em class="sig-param">type: str = None</em>, <em class="sig-param">lod: int = None</em>, <em class="sig-param">boundaries: List = None</em>, <em class="sig-param">semantics_obj: Dict = None</em>, <em class="sig-param">vertices=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#Geometry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.Geometry" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>CityJSON Geometry object</p>
+<dl class="method">
+<dt id="cjio.models.Geometry.build_index">
+<code class="sig-name descname">build_index</code><span class="sig-paren">(</span><em class="sig-param">vtx_lookup={}</em>, <em class="sig-param">vtx_idx=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#Geometry.build_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.Geometry.build_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build a coordinate list and index the vertices</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cjio.models.Geometry.get_surface_boundaries">
+<code class="sig-name descname">get_surface_boundaries</code><span class="sig-paren">(</span><em class="sig-param">surface</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#Geometry.get_surface_boundaries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.Geometry.get_surface_boundaries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the surface at the index location from the Geometry boundary
+.. note:: Interior surfaces don’t have semantics and they are returned with the exterior.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Surfaces from the boundary that correspond to the index.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="cjio.models.Geometry.get_surfaces">
+<code class="sig-name descname">get_surfaces</code><span class="sig-paren">(</span><em class="sig-param">type=None</em>, <em class="sig-param">lod=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#Geometry.get_surfaces"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.Geometry.get_surfaces" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the semantic surfaces of the given type
+The whole boundary is returned if a geometry does not have semantics, or has a LoD &lt; 2,
+or the surface type is not provided.
+:param type: Semantic Surface type. If not provided, the whole boundary is returned.
+:param lod: Level of Detail
+:return: Return a subset of the specific surfaces of the geometry</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cjio.models.Geometry.get_vertices">
+<code class="sig-name descname">get_vertices</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#Geometry.get_vertices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.Geometry.get_vertices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dump the vertex coordinates into a list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cjio.models.Geometry.to_json">
+<code class="sig-name descname">to_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#Geometry.to_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.Geometry.to_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a dict that in the CityJSON schema</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-cjio.remove_textures">
+<span id="cjio-remove-textures-module"></span><h2>cjio.remove_textures module<a class="headerlink" href="#module-cjio.remove_textures" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="cjio.remove_textures.remove_textures">
+<code class="sig-prename descclassname">cjio.remove_textures.</code><code class="sig-name descname">remove_textures</code><span class="sig-paren">(</span><em class="sig-param">j</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/remove_textures.html#remove_textures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.remove_textures.remove_textures" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-cjio.subset">
+<span id="cjio-subset-module"></span><h2>cjio.subset module<a class="headerlink" href="#module-cjio.subset" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="cjio.subset.process_appearance">
+<code class="sig-prename descclassname">cjio.subset.</code><code class="sig-name descname">process_appearance</code><span class="sig-paren">(</span><em class="sig-param">j</em>, <em class="sig-param">j2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/subset.html#process_appearance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.subset.process_appearance" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cjio.subset.process_geometry">
+<code class="sig-prename descclassname">cjio.subset.</code><code class="sig-name descname">process_geometry</code><span class="sig-paren">(</span><em class="sig-param">j</em>, <em class="sig-param">j2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/subset.html#process_geometry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.subset.process_geometry" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cjio.subset.process_templates">
+<code class="sig-prename descclassname">cjio.subset.</code><code class="sig-name descname">process_templates</code><span class="sig-paren">(</span><em class="sig-param">j</em>, <em class="sig-param">j2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/subset.html#process_templates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.subset.process_templates" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cjio.subset.select_co_bbox">
+<code class="sig-prename descclassname">cjio.subset.</code><code class="sig-name descname">select_co_bbox</code><span class="sig-paren">(</span><em class="sig-param">j</em>, <em class="sig-param">bbox</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/subset.html#select_co_bbox"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.subset.select_co_bbox" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cjio.subset.select_co_ids">
+<code class="sig-prename descclassname">cjio.subset.</code><code class="sig-name descname">select_co_ids</code><span class="sig-paren">(</span><em class="sig-param">j</em>, <em class="sig-param">IDs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/subset.html#select_co_ids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.subset.select_co_ids" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cjio.subset.update_array_indices">
+<code class="sig-prename descclassname">cjio.subset.</code><code class="sig-name descname">update_array_indices</code><span class="sig-paren">(</span><em class="sig-param">a</em>, <em class="sig-param">dOldNewIDs</em>, <em class="sig-param">oldarray</em>, <em class="sig-param">newarray</em>, <em class="sig-param">slicearray</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/subset.html#update_array_indices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.subset.update_array_indices" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-cjio.tiling">
+<span id="cjio-tiling-module"></span><h2>cjio.tiling module<a class="headerlink" href="#module-cjio.tiling" title="Permalink to this headline">¶</a></h2>
+<p>Partitioning a CityJSON file</p>
+<dl class="function">
+<dt id="cjio.tiling.compute_obb">
+<code class="sig-prename descclassname">cjio.tiling.</code><code class="sig-name descname">compute_obb</code><span class="sig-paren">(</span><em class="sig-param">bbox</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/tiling.html#compute_obb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.tiling.compute_obb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the oriented bounding box for 3dtiles, from the city model’s bbox</p>
+<p>The output is an array of 12 numbers that define an oriented bounding box in a
+right-handed 3-axis (x, y, z) Cartesian coordinate system where the z-axis is up.
+The first three elements define the x, y, and z values for the center of the box.
+The next three elements (with indices 3, 4, and 5) define the x-axis direction and half-length.
+The next three elements (indices 6, 7, and 8) define the y-axis direction and half-length.
+The last three elements (indices 9, 10, and 11) define the z-axis direction and half-length.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cjio.tiling.compute_root_obb">
+<code class="sig-prename descclassname">cjio.tiling.</code><code class="sig-name descname">compute_root_obb</code><span class="sig-paren">(</span><em class="sig-param">bbox_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/tiling.html#compute_root_obb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.tiling.compute_root_obb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the BBOX for the root node from the BBOXes of the children</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cjio.tiling.create_grid">
+<code class="sig-prename descclassname">cjio.tiling.</code><code class="sig-name descname">create_grid</code><span class="sig-paren">(</span><em class="sig-param">bbox: List</em>, <em class="sig-param">depth: int</em>, <em class="sig-param">cellsize: List[float] = None</em><span class="sig-paren">)</span> &#x2192; Dict<a class="reference internal" href="_modules/cjio/tiling.html#create_grid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.tiling.create_grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an equal area, rectangular octree or quadtree for the area
+.. note:: Both the quadtree and octree is composed of 3D bounding boxes,
+but in case of the octree the original bbox is also subdivided vertically. In
+case of the quadtree the bbox is partitioned on the xy-plane, while the height
+of each cell equals the height of the original bbox. Finally, this function
+flattens the octree/quadtree into a simple grid.</p>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>implement for cellsize</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bbox</strong> – Bounding box of the city model</p></li>
+<li><p><strong>depth</strong> – The number of times to subdivide the BBOX of the city model</p></li>
+<li><p><strong>cellsize</strong> – Size of the grid cell. Values are floats and in
+the units of the CRS of the city model. Values are provided as (x, y, z).
+If you don’t want to partition the city model with 3D cells, then omit the
+z-value.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A nested list, containing the bounding boxes of the grid.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="cjio.tiling.generate_tile_json">
+<code class="sig-prename descclassname">cjio.tiling.</code><code class="sig-name descname">generate_tile_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/tiling.html#generate_tile_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.tiling.generate_tile_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a skeleton for a tile in a tileset</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cjio.tiling.generate_tileset_json">
+<code class="sig-prename descclassname">cjio.tiling.</code><code class="sig-name descname">generate_tileset_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/tiling.html#generate_tileset_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.tiling.generate_tileset_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate the skeleton for tileset.json</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cjio.tiling.partitioner">
+<code class="sig-prename descclassname">cjio.tiling.</code><code class="sig-name descname">partitioner</code><span class="sig-paren">(</span><em class="sig-param">j: cjio.cityjson.CityJSON</em>, <em class="sig-param">grid_idx: Dict</em><span class="sig-paren">)</span> &#x2192; Dict<a class="reference internal" href="_modules/cjio/tiling.html#partitioner"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.tiling.partitioner" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assign the CityObjects to the cell they belong</p>
+<div class="admonition-todo admonition" id="id2">
+<p class="admonition-title">Todo</p>
+<p>implement with centroid of the object</p>
+</div>
+<div class="admonition-todo admonition" id="id3">
+<p class="admonition-title">Todo</p>
+<p>How do we break the CM into partitions? Do we clip the geometry or not? Eg. a TIN must be clipped, but buildings are better as a whole.</p>
+</div>
+<p>It checks if the first vertex of a CityObject is within a
+cell.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>grid_idx</strong> – The grid index, returned by <cite>py:func:create_grid</cite></p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of CityObject IDs for each cell</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-cjio.utils">
+<span id="cjio-utils-module"></span><h2>cjio.utils module<a class="headerlink" href="#module-cjio.utils" title="Permalink to this headline">¶</a></h2>
+<p>Various utility functions</p>
+<dl class="function">
+<dt id="cjio.utils.generate_filepath">
+<code class="sig-prename descclassname">cjio.utils.</code><code class="sig-name descname">generate_filepath</code><span class="sig-paren">(</span><em class="sig-param">filename</em>, <em class="sig-param">extension</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/utils.html#generate_filepath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.utils.generate_filepath" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a full path to the output file</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="cjio.utils.print_cmd_status">
+<code class="sig-prename descclassname">cjio.utils.</code><code class="sig-name descname">print_cmd_status</code><span class="sig-paren">(</span><em class="sig-param">s</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/utils.html#print_cmd_status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.utils.print_cmd_status" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cjio.utils.print_cmd_substatus">
+<code class="sig-prename descclassname">cjio.utils.</code><code class="sig-name descname">print_cmd_substatus</code><span class="sig-paren">(</span><em class="sig-param">s</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/utils.html#print_cmd_substatus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.utils.print_cmd_substatus" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cjio.utils.print_cmd_warning">
+<code class="sig-prename descclassname">cjio.utils.</code><code class="sig-name descname">print_cmd_warning</code><span class="sig-paren">(</span><em class="sig-param">s</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/utils.html#print_cmd_warning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.utils.print_cmd_warning" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cjio.utils.verify_filename">
+<code class="sig-prename descclassname">cjio.utils.</code><code class="sig-name descname">verify_filename</code><span class="sig-paren">(</span><em class="sig-param">filename</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/utils.html#verify_filename"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.utils.verify_filename" title="Permalink to this definition">¶</a></dt>
+<dd><p>Verify if the provided output filename is a file or a directory</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-cjio.validation">
+<span id="cjio-validation-module"></span><h2>cjio.validation module<a class="headerlink" href="#module-cjio.validation" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="cjio.validation.building_installations">
+<code class="sig-prename descclassname">cjio.validation.</code><code class="sig-name descname">building_installations</code><span class="sig-paren">(</span><em class="sig-param">j</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/validation.html#building_installations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.validation.building_installations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cjio.validation.building_parts">
+<code class="sig-prename descclassname">cjio.validation.</code><code class="sig-name descname">building_parts</code><span class="sig-paren">(</span><em class="sig-param">j</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/validation.html#building_parts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.validation.building_parts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cjio.validation.building_pi_parent">
+<code class="sig-prename descclassname">cjio.validation.</code><code class="sig-name descname">building_pi_parent</code><span class="sig-paren">(</span><em class="sig-param">j</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/validation.html#building_pi_parent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.validation.building_pi_parent" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cjio.validation.city_object_groups">
+<code class="sig-prename descclassname">cjio.validation.</code><code class="sig-name descname">city_object_groups</code><span class="sig-paren">(</span><em class="sig-param">j</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/validation.html#city_object_groups"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.validation.city_object_groups" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cjio.validation.citygml_attributes">
+<code class="sig-prename descclassname">cjio.validation.</code><code class="sig-name descname">citygml_attributes</code><span class="sig-paren">(</span><em class="sig-param">j</em>, <em class="sig-param">js</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/validation.html#citygml_attributes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.validation.citygml_attributes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cjio.validation.cityjson_properties">
+<code class="sig-prename descclassname">cjio.validation.</code><code class="sig-name descname">cityjson_properties</code><span class="sig-paren">(</span><em class="sig-param">j</em>, <em class="sig-param">js</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/validation.html#cityjson_properties"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.validation.cityjson_properties" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cjio.validation.dict_raise_on_duplicates">
+<code class="sig-prename descclassname">cjio.validation.</code><code class="sig-name descname">dict_raise_on_duplicates</code><span class="sig-paren">(</span><em class="sig-param">ordered_pairs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/validation.html#dict_raise_on_duplicates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.validation.dict_raise_on_duplicates" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cjio.validation.duplicate_vertices">
+<code class="sig-prename descclassname">cjio.validation.</code><code class="sig-name descname">duplicate_vertices</code><span class="sig-paren">(</span><em class="sig-param">j</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/validation.html#duplicate_vertices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.validation.duplicate_vertices" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cjio.validation.geometry_empty">
+<code class="sig-prename descclassname">cjio.validation.</code><code class="sig-name descname">geometry_empty</code><span class="sig-paren">(</span><em class="sig-param">j</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/validation.html#geometry_empty"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.validation.geometry_empty" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cjio.validation.get_list_attributes_from_schema">
+<code class="sig-prename descclassname">cjio.validation.</code><code class="sig-name descname">get_list_attributes_from_schema</code><span class="sig-paren">(</span><em class="sig-param">n</em>, <em class="sig-param">ls</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/validation.html#get_list_attributes_from_schema"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.validation.get_list_attributes_from_schema" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cjio.validation.orphan_vertices">
+<code class="sig-prename descclassname">cjio.validation.</code><code class="sig-name descname">orphan_vertices</code><span class="sig-paren">(</span><em class="sig-param">j</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/validation.html#orphan_vertices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.validation.orphan_vertices" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cjio.validation.parent_children_consistency">
+<code class="sig-prename descclassname">cjio.validation.</code><code class="sig-name descname">parent_children_consistency</code><span class="sig-paren">(</span><em class="sig-param">j</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/validation.html#parent_children_consistency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.validation.parent_children_consistency" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cjio.validation.semantics_array">
+<code class="sig-prename descclassname">cjio.validation.</code><code class="sig-name descname">semantics_array</code><span class="sig-paren">(</span><em class="sig-param">j</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/validation.html#semantics_array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.validation.semantics_array" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cjio.validation.validate_against_schema">
+<code class="sig-prename descclassname">cjio.validation.</code><code class="sig-name descname">validate_against_schema</code><span class="sig-paren">(</span><em class="sig-param">j</em>, <em class="sig-param">js</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/validation.html#validate_against_schema"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.validation.validate_against_schema" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="cjio.validation.wrong_vertex_index">
+<code class="sig-prename descclassname">cjio.validation.</code><code class="sig-name descname">wrong_vertex_index</code><span class="sig-paren">(</span><em class="sig-param">j</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/validation.html#wrong_vertex_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.validation.wrong_vertex_index" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-cjio">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-cjio" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="modules.html" class="btn btn-neutral float-left" title="Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Hugo Ledoux
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

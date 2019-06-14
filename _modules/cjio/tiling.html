@@ -1,0 +1,450 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cjio.tiling &mdash; cjio 0.5.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> cjio
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../includeme.html">cjio, or CityJSON/io</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../cjio_tutorial.html">cjio API tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">Reference</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">cjio</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>cjio.tiling</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for cjio.tiling</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Partitioning a CityJSON file&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Generator</span>
+
+<span class="kn">from</span> <span class="nn">cjio.cityjson</span> <span class="k">import</span> <span class="n">CityJSON</span>
+
+<span class="k">def</span> <span class="nf">_subdivide_helper_quadtree</span><span class="p">(</span><span class="n">bbox</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">depth</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">cntr</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="n">cntr</span> <span class="o">==</span> <span class="n">depth</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">bbox</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cntr</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">center_x</span> <span class="o">=</span> <span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">center_y</span> <span class="o">=</span> <span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="c1"># need to lift the top a bit, because the top surface is not inclusive in the point_in_bbox</span>
+        <span class="n">lifted_top</span> <span class="o">=</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="o">*</span> <span class="mf">0.001</span><span class="p">)</span>
+        <span class="n">sw_0</span> <span class="o">=</span> <span class="p">[</span><span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">center_x</span><span class="p">,</span> <span class="n">center_y</span><span class="p">,</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">5</span><span class="p">]]</span>
+        <span class="n">se_0</span> <span class="o">=</span> <span class="p">[</span><span class="n">center_x</span><span class="p">,</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">center_y</span><span class="p">,</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">5</span><span class="p">]]</span>
+        <span class="n">ne_0</span> <span class="o">=</span> <span class="p">[</span><span class="n">center_x</span><span class="p">,</span> <span class="n">center_y</span><span class="p">,</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">5</span><span class="p">]]</span>
+        <span class="n">nw_0</span> <span class="o">=</span> <span class="p">[</span><span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">center_y</span><span class="p">,</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">center_x</span><span class="p">,</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">5</span><span class="p">]]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">_subdivide_helper_quadtree</span><span class="p">(</span><span class="n">nw_0</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">cntr</span><span class="p">),</span> <span class="n">_subdivide_helper_quadtree</span><span class="p">(</span><span class="n">ne_0</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">cntr</span><span class="p">),</span>
+                <span class="n">_subdivide_helper_quadtree</span><span class="p">(</span><span class="n">sw_0</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">cntr</span><span class="p">),</span> <span class="n">_subdivide_helper_quadtree</span><span class="p">(</span><span class="n">se_0</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">cntr</span><span class="p">)]</span>
+
+
+<span class="k">def</span> <span class="nf">_subdivide_helper_octree</span><span class="p">(</span><span class="n">bbox</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">depth</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">cntr</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="n">cntr</span> <span class="o">==</span> <span class="n">depth</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">bbox</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cntr</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">center_x</span> <span class="o">=</span> <span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">center_y</span> <span class="o">=</span> <span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">center_z</span> <span class="o">=</span> <span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">5</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">sw_0</span> <span class="o">=</span> <span class="p">[</span><span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">center_x</span><span class="p">,</span> <span class="n">center_y</span><span class="p">,</span> <span class="n">center_z</span><span class="p">]</span>
+        <span class="n">se_0</span> <span class="o">=</span> <span class="p">[</span><span class="n">center_x</span><span class="p">,</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">center_y</span><span class="p">,</span> <span class="n">center_z</span><span class="p">]</span>
+        <span class="n">ne_0</span> <span class="o">=</span> <span class="p">[</span><span class="n">center_x</span><span class="p">,</span> <span class="n">center_y</span><span class="p">,</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">center_z</span><span class="p">]</span>
+        <span class="n">nw_0</span> <span class="o">=</span> <span class="p">[</span><span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">center_y</span><span class="p">,</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">center_x</span><span class="p">,</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">center_z</span><span class="p">]</span>
+        <span class="n">sw_1</span> <span class="o">=</span> <span class="p">[</span><span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">center_z</span><span class="p">,</span> <span class="n">center_x</span><span class="p">,</span> <span class="n">center_y</span><span class="p">,</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">5</span><span class="p">]]</span>
+        <span class="n">se_1</span> <span class="o">=</span> <span class="p">[</span><span class="n">center_x</span><span class="p">,</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">center_z</span><span class="p">,</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">center_y</span><span class="p">,</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">5</span><span class="p">]]</span>
+        <span class="n">ne_1</span> <span class="o">=</span> <span class="p">[</span><span class="n">center_x</span><span class="p">,</span> <span class="n">center_y</span><span class="p">,</span> <span class="n">center_z</span><span class="p">,</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">5</span><span class="p">]]</span>
+        <span class="n">nw_1</span> <span class="o">=</span> <span class="p">[</span><span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">center_y</span><span class="p">,</span> <span class="n">center_z</span><span class="p">,</span> <span class="n">center_x</span><span class="p">,</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">5</span><span class="p">]]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">_subdivide_helper_octree</span><span class="p">(</span><span class="n">nw_0</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">cntr</span><span class="p">),</span> <span class="n">_subdivide_helper_octree</span><span class="p">(</span><span class="n">ne_0</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">cntr</span><span class="p">),</span>
+                <span class="n">_subdivide_helper_octree</span><span class="p">(</span><span class="n">sw_0</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">cntr</span><span class="p">),</span> <span class="n">_subdivide_helper_octree</span><span class="p">(</span><span class="n">se_0</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">cntr</span><span class="p">),</span>
+                <span class="n">_subdivide_helper_octree</span><span class="p">(</span><span class="n">nw_1</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">cntr</span><span class="p">),</span> <span class="n">_subdivide_helper_octree</span><span class="p">(</span><span class="n">ne_1</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">cntr</span><span class="p">),</span>
+                <span class="n">_subdivide_helper_octree</span><span class="p">(</span><span class="n">sw_1</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">cntr</span><span class="p">),</span> <span class="n">_subdivide_helper_octree</span><span class="p">(</span><span class="n">se_1</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">cntr</span><span class="p">)]</span>
+
+<span class="k">def</span> <span class="nf">_subdivide</span><span class="p">(</span><span class="n">bbox</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">depth</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">octree</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Recursively subdivide the BBOX</span>
+
+<span class="sd">    :param octree: If True, subdivide in 3D. If False, subdivide in 2D</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">depth</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Sorry, at the moment only depth=2 works&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">octree</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_subdivide_helper_octree</span><span class="p">(</span><span class="n">bbox</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_subdivide_helper_quadtree</span><span class="p">(</span><span class="n">bbox</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="create_grid"><a class="viewcode-back" href="../../cjio.html#cjio.tiling.create_grid">[docs]</a><span class="k">def</span> <span class="nf">create_grid</span><span class="p">(</span><span class="n">bbox</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span> <span class="n">depth</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">cellsize</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Create an equal area, rectangular octree or quadtree for the area</span>
+<span class="sd">    .. note:: Both the quadtree and octree is composed of 3D bounding boxes,</span>
+<span class="sd">    but in case of the octree the original bbox is also subdivided vertically. In</span>
+<span class="sd">    case of the quadtree the bbox is partitioned on the xy-plane, while the height</span>
+<span class="sd">    of each cell equals the height of the original bbox. Finally, this function</span>
+<span class="sd">    flattens the octree/quadtree into a simple grid.</span>
+
+<span class="sd">    .. todo:: implement for cellsize</span>
+
+<span class="sd">    :param bbox: Bounding box of the city model</span>
+<span class="sd">    :param depth: The number of times to subdivide the BBOX of the city model</span>
+<span class="sd">    :param cellsize: Size of the grid cell. Values are floats and in</span>
+<span class="sd">     the units of the CRS of the city model. Values are provided as (x, y, z).</span>
+<span class="sd">     If you don&#39;t want to partition the city model with 3D cells, then omit the</span>
+<span class="sd">     z-value.</span>
+
+<span class="sd">    :return: A nested list, containing the bounding boxes of the grid.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">cellsize</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Sorry, at the moment cellsize is not supported&quot;</span><span class="p">)</span>
+        <span class="n">dx</span> <span class="o">=</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">dy</span> <span class="o">=</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">-</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">dz</span> <span class="o">=</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="o">-</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cellsize</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Must provide at least 2 values for the cellsize&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">cellsize</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;2D partitioning&quot;</span><span class="p">)</span>
+            <span class="n">in3d</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;3D partitioning&quot;</span><span class="p">)</span>
+            <span class="n">in3d</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">dx</span> <span class="o">&lt;</span> <span class="n">cellsize</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> <span class="n">dy</span> <span class="o">&lt;</span> <span class="n">cellsize</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">and</span> <span class="n">dz</span> <span class="o">&lt;</span> <span class="n">cellsize</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cellsize is larger than bounding box, returning&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">in3d</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="n">tree</span> <span class="o">=</span> <span class="n">_subdivide</span><span class="p">(</span><span class="n">bbox</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">octree</span><span class="o">=</span><span class="n">in3d</span><span class="p">)</span>
+    <span class="n">grid</span> <span class="o">=</span> <span class="n">_flatten_grid</span><span class="p">(</span><span class="n">tree</span><span class="p">)</span>
+    <span class="n">grid_idx</span> <span class="o">=</span> <span class="n">_generate_index</span><span class="p">(</span><span class="n">grid</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">grid_idx</span></div>
+
+
+<span class="k">def</span> <span class="nf">_point_in_bbox</span><span class="p">(</span><span class="n">bbox</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">point</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Determine if a point is within a bounding box</span>
+
+<span class="sd">    Within includes the bottom, south, west face of the cube,</span>
+<span class="sd">    but does not include the top, north, east face.</span>
+
+<span class="sd">    :param bbox: A bounding box as defined in CityJSON</span>
+<span class="sd">    :param point: A tuple of (x,y,z) coordinates</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">point</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Must provide a tuple of (x,y,z) coordinates&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bbox</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">6</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Must provide a valid bbox&quot;</span><span class="p">)</span>
+    <span class="n">x_in_cell</span> <span class="o">=</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">point</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">y_in_cell</span> <span class="o">=</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">point</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+    <span class="n">z_in_cell</span> <span class="o">=</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">point</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">x_in_cell</span> <span class="ow">and</span> <span class="n">y_in_cell</span> <span class="ow">and</span> <span class="n">z_in_cell</span>
+
+<span class="k">def</span> <span class="nf">_flatten_grid</span><span class="p">(</span><span class="n">grid</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Recursively unnest a multi-level list of bbox-es</span>
+<span class="sd">    .. todo:: only works with depth 2, nothing else...</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">grid</span> <span class="o">==</span> <span class="p">[]</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">grid</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">grid</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">grid</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">_flatten_grid</span><span class="p">(</span><span class="n">grid</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+
+<span class="k">def</span> <span class="nf">_generate_index</span><span class="p">(</span><span class="n">grid</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Creates an index for the grid</span>
+<span class="sd">    .. todo:: maybe use some spatial ordering for naming the cells (eg. Morton)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">e</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">e</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">grid</span><span class="p">)}</span>
+
+<span class="k">def</span> <span class="nf">_first_vertex</span><span class="p">(</span><span class="n">boundary</span><span class="p">:</span> <span class="n">List</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Finds the index of the vertex in the geometry boundary that encountered first&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">boundary</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">boundary</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_first_vertex</span><span class="p">(</span><span class="n">boundary</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+<div class="viewcode-block" id="partitioner"><a class="viewcode-back" href="../../cjio.html#cjio.tiling.partitioner">[docs]</a><span class="k">def</span> <span class="nf">partitioner</span><span class="p">(</span><span class="n">j</span><span class="p">:</span> <span class="n">CityJSON</span><span class="p">,</span> <span class="n">grid_idx</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Assign the CityObjects to the cell they belong</span>
+
+<span class="sd">    .. todo:: implement with centroid of the object</span>
+<span class="sd">    .. todo:: How do we break the CM into partitions? Do we clip the geometry or not? Eg. a TIN must be clipped, but buildings are better as a whole.</span>
+
+<span class="sd">    It checks if the first vertex of a CityObject is within a</span>
+<span class="sd">    cell.</span>
+
+<span class="sd">    :param grid_idx: The grid index, returned by `py:func:create_grid`</span>
+<span class="sd">    :return: A list of CityObject IDs for each cell</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">partitions</span> <span class="o">=</span> <span class="p">{</span><span class="n">idx</span><span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">grid_idx</span><span class="o">.</span><span class="n">keys</span><span class="p">()}</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="p">(</span><span class="n">j</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;transform&#39;</span><span class="p">][</span><span class="s1">&#39;scale&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+                 <span class="n">j</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;transform&#39;</span><span class="p">][</span><span class="s1">&#39;scale&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>
+                 <span class="n">j</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;transform&#39;</span><span class="p">][</span><span class="s1">&#39;scale&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">translate</span> <span class="o">=</span> <span class="p">(</span><span class="n">j</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;transform&#39;</span><span class="p">][</span><span class="s1">&#39;translate&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+                     <span class="n">j</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;transform&#39;</span><span class="p">][</span><span class="s1">&#39;translate&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>
+                     <span class="n">j</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;transform&#39;</span><span class="p">][</span><span class="s1">&#39;translate&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="n">translate</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">theid</span> <span class="ow">in</span> <span class="n">j</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">geom</span> <span class="ow">in</span> <span class="n">j</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">][</span><span class="n">theid</span><span class="p">][</span><span class="s1">&#39;geometry&#39;</span><span class="p">]:</span>
+            <span class="n">vi</span> <span class="o">=</span> <span class="n">_first_vertex</span><span class="p">(</span><span class="n">geom</span><span class="p">[</span><span class="s1">&#39;boundaries&#39;</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span><span class="n">bbox</span> <span class="ow">in</span> <span class="n">grid_idx</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">v</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;vertices&#39;</span><span class="p">][</span><span class="n">vi</span><span class="p">]</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">scale</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">translate</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">scale</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="n">translate</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">z</span> <span class="o">=</span> <span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">scale</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">+</span> <span class="n">translate</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">_point_in_bbox</span><span class="p">(</span><span class="n">bbox</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">)):</span>
+                    <span class="n">partitions</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">+=</span> <span class="p">[</span><span class="n">theid</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">partitions</span></div>
+
+
+<div class="viewcode-block" id="compute_obb"><a class="viewcode-back" href="../../cjio.html#cjio.tiling.compute_obb">[docs]</a><span class="k">def</span> <span class="nf">compute_obb</span><span class="p">(</span><span class="n">bbox</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compute the oriented bounding box for 3dtiles, from the city model&#39;s bbox</span>
+
+<span class="sd">    The output is an array of 12 numbers that define an oriented bounding box in a</span>
+<span class="sd">    right-handed 3-axis (x, y, z) Cartesian coordinate system where the z-axis is up.</span>
+<span class="sd">    The first three elements define the x, y, and z values for the center of the box.</span>
+<span class="sd">    The next three elements (with indices 3, 4, and 5) define the x-axis direction and half-length.</span>
+<span class="sd">    The next three elements (indices 6, 7, and 8) define the y-axis direction and half-length.</span>
+<span class="sd">    The last three elements (indices 9, 10, and 11) define the z-axis direction and half-length.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">obb</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">-</span><span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">-</span><span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="o">-</span><span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span><span class="o">/</span><span class="mi">2</span>
+    <span class="p">]</span>
+    <span class="k">return</span> <span class="n">obb</span></div>
+
+
+<div class="viewcode-block" id="compute_root_obb"><a class="viewcode-back" href="../../cjio.html#cjio.tiling.compute_root_obb">[docs]</a><span class="k">def</span> <span class="nf">compute_root_obb</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compute the BBOX for the root node from the BBOXes of the children&quot;&quot;&quot;</span>
+    <span class="n">bbox</span> <span class="o">=</span> <span class="p">[</span><span class="mf">9e9</span><span class="p">,</span> <span class="mf">9e9</span><span class="p">,</span> <span class="mf">9e9</span><span class="p">,</span> <span class="o">-</span><span class="mf">9e9</span><span class="p">,</span> <span class="o">-</span><span class="mf">9e9</span><span class="p">,</span> <span class="o">-</span><span class="mf">9e9</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">bbox_list</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">bbox</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+                <span class="n">bbox</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">6</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">bbox</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+                <span class="n">bbox</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">compute_obb</span><span class="p">(</span><span class="n">bbox</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="generate_tileset_json"><a class="viewcode-back" href="../../cjio.html#cjio.tiling.generate_tileset_json">[docs]</a><span class="k">def</span> <span class="nf">generate_tileset_json</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Generate the skeleton for tileset.json&quot;&quot;&quot;</span>
+    <span class="n">tileset</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;asset&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1.0&quot;</span> <span class="p">},</span>
+        <span class="s2">&quot;geometricError&quot;</span><span class="p">:</span> <span class="mf">100.0</span><span class="p">,</span>
+        <span class="s2">&quot;root&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;boundingVolume&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;box&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span>
+                                       <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span>
+                                       <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span>
+                                       <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]},</span>
+            <span class="s2">&quot;geometricError&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="s2">&quot;refine&quot;</span><span class="p">:</span> <span class="s2">&quot;ADD&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;boundingVolume&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;box&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span>
+                                           <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span>
+                                           <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span>
+                                           <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]},</span>
+                <span class="s2">&quot;uri&quot;</span><span class="p">:</span> <span class="s2">&quot;root_tile.b3dm&quot;</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;children&quot;</span><span class="p">:</span> <span class="p">[]</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">tileset</span></div>
+
+
+<div class="viewcode-block" id="generate_tile_json"><a class="viewcode-back" href="../../cjio.html#cjio.tiling.generate_tile_json">[docs]</a><span class="k">def</span> <span class="nf">generate_tile_json</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Generate a skeleton for a tile in a tileset&quot;&quot;&quot;</span>
+    <span class="n">tile</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;boundingVolume&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;box&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span>
+                                   <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span>
+                                   <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span>
+                                   <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]},</span>
+        <span class="s2">&quot;geometricError&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+        <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;uri&quot;</span><span class="p">:</span> <span class="s2">&quot;tile.b3dm&quot;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">tile</span></div>
+
+<span class="c1"># convert the partitions to b3dm</span>
+
+<span class="c1"># convert the BBOX of CityJSON to boundingVolume region</span>
+
+<span class="c1"># generate the root tile for the whole city model</span>
+
+<span class="c1"># generate tiles for each partition, incl. reporject to EPSG:4979</span>
+
+<span class="c1"># assemble</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Hugo Ledoux
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

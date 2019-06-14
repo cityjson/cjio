@@ -1,0 +1,842 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cjio.cjio &mdash; cjio 0.5.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> cjio
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../includeme.html">cjio, or CityJSON/io</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../cjio_tutorial.html">cjio API tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">Reference</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">cjio</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>cjio.cjio</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for cjio.cjio</h1><div class="highlight"><pre>
+<span></span>
+<span class="kn">import</span> <span class="nn">os.path</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="k">import</span> <span class="n">makedirs</span>
+
+<span class="kn">import</span> <span class="nn">click</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">import</span> <span class="nn">cjio</span>
+<span class="kn">from</span> <span class="nn">cjio</span> <span class="k">import</span> <span class="n">cityjson</span><span class="p">,</span> <span class="n">tiling</span><span class="p">,</span> <span class="n">utils</span>
+
+
+<span class="c1">#-- https://stackoverflow.com/questions/47437472/in-python-click-how-do-i-see-help-for-subcommands-whose-parents-have-required</span>
+<div class="viewcode-block" id="PerCommandArgWantSubCmdHelp"><a class="viewcode-back" href="../../cjio.html#cjio.cjio.PerCommandArgWantSubCmdHelp">[docs]</a><span class="k">class</span> <span class="nc">PerCommandArgWantSubCmdHelp</span><span class="p">(</span><span class="n">click</span><span class="o">.</span><span class="n">Argument</span><span class="p">):</span>
+<div class="viewcode-block" id="PerCommandArgWantSubCmdHelp.handle_parse_result"><a class="viewcode-back" href="../../cjio.html#cjio.cjio.PerCommandArgWantSubCmdHelp.handle_parse_result">[docs]</a>    <span class="k">def</span> <span class="nf">handle_parse_result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctx</span><span class="p">,</span> <span class="n">opts</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+        <span class="c1"># check to see if there is a --help on the command line</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">arg</span> <span class="ow">in</span> <span class="n">ctx</span><span class="o">.</span><span class="n">help_option_names</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">):</span>
+            <span class="c1"># if asking for help see if we are a subcommand name</span>
+            <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">opts</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">ctx</span><span class="o">.</span><span class="n">command</span><span class="o">.</span><span class="n">commands</span><span class="p">:</span>
+                    <span class="c1"># this matches a sub command name, and --help is</span>
+                    <span class="c1"># present, let&#39;s assume the user wants help for the</span>
+                    <span class="c1"># subcommand</span>
+                    <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">arg</span><span class="p">]</span> <span class="o">+</span> <span class="n">args</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">PerCommandArgWantSubCmdHelp</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">handle_parse_result</span><span class="p">(</span>
+            <span class="n">ctx</span><span class="p">,</span> <span class="n">opts</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span></div></div>
+
+
+<span class="nd">@click</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="n">chain</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">version_option</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="n">cjio</span><span class="o">.</span><span class="n">__version__</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s1">&#39;input&#39;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="n">PerCommandArgWantSubCmdHelp</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;--ignore_duplicate_keys&#39;</span><span class="p">,</span> <span class="n">is_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Load a CityJSON file even if some City Objects have the same IDs (technically invalid file)&#39;</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">pass_context</span>
+<span class="k">def</span> <span class="nf">cli</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="nb">input</span><span class="p">,</span> <span class="n">ignore_duplicate_keys</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Process and manipulate a CityJSON file, and allow</span>
+<span class="sd">    different outputs. The different operators can be chained</span>
+<span class="sd">    to perform several processing in one step, the CityJSON model</span>
+<span class="sd">    goes through the different operators.</span>
+
+<span class="sd">    To get help on specific command, eg for &#39;validate&#39;:</span>
+
+<span class="sd">    \b</span>
+<span class="sd">        cjio validate --help</span>
+
+<span class="sd">    Usage examples:</span>
+
+<span class="sd">    \b</span>
+<span class="sd">        cjio example.json info validate</span>
+<span class="sd">        cjio example.json assign_epsg 7145 remove_textures export output.obj</span>
+<span class="sd">        cjio example.json subset --id house12 save out.json</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">context</span><span class="o">.</span><span class="n">obj</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;argument&quot;</span><span class="p">:</span> <span class="nb">input</span><span class="p">}</span>
+
+
+<div class="viewcode-block" id="process_pipeline"><a class="viewcode-back" href="../../cjio.html#cjio.cjio.process_pipeline">[docs]</a><span class="nd">@cli</span><span class="o">.</span><span class="n">resultcallback</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">process_pipeline</span><span class="p">(</span><span class="n">processors</span><span class="p">,</span> <span class="nb">input</span><span class="p">,</span> <span class="n">ignore_duplicate_keys</span><span class="p">):</span>
+    <span class="n">extensions</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;.json&#39;</span><span class="p">,</span> <span class="s1">&#39;.off&#39;</span><span class="p">,</span> <span class="s1">&#39;.poly&#39;</span><span class="p">]</span> <span class="c1">#-- input allowed</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">click</span><span class="o">.</span><span class="n">open_file</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
+        <span class="n">extension</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="nb">input</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">extension</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">extensions</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;File type not supported (only .json, .off, and .poly).&quot;</span><span class="p">)</span>
+        <span class="c1">#-- OFF file</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">extension</span> <span class="o">==</span> <span class="s1">&#39;.off&#39;</span><span class="p">):</span>
+            <span class="n">utils</span><span class="o">.</span><span class="n">print_cmd_status</span><span class="p">(</span><span class="s2">&quot;Converting </span><span class="si">%s</span><span class="s2"> to CityJSON&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">input</span><span class="p">))</span>
+            <span class="n">cm</span> <span class="o">=</span> <span class="n">cityjson</span><span class="o">.</span><span class="n">off2cj</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="c1">#-- POLY file</span>
+        <span class="k">elif</span> <span class="p">(</span><span class="n">extension</span> <span class="o">==</span> <span class="s1">&#39;.poly&#39;</span><span class="p">):</span>
+            <span class="n">utils</span><span class="o">.</span><span class="n">print_cmd_status</span><span class="p">(</span><span class="s2">&quot;Converting </span><span class="si">%s</span><span class="s2"> to CityJSON&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">input</span><span class="p">))</span>
+            <span class="n">cm</span> <span class="o">=</span> <span class="n">cityjson</span><span class="o">.</span><span class="n">poly2cj</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>            
+        <span class="c1">#-- CityJSON file</span>
+        <span class="k">else</span><span class="p">:</span> 
+            <span class="n">utils</span><span class="o">.</span><span class="n">print_cmd_status</span><span class="p">(</span><span class="s2">&quot;Parsing </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">input</span><span class="p">))</span>
+            <span class="n">cm</span> <span class="o">=</span> <span class="n">cityjson</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">,</span> <span class="n">ignore_duplicate_keys</span><span class="o">=</span><span class="n">ignore_duplicate_keys</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">get_version</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cityjson</span><span class="o">.</span><span class="n">CITYJSON_VERSIONS_SUPPORTED</span><span class="p">):</span>
+                <span class="n">allv</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+                <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">cityjson</span><span class="o">.</span><span class="n">CITYJSON_VERSIONS_SUPPORTED</span><span class="p">:</span>
+                    <span class="n">allv</span> <span class="o">=</span> <span class="n">allv</span> <span class="o">+</span> <span class="n">v</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span>
+                <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;CityJSON version </span><span class="si">%s</span><span class="s2"> not supported (only versions: </span><span class="si">%s</span><span class="s2">), not every operators will work.</span><span class="se">\n</span><span class="s2">Perhaps it&#39;s time to upgrade cjio? &#39;pip install cjio -U&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">get_version</span><span class="p">(),</span> <span class="n">allv</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">ClickException</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">get_version</span><span class="p">()</span> <span class="o">!=</span> <span class="n">cityjson</span><span class="o">.</span><span class="n">CITYJSON_VERSIONS_SUPPORTED</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;v</span><span class="si">%s</span><span class="s2"> is not the latest version, and not everything will work.</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_version</span><span class="p">()</span>
+                <span class="nb">str</span> <span class="o">+=</span> <span class="s2">&quot;Upgrade the file with &#39;upgrade_version&#39; command: &#39;cjio input.json upgrade_version save out.json&#39;&quot;</span> 
+                <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="n">click</span><span class="o">.</span><span class="n">style</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">))</span>
+            
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">ClickException</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: &quot;</span><span class="si">%s</span><span class="s1">&quot;.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="nb">input</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">ClickException</span><span class="p">(</span><span class="s1">&#39;Invalid file: &quot;</span><span class="si">%s</span><span class="s1">&quot;.</span><span class="se">\n</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">processor</span> <span class="ow">in</span> <span class="n">processors</span><span class="p">:</span>
+        <span class="n">cm</span> <span class="o">=</span> <span class="n">processor</span><span class="p">(</span><span class="n">cm</span><span class="p">)</span></div>
+
+
+<span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s1">&#39;info&#39;</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">pass_context</span>
+<span class="k">def</span> <span class="nf">info_cmd</span><span class="p">(</span><span class="n">context</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Output info in simple JSON.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">processor</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">subset</span> <span class="ow">in</span> <span class="n">cm</span><span class="p">:</span>
+                <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="s2">&quot;=============== City model: </span><span class="si">%s</span><span class="s2"> ===============&quot;</span> <span class="o">%</span> <span class="n">subset</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+                <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="n">subset</span><span class="o">.</span><span class="n">get_info</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">get_info</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">cm</span>
+    <span class="k">return</span> <span class="n">processor</span>
+
+
+<span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s1">&#39;export&#39;</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s1">&#39;filename&#39;</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;--format&#39;</span><span class="p">,</span>
+              <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Choice</span><span class="p">([</span><span class="s1">&#39;obj&#39;</span><span class="p">,</span> <span class="s1">&#39;glb&#39;</span><span class="p">,</span> <span class="s1">&#39;b3dm&#39;</span><span class="p">,</span> <span class="s1">&#39;3dtiles&#39;</span><span class="p">]),</span>
+              <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Export format&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">export_cmd</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="nb">format</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Export the CityJSON to another format.</span>
+
+<span class="sd">    OBJ, Binary glTF (glb), Batched 3DModel, Cesium 3D Tiles. Currently textures are not supported, sorry.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">exporter</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
+        <span class="c1"># TODO B: refactor for handling partitions for each format</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">verify_filename</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;dir&#39;</span><span class="p">]:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">],</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">input_filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">path</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">output</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">],</span> <span class="s1">&#39;</span><span class="si">{f}</span><span class="s1">.</span><span class="si">{ext}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">f</span><span class="o">=</span><span class="n">input_filename</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="nb">format</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]),</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">format</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;obj&#39;</span><span class="p">:</span>
+            <span class="n">utils</span><span class="o">.</span><span class="n">print_cmd_status</span><span class="p">(</span><span class="s2">&quot;Exporting CityJSON to OBJ (</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]))</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">click</span><span class="o">.</span><span class="n">ClickException</span><span class="p">(</span><span class="s2">&quot;Not implemented for exporting multiple citymodels&quot;</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">fo</span> <span class="o">=</span> <span class="n">click</span><span class="o">.</span><span class="n">open_file</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">],</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">)</span>
+                <span class="n">re</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">export2obj</span><span class="p">()</span>
+                <span class="c1"># TODO B: why don&#39;t you close the file @hugoledoux?</span>
+                <span class="n">fo</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">getvalue</span><span class="p">())</span>
+            <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">ClickException</span><span class="p">(</span><span class="s1">&#39;Invalid output file: &quot;</span><span class="si">%s</span><span class="s1">&quot;.</span><span class="se">\n</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">],</span> <span class="n">e</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="nb">format</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;glb&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">click</span><span class="o">.</span><span class="n">ClickException</span><span class="p">(</span><span class="s2">&quot;Not implemented for exporting multiple citymodels&quot;</span><span class="p">)</span>
+            <span class="n">fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]))[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">bufferbin</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">.glb&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+            <span class="n">binfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]),</span> <span class="n">bufferbin</span><span class="p">)</span>
+            <span class="n">utils</span><span class="o">.</span><span class="n">print_cmd_status</span><span class="p">(</span><span class="s2">&quot;Exporting CityJSON to glb </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">binfile</span><span class="p">)</span>
+            <span class="n">glb</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">export2gltf</span><span class="p">()</span>
+            <span class="c1"># TODO B: how many buffer can there be in the &#39;buffers&#39;?</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">glb</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="k">with</span> <span class="n">click</span><span class="o">.</span><span class="n">open_file</span><span class="p">(</span><span class="n">binfile</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">bo</span><span class="p">:</span>
+                    <span class="n">bo</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">glb</span><span class="o">.</span><span class="n">getvalue</span><span class="p">())</span>
+            <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">ClickException</span><span class="p">(</span><span class="s1">&#39;Invalid output file: &quot;</span><span class="si">%s</span><span class="s1">&quot;.</span><span class="se">\n</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">binfile</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="nb">format</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;b3dm&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">click</span><span class="o">.</span><span class="n">ClickException</span><span class="p">(</span><span class="s2">&quot;Not implemented for exporting multiple citymodels&quot;</span><span class="p">)</span>
+            <span class="n">fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]))[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">b3dmbin</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">.b3dm&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+            <span class="n">binfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]),</span> <span class="n">b3dmbin</span><span class="p">)</span>
+            <span class="n">b3dm</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">export2b3dm</span><span class="p">()</span>
+            <span class="n">utils</span><span class="o">.</span><span class="n">print_cmd_status</span><span class="p">(</span><span class="s2">&quot;Exporting CityJSON to b3dm </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">binfile</span><span class="p">)</span>
+            <span class="n">utils</span><span class="o">.</span><span class="n">print_cmd_warning</span><span class="p">(</span><span class="s2">&quot;Although the conversion works, the output is probably incorrect.&quot;</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">b3dm</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="k">with</span> <span class="n">click</span><span class="o">.</span><span class="n">open_file</span><span class="p">(</span><span class="n">binfile</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">bo</span><span class="p">:</span>
+                    <span class="n">bo</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">b3dm</span><span class="o">.</span><span class="n">getvalue</span><span class="p">())</span>
+            <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">ClickException</span><span class="p">(</span><span class="s1">&#39;Invalid output file: &quot;</span><span class="si">%s</span><span class="s1">&quot;.</span><span class="se">\n</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">binfile</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="nb">format</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;3dtiles&#39;</span><span class="p">:</span>
+            <span class="n">utils</span><span class="o">.</span><span class="n">print_cmd_status</span><span class="p">(</span><span class="s2">&quot;Exporting CityJSON to 3dtiles&quot;</span><span class="p">)</span>
+            <span class="n">utils</span><span class="o">.</span><span class="n">print_cmd_warning</span><span class="p">(</span><span class="s2">&quot;Although the conversion works, the output is probably incorrect.&quot;</span><span class="p">)</span>
+            <span class="n">tileset</span> <span class="o">=</span> <span class="n">tiling</span><span class="o">.</span><span class="n">generate_tileset_json</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">bbox_list</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">subset</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
+                    <span class="n">fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">subset</span><span class="o">.</span><span class="n">path</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">b3dmbin</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">.b3dm&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+                    <span class="n">binfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">],</span> <span class="n">b3dmbin</span><span class="p">)</span>
+                    <span class="n">bbox</span> <span class="o">=</span> <span class="n">subset</span><span class="o">.</span><span class="n">update_bbox</span><span class="p">()</span>
+                    <span class="n">b3dm</span> <span class="o">=</span> <span class="n">subset</span><span class="o">.</span><span class="n">export2b3dm</span><span class="p">()</span>
+                    <span class="n">bbox_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bbox</span><span class="p">)</span>
+                    <span class="n">tile</span> <span class="o">=</span> <span class="n">tiling</span><span class="o">.</span><span class="n">generate_tile_json</span><span class="p">()</span>
+                    <span class="n">tile</span><span class="p">[</span><span class="s1">&#39;boundingVolume&#39;</span><span class="p">][</span><span class="s1">&#39;box&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tiling</span><span class="o">.</span><span class="n">compute_obb</span><span class="p">(</span><span class="n">bbox</span><span class="p">)</span>
+                    <span class="n">tile</span><span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">][</span><span class="s1">&#39;uri&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">b3dmbin</span>
+                    <span class="n">tileset</span><span class="p">[</span><span class="s1">&#39;root&#39;</span><span class="p">][</span><span class="s1">&#39;children&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tile</span><span class="p">)</span>
+                    <span class="n">utils</span><span class="o">.</span><span class="n">print_cmd_substatus</span><span class="p">(</span><span class="s2">&quot;Exporting b3dm </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">binfile</span><span class="p">)</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">b3dm</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                        <span class="k">with</span> <span class="n">click</span><span class="o">.</span><span class="n">open_file</span><span class="p">(</span><span class="n">binfile</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">bo</span><span class="p">:</span>
+                            <span class="n">bo</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">b3dm</span><span class="o">.</span><span class="n">getvalue</span><span class="p">())</span>
+                    <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">ClickException</span><span class="p">(</span><span class="s1">&#39;Invalid output file: &quot;</span><span class="si">%s</span><span class="s1">&quot;.</span><span class="se">\n</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">binfile</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
+                <span class="n">tilesetfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">],</span> <span class="s1">&#39;tileset.json&#39;</span><span class="p">)</span>
+                <span class="n">bbox_root</span> <span class="o">=</span> <span class="n">tiling</span><span class="o">.</span><span class="n">compute_root_obb</span><span class="p">(</span><span class="n">bbox_list</span><span class="p">)</span>
+                <span class="n">tileset</span><span class="p">[</span><span class="s1">&#39;root&#39;</span><span class="p">][</span><span class="s1">&#39;boundingVolume&#39;</span><span class="p">][</span><span class="s1">&#39;box&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tiling</span><span class="o">.</span><span class="n">compute_obb</span><span class="p">(</span><span class="n">bbox_root</span><span class="p">)</span>
+                <span class="k">del</span> <span class="n">tileset</span><span class="p">[</span><span class="s1">&#39;root&#39;</span><span class="p">][</span><span class="s1">&#39;content&#39;</span><span class="p">]</span>
+                <span class="n">utils</span><span class="o">.</span><span class="n">print_cmd_substatus</span><span class="p">(</span><span class="s2">&quot;Exporting tileset.json </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">tilesetfile</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">with</span> <span class="n">click</span><span class="o">.</span><span class="n">open_file</span><span class="p">(</span><span class="n">tilesetfile</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fo</span><span class="p">:</span>
+                        <span class="n">json_str</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">tileset</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+                        <span class="n">fo</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json_str</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">ClickException</span><span class="p">(</span><span class="s1">&#39;Invalid output file: </span><span class="si">%s</span><span class="s1"> </span><span class="se">\n</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">],</span> <span class="n">e</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># if the citymodel is not partitioned, then the whole model is the root tile</span>
+                <span class="c1"># if (cm.get_epsg() == None):</span>
+                <span class="c1">#     raise click.ClickException(&quot;CityJSON has no EPSG defined, can&#39;t be reprojected.&quot;)</span>
+                <span class="c1"># elif cm.get_epsg() != 4326:</span>
+                <span class="c1">#     utils.print_cmd_status(&quot;Reprojecting CityJSON to EPSG:4326&quot;)</span>
+                <span class="c1">#     cm.reproject(3857)</span>
+                <span class="n">fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]))[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">b3dmbin</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">.b3dm&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+                <span class="n">binfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]),</span> <span class="n">b3dmbin</span><span class="p">)</span>
+                <span class="n">tilesetfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]),</span> <span class="s1">&#39;tileset.json&#39;</span><span class="p">)</span>
+                <span class="n">bbox</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">update_bbox</span><span class="p">()</span>
+                <span class="n">b3dm</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">export2b3dm</span><span class="p">()</span>
+                <span class="n">bbox_root</span> <span class="o">=</span> <span class="p">[</span><span class="n">coordinate</span> <span class="o">*</span> <span class="mf">1.1</span> <span class="k">for</span> <span class="n">coordinate</span> <span class="ow">in</span> <span class="n">bbox</span><span class="p">]</span> <span class="c1"># methinks the root boundingVolume should be larger than that of the children, even when there is only one child</span>
+                <span class="n">tileset</span><span class="p">[</span><span class="s1">&#39;root&#39;</span><span class="p">][</span><span class="s1">&#39;boundingVolume&#39;</span><span class="p">][</span><span class="s1">&#39;box&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tiling</span><span class="o">.</span><span class="n">compute_obb</span><span class="p">(</span><span class="n">bbox_root</span><span class="p">)</span>
+                <span class="n">tileset</span><span class="p">[</span><span class="s1">&#39;root&#39;</span><span class="p">][</span><span class="s1">&#39;content&#39;</span><span class="p">][</span><span class="s1">&#39;boundingVolume&#39;</span><span class="p">][</span><span class="s1">&#39;box&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tiling</span><span class="o">.</span><span class="n">compute_obb</span><span class="p">(</span><span class="n">bbox</span><span class="p">)</span>
+                <span class="n">tileset</span><span class="p">[</span><span class="s1">&#39;root&#39;</span><span class="p">][</span><span class="s1">&#39;content&#39;</span><span class="p">][</span><span class="s1">&#39;uri&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">b3dmbin</span>
+                <span class="k">del</span> <span class="n">tileset</span><span class="p">[</span><span class="s1">&#39;root&#39;</span><span class="p">][</span><span class="s1">&#39;children&#39;</span><span class="p">]</span>
+                <span class="n">utils</span><span class="o">.</span><span class="n">print_cmd_status</span><span class="p">(</span><span class="s2">&quot;Exporting b3dm </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">binfile</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">b3dm</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                    <span class="k">with</span> <span class="n">click</span><span class="o">.</span><span class="n">open_file</span><span class="p">(</span><span class="n">binfile</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">bo</span><span class="p">:</span>
+                        <span class="n">bo</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">b3dm</span><span class="o">.</span><span class="n">getvalue</span><span class="p">())</span>
+                <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">ClickException</span><span class="p">(</span><span class="s1">&#39;Invalid output file: &quot;</span><span class="si">%s</span><span class="s1">&quot;.</span><span class="se">\n</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">binfile</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
+                <span class="n">utils</span><span class="o">.</span><span class="n">print_cmd_status</span><span class="p">(</span><span class="s2">&quot;Exporting tileset.json </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">tilesetfile</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">with</span> <span class="n">click</span><span class="o">.</span><span class="n">open_file</span><span class="p">(</span><span class="n">tilesetfile</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fo</span><span class="p">:</span>
+                        <span class="n">json_str</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">tileset</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+                        <span class="n">fo</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json_str</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">ClickException</span><span class="p">(</span><span class="s1">&#39;Invalid output file: </span><span class="si">%s</span><span class="s1"> </span><span class="se">\n</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">],</span> <span class="n">e</span><span class="p">))</span>
+
+
+    <span class="k">def</span> <span class="nf">processor</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
+        <span class="c1">#-- mapbox_earcut available?</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">cityjson</span><span class="o">.</span><span class="n">MODULE_EARCUT_AVAILABLE</span> <span class="o">==</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;OBJ|glTF|b3dm export skipped: Python module &#39;mapbox_earcut&#39; missing (to triangulate faces)&quot;</span>
+            <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="n">click</span><span class="o">.</span><span class="n">style</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">))</span>
+            <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;Install it: https://github.com/skogler/mapbox_earcut_python&quot;</span>
+            <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">cm</span>
+        <span class="c1"># NOTE BD: export_cmd can take a list of citymodels, which is the output of the partitioner</span>
+        <span class="k">if</span> <span class="nb">format</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;3dtiles&#39;</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">exporter</span><span class="p">(</span><span class="n">cm</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">subset</span> <span class="ow">in</span> <span class="n">cm</span><span class="p">:</span>
+                <span class="n">exporter</span><span class="p">(</span><span class="n">subset</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cm</span>
+    <span class="k">return</span> <span class="n">processor</span>
+
+
+<span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s1">&#39;save&#39;</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s1">&#39;filename&#39;</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;--indent&#39;</span><span class="p">,</span> <span class="n">is_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+              <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Indent the file. Helpful when you want to examine the file in a text editor.&#39;</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;--textures&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> 
+              <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+              <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path to the new textures directory. This command copies the textures to a new location. Useful when creating an independent subset of a CityJSON file.&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">save_cmd</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">indent</span><span class="p">,</span> <span class="n">textures</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Save the city model to a CityJSON file.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">saver</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">verify_filename</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;dir&#39;</span><span class="p">]:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">],</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">input_filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">path</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">output</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">],</span> <span class="s1">&#39;</span><span class="si">{f}</span><span class="s1">.</span><span class="si">{ext}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">f</span><span class="o">=</span><span class="n">input_filename</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="s1">&#39;json&#39;</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]),</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">utils</span><span class="o">.</span><span class="n">print_cmd_status</span><span class="p">(</span><span class="s2">&quot;Saving CityJSON to a file </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">])</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">fo</span> <span class="o">=</span> <span class="n">click</span><span class="o">.</span><span class="n">open_file</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">],</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">textures</span><span class="p">:</span>
+                <span class="n">cm</span><span class="o">.</span><span class="n">copy_textures</span><span class="p">(</span><span class="n">textures</span><span class="p">,</span> <span class="n">output</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">indent</span><span class="p">:</span>
+                <span class="n">json_str</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">j</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">fo</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json_str</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">json_str</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">j</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span><span class="s1">&#39;:&#39;</span><span class="p">))</span>
+                <span class="n">fo</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json_str</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">ClickException</span><span class="p">(</span><span class="s1">&#39;Invalid output file: </span><span class="si">%s</span><span class="s1"> </span><span class="se">\n</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">],</span> <span class="n">e</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">processor</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">subset</span> <span class="ow">in</span> <span class="n">cm</span><span class="p">:</span>
+                <span class="n">saver</span><span class="p">(</span><span class="n">subset</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">saver</span><span class="p">(</span><span class="n">cm</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cm</span>
+    <span class="k">return</span> <span class="n">processor</span>
+
+
+<span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s1">&#39;update_bbox&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">update_bbox_cmd</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Update the bbox of a CityJSON file.</span>
+<span class="sd">    If there is none then it is added.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">processor</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">print_cmd_status</span><span class="p">(</span><span class="s2">&quot;Updating bbox&quot;</span><span class="p">)</span>
+        <span class="n">cm</span><span class="o">.</span><span class="n">update_bbox</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">cm</span>
+    <span class="k">return</span> <span class="n">processor</span>
+
+
+<span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s1">&#39;validate&#39;</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;--hide_errors&#39;</span><span class="p">,</span> <span class="n">is_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Do not print all the errors.&#39;</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;--skip_schema&#39;</span><span class="p">,</span> <span class="n">is_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Skip the schema validation (since it can be painfully slow).&#39;</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;--folder_schemas&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Specify a folder where the schemas are (cityjson.json needs to be the master file).&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">validate_cmd</span><span class="p">(</span><span class="n">hide_errors</span><span class="p">,</span> <span class="n">skip_schema</span><span class="p">,</span> <span class="n">folder_schemas</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Validate the CityJSON file: (1) against its schemas; (2) extra validations.</span>
+
+<span class="sd">    The schemas are fetched automatically, based on the version of the file.</span>
+<span class="sd">    It&#39;s possible to specify schemas with the &#39;--folder_schemas&#39; option.</span>
+<span class="sd">    This is used when there are Extensions used.</span>
+<span class="sd">    </span>
+<span class="sd">    If the file is too large (and thus validation is slow),</span>
+<span class="sd">    an option is to crop a subset and just validate it:</span>
+
+<span class="sd">        cjio myfile.json subset --random 2 validate</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">processor</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">folder_schemas</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">folder_schemas</span><span class="p">)</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+                <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="n">click</span><span class="o">.</span><span class="n">style</span><span class="p">(</span><span class="s2">&quot;Folder for schemas unknown. Validation aborted.&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">))</span>
+                <span class="k">return</span> <span class="n">cm</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">utils</span><span class="o">.</span><span class="n">print_cmd_status</span><span class="p">(</span><span class="s1">&#39;===== Validation (with provided schemas) =====&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">utils</span><span class="o">.</span><span class="n">print_cmd_status</span><span class="p">(</span><span class="s1">&#39;===== Validation (with official CityJSON schemas) =====&#39;</span><span class="p">)</span>
+        <span class="c1">#-- validate    </span>
+        <span class="n">bValid</span><span class="p">,</span> <span class="n">woWarnings</span><span class="p">,</span> <span class="n">errors</span><span class="p">,</span> <span class="n">warnings</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">skip_schema</span><span class="o">=</span><span class="n">skip_schema</span><span class="p">,</span> <span class="n">folder_schemas</span><span class="o">=</span><span class="n">folder_schemas</span><span class="p">)</span>
+        <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="s1">&#39;=====&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">bValid</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="n">click</span><span class="o">.</span><span class="n">style</span><span class="p">(</span><span class="s1">&#39;File is valid&#39;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;green&#39;</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>    
+            <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="n">click</span><span class="o">.</span><span class="n">style</span><span class="p">(</span><span class="s1">&#39;File is invalid&#39;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">woWarnings</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="n">click</span><span class="o">.</span><span class="n">style</span><span class="p">(</span><span class="s1">&#39;File has no warnings&#39;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;green&#39;</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="n">click</span><span class="o">.</span><span class="n">style</span><span class="p">(</span><span class="s1">&#39;File has warnings&#39;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">hide_errors</span> <span class="ow">and</span> <span class="n">bValid</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="s2">&quot;--- ERRORS (total = </span><span class="si">%d</span><span class="s2">) ---&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">errors</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">errors</span><span class="p">:</span>
+                <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="c1"># for l in e:</span>
+                    <span class="c1"># click.echo(l)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">hide_errors</span> <span class="ow">and</span> <span class="n">woWarnings</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="s2">&quot;--- WARNINGS ---&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">warnings</span><span class="p">:</span>
+                <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="s1">&#39;=====================================&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cm</span>
+    <span class="k">return</span> <span class="n">processor</span>
+
+
+<span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s1">&#39;merge&#39;</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s1">&#39;filepattern&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">merge_cmd</span><span class="p">(</span><span class="n">filepattern</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Merge the current CityJSON with others.</span>
+<span class="sd">    All City Objects with their textures/materials/templates are handled.</span>
+<span class="sd">    </span>
+<span class="sd">    Possible to give a wildcard but put it between quotes:</span>
+
+<span class="sd">        $ cjio myfile.json merge &#39;/home/elvis/temp/*.json&#39; info</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">processor</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">print_cmd_status</span><span class="p">(</span><span class="s1">&#39;Merging files&#39;</span><span class="p">)</span>
+        <span class="n">lsCMs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">g</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">filepattern</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">g</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">f</span> <span class="o">=</span> <span class="n">click</span><span class="o">.</span><span class="n">open_file</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
+                <span class="n">lsCMs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cityjson</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">f</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">ClickException</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">: &quot;</span><span class="si">%s</span><span class="s1">&quot;.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="nb">input</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">ClickException</span><span class="p">(</span><span class="s1">&#39;Invalid file: &quot;</span><span class="si">%s</span><span class="s1">&quot;.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">input</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lsCMs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="s2">&quot;WARNING: No files to merge.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">lsCMs</span><span class="p">:</span>
+                <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">)</span>
+            <span class="n">cm</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">lsCMs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cm</span>
+    <span class="k">return</span> <span class="n">processor</span>
+
+<span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s1">&#39;partition&#39;</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;--depth&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Number of times to subdivide the BBOX.&#39;</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;--cellsize&#39;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Size of the cells in the partitioning (length x, length y).&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">partition_cmd</span><span class="p">(</span><span class="n">depth</span><span class="p">,</span> <span class="n">cellsize</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Partition the city model into tiles.</span>
+<span class="sd">    One can provide either</span>
+
+<span class="sd">    (1) --depth as the depth of the quadtree that is generated from the BBOX of the input citymodel. For example --depth 2 yields 16 cells;</span>
+
+<span class="sd">        $ cjio myfile.json partition --depth 2</span>
+
+<span class="sd">    (2) --cellsize as the approx. size of cells that partition the BBOX of the input citymodel.</span>
+
+<span class="sd">        $ cjio myfile.json partition --cellsize 500.0 500.0</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">processor</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">print_cmd_status</span><span class="p">(</span><span class="s1">&#39;===== Partitioning CityJSON =====&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">cellsize</span> <span class="ow">and</span> <span class="n">depth</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">ClickException</span><span class="p">(</span><span class="s2">&quot;Please choose either --depth or --cellsize&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cellsize</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">ClickException</span><span class="p">(</span><span class="s2">&quot;Sorry, --cellsize is not implemented yet&quot;</span><span class="p">)</span>
+        <span class="n">bbox</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">update_bbox</span><span class="p">()</span>
+        <span class="n">grid_idx</span> <span class="o">=</span> <span class="n">tiling</span><span class="o">.</span><span class="n">create_grid</span><span class="p">(</span><span class="n">bbox</span><span class="p">,</span> <span class="n">depth</span><span class="p">)</span>
+        <span class="n">partitions</span> <span class="o">=</span> <span class="n">tiling</span><span class="o">.</span><span class="n">partitioner</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">grid_idx</span><span class="p">)</span>
+
+        <span class="n">textures</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">indent</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># NOTE BD: for now i store the subsets in the list to they can be passed forward to the exporter, but probably there more memory efficient ways to do this</span>
+        <span class="n">cms</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">input_filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">path</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">colist</span> <span class="ow">in</span> <span class="n">partitions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_subset_ids</span><span class="p">(</span><span class="n">colist</span><span class="p">)</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">.json&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">input_filename</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">filename</span>
+            <span class="n">cms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cms</span>
+    <span class="k">return</span> <span class="n">processor</span>
+
+<span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s1">&#39;subset&#39;</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;--id&#39;</span><span class="p">,</span> <span class="n">multiple</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The ID of the City Objects; can be used multiple times.&#39;</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;--bbox&#39;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;2D bbox: (minx miny maxx maxy).&#39;</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;--random&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Number of random City Objects to select.&#39;</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;--cotype&#39;</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Choice</span><span class="p">([</span><span class="s1">&#39;Building&#39;</span><span class="p">,</span> <span class="s1">&#39;Bridge&#39;</span><span class="p">,</span> <span class="s1">&#39;Road&#39;</span><span class="p">,</span> <span class="s1">&#39;TransportSquare&#39;</span><span class="p">,</span> <span class="s1">&#39;LandUse&#39;</span><span class="p">,</span> <span class="s1">&#39;Railway&#39;</span><span class="p">,</span> <span class="s1">&#39;TINRelief&#39;</span><span class="p">,</span> <span class="s1">&#39;WaterBody&#39;</span><span class="p">,</span> <span class="s1">&#39;PlantCover&#39;</span><span class="p">,</span> <span class="s1">&#39;SolitaryVegetationObject&#39;</span><span class="p">,</span> <span class="s1">&#39;CityFurniture&#39;</span><span class="p">,</span> <span class="s1">&#39;GenericCityObject&#39;</span><span class="p">,</span> <span class="s1">&#39;Tunnel&#39;</span><span class="p">]),</span> 
+    <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The City Object type&#39;</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;--exclude&#39;</span><span class="p">,</span> <span class="n">is_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Excludes the selection, thus delete the selected object(s).&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">subset_cmd</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="n">bbox</span><span class="p">,</span> <span class="n">random</span><span class="p">,</span> <span class="n">cotype</span><span class="p">,</span> <span class="n">exclude</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a subset of a CityJSON file.</span>
+<span class="sd">    One can select City Objects by</span>
+<span class="sd">    (1) IDs of City Objects;</span>
+<span class="sd">    (2) bbox;</span>
+<span class="sd">    (3) City Object type;</span>
+<span class="sd">    (4) randomly.</span>
+
+<span class="sd">    These can be combined, except random which overwrites others.</span>
+
+<span class="sd">    Option &#39;--exclude&#39; excludes the selected objects, or &quot;reverse&quot; the selection.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">processor</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">print_cmd_status</span><span class="p">(</span><span class="s1">&#39;Subset of CityJSON&#39;</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">cm</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">random</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">get_subset_random</span><span class="p">(</span><span class="n">random</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="n">exclude</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">s</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">get_subset_ids</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="n">exclude</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bbox</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">get_subset_bbox</span><span class="p">(</span><span class="n">bbox</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="n">exclude</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cotype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">get_subset_cotype</span><span class="p">(</span><span class="n">cotype</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="n">exclude</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">s</span> 
+    <span class="k">return</span> <span class="n">processor</span>
+
+
+<span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s1">&#39;remove_duplicate_vertices&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">remove_duplicate_vertices_cmd</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Remove duplicate vertices a CityJSON file.</span>
+<span class="sd">    Only the geometry vertices are processed,</span>
+<span class="sd">    and not those of the textures/templates.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">processor</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">print_cmd_status</span><span class="p">(</span><span class="s1">&#39;Remove duplicate vertices&#39;</span><span class="p">)</span>
+        <span class="n">cm</span><span class="o">.</span><span class="n">remove_duplicate_vertices</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">cm</span>
+    <span class="k">return</span> <span class="n">processor</span>
+
+
+<span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s1">&#39;remove_orphan_vertices&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">remove_orphan_vertices_cmd</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Remove orphan vertices a CityJSON file.</span>
+<span class="sd">    Only the geometry vertices are processed,</span>
+<span class="sd">    and not those of the textures/templates.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">processor</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">print_cmd_status</span><span class="p">(</span><span class="s1">&#39;Remove orphan vertices&#39;</span><span class="p">)</span>
+        <span class="n">cm</span><span class="o">.</span><span class="n">remove_orphan_vertices</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">cm</span>
+    <span class="k">return</span> <span class="n">processor</span>
+
+
+<span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s1">&#39;remove_materials&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">remove_materials_cmd</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Remove all materials from a CityJSON file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">processor</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">print_cmd_status</span><span class="p">(</span><span class="s1">&#39;Remove all material&#39;</span><span class="p">)</span>
+        <span class="n">cm</span><span class="o">.</span><span class="n">remove_materials</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">cm</span>
+    <span class="k">return</span> <span class="n">processor</span>
+
+
+<span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s1">&#39;compress&#39;</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;--digit&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">IntRange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Number of digit to keep.&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">compress_cmd</span><span class="p">(</span><span class="n">digit</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compress a CityJSON file, ie stores its vertices with integers.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">processor</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">print_cmd_status</span><span class="p">(</span><span class="s1">&#39;Compressing the CityJSON (with </span><span class="si">%d</span><span class="s1"> digit)&#39;</span> <span class="o">%</span> <span class="n">digit</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cm</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="n">digit</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="s2">&quot;WARNING: </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cm</span>
+    <span class="k">return</span> <span class="n">processor</span>
+
+
+<span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s1">&#39;decompress&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">decompress_cmd</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Decompress a CityJSON file, ie remove the &quot;tranform&quot;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">processor</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">print_cmd_status</span><span class="p">(</span><span class="s1">&#39;Decompressing the CityJSON&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">decompress</span><span class="p">()</span> <span class="o">==</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="s2">&quot;File is not compressed, nothing done.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cm</span>
+    <span class="k">return</span> <span class="n">processor</span>
+
+
+<span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s1">&#39;remove_textures&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">remove_textures_cmd</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Remove all textures from a CityJSON file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">processor</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">print_cmd_status</span><span class="p">(</span><span class="s1">&#39;Remove all textures&#39;</span><span class="p">)</span>
+        <span class="n">cm</span><span class="o">.</span><span class="n">remove_textures</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">cm</span>
+    <span class="k">return</span> <span class="n">processor</span>
+
+
+<span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s1">&#39;assign_epsg&#39;</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s1">&#39;newepsg&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">update_crs_cmd</span><span class="p">(</span><span class="n">newepsg</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Assign a (new) EPSG.</span>
+<span class="sd">    Can be used to assign one to a file that doesn&#39;t have any, or update one.</span>
+
+<span class="sd">    To reproject (and thus modify all the values of the coordinates) use reproject().</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">processor</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">print_cmd_status</span><span class="p">(</span><span class="s1">&#39;Assign EPSG:</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">newepsg</span><span class="p">)</span>
+        <span class="n">cm</span><span class="o">.</span><span class="n">set_epsg</span><span class="p">(</span><span class="n">newepsg</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cm</span>
+    <span class="k">return</span> <span class="n">processor</span>
+
+
+<span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s1">&#39;reproject&#39;</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s1">&#39;epsg&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">update_crs_cmd</span><span class="p">(</span><span class="n">epsg</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Reproject the CityJSON to a new EPSG.</span>
+<span class="sd">    The current file must have an EPSG defined (do it with function assign_epsg).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">processor</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">print_cmd_status</span><span class="p">(</span><span class="s1">&#39;Reproject to EPSG:</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">epsg</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">get_epsg</span><span class="p">()</span> <span class="o">==</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="s2">&quot;WARNING: CityJSON has no EPSG defined, can&#39;t be reprojected.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>    
+            <span class="n">cm</span><span class="o">.</span><span class="n">reproject</span><span class="p">(</span><span class="n">epsg</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cm</span>
+    <span class="k">return</span> <span class="n">processor</span>
+
+
+<span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s1">&#39;upgrade_version&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">upgrade_version_cmd</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Upgrade the CityJSON to the latest version.</span>
+<span class="sd">    It takes care of *everything* (touch wood).</span>
+
+<span class="sd">        $ cjio myfile.json upgrade_version</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">processor</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
+        <span class="n">vlatest</span> <span class="o">=</span> <span class="n">cityjson</span><span class="o">.</span><span class="n">CITYJSON_VERSIONS_SUPPORTED</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">print_cmd_status</span><span class="p">(</span><span class="s1">&#39;Upgrade CityJSON file to v</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">vlatest</span><span class="p">)</span>
+        <span class="n">re</span><span class="p">,</span> <span class="n">reasons</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">upgrade_version</span><span class="p">(</span><span class="n">vlatest</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">re</span> <span class="o">==</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="n">click</span><span class="o">.</span><span class="n">style</span><span class="p">(</span><span class="s2">&quot;WARNING: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">reasons</span><span class="p">),</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">cm</span>
+    <span class="k">return</span> <span class="n">processor</span>
+
+
+<span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s1">&#39;locate_textures&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">locate_textures_cmd</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Output the location of the texture files.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">processor</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">print_cmd_status</span><span class="p">(</span><span class="s1">&#39;Locate the textures&#39;</span><span class="p">)</span>
+        <span class="n">loc</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_textures_location</span><span class="p">()</span>
+        <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="n">loc</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cm</span>
+    <span class="k">return</span> <span class="n">processor</span>
+
+
+<span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s1">&#39;update_textures&#39;</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s1">&#39;newlocation&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s1">&#39;--relative&#39;</span><span class="p">,</span> <span class="n">is_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Convert texture file paths to relative paths.&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">update_textures_cmd</span><span class="p">(</span><span class="n">newlocation</span><span class="p">,</span> <span class="n">relative</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Update the location of the texture files.</span>
+<span class="sd">    Can be used if the texture files were moved to new directory.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">processor</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">print_cmd_status</span><span class="p">(</span><span class="s1">&#39;Update location of textures&#39;</span><span class="p">)</span>
+        <span class="n">cm</span><span class="o">.</span><span class="n">update_textures_location</span><span class="p">(</span><span class="n">newlocation</span><span class="p">,</span> <span class="n">relative</span><span class="o">=</span><span class="n">relative</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cm</span>
+    <span class="k">return</span> <span class="n">processor</span>
+
+
+<span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s1">&#39;extract_lod&#39;</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s1">&#39;lod&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">extract_lod_cmd</span><span class="p">(</span><span class="n">lod</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract only one LoD for a dataset.</span>
+<span class="sd">    To use on datasets having more than one LoD for the city objects.</span>
+<span class="sd">    For each city object, it keeps only the LoD passed as parameter,</span>
+<span class="sd">    if a city object doesn&#39;t have this LoD then it is deleted.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">processor</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">print_cmd_status</span><span class="p">(</span><span class="s1">&#39;Extract LoD:</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">lod</span><span class="p">)</span>
+        <span class="n">cm</span><span class="o">.</span><span class="n">extract_lod</span><span class="p">(</span><span class="n">lod</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cm</span>
+    <span class="k">return</span> <span class="n">processor</span>
+
+
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Hugo Ledoux
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

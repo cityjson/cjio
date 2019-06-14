@@ -3,6 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+================================
 Welcome to cjio's documentation!
 ================================
 
@@ -10,6 +11,8 @@ Welcome to cjio's documentation!
    :maxdepth: 2
 
    includeme
+   cjio_tutorial.ipynb
+   modules
 
 
 Indices and tables

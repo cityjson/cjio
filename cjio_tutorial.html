@@ -1,0 +1,1112 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>cjio API tutorial &mdash; cjio 0.5.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Reference" href="modules.html" />
+    <link rel="prev" title="cjio, or CityJSON/io" href="includeme.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> cjio
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="includeme.html">cjio, or CityJSON/io</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">cjio API tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#Load-the-city-model">Load the city model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Using-the-CLI-commands-in-the-API">Using the CLI commands in the API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Explore-the-city-model">Explore the city model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Working-with-the-objects-in-the-model">Working with the objects in the model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Getting-objects-from-the-model">Getting objects from the model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Getting-the-properties-and-geometry-of-objects">Getting the properties and geometry of objects</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Geometry-boundaries-and-Semantic-Surfaces">Geometry boundaries and Semantic Surfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Assigning-attributes-to-Semantic-Surfaces">Assigning attributes to Semantic Surfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Create-new-Semantic-Surfaces">Create new Semantic Surfaces</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#Save-or-Export">Save or Export</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">Reference</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">cjio</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>cjio API tutorial</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/cjio_tutorial.ipynb.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput,
+div.nbinput div.prompt,
+div.nbinput div.input_area,
+div.nbinput div[class*=highlight],
+div.nbinput div[class*=highlight] pre,
+div.nboutput,
+div.nbinput div.prompt,
+div.nbinput div.output_area,
+div.nboutput div[class*=highlight],
+div.nboutput div[class*=highlight] pre {
+    background: none;
+    border: none;
+    padding: 0 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+/* avoid gaps between output lines */
+div.nboutput div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput,
+div.nboutput {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput,
+    div.nboutput {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput div.prompt pre {
+    color: #307FC1;
+}
+
+/* output prompt */
+div.nboutput div.prompt pre {
+    color: #BF5B3D;
+}
+
+/* all prompts */
+div.nbinput div.prompt,
+div.nboutput div.prompt {
+    min-width: 5ex;
+    padding-top: 0.4em;
+    padding-right: 0.4em;
+    text-align: right;
+    flex: 0;
+}
+@media (max-width: 540px) {
+    div.nbinput div.prompt,
+    div.nboutput div.prompt {
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput div.prompt.empty {
+        padding: 0;
+    }
+}
+
+/* disable scrollbars on prompts */
+div.nbinput div.prompt pre,
+div.nboutput div.prompt pre {
+    overflow: hidden;
+}
+
+/* input/output area */
+div.nbinput div.input_area,
+div.nboutput div.output_area {
+    padding: 0.4em;
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput div.input_area,
+    div.nboutput div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput div.input_area {
+    border: 1px solid #e0e0e0;
+    border-radius: 2px;
+    background: #f5f5f5;
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.imgmath center alignment in output cells */
+div.nboutput div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-default-inverse-fg { color: #FFFFFF; }
+.ansi-default-inverse-bg { background-color: #000000; }
+
+.ansi-bold { font-weight: bold; }
+.ansi-underline { text-decoration: underline; }
+
+/* Some additional styling taken form the Jupyter notebook CSS */
+div.rendered_html table {
+  border: none;
+  border-collapse: collapse;
+  border-spacing: 0;
+  color: black;
+  font-size: 12px;
+  table-layout: fixed;
+}
+div.rendered_html thead {
+  border-bottom: 1px solid black;
+  vertical-align: bottom;
+}
+div.rendered_html tr,
+div.rendered_html th,
+div.rendered_html td {
+  text-align: right;
+  vertical-align: middle;
+  padding: 0.5em 0.5em;
+  line-height: normal;
+  white-space: normal;
+  max-width: none;
+  border: none;
+}
+div.rendered_html th {
+  font-weight: bold;
+}
+div.rendered_html tbody tr:nth-child(odd) {
+  background: #f5f5f5;
+}
+div.rendered_html tbody tr:hover {
+  background: rgba(66, 165, 245, 0.2);
+}
+
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast,
+.nboutput.nblast {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast + .nbinput {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<div class="section" id="cjio-API-tutorial">
+<h1>cjio API tutorial<a class="headerlink" href="#cjio-API-tutorial" title="Permalink to this headline">¶</a></h1>
+<p>In this tutorial we explore what is possible with <code class="docutils literal notranslate"><span class="pre">cjio</span></code>’s API. I refer to <code class="docutils literal notranslate"><span class="pre">cjio</span></code>’s command line interface as <em>CLI</em>.</p>
+<p>The CLI is what you use when you invoke <code class="docutils literal notranslate"><span class="pre">cjio</span></code> from the command line, such as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ cjio some_city_model.json validate
+</pre></div>
+</div>
+<p>The API is what you use from <code class="docutils literal notranslate"><span class="pre">cjio</span></code> when working with a city model in a Python script.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">cjio</span> <span class="k">import</span> <span class="n">cityjson</span>
+</pre></div>
+</div>
+</div>
+<p>Set up the paths for the tutorial.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">package_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="s1">&#39;../&#39;</span><span class="p">)</span>
+<span class="n">schema_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">package_dir</span><span class="p">,</span> <span class="s1">&#39;cjio&#39;</span><span class="p">,</span> <span class="s1">&#39;schemas&#39;</span><span class="p">,</span> <span class="s1">&#39;1.0.0&#39;</span><span class="p">)</span>
+<span class="n">data_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">package_dir</span><span class="p">,</span> <span class="s1">&#39;example_data&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="Load-the-city-model">
+<h2>Load the city model<a class="headerlink" href="#Load-the-city-model" title="Permalink to this headline">¶</a></h2>
+<p>We are working with a subset of the city model of Rotterdam. This file is included with <code class="docutils literal notranslate"><span class="pre">cjio</span></code> as an example data set. We can use the online CityJSON viewer at <a class="reference external" href="https://viewer.cityjson.org">viewer.cityjson.org</a> to quickly visualise the city model. <img alt="image0" src="_images/rotterdam_subset.png" /></p>
+<p>The <code class="docutils literal notranslate"><span class="pre">load()</span></code> method loads a CityJSON file into a CityJSON object.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">p_subset</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="s1">&#39;rotterdam&#39;</span><span class="p">,</span> <span class="s1">&#39;rotterdam_subset.json&#39;</span><span class="p">)</span>
+<span class="n">cm_r</span> <span class="o">=</span> <span class="n">cityjson</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">p_subset</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">cm_r</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;class &#39;cjio.cityjson.CityJSON&#39;&gt;
+</pre></div></div>
+</div>
+</div>
+<div class="section" id="Using-the-CLI-commands-in-the-API">
+<h2>Using the CLI commands in the API<a class="headerlink" href="#Using-the-CLI-commands-in-the-API" title="Permalink to this headline">¶</a></h2>
+<p>You can use any of the CLI commands on a CityJSON object. However, not all CLI commands are mapped 1-to-1 to CityJSON methods, plus you need to provide the parameters yourself, as for example in case of the <code class="docutils literal notranslate"><span class="pre">validate()</span></code> method. The reason for this is that the CLI commands are wrapper functions that take care of passing parameters and parsing outputs. And we haven’t harmonized the CLI and the API yet.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">cm_r</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">folder_schemas</span><span class="o">=</span><span class="n">schema_dir</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+-- Validating the syntax of the file
+        (using the schemas ../cjio/schemas/1.0.0/cityjson.schema.json)
+-- Validating the internal consistency of the file (see docs for list)
+        --Vertex indices coherent
+        --Specific for CityGroups
+        --Semantic arrays coherent with geometry
+        --Root properties
+        --Empty geometries
+        --Duplicate vertices
+        --Orphan vertices
+        --CityGML attributes
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>(True,
+ False,
+ [],
+ [&quot;WARNING: attributes &#39;TerrainHeight&#39; not in CityGML schema&quot;,
+  &#39;\t(16 CityObjects have this warning)&#39;,
+  &quot;WARNING: attributes &#39;bron_tex&#39; not in CityGML schema&quot;,
+  &#39;\t(16 CityObjects have this warning)&#39;,
+  &quot;WARNING: attributes &#39;voll_tex&#39; not in CityGML schema&quot;,
+  &#39;\t(16 CityObjects have this warning)&#39;,
+  &quot;WARNING: attributes &#39;bron_geo&#39; not in CityGML schema&quot;,
+  &#39;\t(16 CityObjects have this warning)&#39;,
+  &quot;WARNING: attributes &#39;status&#39; not in CityGML schema&quot;,
+  &#39;\t(16 CityObjects have this warning)&#39;])
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Explore-the-city-model">
+<h2>Explore the city model<a class="headerlink" href="#Explore-the-city-model" title="Permalink to this headline">¶</a></h2>
+<p>We can print the basic information about the city model. Note that <code class="docutils literal notranslate"><span class="pre">print()</span></code> returns the same information as the <code class="docutils literal notranslate"><span class="pre">info</span></code> command in the CLI.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="nb">print</span><span class="p">(</span><span class="n">cm_r</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{
+  &#34;cityjson_version&#34;: &#34;1.0&#34;,
+  &#34;epsg&#34;: 7415,
+  &#34;cityobjects_total&#34;: 16,
+  &#34;cityobjects_present&#34;: [
+    &#34;Building&#34;
+  ],
+  &#34;vertices_total&#34;: 383,
+  &#34;transform/compressed&#34;: true,
+  &#34;geom_primitives_present&#34;: [
+    &#34;MultiSurface&#34;
+  ],
+  &#34;level_of_detail&#34;: [
+    2
+  ],
+  &#34;semantics_surfaces_present&#34;: [
+    &#34;RoofSurface&#34;,
+    &#34;GroundSurface&#34;,
+    &#34;WallSurface&#34;
+  ],
+  &#34;cityobject_attributes&#34;: [
+    &#34;TerrainHeight&#34;,
+    &#34;bron_tex&#34;,
+    &#34;bron_geo&#34;,
+    &#34;voll_tex&#34;,
+    &#34;status&#34;
+  ],
+  &#34;materials&#34;: false,
+  &#34;textures&#34;: true
+}
+</pre></div></div>
+</div>
+</div>
+<div class="section" id="Working-with-the-objects-in-the-model">
+<h2>Working with the objects in the model<a class="headerlink" href="#Working-with-the-objects-in-the-model" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="Getting-objects-from-the-model">
+<h3>Getting objects from the model<a class="headerlink" href="#Getting-objects-from-the-model" title="Permalink to this headline">¶</a></h3>
+<p>We can get CityObjects by their <em>type</em>, or a list of types. Also by their IDs. If no type or ID is provided, <code class="docutils literal notranslate"><span class="pre">get_cityobjects()</span></code> returns all of them, which is equivalent to <code class="docutils literal notranslate"><span class="pre">cm_r.cityobjects</span></code>.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">buildings</span> <span class="o">=</span> <span class="n">cm_r</span><span class="o">.</span><span class="n">get_cityobjects</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;building&#39;</span><span class="p">)</span>
+<span class="n">buildings_parts</span> <span class="o">=</span> <span class="n">cm_r</span><span class="o">.</span><span class="n">get_cityobjects</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;building&#39;</span><span class="p">,</span> <span class="s1">&#39;buildingpart&#39;</span><span class="p">])</span>
+
+<span class="n">r_ids</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;{C9D4A5CF-094A-47DA-97E4-4A3BFD75D3AE}&#39;</span><span class="p">,</span>
+         <span class="s1">&#39;{6271F75F-E8D8-4EE4-AC46-9DB02771A031}&#39;</span><span class="p">]</span>
+<span class="n">buildings_ids</span> <span class="o">=</span> <span class="n">cm_r</span><span class="o">.</span><span class="n">get_cityobjects</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">r_ids</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Getting-the-properties-and-geometry-of-objects">
+<h3>Getting the properties and geometry of objects<a class="headerlink" href="#Getting-the-properties-and-geometry-of-objects" title="Permalink to this headline">¶</a></h3>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">b01</span> <span class="o">=</span> <span class="n">buildings_ids</span><span class="p">[</span><span class="s1">&#39;{C9D4A5CF-094A-47DA-97E4-4A3BFD75D3AE}&#39;</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">b01</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{
+  &#34;id&#34;: &#34;{C9D4A5CF-094A-47DA-97E4-4A3BFD75D3AE}&#34;,
+  &#34;type&#34;: &#34;Building&#34;,
+  &#34;attributes&#34;: {
+    &#34;TerrainHeight&#34;: 3.03,
+    &#34;bron_tex&#34;: &#34;UltraCAM-X 10cm juni 2008&#34;,
+    &#34;voll_tex&#34;: &#34;complete&#34;,
+    &#34;bron_geo&#34;: &#34;Lidar 15-30 punten - nov. 2008&#34;,
+    &#34;status&#34;: &#34;1&#34;
+  },
+  &#34;children&#34;: null,
+  &#34;parents&#34;: null,
+  &#34;geometry_type&#34;: [
+    &#34;MultiSurface&#34;
+  ],
+  &#34;geometry_lod&#34;: [
+    2
+  ],
+  &#34;semantic_surfaces&#34;: [
+    &#34;RoofSurface&#34;,
+    &#34;GroundSurface&#34;,
+    &#34;WallSurface&#34;
+  ]
+}
+</pre></div></div>
+</div>
+<p>The attributes are stored as a dictionary</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">b01</span><span class="o">.</span><span class="n">attributes</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>{&#39;TerrainHeight&#39;: 3.03,
+ &#39;bron_tex&#39;: &#39;UltraCAM-X 10cm juni 2008&#39;,
+ &#39;voll_tex&#39;: &#39;complete&#39;,
+ &#39;bron_geo&#39;: &#39;Lidar 15-30 punten - nov. 2008&#39;,
+ &#39;status&#39;: &#39;1&#39;}
+</pre></div>
+</div>
+</div>
+<p>CityObjects can have <em>children</em> and <em>parents</em></p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">b01</span><span class="o">.</span><span class="n">children</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">b01</span><span class="o">.</span><span class="n">parents</span> <span class="ow">is</span> <span class="kc">None</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>True
+</pre></div>
+</div>
+</div>
+<p>CityObject geometry is a list of <code class="docutils literal notranslate"><span class="pre">Geometry</span></code> objects. That is because a CityObject can have multiple geometry representations in different levels of detail, eg. a geometry in LoD1 and a second geometry in LoD2.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">b01</span><span class="o">.</span><span class="n">geometry</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>[&lt;cjio.models.Geometry at 0x7ff579d0ff28&gt;]
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">geom</span> <span class="o">=</span> <span class="n">b01</span><span class="o">.</span><span class="n">geometry</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">, lod </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">geom</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">geom</span><span class="o">.</span><span class="n">lod</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+MultiSurface, lod 2
+</pre></div></div>
+</div>
+</div>
+<div class="section" id="Geometry-boundaries-and-Semantic-Surfaces">
+<h3>Geometry boundaries and Semantic Surfaces<a class="headerlink" href="#Geometry-boundaries-and-Semantic-Surfaces" title="Permalink to this headline">¶</a></h3>
+<p>On the contrary to a CityJSON file, the geometry boundaries are dereferenced when working with the API. This means that the vertex coordinates are included in the boundary definition, not only the vertex indices.</p>
+<p><code class="docutils literal notranslate"><span class="pre">cjio</span></code> doesn’t provide specific geometry classes (yet), eg. MultiSurface or Solid class. If you are working with the geometry boundaries, you need to the geometric operations yourself, or cast the boundary to a geometry-class of some other library. For example <code class="docutils literal notranslate"><span class="pre">shapely</span></code> if 2D is enough.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># get the first surface</span>
+<span class="n">geom</span><span class="o">.</span><span class="n">boundaries</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>[[579471, 198217, 10652],
+ [578109, 202330, 10652],
+ [577149, 200650, 10652],
+ [576461, 200406, 10652],
+ [577481, 197515, 10652]]
+</pre></div>
+</div>
+</div>
+<p>Semantic Surfaces are stored in a similar fashion as in a CityJSON file, in the <code class="docutils literal notranslate"><span class="pre">surfaces</span></code> attribute of a Geometry object.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">geom</span><span class="o">.</span><span class="n">surfaces</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>{0: {&#39;surface_idx&#39;: [[0], [1], [2]], &#39;type&#39;: &#39;RoofSurface&#39;},
+ 1: {&#39;surface_idx&#39;: [[3]], &#39;type&#39;: &#39;GroundSurface&#39;},
+ 2: {&#39;surface_idx&#39;: [[4],
+   [5],
+   [6],
+   [7],
+   [8],
+   [9],
+   [10],
+   [11],
+   [12],
+   [13],
+   [14],
+   [15],
+   [16],
+   [17],
+   [18],
+   [19]],
+  &#39;type&#39;: &#39;WallSurface&#39;}}
+</pre></div>
+</div>
+</div>
+<p>The main difference is the presence of the <code class="docutils literal notranslate"><span class="pre">surface_idx</span></code> property. The <code class="docutils literal notranslate"><span class="pre">surface_idx</span></code> is used by the <code class="docutils literal notranslate"><span class="pre">get_surface_boundaries()</span></code> method to efficiently extract the relevant geometry boundaries.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">roofs</span> <span class="o">=</span> <span class="n">geom</span><span class="o">.</span><span class="n">get_surfaces</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;roofsurface&#39;</span><span class="p">)</span>
+<span class="n">roofs</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>{0: {&#39;surface_idx&#39;: [[0], [1], [2]], &#39;type&#39;: &#39;RoofSurface&#39;}}
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">roof_boundaries</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">roofs</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+    <span class="n">roof_boundaries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">geom</span><span class="o">.</span><span class="n">get_surface_boundaries</span><span class="p">(</span><span class="n">r</span><span class="p">))</span>
+<span class="n">roof_boundaries</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>[[[[[579471, 198217, 10652],
+    [578109, 202330, 10652],
+    [577149, 200650, 10652],
+    [576461, 200406, 10652],
+    [577481, 197515, 10652]]],
+  [[[580840, 194082, 15211],
+    [579471, 198217, 15211],
+    [577481, 197515, 15211],
+    [576461, 200406, 15211],
+    [572239, 198909, 15211],
+    [571839, 200119, 15211],
+    [571503, 201071, 15211],
+    [566651, 199359, 15211],
+    [569801, 190223, 15211],
+    [573253, 191430, 15211],
+    [574658, 191922, 15211]]],
+  [[[565589, 202439, 11036],
+    [566651, 199359, 11036],
+    [571503, 201071, 11036],
+    [571839, 200119, 11036],
+    [573299, 200640, 11036],
+    [572089, 204029, 11036],
+    [570629, 203440, 11036],
+    [570379, 204150, 11036]]]]]
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Assigning-attributes-to-Semantic-Surfaces">
+<h3>Assigning attributes to Semantic Surfaces<a class="headerlink" href="#Assigning-attributes-to-Semantic-Surfaces" title="Permalink to this headline">¶</a></h3>
+<p>In order to change or assign an attribute to the SemanticSurfaces of a CityObject we need to,</p>
+<ol class="arabic simple">
+<li><p>extract the surfaces,</p></li>
+<li><p>make the changes on the surface,</p></li>
+<li><p>overwrite the CityObjects with the changes.</p></li>
+</ol>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">cm</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">cm_r</span><span class="p">)</span>
+<span class="n">new_cos</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">co_id</span><span class="p">,</span> <span class="n">co</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">cityobjects</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">new_geoms</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">geom</span> <span class="ow">in</span> <span class="n">co</span><span class="o">.</span><span class="n">geometry</span><span class="p">:</span>
+        <span class="c1"># Only LoD &gt;= 2 models have semantic surfaces</span>
+        <span class="k">if</span> <span class="n">geom</span><span class="o">.</span><span class="n">lod</span> <span class="o">&gt;=</span> <span class="mf">2.0</span><span class="p">:</span>
+            <span class="c1"># Extract the surfaces</span>
+            <span class="n">roofsurfaces</span> <span class="o">=</span> <span class="n">geom</span><span class="o">.</span><span class="n">get_surfaces</span><span class="p">(</span><span class="s1">&#39;roofsurface&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">rsrf</span> <span class="ow">in</span> <span class="n">roofsurfaces</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="c1"># Change the attributes</span>
+                <span class="k">if</span> <span class="s1">&#39;attributes&#39;</span> <span class="ow">in</span> <span class="n">rsrf</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="n">rsrf</span><span class="p">[</span><span class="s1">&#39;attributes&#39;</span><span class="p">][</span><span class="s1">&#39;cladding&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;tiles&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">rsrf</span><span class="p">[</span><span class="s1">&#39;attributes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+                    <span class="n">rsrf</span><span class="p">[</span><span class="s1">&#39;attributes&#39;</span><span class="p">][</span><span class="s1">&#39;cladding&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;tiles&#39;</span>
+                <span class="n">geom</span><span class="o">.</span><span class="n">surfaces</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">rsrf</span>
+            <span class="n">new_geoms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">geom</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Use the unchanged geometry</span>
+            <span class="n">new_geoms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">geom</span><span class="p">)</span>
+    <span class="n">co</span><span class="o">.</span><span class="n">geometry</span> <span class="o">=</span> <span class="n">new_geoms</span>
+    <span class="n">new_cos</span><span class="p">[</span><span class="n">co_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">co</span>
+<span class="c1"># Overwrite the CityObjects</span>
+<span class="n">cm</span><span class="o">.</span><span class="n">cityobjects</span> <span class="o">=</span> <span class="n">new_cos</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Create-new-Semantic-Surfaces">
+<h3>Create new Semantic Surfaces<a class="headerlink" href="#Create-new-Semantic-Surfaces" title="Permalink to this headline">¶</a></h3>
+<p>The process is similar as previously. However, in this example we create new SemanticSurfaces that hold the values which we compute from the geometry. The input city model has a single semantic “WallSurface”, without attributes, for all the walls of a building. The snippet below illustrates how to separate surfaces and assign the semantics to them.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">new_cos</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="k">for</span> <span class="n">co_id</span><span class="p">,</span> <span class="n">co</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">cityobjects</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">new_geoms</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">geom</span> <span class="ow">in</span> <span class="n">co</span><span class="o">.</span><span class="n">geometry</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">geom</span><span class="o">.</span><span class="n">lod</span> <span class="o">&gt;=</span> <span class="mf">2.0</span><span class="p">:</span>
+            <span class="n">max_id</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">geom</span><span class="o">.</span><span class="n">surfaces</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="n">old_ids</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="k">for</span> <span class="n">w_i</span><span class="p">,</span> <span class="n">wsrf</span> <span class="ow">in</span> <span class="n">geom</span><span class="o">.</span><span class="n">get_surfaces</span><span class="p">(</span><span class="s1">&#39;wallsurface&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">old_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">w_i</span><span class="p">)</span>
+                <span class="k">del</span> <span class="n">geom</span><span class="o">.</span><span class="n">surfaces</span><span class="p">[</span><span class="n">w_i</span><span class="p">]</span>
+                <span class="n">boundaries</span> <span class="o">=</span> <span class="n">geom</span><span class="o">.</span><span class="n">get_surface_boundaries</span><span class="p">(</span><span class="n">wsrf</span><span class="p">)</span>
+
+                <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">boundary_geometry</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">boundaries</span><span class="p">):</span>
+                    <span class="c1"># The original geometry has the same Semantic for all wall,</span>
+                    <span class="c1"># but we want to divide the wall surfaces by their orientation,</span>
+                    <span class="c1"># thus we need to have the correct surface index</span>
+                    <span class="n">surface_index</span> <span class="o">=</span> <span class="n">wsrf</span><span class="p">[</span><span class="s1">&#39;surface_idx&#39;</span><span class="p">][</span><span class="n">j</span><span class="p">]</span>
+                    <span class="n">new_srf</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="n">wsrf</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">],</span>
+                        <span class="s1">&#39;surface_idx&#39;</span><span class="p">:</span> <span class="n">surface_index</span>
+                    <span class="p">}</span>
+
+                    <span class="k">for</span> <span class="n">multisurface</span> <span class="ow">in</span> <span class="n">boundary_geometry</span><span class="p">:</span>
+                        <span class="c1"># Do any operation here</span>
+                        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">multisurface</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="n">j</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="n">orientation</span> <span class="o">=</span> <span class="s1">&#39;north&#39;</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">orientation</span> <span class="o">=</span> <span class="s1">&#39;south&#39;</span>
+
+                        <span class="c1"># Add the new attribute to the surface</span>
+                        <span class="k">if</span> <span class="s1">&#39;attributes&#39;</span> <span class="ow">in</span> <span class="n">wsrf</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                            <span class="n">wsrf</span><span class="p">[</span><span class="s1">&#39;attributes&#39;</span><span class="p">][</span><span class="s1">&#39;orientation&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">orientation</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">wsrf</span><span class="p">[</span><span class="s1">&#39;attributes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+                            <span class="n">wsrf</span><span class="p">[</span><span class="s1">&#39;attributes&#39;</span><span class="p">][</span><span class="s1">&#39;orientation&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">orientation</span>
+
+                        <span class="n">new_srf</span><span class="p">[</span><span class="s1">&#39;attributes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">wsrf</span><span class="p">[</span><span class="s1">&#39;attributes&#39;</span><span class="p">]</span>
+
+                        <span class="c1"># if w_i in geom.surfaces.keys():</span>
+                        <span class="c1">#     del geom.surfaces[w_i]</span>
+
+                        <span class="n">max_id</span> <span class="o">=</span> <span class="n">max_id</span> <span class="o">+</span> <span class="mi">1</span>
+                        <span class="n">geom</span><span class="o">.</span><span class="n">surfaces</span><span class="p">[</span><span class="n">max_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_srf</span>
+
+            <span class="n">new_geoms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">geom</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># If LoD1, just add the geometry unchanged</span>
+            <span class="n">new_geoms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">geom</span><span class="p">)</span>
+
+    <span class="n">co</span><span class="o">.</span><span class="n">geometry</span> <span class="o">=</span> <span class="n">new_geoms</span>
+    <span class="n">new_cos</span><span class="p">[</span><span class="n">co_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">co</span>
+
+<span class="n">cm</span><span class="o">.</span><span class="n">cityobjects</span> <span class="o">=</span> <span class="n">new_cos</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="Save-or-Export">
+<h2>Save or Export<a class="headerlink" href="#Save-or-Export" title="Permalink to this headline">¶</a></h2>
+<p>At the end, the <code class="docutils literal notranslate"><span class="pre">save()</span></code> method saves the edited city model into a CityJSON file.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">p_out</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="s1">&#39;test_output.json&#39;</span><span class="p">)</span>
+<span class="n">cityjson</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">p_out</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>It is also possible to export the city model into a pandas DataFrame. Note that only the CityObject attributes are exported into the dataframe, with CityObject IDs as the index of the dataframe. Thus if you want to export the attributes of SemanticSurfaces for example, then you need to add them as CityObject attributes.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">new_cos</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">co_id</span><span class="p">,</span> <span class="n">co</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">cityobjects</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">geom</span> <span class="ow">in</span> <span class="n">co</span><span class="o">.</span><span class="n">geometry</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">srf</span> <span class="ow">in</span> <span class="n">geom</span><span class="o">.</span><span class="n">surfaces</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="s1">&#39;attributes&#39;</span> <span class="ow">in</span> <span class="n">srf</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">attr</span><span class="p">,</span><span class="n">a_v</span> <span class="ow">in</span> <span class="n">srf</span><span class="p">[</span><span class="s1">&#39;attributes&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">attr</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">co</span><span class="o">.</span><span class="n">attributes</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">co</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="n">attr</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+                        <span class="n">co</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="n">attr</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">a_v</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">co</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="n">attr</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a_v</span><span class="p">)</span>
+    <span class="n">new_cos</span><span class="p">[</span><span class="n">co_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">co</span>
+<span class="n">cm</span><span class="o">.</span><span class="n">cityobjects</span> <span class="o">=</span> <span class="n">new_cos</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">df</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">to_dataframe</span><span class="p">()</span>
+<span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>TerrainHeight</th>
+      <th>bron_geo</th>
+      <th>bron_tex</th>
+      <th>cladding</th>
+      <th>orientation</th>
+      <th>status</th>
+      <th>voll_tex</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>{C9D4A5CF-094A-47DA-97E4-4A3BFD75D3AE}</th>
+      <td>3.03</td>
+      <td>Lidar 15-30 punten - nov. 2008</td>
+      <td>UltraCAM-X 10cm juni 2008</td>
+      <td>[tiles]</td>
+      <td>[north, north, north, north, north, north, nor...</td>
+      <td>1</td>
+      <td>complete</td>
+    </tr>
+    <tr>
+      <th>{71B60053-BC28-404D-BAB9-8A642AAC0CF4}</th>
+      <td>2.68</td>
+      <td>Lidar 15-30 punten - nov. 2008</td>
+      <td>UltraCAM-X 10cm juni 2008</td>
+      <td>[tiles]</td>
+      <td>[north, north, north, north, north, north, nor...</td>
+      <td>1</td>
+      <td>complete</td>
+    </tr>
+    <tr>
+      <th>{6271F75F-E8D8-4EE4-AC46-9DB02771A031}</th>
+      <td>3.12</td>
+      <td>Lidar 15-30 punten - nov. 2008</td>
+      <td>UltraCAM-X 10cm juni 2008</td>
+      <td>[tiles]</td>
+      <td>[north, north, north, north, north, north, nor...</td>
+      <td>1</td>
+      <td>complete</td>
+    </tr>
+    <tr>
+      <th>{DE77E78F-B110-43D2-A55C-8B61911192DE}</th>
+      <td>2.88</td>
+      <td>Lidar 15-30 punten - nov. 2008</td>
+      <td>UltraCAM-X 10cm juni 2008</td>
+      <td>[tiles]</td>
+      <td>[north, north, north, north, north, north, nor...</td>
+      <td>1</td>
+      <td>complete</td>
+    </tr>
+    <tr>
+      <th>{19935DFC-F7B3-4D6E-92DD-C48EE1D1519A}</th>
+      <td>2.82</td>
+      <td>Lidar 15-30 punten - nov. 2008</td>
+      <td>UltraCAM-X 10cm juni 2008</td>
+      <td>[tiles]</td>
+      <td>[south, south, south, south, south, south, sou...</td>
+      <td>1</td>
+      <td>complete</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="modules.html" class="btn btn-neutral float-right" title="Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="includeme.html" class="btn btn-neutral float-left" title="cjio, or CityJSON/io" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Hugo Ledoux
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
