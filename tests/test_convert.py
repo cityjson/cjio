@@ -7,10 +7,10 @@ from cjio import cjio
 
 class TestGltf:
 
-    def test_convert_to_gltf(self, delft):
-        glb = convert.to_gltf(delft.j)
+    def test_convert_to_glb(self, delft):
+        glb = convert.to_glb(delft.j)
 
-    def test_export_gltf_cmd(self, data_dir, data_output_dir):
+    def test_export_glb_cmd(self, data_dir, data_output_dir):
         """Debugging"""
         p = os.path.join(data_dir, 'delft.json')
         runner = CliRunner()
@@ -24,8 +24,8 @@ class TestGltf:
 class TestB3dm:
 
     def test_convert_to_b3dm(self, delft):
-        out_gltf, out_bin = convert.to_gltf(delft.j)
-        b3dm = convert.to_b3dm(delft, out_bin)
+        glb = convert.to_glb(delft.j)
+        b3dm = convert.to_b3dm(delft, glb)
 
 class Test3dtiles:
 

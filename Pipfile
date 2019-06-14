@@ -5,6 +5,11 @@ url = "https://pypi.org/simple"
 
 [dev-packages]
 pytest = "*"
+sphinx = "*"
+sphinx-rtd-theme = "*"
+jupyter = "*"
+cjio = {path = "."}
+nbsphinx = "*"
 
 [packages]
 click = "*"
@@ -15,3 +20,4 @@ numpy = "*"
 strict-rfc3339 = "*"
 e1839a8 = {editable = true,path = "."}
 mapbox-earcut = "*"
+pandas = "*"

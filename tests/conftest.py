@@ -30,6 +30,12 @@ def rotterdam_subset(data_dir):
         yield cityjson.CityJSON(file=f)
 
 @pytest.fixture(scope='session')
+def zurich_subset(data_dir):
+    p = os.path.join(data_dir, 'zurich', 'zurich_subset_lod2.json')
+    with open(p, 'r') as f:
+        yield cityjson.CityJSON(file=f)
+
+@pytest.fixture(scope='session')
 def dummy(data_dir):
     p = os.path.join(data_dir, 'dummy', 'dummy.json')
     with open(p, 'r') as f:
@@ -52,3 +58,14 @@ def rectangle(data_dir):
     p = os.path.join(data_dir, 'dummy', 'rectangle.json')
     with open(p, 'r') as f:
         yield cityjson.CityJSON(file=f)
+
+@pytest.fixture(scope='session')
+def vertices():
+    yield  [
+        (0.0,1.0,0.0),
+        (1.0,1.0,0.0),
+        (2.0,1.0,0.0),
+        (3.0,1.0,0.0),
+        (4.0,1.0,0.0),
+        (5.0,1.0,0.0)
+    ]

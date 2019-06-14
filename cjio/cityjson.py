@@ -17,15 +17,18 @@ from sys import platform
 from click import progressbar
 
 MODULE_EARCUT_AVAILABLE = True
+MODULE_PANDAS_AVAILABLE = True
+
 try:
     import mapbox_earcut
 except ImportError as e:
     MODULE_EARCUT_AVAILABLE = False
+try:
+    import pandas
+except ImportError as e:
+    MODULE_PANDAS_AVAILABLE = False
 
-from cjio import validation
-from cjio import subset
-from cjio import geom_help
-from cjio import convert
+from cjio import validation, subset, geom_help, convert, models
 from cjio.errors import InvalidOperation
 from cjio.utils import print_cmd_warning
 
@@ -47,6 +50,60 @@ TOPLEVEL = ('Building',
             'Tunnel',
             'WaterBody')
 
+def load(path: str):
+    """Load a CityJSON file for working with it though the API
+    :param path: Absolute path to a CityJSON file
+    :return: A CityJSON object
+    """
+    with open(path, 'r') as fin:
+        try:
+            cm = CityJSON(file=fin)
+        except OSError as e:
+            raise FileNotFoundError
+    cm.cityobjects = dict()
+    for co_id, co in cm.j['CityObjects'].items():
+        # TODO BD: do some verification here
+        children = co['children'] if 'children' in co else None
+        parents = co['parents'] if 'parents' in co else None
+        attributes = co['attributes'] if 'attributes' in co else None
+        geometry = []
+        for geom in co['geometry']:
+            semantics = geom['semantics'] if 'semantics' in geom else None
+            geometry.append(
+                models.Geometry(
+                    type=geom['type'],
+                    lod=geom['lod'],
+                    boundaries=geom['boundaries'],
+                    semantics_obj=semantics,
+                    vertices=cm.j['vertices']
+                )
+            )
+        cm.cityobjects[co_id] = models.CityObject(
+            id=co_id,
+            type=co['type'],
+            attributes=attributes,
+            children=children,
+            parents=parents,
+            geometry=geometry
+        )
+    return cm
+
+def save(citymodel, path: str):
+    """Save a city model to a CityJSON file
+    :param citymodel: A CityJSON object
+    :param path: Absolute path to a CityJSON file
+    """
+    cityobjects, vertex_lookup = citymodel.reference_geometry()
+    citymodel.j['vertices'] = list(vertex_lookup.keys())
+    citymodel.j['CityObjects'] = cityobjects
+    citymodel.remove_duplicate_vertices()
+    citymodel.remove_orphan_vertices()
+    try:
+        with open(path, 'w') as fout:
+            json_str = json.dumps(citymodel.j, indent=2)
+            fout.write(json_str)
+    except IOError as e:
+        raise IOError('Invalid output file: %s \n%s' % (path, e))
 
 def reader(file, ignore_duplicate_keys=False):
     return CityJSON(file=file, ignore_duplicate_keys=ignore_duplicate_keys)
@@ -128,19 +185,84 @@ class CityJSON:
         if file is not None:
             self.read(file, ignore_duplicate_keys)
             self.path = os.path.abspath(file.name)
+            self.cityobjects = None
         elif j is not None:
             self.j = j
+            self.cityobjects = None
         else: #-- create an empty one
             self.j = {}
             self.j["type"] = "CityJSON"
             self.j["version"] = CITYJSON_VERSIONS_SUPPORTED[-1]
             self.j["CityObjects"] = {}
             self.j["vertices"] = []
+            self.cityobjects = None
 
 
     def __repr__(self):
         return self.get_info()
 
+
+    ##-- API functions
+    # TODO BD: refactor this whole CityJSON class
+    def get_cityobjects(self, type=None, id=None):
+        """Return a subset of CityObjects
+        :param type: CityObject type. If a list of types are given, then all types in the list are returned.
+        :param id: CityObject ID. If a list of IDs are given, then all objects matching the IDs in the list are returned.
+        """
+        if type is None and id is None:
+            return self.cityobjects
+        elif (type is not None) and (id is not None):
+            raise AttributeError("Please provide either 'type' or 'id'")
+        elif type is not None:
+            if isinstance(type, str):
+                type_list = [type.lower()]
+            elif isinstance(type, list) and isinstance(type[0], str):
+                type_list = [t.lower() for t in type]
+            else:
+                raise TypeError("'type' must be a string or list of strings")
+            return {i:co for i,co in self.cityobjects.items() if co.type.lower() in type_list}
+        elif id is not None:
+            if isinstance(id, str):
+                id_list = [id]
+            elif isinstance(id, list) and isinstance(id[0], str):
+                id_list = id
+            else:
+                raise TypeError("'id' must be a string or list of strings")
+            return {i:co for i,co in self.cityobjects.items() if co.id in id_list}
+
+
+    def set_cityobjects(self, cityobjects):
+        """Creates or updates CityObjects
+        .. note:: If a CityObject with the same ID already exists in the model, it will be overwritten
+        :param cityobjects: Dictionary of CityObjects, where keys are the CityObject IDs. Same structure as returned by
+        get_cityobjects()
+        """
+        for co_id, co in cityobjects.items():
+            self.cityobjects[co_id] = co
+
+
+    def to_dataframe(self):
+        """Converts the city model to a Pandas data frame where fields are CityObject attributes"""
+        if not MODULE_PANDAS_AVAILABLE:
+            raise ModuleNotFoundError("pandas is not available, please install it")
+        return pandas.DataFrame([co.attributes for co_id,co in self.cityobjects.items()],
+                                index=list(self.cityobjects.keys()))
+
+
+    def reference_geometry(self):
+        """Build a coordinate list and index the vertices"""
+        cityobjects = dict()
+        vertex_lookup = dict()
+        vertex_idx = 0
+        for co_id, co in self.cityobjects.items():
+            j_co = co.to_json()
+            geometry, vertex_lookup, vertex_idx = co.build_index(vertex_lookup, vertex_idx)
+            j_co['geometry'] = geometry
+            cityobjects[co_id] = j_co
+        return (cityobjects, vertex_lookup)
+
+
+    ##-- end API functions
 
     def get_version(self):
         return self.j["version"]
@@ -866,10 +988,22 @@ class CityJSON:
         info["vertices_total"] = len(self.j["vertices"])
         info["transform/compressed"] = "transform" in self.j
         d.clear()
+        lod = set()
+        sem_srf = set()
+        co_attributes = set()
         for key in self.j["CityObjects"]:
+            for attr in self.j['CityObjects'][key]['attributes'].keys():
+                co_attributes.add(attr)
             for geom in self.j['CityObjects'][key]['geometry']:
                 d.add(geom["type"])
+                lod.add(geom["lod"])
+                if "semantics" in geom:
+                    for srf in geom["semantics"]["surfaces"]:
+                        sem_srf.add(srf["type"])
         info["geom_primitives_present"] = list(d)
+        info["level_of_detail"] = list(lod)
+        info["semantics_surfaces_present"] = list(sem_srf)
+        info["cityobject_attributes"] = list(co_attributes)
         if 'appearance' in self.j:
             info["materials"] = 'materials' in self.j['appearance']
             info["textures"] = 'textures' in self.j['appearance']
@@ -1238,7 +1372,7 @@ class CityJSON:
 
 
     def export2b3dm(self):
-        glb = convert.to_gltf(self.j)
+        glb = convert.to_glb(self.j)
         b3dm = convert.to_b3dm(self, glb)
         return b3dm
 
@@ -1246,7 +1380,7 @@ class CityJSON:
     def export2gltf(self):
         # TODO B: probably no need to double wrap this to_gltf(), but its long, and
         # the current cityjson.py is long already
-        glb = convert.to_gltf(self.j)
+        glb = convert.to_glb(self.j)
         return glb
 
 

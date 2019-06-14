@@ -25,13 +25,13 @@ def invalid_path(request):
     yield (os.path.join(package_dir, request.param[0]), request.param[1])
 
 
-class TestFileNamesPaths():
+class TestFileNamesPaths:
 
-    def test_verify_filenames_valid(valid_path):
+    def test_verify_filenames_valid(self, valid_path):
         res = utils.verify_filename(valid_path[0])
         assert res['dir'] == valid_path[1]
 
-    def test_verify_filenames_invalid(invalid_path):
+    def test_verify_filenames_invalid(self, invalid_path):
         with pytest.raises(ClickException) as e:
             utils.verify_filename(invalid_path[0])
 

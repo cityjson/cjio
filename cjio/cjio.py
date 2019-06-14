@@ -115,7 +115,7 @@ def info_cmd(context):
 def export_cmd(filename, format):
     """Export the CityJSON to another format.
 
-    OBJ, Binary glTF, Batched 3DModel, Cesium 3D Tiles. Currently textures are not supported, sorry.
+    OBJ, Binary glTF (glb), Batched 3DModel, Cesium 3D Tiles. Currently textures are not supported, sorry.
     """
     def exporter(cm):
         # TODO B: refactor for handling partitions for each format
@@ -164,6 +164,7 @@ def export_cmd(filename, format):
             binfile = os.path.join(os.path.dirname(output['path']), b3dmbin)
             b3dm = cm.export2b3dm()
             utils.print_cmd_status("Exporting CityJSON to b3dm %s" % binfile)
+            utils.print_cmd_warning("Although the conversion works, the output is probably incorrect.")
             try:
                 b3dm.seek(0)
                 with click.open_file(binfile, mode='wb') as bo:
@@ -172,6 +173,7 @@ def export_cmd(filename, format):
                 raise click.ClickException('Invalid output file: "%s".\n%s' % (binfile, e))
         elif format.lower() == '3dtiles':
             utils.print_cmd_status("Exporting CityJSON to 3dtiles")
+            utils.print_cmd_warning("Although the conversion works, the output is probably incorrect.")
             tileset = tiling.generate_tileset_json()
             if isinstance(cm, list):
                 bbox_list = []
@@ -258,7 +260,8 @@ def export_cmd(filename, format):
 
 @cli.command('save')
 @click.argument('filename')
-@click.option('--indent', default=0)
+@click.option('--indent', is_flag=True,
+              help='Indent the file. Helpful when you want to examine the file in a text editor.')
 @click.option('--textures', default=None, 
               type=str,
               help='Path to the new textures directory. This command copies the textures to a new location. Useful when creating an independent subset of a CityJSON file.')
@@ -279,11 +282,11 @@ def save_cmd(filename, indent, textures):
             fo = click.open_file(output['path'], mode='w')
             if textures:
                 cm.copy_textures(textures, output['path'])
-            if indent == 0:
-                json_str = json.dumps(cm.j, separators=(',',':'))
+            if indent:
+                json_str = json.dumps(cm.j, indent="\t")
                 fo.write(json_str)
             else:
-                json_str = json.dumps(cm.j, indent=indent)
+                json_str = json.dumps(cm.j, separators=(',',':'))
                 fo.write(json_str)
         except IOError as e:
             raise click.ClickException('Invalid output file: %s \n%s' % (output['path'], e))
@@ -396,19 +399,27 @@ def merge_cmd(filepattern):
     return processor
 
 @cli.command('partition')
-@click.option('--depth', type=int, default=2, help='Number of times to subdivide the BBOX.', show_default=True)
-@click.option('--folder_output', help='Specify a folder where to store the partitions.')
-def partition_cmd(folder_output, depth):
+@click.option('--depth', type=int, help='Number of times to subdivide the BBOX.')
+@click.option('--cellsize', nargs=2, type=float, help='Size of the cells in the partitioning (length x, length y).')
+def partition_cmd(depth, cellsize):
     """
     Partition the city model into tiles.
+    One can provide either
+
+    (1) --depth as the depth of the quadtree that is generated from the BBOX of the input citymodel. For example --depth 2 yields 16 cells;
+
+        $ cjio myfile.json partition --depth 2
+
+    (2) --cellsize as the approx. size of cells that partition the BBOX of the input citymodel.
+
+        $ cjio myfile.json partition --cellsize 500.0 500.0
     """
     def processor(cm):
-        if folder_output is not None:
-            if os.path.exists(folder_output) == False:
-                click.echo(click.style("Folder for output unknown. Partitioning aborted.", fg='red'))
-                return cm
-            else:
-                utils.print_cmd_status('===== Partitioning CityJSON (output: %s) =====' % (folder_output))
+        utils.print_cmd_status('===== Partitioning CityJSON =====')
+        if (cellsize and depth):
+            raise click.ClickException("Please choose either --depth or --cellsize")
+        if cellsize:
+            raise click.ClickException("Sorry, --cellsize is not implemented yet")
         bbox = cm.update_bbox()
         grid_idx = tiling.create_grid(bbox, depth)
         partitions = tiling.partitioner(cm, grid_idx)
@@ -424,23 +435,6 @@ def partition_cmd(folder_output, depth):
             filename = '{}_{}.json'.format(input_filename, idx)
             s.path = filename
             cms.append(s)
-            if folder_output:
-                f = os.path.basename(filename)
-                d = os.path.abspath(folder_output)
-                p = os.path.join(d, f)
-                utils.print_cmd_status("Saving CityJSON partition to a file (%s)" % (p))
-                try:
-                    fo = click.open_file(p, mode='w')
-                    if textures:
-                        s.copy_textures(textures, p)
-                    if indent == 0:
-                        json_str = json.dumps(s.j, separators=(',', ':'))
-                        fo.write(json_str)
-                    else:
-                        json_str = json.dumps(s.j, indent=indent)
-                        fo.write(json_str)
-                except IOError as e:
-                    raise click.ClickException('Invalid output file: "%s".\n%s' % (p, e))
         return cms
     return processor
 

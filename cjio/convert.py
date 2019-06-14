@@ -96,7 +96,7 @@ def to_b3dm(cm, glb):
 
     return b3dm_bin
 
-def to_gltf(j):
+def to_glb(j):
     """Convert to Binary glTF (.glb)
 
     Adapted from CityJSON2glTF: https://github.com/tudelft3d/CityJSON2glTF
