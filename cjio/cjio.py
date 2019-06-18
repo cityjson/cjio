@@ -310,6 +310,23 @@ def subset_cmd(id, bbox, random, cotype, exclude):
     return processor
 
 
+@cli.command('clean')
+def clean_cmd():
+    """
+    Clean 
+    =
+    remove_duplicate_vertices
+    +
+    remove_orphan_vertices    
+    """
+    def processor(cm):
+        print_cmd_status('Clean the file')
+        cm.remove_duplicate_vertices()
+        cm.remove_orphan_vertices()
+        return cm
+    return processor
+
+
 @cli.command('remove_duplicate_vertices')
 def remove_duplicate_vertices_cmd():
     """
