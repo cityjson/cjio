@@ -1,7 +1,7 @@
 
 # Changelog
 
-## [0.5.3] - 2019-06-18
+## [0.5.4] - 2019-06-18
 ### Changed
 - proper schemas are packaged
 - clean() operator added
