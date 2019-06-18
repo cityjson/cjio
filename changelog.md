@@ -1,6 +1,10 @@
 
 # Changelog
 
+## [0.5.3] - 2019-06-18
+### Changed
+- proper schemas are packaged
+- clean() operator added
 
 
 ## [0.5.2] - 2019-04-29
