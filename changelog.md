@@ -18,6 +18,11 @@
 - only EPSG codes are supported for the CRS's URN
 - When `--indent` is passed to `save`, tabs are used instead of spaces. Results in smaller files.
 
+## [0.5.3] - 2019-06-18
+### Changed
+- proper schemas are packaged
+- clean() operator added
+
 ## [0.5.2] - 2019-04-29
 ### Changed
 - CityJSON v1.0.0 supported
