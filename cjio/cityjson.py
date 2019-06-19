@@ -50,9 +50,10 @@ TOPLEVEL = ('Building',
             'Tunnel',
             'WaterBody')
 
-def load(path: str):
+def load(path, transform=False):
     """Load a CityJSON file for working with it though the API
     :param path: Absolute path to a CityJSON file
+    :param transform: Apply the coordinate transformation to the vertices (if applicable)
     :return: A CityJSON object
     """
     with open(path, 'r') as fin:
@@ -61,6 +62,15 @@ def load(path: str):
         except OSError as e:
             raise FileNotFoundError
     cm.cityobjects = dict()
+    if 'transform' in cm.j:
+        cm.transform = cm.j['transform']
+    else:
+        cm.transform = None
+    if transform:
+        do_transform = cm.transform
+        del cm.j['transform']
+    else:
+        do_transform = None
     for co_id, co in cm.j['CityObjects'].items():
         # TODO BD: do some verification here
         children = co['children'] if 'children' in co else None
@@ -75,7 +85,8 @@ def load(path: str):
                     lod=geom['lod'],
                     boundaries=geom['boundaries'],
                     semantics_obj=semantics,
-                    vertices=cm.j['vertices']
+                    vertices=cm.j['vertices'],
+                    transform=do_transform
                 )
             )
         cm.cityobjects[co_id] = models.CityObject(
