@@ -472,9 +472,10 @@ expected to exists with the texture files in it.</p>
 
 <dl class="function">
 <dt id="cjio.cityjson.load">
-<code class="sig-prename descclassname">cjio.cityjson.</code><code class="sig-name descname">load</code><span class="sig-paren">(</span><em class="sig-param">path: str</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.load" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">cjio.cityjson.</code><code class="sig-name descname">load</code><span class="sig-paren">(</span><em class="sig-param">path</em>, <em class="sig-param">transform=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.load" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load a CityJSON file for working with it though the API
 :param path: Absolute path to a CityJSON file
+:param transform: Apply the coordinate transformation to the vertices (if applicable)
 :return: A CityJSON object</p>
 </dd></dl>
 
@@ -611,7 +612,7 @@ expected to exists with the texture files in it.</p>
 
 <dl class="class">
 <dt id="cjio.models.Geometry">
-<em class="property">class </em><code class="sig-prename descclassname">cjio.models.</code><code class="sig-name descname">Geometry</code><span class="sig-paren">(</span><em class="sig-param">type: str = None</em>, <em class="sig-param">lod: int = None</em>, <em class="sig-param">boundaries: List = None</em>, <em class="sig-param">semantics_obj: Dict = None</em>, <em class="sig-param">vertices=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#Geometry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.Geometry" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">cjio.models.</code><code class="sig-name descname">Geometry</code><span class="sig-paren">(</span><em class="sig-param">type: str = None</em>, <em class="sig-param">lod: int = None</em>, <em class="sig-param">boundaries: List = None</em>, <em class="sig-param">semantics_obj: Dict = None</em>, <em class="sig-param">vertices=None</em>, <em class="sig-param">transform=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#Geometry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.Geometry" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>CityJSON Geometry object</p>
 <dl class="method">
@@ -653,6 +654,15 @@ or the surface type is not provided.
 <dt id="cjio.models.Geometry.to_json">
 <code class="sig-name descname">to_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#Geometry.to_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.Geometry.to_json" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a dict that in the CityJSON schema</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cjio.models.Geometry.transform">
+<code class="sig-name descname">transform</code><span class="sig-paren">(</span><em class="sig-param">transform</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#Geometry.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.Geometry.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply coordinate transformation to the boundary
+.. warning:: This operation overwrites the coordinates in the boundary
+:param transform: <a class="reference external" href="https://www.cityjson.org/specs/latest/#transform-object">Transform object</a> from CityJSON
+:return: A copy of the Geometry object with a boundary with transformed coordinates</p>
 </dd></dl>
 
 </dd></dl>

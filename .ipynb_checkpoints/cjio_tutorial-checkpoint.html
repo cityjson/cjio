@@ -17,26 +17,24 @@
   
 
   
-  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
   
     
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
     
-    <script type="text/javascript" src="_static/js/theme.js"></script>
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
 
     
 
   
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Reference" href="modules.html" />
-    <link rel="prev" title="cjio, or CityJSON/io" href="includeme.html" /> 
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -50,7 +48,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home"> cjio
+            <a href="../index.html" class="icon icon-home"> cjio
           
 
           
@@ -63,7 +61,7 @@
 
           
 <div role="search">
-  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
@@ -80,24 +78,10 @@
               
             
             
-              <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="includeme.html">cjio, or CityJSON/io</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">cjio API tutorial</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#Load-the-city-model">Load the city model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Using-the-CLI-commands-in-the-API">Using the CLI commands in the API</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Explore-the-city-model">Explore the city model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Working-with-the-objects-in-the-model">Working with the objects in the model</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#Getting-objects-from-the-model">Getting objects from the model</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#Getting-the-properties-and-geometry-of-objects">Getting the properties and geometry of objects</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#Geometry-boundaries-and-Semantic-Surfaces">Geometry boundaries and Semantic Surfaces</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#Assigning-attributes-to-Semantic-Surfaces">Assigning attributes to Semantic Surfaces</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#Create-new-Semantic-Surfaces">Create new Semantic Surfaces</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#Save-or-Export">Save or Export</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">Reference</a></li>
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../includeme.html">cjio, or CityJSON/io</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cjio_tutorial.html">cjio API tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">Reference</a></li>
 </ul>
 
             
@@ -112,7 +96,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">cjio</a>
+          <a href="../index.html">cjio</a>
         
       </nav>
 
@@ -141,7 +125,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="index.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html">Docs</a> &raquo;</li>
         
       <li>cjio API tutorial</li>
     
@@ -149,7 +133,7 @@
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/cjio_tutorial.ipynb.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/.ipynb_checkpoints/cjio_tutorial-checkpoint.ipynb.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -406,14 +390,11 @@ div.rendered_html tbody tr:hover {
 </div>
 <p>Set up the paths for the tutorial.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">package_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span>
-    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="vm">__name__</span><span class="p">))))</span>
+<span></span><span class="n">package_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="s1">&#39;../../&#39;</span><span class="p">)</span>
 <span class="n">schema_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">package_dir</span><span class="p">,</span> <span class="s1">&#39;cjio&#39;</span><span class="p">,</span> <span class="s1">&#39;schemas&#39;</span><span class="p">,</span> <span class="s1">&#39;1.0.0&#39;</span><span class="p">)</span>
 <span class="n">data_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">package_dir</span><span class="p">,</span> <span class="s1">&#39;example_data&#39;</span><span class="p">)</span>
 </pre></div>
@@ -421,16 +402,16 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="section" id="Load-the-city-model">
 <h2>Load the city model<a class="headerlink" href="#Load-the-city-model" title="Permalink to this headline">¶</a></h2>
-<p>We are working with a subset of the city model of Rotterdam. This file is included with <code class="docutils literal notranslate"><span class="pre">cjio</span></code> as an example data set. We can use the online CityJSON viewer at <a class="reference external" href="https://viewer.cityjson.org">viewer.cityjson.org</a> to quickly visualise the city model. <img alt="image0" src="_images/rotterdam_subset.png" /></p>
+<p>We are working with a subset of the city model of Rotterdam. This file is included with <code class="docutils literal notranslate"><span class="pre">cjio</span></code> as an example data set. We can use the online CityJSON viewer at <a class="reference external" href="https://viewer.cityjson.org">viewer.cityjson.org</a> to quickly visualise the city model. <img alt="image0" src=".ipynb_checkpoints/../figures/rotterdam_subset.png" /></p>
 <p>The <code class="docutils literal notranslate"><span class="pre">load()</span></code> method loads a CityJSON file into a CityJSON object.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">path_in</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="s1">&#39;rotterdam&#39;</span><span class="p">,</span> <span class="s1">&#39;rotterdam_subset.json&#39;</span><span class="p">)</span>
-<span class="n">cm</span> <span class="o">=</span> <span class="n">cityjson</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">path_in</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">cm</span><span class="p">))</span>
+<span></span><span class="n">p_subset</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="s1">&#39;rotterdam&#39;</span><span class="p">,</span> <span class="s1">&#39;rotterdam_subset.json&#39;</span><span class="p">)</span>
+<span class="n">cm_r</span> <span class="o">=</span> <span class="n">cityjson</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">p_subset</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">cm_r</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
@@ -445,13 +426,13 @@ div.rendered_html tbody tr:hover {
 </div>
 <div class="section" id="Using-the-CLI-commands-in-the-API">
 <h2>Using the CLI commands in the API<a class="headerlink" href="#Using-the-CLI-commands-in-the-API" title="Permalink to this headline">¶</a></h2>
-<p>You can use any of the CLI commands on a CityJSON object. However, not all CLI commands are mapped 1-to-1 to CityJSON methods, plus you need to provide the parameters yourself. The reason for this is that the CLI commands are wrapper functions that take care of passing parameters and parsing outputs. And we haven’t harmonized the CLI and the API yet.</p>
+<p>You can use any of the CLI commands on a CityJSON object. However, not all CLI commands are mapped 1-to-1 to CityJSON methods, plus you need to provide the parameters yourself, as for example in case of the <code class="docutils literal notranslate"><span class="pre">validate()</span></code> method. The reason for this is that the CLI commands are wrapper functions that take care of passing parameters and parsing outputs. And we haven’t harmonized the CLI and the API yet.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">cm</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+<span></span><span class="n">cm_r</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">folder_schemas</span><span class="o">=</span><span class="n">schema_dir</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -461,7 +442,7 @@ div.rendered_html tbody tr:hover {
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 -- Validating the syntax of the file
-        (using the schemas 1.0.0)
+        (using the schemas ../../cjio/schemas/1.0.0/cityjson.schema.json)
 -- Validating the internal consistency of the file (see docs for list)
         --Vertex indices coherent
         --Specific for CityGroups
@@ -474,7 +455,7 @@ div.rendered_html tbody tr:hover {
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -499,11 +480,11 @@ div.rendered_html tbody tr:hover {
 <h2>Explore the city model<a class="headerlink" href="#Explore-the-city-model" title="Permalink to this headline">¶</a></h2>
 <p>We can print the basic information about the city model. Note that <code class="docutils literal notranslate"><span class="pre">print()</span></code> returns the same information as the <code class="docutils literal notranslate"><span class="pre">info</span></code> command in the CLI.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="nb">print</span><span class="p">(</span><span class="n">cm</span><span class="p">)</span>
+<span></span><span class="nb">print</span><span class="p">(</span><span class="n">cm_r</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -528,16 +509,16 @@ div.rendered_html tbody tr:hover {
     2
   ],
   &#34;semantics_surfaces_present&#34;: [
-    &#34;WallSurface&#34;,
     &#34;GroundSurface&#34;,
-    &#34;RoofSurface&#34;
+    &#34;RoofSurface&#34;,
+    &#34;WallSurface&#34;
   ],
   &#34;cityobject_attributes&#34;: [
     &#34;voll_tex&#34;,
     &#34;TerrainHeight&#34;,
     &#34;bron_tex&#34;,
-    &#34;status&#34;,
-    &#34;bron_geo&#34;
+    &#34;bron_geo&#34;,
+    &#34;status&#34;
   ],
   &#34;materials&#34;: false,
   &#34;textures&#34;: true
@@ -551,16 +532,16 @@ div.rendered_html tbody tr:hover {
 <h3>Getting objects from the model<a class="headerlink" href="#Getting-objects-from-the-model" title="Permalink to this headline">¶</a></h3>
 <p>We can get CityObjects by their <em>type</em>, or a list of types. Also by their IDs. If no type or ID is provided, <code class="docutils literal notranslate"><span class="pre">get_cityobjects()</span></code> returns all of them, which is equivalent to <code class="docutils literal notranslate"><span class="pre">cm_r.cityobjects</span></code>.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">buildings</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_cityobjects</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;building&#39;</span><span class="p">)</span>
-<span class="n">buildings_parts</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_cityobjects</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;building&#39;</span><span class="p">,</span> <span class="s1">&#39;buildingpart&#39;</span><span class="p">])</span>
+<span></span><span class="n">buildings</span> <span class="o">=</span> <span class="n">cm_r</span><span class="o">.</span><span class="n">get_cityobjects</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s1">&#39;building&#39;</span><span class="p">)</span>
+<span class="n">buildings_parts</span> <span class="o">=</span> <span class="n">cm_r</span><span class="o">.</span><span class="n">get_cityobjects</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;building&#39;</span><span class="p">,</span> <span class="s1">&#39;buildingpart&#39;</span><span class="p">])</span>
 
 <span class="n">r_ids</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;{C9D4A5CF-094A-47DA-97E4-4A3BFD75D3AE}&#39;</span><span class="p">,</span>
          <span class="s1">&#39;{6271F75F-E8D8-4EE4-AC46-9DB02771A031}&#39;</span><span class="p">]</span>
-<span class="n">buildings_ids</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_cityobjects</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">r_ids</span><span class="p">)</span>
+<span class="n">buildings_ids</span> <span class="o">=</span> <span class="n">cm_r</span><span class="o">.</span><span class="n">get_cityobjects</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">r_ids</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -568,7 +549,7 @@ div.rendered_html tbody tr:hover {
 <div class="section" id="Getting-the-properties-and-geometry-of-objects">
 <h3>Getting the properties and geometry of objects<a class="headerlink" href="#Getting-the-properties-and-geometry-of-objects" title="Permalink to this headline">¶</a></h3>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -601,16 +582,16 @@ div.rendered_html tbody tr:hover {
     2
   ],
   &#34;semantic_surfaces&#34;: [
-    &#34;WallSurface&#34;,
     &#34;GroundSurface&#34;,
-    &#34;RoofSurface&#34;
+    &#34;RoofSurface&#34;,
+    &#34;WallSurface&#34;
   ]
 }
 </pre></div></div>
 </div>
 <p>The attributes are stored as a dictionary</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -619,7 +600,7 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -633,7 +614,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <p>CityObjects can have <em>children</em> and <em>parents</em></p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -642,7 +623,7 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -652,7 +633,7 @@ div.rendered_html tbody tr:hover {
 </div>
 <p>CityObject geometry is a list of <code class="docutils literal notranslate"><span class="pre">Geometry</span></code> objects. That is because a CityObject can have multiple geometry representations in different levels of detail, eg. a geometry in LoD1 and a second geometry in LoD2.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -661,16 +642,16 @@ div.rendered_html tbody tr:hover {
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>[&lt;cjio.models.Geometry at 0x7f5f93d97400&gt;]
+<span></span>[&lt;cjio.models.Geometry at 0x7efec2ba2748&gt;]
 </pre></div>
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -692,9 +673,8 @@ MultiSurface, lod 2
 <h3>Geometry boundaries and Semantic Surfaces<a class="headerlink" href="#Geometry-boundaries-and-Semantic-Surfaces" title="Permalink to this headline">¶</a></h3>
 <p>On the contrary to a CityJSON file, the geometry boundaries are dereferenced when working with the API. This means that the vertex coordinates are included in the boundary definition, not only the vertex indices.</p>
 <p><code class="docutils literal notranslate"><span class="pre">cjio</span></code> doesn’t provide specific geometry classes (yet), eg. MultiSurface or Solid class. If you are working with the geometry boundaries, you need to the geometric operations yourself, or cast the boundary to a geometry-class of some other library. For example <code class="docutils literal notranslate"><span class="pre">shapely</span></code> if 2D is enough.</p>
-<p>Note that although the boundary is dereferenced, we <em>do not</em> apply the coordinate transformation to the vertices. The transformed coordinates (integers) take less space in memory. See for example the original (transformed) coordinates below.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -704,7 +684,7 @@ MultiSurface, lod 2
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -716,84 +696,9 @@ MultiSurface, lod 2
 </pre></div>
 </div>
 </div>
-<p>However, applying the transformation is simply done with the <code class="docutils literal notranslate"><span class="pre">transform()</span></code> method. Also note that the Transformation object is an attribute of the city model.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">tranformation_object</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">transform</span>
-<span class="n">geom_tr</span> <span class="o">=</span> <span class="n">geom</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">tranformation_object</span><span class="p">)</span>
-<span class="c1"># get the first surface</span>
-<span class="n">geom_tr</span><span class="o">.</span><span class="n">boundaries</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
-</pre></div>
-</div>
-<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>[(90988.79100000001, 435638.657, 10.652000000000001),
- (90987.429, 435642.77, 10.652000000000001),
- (90986.46900000001, 435641.09, 10.652000000000001),
- (90985.781, 435640.846, 10.652000000000001),
- (90986.801, 435637.955, 10.652000000000001)]
-</pre></div>
-</div>
-</div>
-<p>In case you want to transform the whole city model, the best if you apply the transformation when loading it. Note that <code class="docutils literal notranslate"><span class="pre">&quot;transform/compressed&quot;:</span> <span class="pre">false</span></code>.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">cm_transformed</span> <span class="o">=</span> <span class="n">cityjson</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">path_in</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">cm_transformed</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-{
-  &#34;cityjson_version&#34;: &#34;1.0&#34;,
-  &#34;epsg&#34;: 7415,
-  &#34;cityobjects_total&#34;: 16,
-  &#34;cityobjects_present&#34;: [
-    &#34;Building&#34;
-  ],
-  &#34;vertices_total&#34;: 383,
-  &#34;transform/compressed&#34;: false,
-  &#34;geom_primitives_present&#34;: [
-    &#34;MultiSurface&#34;
-  ],
-  &#34;level_of_detail&#34;: [
-    2
-  ],
-  &#34;semantics_surfaces_present&#34;: [
-    &#34;WallSurface&#34;,
-    &#34;GroundSurface&#34;,
-    &#34;RoofSurface&#34;
-  ],
-  &#34;cityobject_attributes&#34;: [
-    &#34;voll_tex&#34;,
-    &#34;TerrainHeight&#34;,
-    &#34;bron_tex&#34;,
-    &#34;status&#34;,
-    &#34;bron_geo&#34;
-  ],
-  &#34;materials&#34;: false,
-  &#34;textures&#34;: true
-}
-</pre></div></div>
-</div>
 <p>Semantic Surfaces are stored in a similar fashion as in a CityJSON file, in the <code class="docutils literal notranslate"><span class="pre">surfaces</span></code> attribute of a Geometry object.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -802,7 +707,7 @@ MultiSurface, lod 2
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -830,7 +735,7 @@ MultiSurface, lod 2
 </div>
 <p>The main difference is the presence of the <code class="docutils literal notranslate"><span class="pre">surface_idx</span></code> property. The <code class="docutils literal notranslate"><span class="pre">surface_idx</span></code> is used by the <code class="docutils literal notranslate"><span class="pre">get_surface_boundaries()</span></code> method to efficiently extract the relevant geometry boundaries.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -840,7 +745,7 @@ MultiSurface, lod 2
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -849,7 +754,7 @@ MultiSurface, lod 2
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -861,7 +766,7 @@ MultiSurface, lod 2
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -902,13 +807,13 @@ MultiSurface, lod 2
 <li><p>overwrite the CityObjects with the changes.</p></li>
 </ol>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">cm_copy</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">cm</span><span class="p">)</span>
+<span></span><span class="n">cm</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">cm_r</span><span class="p">)</span>
 <span class="n">new_cos</span> <span class="o">=</span> <span class="p">{}</span>
-<span class="k">for</span> <span class="n">co_id</span><span class="p">,</span> <span class="n">co</span> <span class="ow">in</span> <span class="n">cm_copy</span><span class="o">.</span><span class="n">cityobjects</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+<span class="k">for</span> <span class="n">co_id</span><span class="p">,</span> <span class="n">co</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">cityobjects</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
     <span class="n">new_geoms</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">geom</span> <span class="ow">in</span> <span class="n">co</span><span class="o">.</span><span class="n">geometry</span><span class="p">:</span>
         <span class="c1"># Only LoD &gt;= 2 models have semantic surfaces</span>
@@ -930,7 +835,7 @@ MultiSurface, lod 2
     <span class="n">co</span><span class="o">.</span><span class="n">geometry</span> <span class="o">=</span> <span class="n">new_geoms</span>
     <span class="n">new_cos</span><span class="p">[</span><span class="n">co_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">co</span>
 <span class="c1"># Overwrite the CityObjects</span>
-<span class="n">cm_copy</span><span class="o">.</span><span class="n">cityobjects</span> <span class="o">=</span> <span class="n">new_cos</span>
+<span class="n">cm</span><span class="o">.</span><span class="n">cityobjects</span> <span class="o">=</span> <span class="n">new_cos</span>
 </pre></div>
 </div>
 </div>
@@ -939,13 +844,13 @@ MultiSurface, lod 2
 <h3>Create new Semantic Surfaces<a class="headerlink" href="#Create-new-Semantic-Surfaces" title="Permalink to this headline">¶</a></h3>
 <p>The process is similar as previously. However, in this example we create new SemanticSurfaces that hold the values which we compute from the geometry. The input city model has a single semantic “WallSurface”, without attributes, for all the walls of a building. The snippet below illustrates how to separate surfaces and assign the semantics to them.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="n">new_cos</span> <span class="o">=</span> <span class="p">{}</span>
 
-<span class="k">for</span> <span class="n">co_id</span><span class="p">,</span> <span class="n">co</span> <span class="ow">in</span> <span class="n">cm_copy</span><span class="o">.</span><span class="n">cityobjects</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+<span class="k">for</span> <span class="n">co_id</span><span class="p">,</span> <span class="n">co</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">cityobjects</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
     <span class="n">new_geoms</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">for</span> <span class="n">geom</span> <span class="ow">in</span> <span class="n">co</span><span class="o">.</span><span class="n">geometry</span><span class="p">:</span>
@@ -1000,7 +905,7 @@ MultiSurface, lod 2
     <span class="n">co</span><span class="o">.</span><span class="n">geometry</span> <span class="o">=</span> <span class="n">new_geoms</span>
     <span class="n">new_cos</span><span class="p">[</span><span class="n">co_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">co</span>
 
-<span class="n">cm_copy</span><span class="o">.</span><span class="n">cityobjects</span> <span class="o">=</span> <span class="n">new_cos</span>
+<span class="n">cm</span><span class="o">.</span><span class="n">cityobjects</span> <span class="o">=</span> <span class="n">new_cos</span>
 </pre></div>
 </div>
 </div>
@@ -1010,23 +915,23 @@ MultiSurface, lod 2
 <h2>Save or Export<a class="headerlink" href="#Save-or-Export" title="Permalink to this headline">¶</a></h2>
 <p>At the end, the <code class="docutils literal notranslate"><span class="pre">save()</span></code> method saves the edited city model into a CityJSON file.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="n">p_out</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="s1">&#39;test_output.json&#39;</span><span class="p">)</span>
-<span class="n">cityjson</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">cm_copy</span><span class="p">,</span> <span class="n">p_out</span><span class="p">)</span>
+<span class="n">cityjson</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">cm</span><span class="p">,</span> <span class="n">p_out</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <p>It is also possible to export the city model into a pandas DataFrame. Note that only the CityObject attributes are exported into the dataframe, with CityObject IDs as the index of the dataframe. Thus if you want to export the attributes of SemanticSurfaces for example, then you need to add them as CityObject attributes.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="n">new_cos</span> <span class="o">=</span> <span class="p">{}</span>
-<span class="k">for</span> <span class="n">co_id</span><span class="p">,</span> <span class="n">co</span> <span class="ow">in</span> <span class="n">cm_copy</span><span class="o">.</span><span class="n">cityobjects</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+<span class="k">for</span> <span class="n">co_id</span><span class="p">,</span> <span class="n">co</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">cityobjects</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
     <span class="k">for</span> <span class="n">geom</span> <span class="ow">in</span> <span class="n">co</span><span class="o">.</span><span class="n">geometry</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">srf</span> <span class="ow">in</span> <span class="n">geom</span><span class="o">.</span><span class="n">surfaces</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
             <span class="k">if</span> <span class="s1">&#39;attributes&#39;</span> <span class="ow">in</span> <span class="n">srf</span><span class="p">:</span>
@@ -1036,22 +941,22 @@ MultiSurface, lod 2
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">co</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="n">attr</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a_v</span><span class="p">)</span>
     <span class="n">new_cos</span><span class="p">[</span><span class="n">co_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">co</span>
-<span class="n">cm_copy</span><span class="o">.</span><span class="n">cityobjects</span> <span class="o">=</span> <span class="n">new_cos</span>
+<span class="n">cm</span><span class="o">.</span><span class="n">cityobjects</span> <span class="o">=</span> <span class="n">new_cos</span>
 </pre></div>
 </div>
 </div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">df</span> <span class="o">=</span> <span class="n">cm_copy</span><span class="o">.</span><span class="n">to_dataframe</span><span class="p">()</span>
+<span></span><span class="n">df</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">to_dataframe</span><span class="p">()</span>
 <span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
 </pre></div>
 </div>
 <div class="output_area rendered_html docutils container">
@@ -1145,15 +1050,6 @@ MultiSurface, lod 2
            
           </div>
           <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="modules.html" class="btn btn-neutral float-right" title="Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="includeme.html" class="btn btn-neutral float-left" title="cjio, or CityJSON/io" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
-    </div>
   
 
   <hr/>

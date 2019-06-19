@@ -53,7 +53,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 2,
+   "execution_count": 6,
    "metadata": {
     "pycharm": {
      "is_executing": false,
@@ -62,10 +62,7 @@
    },
    "outputs": [],
    "source": [
-    "package_dir = os.path.dirname(\n",
-    "    os.path.dirname(\n",
-    "        os.path.dirname(\n",
-    "            os.path.realpath(__name__))))\n",
+    "package_dir = os.path.dirname('../../')\n",
     "schema_dir = os.path.join(package_dir, 'cjio', 'schemas', '1.0.0')\n",
     "data_dir = os.path.join(package_dir, 'example_data')"
    ]
@@ -115,7 +112,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 3,
+   "execution_count": 7,
    "metadata": {
     "pycharm": {
      "is_executing": false,
@@ -125,16 +122,16 @@
    "outputs": [
     {
      "name": "stdout",
+     "output_type": "stream",
      "text": [
       "<class 'cjio.cityjson.CityJSON'>\n"
-     ],
-     "output_type": "stream"
+     ]
     }
    ],
    "source": [
-    "path_in = os.path.join(data_dir, 'rotterdam', 'rotterdam_subset.json')\n",
-    "cm = cityjson.load(path_in)\n",
-    "print(type(cm))"
+    "p_subset = os.path.join(data_dir, 'rotterdam', 'rotterdam_subset.json')\n",
+    "cm_r = cityjson.load(p_subset)\n",
+    "print(type(cm_r))"
    ]
   },
   {
@@ -146,12 +143,12 @@
    },
    "source": [
     "## Using the CLI commands in the API\n",
-    "You can use any of the CLI commands on a CityJSON object. However, not all CLI commands are mapped 1-to-1 to CityJSON methods, plus you need to provide the parameters yourself. The reason for this is that the CLI commands are wrapper functions that take care of passing parameters and parsing outputs. And we haven't harmonized the CLI and the API yet. "
+    "You can use any of the CLI commands on a CityJSON object. However, not all CLI commands are mapped 1-to-1 to CityJSON methods, plus you need to provide the parameters yourself, as for example in case of the `validate()` method. The reason for this is that the CLI commands are wrapper functions that take care of passing parameters and parsing outputs. And we haven't harmonized the CLI and the API yet. "
    ]
   },
   {
    "cell_type": "code",
-   "execution_count": 4,
+   "execution_count": 8,
    "metadata": {
     "pycharm": {
      "is_executing": false,
@@ -164,23 +161,46 @@
    "outputs": [
     {
      "name": "stdout",
+     "output_type": "stream",
      "text": [
-      "-- Validating the syntax of the file\n\t(using the schemas 1.0.0)\n",
-      "-- Validating the internal consistency of the file (see docs for list)\n\t--Vertex indices coherent\n\t--Specific for CityGroups\n\t--Semantic arrays coherent with geometry\n\t--Root properties\n\t--Empty geometries\n\t--Duplicate vertices\n\t--Orphan vertices\n\t--CityGML attributes\n"
-     ],
-     "output_type": "stream"
+      "-- Validating the syntax of the file\n",
+      "\t(using the schemas ../../cjio/schemas/1.0.0/cityjson.schema.json)\n",
+      "-- Validating the internal consistency of the file (see docs for list)\n",
+      "\t--Vertex indices coherent\n",
+      "\t--Specific for CityGroups\n",
+      "\t--Semantic arrays coherent with geometry\n",
+      "\t--Root properties\n",
+      "\t--Empty geometries\n",
+      "\t--Duplicate vertices\n",
+      "\t--Orphan vertices\n",
+      "\t--CityGML attributes\n"
+     ]
     },
     {
      "data": {
-      "text/plain": "(True,\n False,\n [],\n [\"WARNING: attributes 'TerrainHeight' not in CityGML schema\",\n  '\\t(16 CityObjects have this warning)',\n  \"WARNING: attributes 'bron_tex' not in CityGML schema\",\n  '\\t(16 CityObjects have this warning)',\n  \"WARNING: attributes 'voll_tex' not in CityGML schema\",\n  '\\t(16 CityObjects have this warning)',\n  \"WARNING: attributes 'bron_geo' not in CityGML schema\",\n  '\\t(16 CityObjects have this warning)',\n  \"WARNING: attributes 'status' not in CityGML schema\",\n  '\\t(16 CityObjects have this warning)'])"
+      "text/plain": [
+       "(True,\n",
+       " False,\n",
+       " [],\n",
+       " [\"WARNING: attributes 'TerrainHeight' not in CityGML schema\",\n",
+       "  '\\t(16 CityObjects have this warning)',\n",
+       "  \"WARNING: attributes 'bron_tex' not in CityGML schema\",\n",
+       "  '\\t(16 CityObjects have this warning)',\n",
+       "  \"WARNING: attributes 'voll_tex' not in CityGML schema\",\n",
+       "  '\\t(16 CityObjects have this warning)',\n",
+       "  \"WARNING: attributes 'bron_geo' not in CityGML schema\",\n",
+       "  '\\t(16 CityObjects have this warning)',\n",
+       "  \"WARNING: attributes 'status' not in CityGML schema\",\n",
+       "  '\\t(16 CityObjects have this warning)'])"
+      ]
      },
+     "execution_count": 8,
      "metadata": {},
-     "output_type": "execute_result",
-     "execution_count": 4
+     "output_type": "execute_result"
     }
    ],
    "source": [
-    "cm.validate()"
+    "cm_r.validate(folder_schemas=schema_dir)"
    ]
   },
   {
@@ -213,7 +233,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 5,
+   "execution_count": 9,
    "metadata": {
     "pycharm": {
      "is_executing": false,
@@ -226,14 +246,43 @@
    "outputs": [
     {
      "name": "stdout",
+     "output_type": "stream",
      "text": [
-      "{\n  \"cityjson_version\": \"1.0\",\n  \"epsg\": 7415,\n  \"cityobjects_total\": 16,\n  \"cityobjects_present\": [\n    \"Building\"\n  ],\n  \"vertices_total\": 383,\n  \"transform/compressed\": true,\n  \"geom_primitives_present\": [\n    \"MultiSurface\"\n  ],\n  \"level_of_detail\": [\n    2\n  ],\n  \"semantics_surfaces_present\": [\n    \"WallSurface\",\n    \"GroundSurface\",\n    \"RoofSurface\"\n  ],\n  \"cityobject_attributes\": [\n    \"voll_tex\",\n    \"TerrainHeight\",\n    \"bron_tex\",\n    \"status\",\n    \"bron_geo\"\n  ],\n  \"materials\": false,\n  \"textures\": true\n}\n"
-     ],
-     "output_type": "stream"
+      "{\n",
+      "  \"cityjson_version\": \"1.0\",\n",
+      "  \"epsg\": 7415,\n",
+      "  \"cityobjects_total\": 16,\n",
+      "  \"cityobjects_present\": [\n",
+      "    \"Building\"\n",
+      "  ],\n",
+      "  \"vertices_total\": 383,\n",
+      "  \"transform/compressed\": true,\n",
+      "  \"geom_primitives_present\": [\n",
+      "    \"MultiSurface\"\n",
+      "  ],\n",
+      "  \"level_of_detail\": [\n",
+      "    2\n",
+      "  ],\n",
+      "  \"semantics_surfaces_present\": [\n",
+      "    \"GroundSurface\",\n",
+      "    \"RoofSurface\",\n",
+      "    \"WallSurface\"\n",
+      "  ],\n",
+      "  \"cityobject_attributes\": [\n",
+      "    \"voll_tex\",\n",
+      "    \"TerrainHeight\",\n",
+      "    \"bron_tex\",\n",
+      "    \"bron_geo\",\n",
+      "    \"status\"\n",
+      "  ],\n",
+      "  \"materials\": false,\n",
+      "  \"textures\": true\n",
+      "}\n"
+     ]
     }
    ],
    "source": [
-    "print(cm)"
+    "print(cm_r)"
    ]
   },
   {
@@ -254,7 +303,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 6,
+   "execution_count": 10,
    "metadata": {
     "pycharm": {
      "is_executing": false,
@@ -266,12 +315,12 @@
    },
    "outputs": [],
    "source": [
-    "buildings = cm.get_cityobjects(type='building')\n",
-    "buildings_parts = cm.get_cityobjects(type=['building', 'buildingpart'])\n",
+    "buildings = cm_r.get_cityobjects(type='building')\n",
+    "buildings_parts = cm_r.get_cityobjects(type=['building', 'buildingpart'])\n",
     "\n",
     "r_ids = ['{C9D4A5CF-094A-47DA-97E4-4A3BFD75D3AE}',\n",
     "         '{6271F75F-E8D8-4EE4-AC46-9DB02771A031}']\n",
-    "buildings_ids = cm.get_cityobjects(id=r_ids)"
+    "buildings_ids = cm_r.get_cityobjects(id=r_ids)"
    ]
   },
   {
@@ -290,7 +339,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 7,
+   "execution_count": 11,
    "metadata": {
     "pycharm": {
      "is_executing": false,
@@ -300,10 +349,33 @@
    "outputs": [
     {
      "name": "stdout",
+     "output_type": "stream",
      "text": [
-      "{\n  \"id\": \"{C9D4A5CF-094A-47DA-97E4-4A3BFD75D3AE}\",\n  \"type\": \"Building\",\n  \"attributes\": {\n    \"TerrainHeight\": 3.03,\n    \"bron_tex\": \"UltraCAM-X 10cm juni 2008\",\n    \"voll_tex\": \"complete\",\n    \"bron_geo\": \"Lidar 15-30 punten - nov. 2008\",\n    \"status\": \"1\"\n  },\n  \"children\": null,\n  \"parents\": null,\n  \"geometry_type\": [\n    \"MultiSurface\"\n  ],\n  \"geometry_lod\": [\n    2\n  ],\n  \"semantic_surfaces\": [\n    \"WallSurface\",\n    \"GroundSurface\",\n    \"RoofSurface\"\n  ]\n}\n"
-     ],
-     "output_type": "stream"
+      "{\n",
+      "  \"id\": \"{C9D4A5CF-094A-47DA-97E4-4A3BFD75D3AE}\",\n",
+      "  \"type\": \"Building\",\n",
+      "  \"attributes\": {\n",
+      "    \"TerrainHeight\": 3.03,\n",
+      "    \"bron_tex\": \"UltraCAM-X 10cm juni 2008\",\n",
+      "    \"voll_tex\": \"complete\",\n",
+      "    \"bron_geo\": \"Lidar 15-30 punten - nov. 2008\",\n",
+      "    \"status\": \"1\"\n",
+      "  },\n",
+      "  \"children\": null,\n",
+      "  \"parents\": null,\n",
+      "  \"geometry_type\": [\n",
+      "    \"MultiSurface\"\n",
+      "  ],\n",
+      "  \"geometry_lod\": [\n",
+      "    2\n",
+      "  ],\n",
+      "  \"semantic_surfaces\": [\n",
+      "    \"GroundSurface\",\n",
+      "    \"RoofSurface\",\n",
+      "    \"WallSurface\"\n",
+      "  ]\n",
+      "}\n"
+     ]
     }
    ],
    "source": [
@@ -324,7 +396,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 8,
+   "execution_count": 12,
    "metadata": {
     "pycharm": {
      "is_executing": false,
@@ -334,11 +406,17 @@
    "outputs": [
     {
      "data": {
-      "text/plain": "{'TerrainHeight': 3.03,\n 'bron_tex': 'UltraCAM-X 10cm juni 2008',\n 'voll_tex': 'complete',\n 'bron_geo': 'Lidar 15-30 punten - nov. 2008',\n 'status': '1'}"
+      "text/plain": [
+       "{'TerrainHeight': 3.03,\n",
+       " 'bron_tex': 'UltraCAM-X 10cm juni 2008',\n",
+       " 'voll_tex': 'complete',\n",
+       " 'bron_geo': 'Lidar 15-30 punten - nov. 2008',\n",
+       " 'status': '1'}"
+      ]
      },
+     "execution_count": 12,
      "metadata": {},
-     "output_type": "execute_result",
-     "execution_count": 8
+     "output_type": "execute_result"
     }
    ],
    "source": [
@@ -358,7 +436,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 9,
+   "execution_count": 13,
    "metadata": {
     "pycharm": {
      "is_executing": false,
@@ -368,11 +446,13 @@
    "outputs": [
     {
      "data": {
-      "text/plain": "True"
+      "text/plain": [
+       "True"
+      ]
      },
+     "execution_count": 13,
      "metadata": {},
-     "output_type": "execute_result",
-     "execution_count": 9
+     "output_type": "execute_result"
     }
    ],
    "source": [
@@ -392,7 +472,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 10,
+   "execution_count": 14,
    "metadata": {
     "pycharm": {
      "is_executing": false,
@@ -402,11 +482,13 @@
    "outputs": [
     {
      "data": {
-      "text/plain": "[<cjio.models.Geometry at 0x7f5f93d97400>]"
+      "text/plain": [
+       "[<cjio.models.Geometry at 0x7efec2ba2748>]"
+      ]
      },
+     "execution_count": 14,
      "metadata": {},
-     "output_type": "execute_result",
-     "execution_count": 10
+     "output_type": "execute_result"
     }
    ],
    "source": [
@@ -415,7 +497,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 11,
+   "execution_count": 15,
    "metadata": {
     "pycharm": {
      "is_executing": false,
@@ -425,10 +507,10 @@
    "outputs": [
     {
      "name": "stdout",
+     "output_type": "stream",
      "text": [
       "MultiSurface, lod 2\n"
-     ],
-     "output_type": "stream"
+     ]
     }
    ],
    "source": [
@@ -447,14 +529,12 @@
     "### Geometry boundaries and Semantic Surfaces\n",
     "On the contrary to a CityJSON file, the geometry boundaries are dereferenced when working with the API. This means that the vertex coordinates are included in the boundary definition, not only the vertex indices.\n",
     "\n",
-    "`cjio` doesn't provide specific geometry classes (yet), eg. MultiSurface or Solid class. If you are working with the geometry boundaries, you need to the geometric operations yourself, or cast the boundary to a geometry-class of some other library. For example `shapely` if 2D is enough.\n",
-    "\n",
-    "Note that although the boundary is dereferenced, we *do not* apply the coordinate transformation to the vertices. The transformed coordinates (integers) take less space in memory. See for example the original (transformed) coordinates below. "
+    "`cjio` doesn't provide specific geometry classes (yet), eg. MultiSurface or Solid class. If you are working with the geometry boundaries, you need to the geometric operations yourself, or cast the boundary to a geometry-class of some other library. For example `shapely` if 2D is enough."
    ]
   },
   {
    "cell_type": "code",
-   "execution_count": 12,
+   "execution_count": 16,
    "metadata": {
     "pycharm": {
      "is_executing": false,
@@ -464,92 +544,23 @@
    "outputs": [
     {
      "data": {
-      "text/plain": "[[579471, 198217, 10652],\n [578109, 202330, 10652],\n [577149, 200650, 10652],\n [576461, 200406, 10652],\n [577481, 197515, 10652]]"
+      "text/plain": [
+       "[[579471, 198217, 10652],\n",
+       " [578109, 202330, 10652],\n",
+       " [577149, 200650, 10652],\n",
+       " [576461, 200406, 10652],\n",
+       " [577481, 197515, 10652]]"
+      ]
      },
+     "execution_count": 16,
      "metadata": {},
-     "output_type": "execute_result",
-     "execution_count": 12
+     "output_type": "execute_result"
     }
    ],
    "source": [
     "# get the first surface\n",
     "geom.boundaries[0][0]"
    ]
-  },
-  {
-   "cell_type": "markdown",
-   "source": [
-    "However, applying the transformation is simply done with the `transform()` method. Also note that the Transformation object is an attribute of the city model."
-   ],
-   "metadata": {
-    "collapsed": false,
-    "pycharm": {
-     "name": "#%% md\n"
-    }
-   }
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 13,
-   "outputs": [
-    {
-     "data": {
-      "text/plain": "[(90988.79100000001, 435638.657, 10.652000000000001),\n (90987.429, 435642.77, 10.652000000000001),\n (90986.46900000001, 435641.09, 10.652000000000001),\n (90985.781, 435640.846, 10.652000000000001),\n (90986.801, 435637.955, 10.652000000000001)]"
-     },
-     "metadata": {},
-     "output_type": "execute_result",
-     "execution_count": 13
-    }
-   ],
-   "source": [
-    "tranformation_object = cm.transform\n",
-    "geom_tr = geom.transform(tranformation_object)\n",
-    "# get the first surface\n",
-    "geom_tr.boundaries[0][0]\n"
-   ],
-   "metadata": {
-    "collapsed": false,
-    "pycharm": {
-     "name": "#%%\n",
-     "is_executing": false
-    }
-   }
-  },
-  {
-   "cell_type": "markdown",
-   "source": [
-    "In case you want to transform the whole city model, the best if you apply the transformation when loading it. Note that `\"transform/compressed\": false`."
-   ],
-   "metadata": {
-    "collapsed": false,
-    "pycharm": {
-     "name": "#%% md\n"
-    }
-   }
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 14,
-   "outputs": [
-    {
-     "name": "stdout",
-     "text": [
-      "{\n  \"cityjson_version\": \"1.0\",\n  \"epsg\": 7415,\n  \"cityobjects_total\": 16,\n  \"cityobjects_present\": [\n    \"Building\"\n  ],\n  \"vertices_total\": 383,\n  \"transform/compressed\": false,\n  \"geom_primitives_present\": [\n    \"MultiSurface\"\n  ],\n  \"level_of_detail\": [\n    2\n  ],\n  \"semantics_surfaces_present\": [\n    \"WallSurface\",\n    \"GroundSurface\",\n    \"RoofSurface\"\n  ],\n  \"cityobject_attributes\": [\n    \"voll_tex\",\n    \"TerrainHeight\",\n    \"bron_tex\",\n    \"status\",\n    \"bron_geo\"\n  ],\n  \"materials\": false,\n  \"textures\": true\n}\n"
-     ],
-     "output_type": "stream"
-    }
-   ],
-   "source": [
-    "cm_transformed = cityjson.load(path_in, transform=True)\n",
-    "print(cm_transformed)"
-   ],
-   "metadata": {
-    "collapsed": false,
-    "pycharm": {
-     "name": "#%%\n",
-     "is_executing": false
-    }
-   }
   },
   {
    "cell_type": "markdown",
@@ -564,7 +575,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 15,
+   "execution_count": 17,
    "metadata": {
     "pycharm": {
      "is_executing": false,
@@ -574,11 +585,31 @@
    "outputs": [
     {
      "data": {
-      "text/plain": "{0: {'surface_idx': [[0], [1], [2]], 'type': 'RoofSurface'},\n 1: {'surface_idx': [[3]], 'type': 'GroundSurface'},\n 2: {'surface_idx': [[4],\n   [5],\n   [6],\n   [7],\n   [8],\n   [9],\n   [10],\n   [11],\n   [12],\n   [13],\n   [14],\n   [15],\n   [16],\n   [17],\n   [18],\n   [19]],\n  'type': 'WallSurface'}}"
+      "text/plain": [
+       "{0: {'surface_idx': [[0], [1], [2]], 'type': 'RoofSurface'},\n",
+       " 1: {'surface_idx': [[3]], 'type': 'GroundSurface'},\n",
+       " 2: {'surface_idx': [[4],\n",
+       "   [5],\n",
+       "   [6],\n",
+       "   [7],\n",
+       "   [8],\n",
+       "   [9],\n",
+       "   [10],\n",
+       "   [11],\n",
+       "   [12],\n",
+       "   [13],\n",
+       "   [14],\n",
+       "   [15],\n",
+       "   [16],\n",
+       "   [17],\n",
+       "   [18],\n",
+       "   [19]],\n",
+       "  'type': 'WallSurface'}}"
+      ]
      },
+     "execution_count": 17,
      "metadata": {},
-     "output_type": "execute_result",
-     "execution_count": 15
+     "output_type": "execute_result"
     }
    ],
    "source": [
@@ -598,7 +629,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 16,
+   "execution_count": 18,
    "metadata": {
     "pycharm": {
      "is_executing": false,
@@ -608,11 +639,13 @@
    "outputs": [
     {
      "data": {
-      "text/plain": "{0: {'surface_idx': [[0], [1], [2]], 'type': 'RoofSurface'}}"
+      "text/plain": [
+       "{0: {'surface_idx': [[0], [1], [2]], 'type': 'RoofSurface'}}"
+      ]
      },
+     "execution_count": 18,
      "metadata": {},
-     "output_type": "execute_result",
-     "execution_count": 16
+     "output_type": "execute_result"
     }
    ],
    "source": [
@@ -622,7 +655,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 17,
+   "execution_count": 19,
    "metadata": {
     "pycharm": {
      "is_executing": false,
@@ -632,11 +665,36 @@
    "outputs": [
     {
      "data": {
-      "text/plain": "[[[[[579471, 198217, 10652],\n    [578109, 202330, 10652],\n    [577149, 200650, 10652],\n    [576461, 200406, 10652],\n    [577481, 197515, 10652]]],\n  [[[580840, 194082, 15211],\n    [579471, 198217, 15211],\n    [577481, 197515, 15211],\n    [576461, 200406, 15211],\n    [572239, 198909, 15211],\n    [571839, 200119, 15211],\n    [571503, 201071, 15211],\n    [566651, 199359, 15211],\n    [569801, 190223, 15211],\n    [573253, 191430, 15211],\n    [574658, 191922, 15211]]],\n  [[[565589, 202439, 11036],\n    [566651, 199359, 11036],\n    [571503, 201071, 11036],\n    [571839, 200119, 11036],\n    [573299, 200640, 11036],\n    [572089, 204029, 11036],\n    [570629, 203440, 11036],\n    [570379, 204150, 11036]]]]]"
+      "text/plain": [
+       "[[[[[579471, 198217, 10652],\n",
+       "    [578109, 202330, 10652],\n",
+       "    [577149, 200650, 10652],\n",
+       "    [576461, 200406, 10652],\n",
+       "    [577481, 197515, 10652]]],\n",
+       "  [[[580840, 194082, 15211],\n",
+       "    [579471, 198217, 15211],\n",
+       "    [577481, 197515, 15211],\n",
+       "    [576461, 200406, 15211],\n",
+       "    [572239, 198909, 15211],\n",
+       "    [571839, 200119, 15211],\n",
+       "    [571503, 201071, 15211],\n",
+       "    [566651, 199359, 15211],\n",
+       "    [569801, 190223, 15211],\n",
+       "    [573253, 191430, 15211],\n",
+       "    [574658, 191922, 15211]]],\n",
+       "  [[[565589, 202439, 11036],\n",
+       "    [566651, 199359, 11036],\n",
+       "    [571503, 201071, 11036],\n",
+       "    [571839, 200119, 11036],\n",
+       "    [573299, 200640, 11036],\n",
+       "    [572089, 204029, 11036],\n",
+       "    [570629, 203440, 11036],\n",
+       "    [570379, 204150, 11036]]]]]"
+      ]
      },
+     "execution_count": 19,
      "metadata": {},
-     "output_type": "execute_result",
-     "execution_count": 17
+     "output_type": "execute_result"
     }
    ],
    "source": [
@@ -664,7 +722,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 18,
+   "execution_count": 20,
    "metadata": {
     "pycharm": {
      "is_executing": false,
@@ -673,9 +731,9 @@
    },
    "outputs": [],
    "source": [
-    "cm_copy = deepcopy(cm)\n",
+    "cm = deepcopy(cm_r)\n",
     "new_cos = {}\n",
-    "for co_id, co in cm_copy.cityobjects.items():\n",
+    "for co_id, co in cm.cityobjects.items():\n",
     "    new_geoms = []\n",
     "    for geom in co.geometry:\n",
     "        # Only LoD >= 2 models have semantic surfaces\n",
@@ -697,7 +755,7 @@
     "    co.geometry = new_geoms\n",
     "    new_cos[co_id] = co\n",
     "# Overwrite the CityObjects\n",
-    "cm_copy.cityobjects = new_cos"
+    "cm.cityobjects = new_cos"
    ]
   },
   {
@@ -710,7 +768,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 19,
+   "execution_count": 21,
    "metadata": {
     "pycharm": {
      "is_executing": false,
@@ -721,7 +779,7 @@
    "source": [
     "new_cos = {}\n",
     "\n",
-    "for co_id, co in cm_copy.cityobjects.items():\n",
+    "for co_id, co in cm.cityobjects.items():\n",
     "    new_geoms = []\n",
     "    \n",
     "    for geom in co.geometry:\n",
@@ -776,7 +834,7 @@
     "    co.geometry = new_geoms\n",
     "    new_cos[co_id] = co\n",
     "    \n",
-    "cm_copy.cityobjects = new_cos"
+    "cm.cityobjects = new_cos"
    ]
   },
   {
@@ -793,7 +851,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 20,
+   "execution_count": 22,
    "metadata": {
     "pycharm": {
      "is_executing": false,
@@ -803,7 +861,7 @@
    "outputs": [],
    "source": [
     "p_out = os.path.join(data_dir, 'test_output.json')\n",
-    "cityjson.save(cm_copy, p_out)"
+    "cityjson.save(cm, p_out)"
    ]
   },
   {
@@ -819,7 +877,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 21,
+   "execution_count": 23,
    "metadata": {
     "pycharm": {
      "is_executing": false,
@@ -829,7 +887,7 @@
    "outputs": [],
    "source": [
     "new_cos = {}\n",
-    "for co_id, co in cm_copy.cityobjects.items():\n",
+    "for co_id, co in cm.cityobjects.items():\n",
     "    for geom in co.geometry:\n",
     "        for srf in geom.surfaces.values():\n",
     "            if 'attributes' in srf:\n",
@@ -839,12 +897,12 @@
     "                    else:\n",
     "                        co.attributes[attr].append(a_v)\n",
     "    new_cos[co_id] = co\n",
-    "cm_copy.cityobjects = new_cos"
+    "cm.cityobjects = new_cos"
    ]
   },
   {
    "cell_type": "code",
-   "execution_count": 22,
+   "execution_count": 24,
    "metadata": {
     "pycharm": {
      "is_executing": false,
@@ -854,16 +912,133 @@
    "outputs": [
     {
      "data": {
-      "text/plain": "                                        TerrainHeight  \\\n{C9D4A5CF-094A-47DA-97E4-4A3BFD75D3AE}           3.03   \n{71B60053-BC28-404D-BAB9-8A642AAC0CF4}           2.68   \n{6271F75F-E8D8-4EE4-AC46-9DB02771A031}           3.12   \n{DE77E78F-B110-43D2-A55C-8B61911192DE}           2.88   \n{19935DFC-F7B3-4D6E-92DD-C48EE1D1519A}           2.82   \n\n                                                              bron_geo  \\\n{C9D4A5CF-094A-47DA-97E4-4A3BFD75D3AE}  Lidar 15-30 punten - nov. 2008   \n{71B60053-BC28-404D-BAB9-8A642AAC0CF4}  Lidar 15-30 punten - nov. 2008   \n{6271F75F-E8D8-4EE4-AC46-9DB02771A031}  Lidar 15-30 punten - nov. 2008   \n{DE77E78F-B110-43D2-A55C-8B61911192DE}  Lidar 15-30 punten - nov. 2008   \n{19935DFC-F7B3-4D6E-92DD-C48EE1D1519A}  Lidar 15-30 punten - nov. 2008   \n\n                                                         bron_tex cladding  \\\n{C9D4A5CF-094A-47DA-97E4-4A3BFD75D3AE}  UltraCAM-X 10cm juni 2008  [tiles]   \n{71B60053-BC28-404D-BAB9-8A642AAC0CF4}  UltraCAM-X 10cm juni 2008  [tiles]   \n{6271F75F-E8D8-4EE4-AC46-9DB02771A031}  UltraCAM-X 10cm juni 2008  [tiles]   \n{DE77E78F-B110-43D2-A55C-8B61911192DE}  UltraCAM-X 10cm juni 2008  [tiles]   \n{19935DFC-F7B3-4D6E-92DD-C48EE1D1519A}  UltraCAM-X 10cm juni 2008  [tiles]   \n\n                                                                              orientation  \\\n{C9D4A5CF-094A-47DA-97E4-4A3BFD75D3AE}  [north, north, north, north, north, north, nor...   \n{71B60053-BC28-404D-BAB9-8A642AAC0CF4}  [north, north, north, north, north, north, nor...   \n{6271F75F-E8D8-4EE4-AC46-9DB02771A031}  [north, north, north, north, north, north, nor...   \n{DE77E78F-B110-43D2-A55C-8B61911192DE}  [north, north, north, north, north, north, nor...   \n{19935DFC-F7B3-4D6E-92DD-C48EE1D1519A}  [south, south, south, south, south, south, sou...   \n\n                                       status  voll_tex  \n{C9D4A5CF-094A-47DA-97E4-4A3BFD75D3AE}      1  complete  \n{71B60053-BC28-404D-BAB9-8A642AAC0CF4}      1  complete  \n{6271F75F-E8D8-4EE4-AC46-9DB02771A031}      1  complete  \n{DE77E78F-B110-43D2-A55C-8B61911192DE}      1  complete  \n{19935DFC-F7B3-4D6E-92DD-C48EE1D1519A}      1  complete  ",
-      "text/html": "<div>\n<style scoped>\n    .dataframe tbody tr th:only-of-type {\n        vertical-align: middle;\n    }\n\n    .dataframe tbody tr th {\n        vertical-align: top;\n    }\n\n    .dataframe thead th {\n        text-align: right;\n    }\n</style>\n<table border=\"1\" class=\"dataframe\">\n  <thead>\n    <tr style=\"text-align: right;\">\n      <th></th>\n      <th>TerrainHeight</th>\n      <th>bron_geo</th>\n      <th>bron_tex</th>\n      <th>cladding</th>\n      <th>orientation</th>\n      <th>status</th>\n      <th>voll_tex</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <th>{C9D4A5CF-094A-47DA-97E4-4A3BFD75D3AE}</th>\n      <td>3.03</td>\n      <td>Lidar 15-30 punten - nov. 2008</td>\n      <td>UltraCAM-X 10cm juni 2008</td>\n      <td>[tiles]</td>\n      <td>[north, north, north, north, north, north, nor...</td>\n      <td>1</td>\n      <td>complete</td>\n    </tr>\n    <tr>\n      <th>{71B60053-BC28-404D-BAB9-8A642AAC0CF4}</th>\n      <td>2.68</td>\n      <td>Lidar 15-30 punten - nov. 2008</td>\n      <td>UltraCAM-X 10cm juni 2008</td>\n      <td>[tiles]</td>\n      <td>[north, north, north, north, north, north, nor...</td>\n      <td>1</td>\n      <td>complete</td>\n    </tr>\n    <tr>\n      <th>{6271F75F-E8D8-4EE4-AC46-9DB02771A031}</th>\n      <td>3.12</td>\n      <td>Lidar 15-30 punten - nov. 2008</td>\n      <td>UltraCAM-X 10cm juni 2008</td>\n      <td>[tiles]</td>\n      <td>[north, north, north, north, north, north, nor...</td>\n      <td>1</td>\n      <td>complete</td>\n    </tr>\n    <tr>\n      <th>{DE77E78F-B110-43D2-A55C-8B61911192DE}</th>\n      <td>2.88</td>\n      <td>Lidar 15-30 punten - nov. 2008</td>\n      <td>UltraCAM-X 10cm juni 2008</td>\n      <td>[tiles]</td>\n      <td>[north, north, north, north, north, north, nor...</td>\n      <td>1</td>\n      <td>complete</td>\n    </tr>\n    <tr>\n      <th>{19935DFC-F7B3-4D6E-92DD-C48EE1D1519A}</th>\n      <td>2.82</td>\n      <td>Lidar 15-30 punten - nov. 2008</td>\n      <td>UltraCAM-X 10cm juni 2008</td>\n      <td>[tiles]</td>\n      <td>[south, south, south, south, south, south, sou...</td>\n      <td>1</td>\n      <td>complete</td>\n    </tr>\n  </tbody>\n</table>\n</div>"
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>TerrainHeight</th>\n",
+       "      <th>bron_geo</th>\n",
+       "      <th>bron_tex</th>\n",
+       "      <th>cladding</th>\n",
+       "      <th>orientation</th>\n",
+       "      <th>status</th>\n",
+       "      <th>voll_tex</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>{C9D4A5CF-094A-47DA-97E4-4A3BFD75D3AE}</th>\n",
+       "      <td>3.03</td>\n",
+       "      <td>Lidar 15-30 punten - nov. 2008</td>\n",
+       "      <td>UltraCAM-X 10cm juni 2008</td>\n",
+       "      <td>[tiles]</td>\n",
+       "      <td>[north, north, north, north, north, north, nor...</td>\n",
+       "      <td>1</td>\n",
+       "      <td>complete</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>{71B60053-BC28-404D-BAB9-8A642AAC0CF4}</th>\n",
+       "      <td>2.68</td>\n",
+       "      <td>Lidar 15-30 punten - nov. 2008</td>\n",
+       "      <td>UltraCAM-X 10cm juni 2008</td>\n",
+       "      <td>[tiles]</td>\n",
+       "      <td>[north, north, north, north, north, north, nor...</td>\n",
+       "      <td>1</td>\n",
+       "      <td>complete</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>{6271F75F-E8D8-4EE4-AC46-9DB02771A031}</th>\n",
+       "      <td>3.12</td>\n",
+       "      <td>Lidar 15-30 punten - nov. 2008</td>\n",
+       "      <td>UltraCAM-X 10cm juni 2008</td>\n",
+       "      <td>[tiles]</td>\n",
+       "      <td>[north, north, north, north, north, north, nor...</td>\n",
+       "      <td>1</td>\n",
+       "      <td>complete</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>{DE77E78F-B110-43D2-A55C-8B61911192DE}</th>\n",
+       "      <td>2.88</td>\n",
+       "      <td>Lidar 15-30 punten - nov. 2008</td>\n",
+       "      <td>UltraCAM-X 10cm juni 2008</td>\n",
+       "      <td>[tiles]</td>\n",
+       "      <td>[north, north, north, north, north, north, nor...</td>\n",
+       "      <td>1</td>\n",
+       "      <td>complete</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>{19935DFC-F7B3-4D6E-92DD-C48EE1D1519A}</th>\n",
+       "      <td>2.82</td>\n",
+       "      <td>Lidar 15-30 punten - nov. 2008</td>\n",
+       "      <td>UltraCAM-X 10cm juni 2008</td>\n",
+       "      <td>[tiles]</td>\n",
+       "      <td>[south, south, south, south, south, south, sou...</td>\n",
+       "      <td>1</td>\n",
+       "      <td>complete</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "                                        TerrainHeight  \\\n",
+       "{C9D4A5CF-094A-47DA-97E4-4A3BFD75D3AE}           3.03   \n",
+       "{71B60053-BC28-404D-BAB9-8A642AAC0CF4}           2.68   \n",
+       "{6271F75F-E8D8-4EE4-AC46-9DB02771A031}           3.12   \n",
+       "{DE77E78F-B110-43D2-A55C-8B61911192DE}           2.88   \n",
+       "{19935DFC-F7B3-4D6E-92DD-C48EE1D1519A}           2.82   \n",
+       "\n",
+       "                                                              bron_geo  \\\n",
+       "{C9D4A5CF-094A-47DA-97E4-4A3BFD75D3AE}  Lidar 15-30 punten - nov. 2008   \n",
+       "{71B60053-BC28-404D-BAB9-8A642AAC0CF4}  Lidar 15-30 punten - nov. 2008   \n",
+       "{6271F75F-E8D8-4EE4-AC46-9DB02771A031}  Lidar 15-30 punten - nov. 2008   \n",
+       "{DE77E78F-B110-43D2-A55C-8B61911192DE}  Lidar 15-30 punten - nov. 2008   \n",
+       "{19935DFC-F7B3-4D6E-92DD-C48EE1D1519A}  Lidar 15-30 punten - nov. 2008   \n",
+       "\n",
+       "                                                         bron_tex cladding  \\\n",
+       "{C9D4A5CF-094A-47DA-97E4-4A3BFD75D3AE}  UltraCAM-X 10cm juni 2008  [tiles]   \n",
+       "{71B60053-BC28-404D-BAB9-8A642AAC0CF4}  UltraCAM-X 10cm juni 2008  [tiles]   \n",
+       "{6271F75F-E8D8-4EE4-AC46-9DB02771A031}  UltraCAM-X 10cm juni 2008  [tiles]   \n",
+       "{DE77E78F-B110-43D2-A55C-8B61911192DE}  UltraCAM-X 10cm juni 2008  [tiles]   \n",
+       "{19935DFC-F7B3-4D6E-92DD-C48EE1D1519A}  UltraCAM-X 10cm juni 2008  [tiles]   \n",
+       "\n",
+       "                                                                              orientation  \\\n",
+       "{C9D4A5CF-094A-47DA-97E4-4A3BFD75D3AE}  [north, north, north, north, north, north, nor...   \n",
+       "{71B60053-BC28-404D-BAB9-8A642AAC0CF4}  [north, north, north, north, north, north, nor...   \n",
+       "{6271F75F-E8D8-4EE4-AC46-9DB02771A031}  [north, north, north, north, north, north, nor...   \n",
+       "{DE77E78F-B110-43D2-A55C-8B61911192DE}  [north, north, north, north, north, north, nor...   \n",
+       "{19935DFC-F7B3-4D6E-92DD-C48EE1D1519A}  [south, south, south, south, south, south, sou...   \n",
+       "\n",
+       "                                       status  voll_tex  \n",
+       "{C9D4A5CF-094A-47DA-97E4-4A3BFD75D3AE}      1  complete  \n",
+       "{71B60053-BC28-404D-BAB9-8A642AAC0CF4}      1  complete  \n",
+       "{6271F75F-E8D8-4EE4-AC46-9DB02771A031}      1  complete  \n",
+       "{DE77E78F-B110-43D2-A55C-8B61911192DE}      1  complete  \n",
+       "{19935DFC-F7B3-4D6E-92DD-C48EE1D1519A}      1  complete  "
+      ]
      },
+     "execution_count": 24,
      "metadata": {},
-     "output_type": "execute_result",
-     "execution_count": 22
+     "output_type": "execute_result"
     }
    ],
    "source": [
-    "df = cm_copy.to_dataframe()\n",
+    "df = cm.to_dataframe()\n",
     "df.head()"
    ]
   },
@@ -899,10 +1074,10 @@
   "pycharm": {
    "stem_cell": {
     "cell_type": "raw",
-    "source": [],
     "metadata": {
      "collapsed": false
-    }
+    },
+    "source": []
    }
   }
  },

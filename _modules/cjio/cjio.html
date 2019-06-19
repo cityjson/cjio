@@ -622,6 +622,23 @@
     <span class="k">return</span> <span class="n">processor</span>
 
 
+<span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s1">&#39;clean&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">clean_cmd</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Clean </span>
+<span class="sd">    =</span>
+<span class="sd">    remove_duplicate_vertices</span>
+<span class="sd">    +</span>
+<span class="sd">    remove_orphan_vertices    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">processor</span><span class="p">(</span><span class="n">cm</span><span class="p">):</span>
+        <span class="n">print_cmd_status</span><span class="p">(</span><span class="s1">&#39;Clean the file&#39;</span><span class="p">)</span>
+        <span class="n">cm</span><span class="o">.</span><span class="n">remove_duplicate_vertices</span><span class="p">()</span>
+        <span class="n">cm</span><span class="o">.</span><span class="n">remove_orphan_vertices</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">cm</span>
+    <span class="k">return</span> <span class="n">processor</span>
+
+
 <span class="nd">@cli</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s1">&#39;remove_duplicate_vertices&#39;</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">remove_duplicate_vertices_cmd</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>

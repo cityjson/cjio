@@ -197,9 +197,10 @@
             <span class="s1">&#39;Tunnel&#39;</span><span class="p">,</span>
             <span class="s1">&#39;WaterBody&#39;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="load"><a class="viewcode-back" href="../../cjio.html#cjio.cityjson.load">[docs]</a><span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<div class="viewcode-block" id="load"><a class="viewcode-back" href="../../cjio.html#cjio.cityjson.load">[docs]</a><span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Load a CityJSON file for working with it though the API</span>
 <span class="sd">    :param path: Absolute path to a CityJSON file</span>
+<span class="sd">    :param transform: Apply the coordinate transformation to the vertices (if applicable)</span>
 <span class="sd">    :return: A CityJSON object</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fin</span><span class="p">:</span>
@@ -208,6 +209,15 @@
         <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">FileNotFoundError</span>
     <span class="n">cm</span><span class="o">.</span><span class="n">cityobjects</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="k">if</span> <span class="s1">&#39;transform&#39;</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">j</span><span class="p">:</span>
+        <span class="n">cm</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;transform&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cm</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">transform</span><span class="p">:</span>
+        <span class="n">do_transform</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">transform</span>
+        <span class="k">del</span> <span class="n">cm</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;transform&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">do_transform</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">for</span> <span class="n">co_id</span><span class="p">,</span> <span class="n">co</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="c1"># TODO BD: do some verification here</span>
         <span class="n">children</span> <span class="o">=</span> <span class="n">co</span><span class="p">[</span><span class="s1">&#39;children&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;children&#39;</span> <span class="ow">in</span> <span class="n">co</span> <span class="k">else</span> <span class="kc">None</span>
@@ -222,7 +232,8 @@
                     <span class="n">lod</span><span class="o">=</span><span class="n">geom</span><span class="p">[</span><span class="s1">&#39;lod&#39;</span><span class="p">],</span>
                     <span class="n">boundaries</span><span class="o">=</span><span class="n">geom</span><span class="p">[</span><span class="s1">&#39;boundaries&#39;</span><span class="p">],</span>
                     <span class="n">semantics_obj</span><span class="o">=</span><span class="n">semantics</span><span class="p">,</span>
-                    <span class="n">vertices</span><span class="o">=</span><span class="n">cm</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;vertices&#39;</span><span class="p">]</span>
+                    <span class="n">vertices</span><span class="o">=</span><span class="n">cm</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;vertices&#39;</span><span class="p">],</span>
+                    <span class="n">transform</span><span class="o">=</span><span class="n">do_transform</span>
                 <span class="p">)</span>
             <span class="p">)</span>
         <span class="n">cm</span><span class="o">.</span><span class="n">cityobjects</span><span class="p">[</span><span class="n">co_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">CityObject</span><span class="p">(</span>

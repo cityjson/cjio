@@ -149,6 +149,7 @@
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
 <span class="kn">import</span> <span class="nn">collections</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span>
 
@@ -226,10 +227,10 @@
     <span class="sd">&quot;&quot;&quot;CityJSON Geometry object&quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lod</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">boundaries</span><span class="p">:</span> <span class="n">List</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">semantics_obj</span><span class="p">:</span> <span class="n">Dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">vertices</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                 <span class="n">vertices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="nb">type</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lod</span> <span class="o">=</span> <span class="n">lod</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dereference_boundaries</span><span class="p">(</span><span class="nb">type</span><span class="p">,</span> <span class="n">boundaries</span><span class="p">,</span> <span class="n">vertices</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dereference_boundaries</span><span class="p">(</span><span class="nb">type</span><span class="p">,</span> <span class="n">boundaries</span><span class="p">,</span> <span class="n">vertices</span><span class="p">,</span> <span class="n">transform</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">surfaces</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dereference_surfaces</span><span class="p">(</span><span class="n">semantics_obj</span><span class="p">)</span>
 
     <span class="nd">@staticmethod</span>
@@ -279,10 +280,37 @@
             <span class="k">return</span> <span class="n">surface_idx</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_vertex_mapper</span><span class="p">(</span><span class="n">boundary</span><span class="p">,</span> <span class="n">vertices</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Maps vertex coordinates to vertex indices&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">_vertex_mapper</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">vertices</span><span class="p">,</span> <span class="n">transform</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Maps vertex coordinates to vertex indices and/or apply transformation on them</span>
+<span class="sd">        :param ring: A ring defined as an array of vertex indices pointing to ``vertices``</span>
+<span class="sd">        :param vertices: The array of vertices from the CityJSON file</span>
+<span class="sd">        :param transform: A Transform object from CityJSON</span>
+<span class="sd">        :return: The ring with the vertex indices replaced with the vertices</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># NOTE BD: it might be ok to simply return the iterator from map()</span>
-        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">vertices</span><span class="p">[</span><span class="n">x</span><span class="p">],</span> <span class="n">boundary</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">vertices</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">v_i</span><span class="p">:</span> <span class="n">Geometry</span><span class="o">.</span><span class="n">_transform_vertex</span><span class="p">(</span><span class="n">vertices</span><span class="p">[</span><span class="n">v_i</span><span class="p">],</span> <span class="n">transform</span><span class="p">),</span> <span class="n">ring</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">Geometry</span><span class="o">.</span><span class="n">_transform_vertex</span><span class="p">(</span><span class="n">vtx</span><span class="p">,</span> <span class="n">transform</span><span class="p">)</span> <span class="k">for</span> <span class="n">vtx</span> <span class="ow">in</span> <span class="n">ring</span><span class="p">]</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_transform_vertex</span><span class="p">(</span><span class="n">vertex</span><span class="p">,</span> <span class="n">transform</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Apply the tranformation from a Transform object to a vertex</span>
+<span class="sd">        :param vertex: A vertex with 3 coordinates, typically (x,y,z)</span>
+<span class="sd">        :type vertex: sequence</span>
+<span class="sd">        :param transform: Transform object from CityJSON</span>
+<span class="sd">        :type transform: dict.</span>
+<span class="sd">        :return: A vertex with transformed coordinates</span>
+<span class="sd">        :type return: sequence</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">transform</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">vertex</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">((</span><span class="n">vertex</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">transform</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">transform</span><span class="p">[</span><span class="s2">&quot;translate&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">((</span><span class="n">vertex</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">transform</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="n">transform</span><span class="p">[</span><span class="s2">&quot;translate&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">z</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">((</span><span class="n">vertex</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">transform</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span> <span class="o">+</span> <span class="n">transform</span><span class="p">[</span><span class="s2">&quot;translate&quot;</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span>
+
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_vertex_indexer</span><span class="p">(</span><span class="n">geom</span><span class="p">,</span> <span class="n">vtx_lookup</span><span class="p">,</span> <span class="n">vtx_idx</span><span class="p">):</span>
@@ -300,7 +328,47 @@
                 <span class="n">ret</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vtx_lookup</span><span class="p">[</span><span class="n">gt</span><span class="p">])</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">ret</span><span class="p">,</span> <span class="n">vtx_lookup</span><span class="p">,</span> <span class="n">vtx_idx</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_dereference_boundaries</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">btype</span><span class="p">,</span> <span class="n">boundaries</span><span class="p">,</span> <span class="n">vertices</span><span class="p">):</span>
+<div class="viewcode-block" id="Geometry.transform"><a class="viewcode-back" href="../../cjio.html#cjio.models.Geometry.transform">[docs]</a>    <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transform</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Apply coordinate transformation to the boundary</span>
+<span class="sd">        .. warning:: This operation overwrites the coordinates in the boundary</span>
+<span class="sd">        :param transform: `Transform object &lt;https://www.cityjson.org/specs/latest/#transform-object&gt;`__ from CityJSON</span>
+<span class="sd">        :return: A copy of the Geometry object with a boundary with transformed coordinates</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">vertices</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">self_cp</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">self_cp</span><span class="o">.</span><span class="n">boundaries</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">self_cp</span>
+        <span class="k">if</span> <span class="n">self_cp</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;multipoint&#39;</span><span class="p">:</span>
+            <span class="n">self_cp</span><span class="o">.</span><span class="n">boundaries</span> <span class="o">=</span> <span class="n">self_cp</span><span class="o">.</span><span class="n">_vertex_mapper</span><span class="p">(</span><span class="n">self_cp</span><span class="o">.</span><span class="n">boundaries</span><span class="p">,</span> <span class="n">vertices</span><span class="p">,</span> <span class="n">transform</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">self_cp</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;multilinestring&#39;</span><span class="p">:</span>
+            <span class="n">self_cp</span><span class="o">.</span><span class="n">boundaries</span> <span class="o">=</span> <span class="p">[</span><span class="n">self_cp</span><span class="o">.</span><span class="n">_vertex_mapper</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">vertices</span><span class="p">,</span> <span class="n">transform</span><span class="p">)</span> <span class="k">for</span> <span class="n">ring</span> <span class="ow">in</span> <span class="n">self_cp</span><span class="o">.</span><span class="n">boundaries</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">self_cp</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;multisurface&#39;</span> <span class="ow">or</span> <span class="n">self_cp</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;compositesurface&#39;</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">surface</span> <span class="ow">in</span> <span class="n">self_cp</span><span class="o">.</span><span class="n">boundaries</span><span class="p">:</span>
+                <span class="n">s</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">self_cp</span><span class="o">.</span><span class="n">_vertex_mapper</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">vertices</span><span class="p">,</span> <span class="n">transform</span><span class="p">)</span> <span class="k">for</span> <span class="n">ring</span> <span class="ow">in</span> <span class="n">surface</span><span class="p">])</span>
+            <span class="n">self_cp</span><span class="o">.</span><span class="n">boundaries</span> <span class="o">=</span> <span class="n">s</span>
+        <span class="k">elif</span> <span class="n">self_cp</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;solid&#39;</span><span class="p">:</span>
+            <span class="n">sh</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">shell</span> <span class="ow">in</span> <span class="n">self_cp</span><span class="o">.</span><span class="n">boundaries</span><span class="p">:</span>
+                <span class="n">s</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">surface</span> <span class="ow">in</span> <span class="n">shell</span><span class="p">:</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">self_cp</span><span class="o">.</span><span class="n">_vertex_mapper</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">vertices</span><span class="p">,</span> <span class="n">transform</span><span class="p">)</span> <span class="k">for</span> <span class="n">ring</span> <span class="ow">in</span> <span class="n">surface</span><span class="p">])</span>
+                <span class="n">sh</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+            <span class="n">self_cp</span><span class="o">.</span><span class="n">boundaries</span> <span class="o">=</span> <span class="n">sh</span>
+        <span class="k">elif</span> <span class="n">self_cp</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;multisolid&#39;</span> <span class="ow">or</span> <span class="n">self_cp</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;compositesolid&#39;</span><span class="p">:</span>
+            <span class="n">solids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">solid</span> <span class="ow">in</span> <span class="n">self_cp</span><span class="o">.</span><span class="n">boundaries</span><span class="p">:</span>
+                <span class="n">sh</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">shell</span> <span class="ow">in</span> <span class="n">solid</span><span class="p">:</span>
+                    <span class="n">s</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+                    <span class="k">for</span> <span class="n">surface</span> <span class="ow">in</span> <span class="n">shell</span><span class="p">:</span>
+                        <span class="n">s</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">self_cp</span><span class="o">.</span><span class="n">_vertex_mapper</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">vertices</span><span class="p">,</span> <span class="n">transform</span><span class="p">)</span> <span class="k">for</span> <span class="n">ring</span> <span class="ow">in</span> <span class="n">surface</span><span class="p">])</span>
+                    <span class="n">sh</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+                <span class="n">solids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sh</span><span class="p">)</span>
+            <span class="n">self_cp</span><span class="o">.</span><span class="n">boundaries</span> <span class="o">=</span> <span class="n">solids</span>
+        <span class="k">return</span> <span class="n">self_cp</span></div>
+
+    <span class="k">def</span> <span class="nf">_dereference_boundaries</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">btype</span><span class="p">,</span> <span class="n">boundaries</span><span class="p">,</span> <span class="n">vertices</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Replace vertex indices with vertex coordinates in the geomery boundary</span>
 <span class="sd">        :param btype: Boundary type</span>
 <span class="sd">        :param boundaries: Boundary list</span>
@@ -308,23 +376,22 @@
 <span class="sd">        :return: Boundary list with the vertex indices replaced with vertex coordinates from the vertex list</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># TODO BD optimize: would be much faster with recursion</span>
-        <span class="c1"># TODO BD: apply coordinate transformation</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">boundaries</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">list</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">btype</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;multipoint&#39;</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">boundaries</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">int</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Boundary definition does not correspond to MultiPoint&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vertex_mapper</span><span class="p">(</span><span class="n">boundaries</span><span class="p">,</span> <span class="n">vertices</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vertex_mapper</span><span class="p">(</span><span class="n">boundaries</span><span class="p">,</span> <span class="n">vertices</span><span class="p">,</span> <span class="n">transform</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">btype</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;multilinestring&#39;</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">boundaries</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="nb">int</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Boundary definition does not correspond to MultiPoint&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_vertex_mapper</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">vertices</span><span class="p">)</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">boundaries</span><span class="p">]</span>
+            <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_vertex_mapper</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">vertices</span><span class="p">,</span> <span class="n">transform</span><span class="p">)</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">boundaries</span><span class="p">]</span>
         <span class="k">elif</span> <span class="n">btype</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;multisurface&#39;</span> <span class="ow">or</span> <span class="n">btype</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;compositesurface&#39;</span><span class="p">:</span>
             <span class="n">s</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">boundaries</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="nb">int</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Boundary definition does not correspond to MultiSurface or CompositeSurface&quot;</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">surface</span> <span class="ow">in</span> <span class="n">boundaries</span><span class="p">:</span>
-                <span class="n">s</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_vertex_mapper</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">vertices</span><span class="p">)</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">surface</span><span class="p">])</span>
+                <span class="n">s</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_vertex_mapper</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">vertices</span><span class="p">,</span> <span class="n">transform</span><span class="p">)</span> <span class="k">for</span> <span class="n">ring</span> <span class="ow">in</span> <span class="n">surface</span><span class="p">])</span>
             <span class="k">return</span> <span class="n">s</span>
         <span class="k">elif</span> <span class="n">btype</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;solid&#39;</span><span class="p">:</span>
             <span class="n">sh</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
@@ -333,7 +400,7 @@
             <span class="k">for</span> <span class="n">shell</span> <span class="ow">in</span> <span class="n">boundaries</span><span class="p">:</span>
                 <span class="n">s</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
                 <span class="k">for</span> <span class="n">surface</span> <span class="ow">in</span> <span class="n">shell</span><span class="p">:</span>
-                    <span class="n">s</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_vertex_mapper</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">vertices</span><span class="p">)</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">surface</span><span class="p">])</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_vertex_mapper</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">vertices</span><span class="p">,</span> <span class="n">transform</span><span class="p">)</span> <span class="k">for</span> <span class="n">ring</span> <span class="ow">in</span> <span class="n">surface</span><span class="p">])</span>
                 <span class="n">sh</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">sh</span>
         <span class="k">elif</span> <span class="n">btype</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;multisolid&#39;</span> <span class="ow">or</span> <span class="n">btype</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;compositesolid&#39;</span><span class="p">:</span>
@@ -345,7 +412,7 @@
                 <span class="k">for</span> <span class="n">shell</span> <span class="ow">in</span> <span class="n">solid</span><span class="p">:</span>
                     <span class="n">s</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
                     <span class="k">for</span> <span class="n">surface</span> <span class="ow">in</span> <span class="n">shell</span><span class="p">:</span>
-                        <span class="n">s</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_vertex_mapper</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">vertices</span><span class="p">)</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">surface</span><span class="p">])</span>
+                        <span class="n">s</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_vertex_mapper</span><span class="p">(</span><span class="n">ring</span><span class="p">,</span> <span class="n">vertices</span><span class="p">,</span> <span class="n">transform</span><span class="p">)</span> <span class="k">for</span> <span class="n">ring</span> <span class="ow">in</span> <span class="n">surface</span><span class="p">])</span>
                     <span class="n">sh</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
                 <span class="n">solids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sh</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">solids</span>
