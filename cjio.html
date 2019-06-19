@@ -263,9 +263,15 @@
 <dl class="method">
 <dt id="cjio.cityjson.CityJSON.get_cityobjects">
 <code class="sig-name descname">get_cityobjects</code><span class="sig-paren">(</span><em class="sig-param">type=None</em>, <em class="sig-param">id=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.get_cityobjects"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.get_cityobjects" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a subset of CityObjects
-:param type: CityObject type. If a list of types are given, then all types in the list are returned.
-:param id: CityObject ID. If a list of IDs are given, then all objects matching the IDs in the list are returned.</p>
+<dd><p>Return a subset of CityObjects</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>type</strong> – CityObject type. If a list of types are given, then all types in the list are returned.</p></li>
+<li><p><strong>id</strong> – CityObject ID. If a list of IDs are given, then all objects matching the IDs in the list are returned.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
@@ -381,10 +387,16 @@ are expanded to absolute paths.</p>
 <dl class="method">
 <dt id="cjio.cityjson.CityJSON.set_cityobjects">
 <code class="sig-name descname">set_cityobjects</code><span class="sig-paren">(</span><em class="sig-param">cityobjects</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.set_cityobjects"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.set_cityobjects" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates or updates CityObjects
-.. note:: If a CityObject with the same ID already exists in the model, it will be overwritten
-:param cityobjects: Dictionary of CityObjects, where keys are the CityObject IDs. Same structure as returned by
-get_cityobjects()</p>
+<dd><p>Creates or updates CityObjects</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If a CityObject with the same ID already exists in the model, it will be overwritten</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>cityobjects</strong> – Dictionary of CityObjects, where keys are the CityObject IDs. Same structure as returned by get_cityobjects()</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
@@ -472,11 +484,19 @@ expected to exists with the texture files in it.</p>
 
 <dl class="function">
 <dt id="cjio.cityjson.load">
-<code class="sig-prename descclassname">cjio.cityjson.</code><code class="sig-name descname">load</code><span class="sig-paren">(</span><em class="sig-param">path</em>, <em class="sig-param">transform=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.load" title="Permalink to this definition">¶</a></dt>
-<dd><p>Load a CityJSON file for working with it though the API
-:param path: Absolute path to a CityJSON file
-:param transform: Apply the coordinate transformation to the vertices (if applicable)
-:return: A CityJSON object</p>
+<code class="sig-prename descclassname">cjio.cityjson.</code><code class="sig-name descname">load</code><span class="sig-paren">(</span><em class="sig-param">path</em>, <em class="sig-param">transform: bool = False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load a CityJSON file for working with it though the API</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> – Absolute path to a CityJSON file</p></li>
+<li><p><strong>transform</strong> – Apply the coordinate transformation to the vertices (if applicable)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A CityJSON object</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
@@ -497,9 +517,15 @@ expected to exists with the texture files in it.</p>
 <dl class="function">
 <dt id="cjio.cityjson.save">
 <code class="sig-prename descclassname">cjio.cityjson.</code><code class="sig-name descname">save</code><span class="sig-paren">(</span><em class="sig-param">citymodel</em>, <em class="sig-param">path: str</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.save" title="Permalink to this definition">¶</a></dt>
-<dd><p>Save a city model to a CityJSON file
-:param citymodel: A CityJSON object
-:param path: Absolute path to a CityJSON file</p>
+<dd><p>Save a city model to a CityJSON file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>citymodel</strong> – A CityJSON object</p></li>
+<li><p><strong>path</strong> – Absolute path to a CityJSON file</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -587,14 +613,9 @@ expected to exists with the texture files in it.</p>
 <p>CityObject class</p>
 <dl class="method">
 <dt id="cjio.models.CityObject.build_index">
-<code class="sig-name descname">build_index</code><span class="sig-paren">(</span><em class="sig-param">vtx_lookup={}</em>, <em class="sig-param">vtx_idx=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#CityObject.build_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.CityObject.build_index" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">build_index</code><span class="sig-paren">(</span><em class="sig-param">vtx_lookup: dict = {}</em>, <em class="sig-param">vtx_idx: int = 0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#CityObject.build_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.CityObject.build_index" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build a coordinate list and index the vertices for Geometry objects in the CityObject</p>
 </dd></dl>
-
-<dl class="method">
-<dt id="cjio.models.CityObject.get_info">
-<code class="sig-name descname">get_info</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#CityObject.get_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.CityObject.get_info" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 
 <dl class="method">
 <dt id="cjio.models.CityObject.get_vertices">
@@ -605,7 +626,7 @@ expected to exists with the texture files in it.</p>
 <dl class="method">
 <dt id="cjio.models.CityObject.to_json">
 <code class="sig-name descname">to_json</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#CityObject.to_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.CityObject.to_json" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a dict that in the CityJSON schema</p>
+<dd><p>Return a dictionary that conforms the CityJSON schema</p>
 </dd></dl>
 
 </dd></dl>
@@ -617,31 +638,45 @@ expected to exists with the texture files in it.</p>
 <p>CityJSON Geometry object</p>
 <dl class="method">
 <dt id="cjio.models.Geometry.build_index">
-<code class="sig-name descname">build_index</code><span class="sig-paren">(</span><em class="sig-param">vtx_lookup={}</em>, <em class="sig-param">vtx_idx=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#Geometry.build_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.Geometry.build_index" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">build_index</code><span class="sig-paren">(</span><em class="sig-param">vtx_lookup: dict = {}</em>, <em class="sig-param">vtx_idx: int = 0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#Geometry.build_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.Geometry.build_index" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build a coordinate list and index the vertices</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="cjio.models.Geometry.get_surface_boundaries">
 <code class="sig-name descname">get_surface_boundaries</code><span class="sig-paren">(</span><em class="sig-param">surface</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#Geometry.get_surface_boundaries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.Geometry.get_surface_boundaries" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the surface at the index location from the Geometry boundary
-.. note:: Interior surfaces don’t have semantics and they are returned with the exterior.</p>
+<dd><p>Get the surface at the index location from the Geometry boundary</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Interior surfaces don’t have semantics and they are returned with the exterior.</p>
+</div>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Surfaces from the boundary that correspond to the index.</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>surface</strong> – A semantic surface</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Surfaces from the boundary that correspond to the index.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="cjio.models.Geometry.get_surfaces">
-<code class="sig-name descname">get_surfaces</code><span class="sig-paren">(</span><em class="sig-param">type=None</em>, <em class="sig-param">lod=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#Geometry.get_surfaces"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.Geometry.get_surfaces" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the semantic surfaces of the given type
-The whole boundary is returned if a geometry does not have semantics, or has a LoD &lt; 2,
-or the surface type is not provided.
-:param type: Semantic Surface type. If not provided, the whole boundary is returned.
-:param lod: Level of Detail
-:return: Return a subset of the specific surfaces of the geometry</p>
+<code class="sig-name descname">get_surfaces</code><span class="sig-paren">(</span><em class="sig-param">type: str = None</em>, <em class="sig-param">lod: int = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#Geometry.get_surfaces"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.Geometry.get_surfaces" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the semantic surfaces of the given type</p>
+<p>The whole boundary is returned if a geometry does not have semantics, or has a LoD &lt; 2,
+or the surface type is not provided.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>type</strong> – Semantic Surface type. If not provided, the whole boundary is returned.</p></li>
+<li><p><strong>lod</strong> – Level of Detail</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Return a subset of the specific surfaces of the geometry</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
@@ -658,11 +693,16 @@ or the surface type is not provided.
 
 <dl class="method">
 <dt id="cjio.models.Geometry.transform">
-<code class="sig-name descname">transform</code><span class="sig-paren">(</span><em class="sig-param">transform</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#Geometry.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.Geometry.transform" title="Permalink to this definition">¶</a></dt>
-<dd><p>Apply coordinate transformation to the boundary
-.. warning:: This operation overwrites the coordinates in the boundary
-:param transform: <a class="reference external" href="https://www.cityjson.org/specs/latest/#transform-object">Transform object</a> from CityJSON
-:return: A copy of the Geometry object with a boundary with transformed coordinates</p>
+<code class="sig-name descname">transform</code><span class="sig-paren">(</span><em class="sig-param">transform: dict</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#Geometry.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.Geometry.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply coordinate transformation to the boundary</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>transform</strong> – <a class="reference external" href="https://www.cityjson.org/specs/latest/#transform-object">Transform object</a> from CityJSON</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A copy of the Geometry object with a boundary with transformed coordinates</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
