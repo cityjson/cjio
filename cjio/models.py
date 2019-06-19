@@ -23,9 +23,10 @@ class CityObject(object):
         self.parents = parents
 
     def __repr__(self):
-        return self.get_info()
+        return self._get_info()
 
-    def get_info(self):
+    def _get_info(self):
+        """Print information about the object"""
         info = collections.OrderedDict()
         info['id'] = self.id
         info['type'] = self.type
@@ -53,7 +54,7 @@ class CityObject(object):
             vtx += geom.get_vertices()
         return vtx
 
-    def build_index(self, vtx_lookup=dict(), vtx_idx=0):
+    def build_index(self, vtx_lookup:dict=dict(), vtx_idx:int=0):
         """Build a coordinate list and index the vertices for Geometry objects in the CityObject"""
         geometry = []
         for geom in self.geometry:
@@ -64,7 +65,7 @@ class CityObject(object):
         return (geometry, vtx_lookup, vtx_idx)
 
     def to_json(self):
-        """Return a dict that in the CityJSON schema"""
+        """Return a dictionary that conforms the CityJSON schema"""
         j = dict()
         j['type'] = self.type
         j['geometry'] = []
@@ -181,9 +182,9 @@ class Geometry(object):
                 ret.append(vtx_lookup[gt])
         return (ret, vtx_lookup, vtx_idx)
 
-    def transform(self, transform):
+    def transform(self, transform: dict):
         """Apply coordinate transformation to the boundary
-        .. warning:: This operation overwrites the coordinates in the boundary
+
         :param transform: `Transform object <https://www.cityjson.org/specs/latest/#transform-object>`__ from CityJSON
         :return: A copy of the Geometry object with a boundary with transformed coordinates
         """
@@ -223,6 +224,7 @@ class Geometry(object):
 
     def _dereference_boundaries(self, btype, boundaries, vertices, transform=None):
         """Replace vertex indices with vertex coordinates in the geomery boundary
+
         :param btype: Boundary type
         :param boundaries: Boundary list
         :param vertices: Vertex list of CityJSON
@@ -274,6 +276,7 @@ class Geometry(object):
 
     def _dereference_surfaces(self, semantics_obj):
         """Dereferene a semantic surface
+
         :param semantics_obj: Semantic Surface object as extracted from CityJSON file
         """
         semantic_surfaces = dict()
@@ -332,8 +335,10 @@ class Geometry(object):
 
     def get_surface_boundaries(self, surface):
         """Get the surface at the index location from the Geometry boundary
+
         .. note:: Interior surfaces don't have semantics and they are returned with the exterior.
 
+        :param surface: A semantic surface
         :return: Surfaces from the boundary that correspond to the index.
         """
         # TODO BD: essentially, this function is meant to returns a MultiSurface,
@@ -351,7 +356,7 @@ class Geometry(object):
                     else self.boundaries[i[0]][i[1]][i[2]]
                     for i in surface['surface_idx']]
 
-    def build_index(self, vtx_lookup=dict(), vtx_idx=0):
+    def build_index(self, vtx_lookup:dict=dict(), vtx_idx:int=0):
         """Build a coordinate list and index the vertices"""
         if not self.boundaries:
             return ([], vtx_lookup, vtx_idx)
@@ -403,10 +408,12 @@ class Geometry(object):
         else:
             raise TypeError("Unknown geometry type: {}".format(self.type))
 
-    def get_surfaces(self, type=None, lod=None):
+    def get_surfaces(self, type:str=None, lod:int=None):
         """Get the semantic surfaces of the given type
+
         The whole boundary is returned if a geometry does not have semantics, or has a LoD < 2,
         or the surface type is not provided.
+
         :param type: Semantic Surface type. If not provided, the whole boundary is returned.
         :param lod: Level of Detail
         :return: Return a subset of the specific surfaces of the geometry
