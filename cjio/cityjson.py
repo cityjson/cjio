@@ -1197,7 +1197,7 @@ class CityJSON:
     def triangulate_face(self, face, vnp):
         #-- if already a triangle then return it
         if ( (len(face) == 1) and (len(face[0]) == 3) ):
-            return face
+            return (face, True)
         sf = np.array([], dtype=np.int32)
         for ring in face:
             sf = np.hstack( (sf, np.array(ring)) )
@@ -1212,7 +1212,9 @@ class CityJSON:
         # print(rings)
 
         # 1. normal with Newell's method
-        n = geom_help.get_normal_newell(sfv)
+        n, b = geom_help.get_normal_newell(sfv)
+        if b == False:
+            return (n, False)
         # print ("Newell:", n)
         # 2. project to the plane to get xy
         sfv2d = np.zeros( (sfv.shape[0], 2))
@@ -1222,7 +1224,7 @@ class CityJSON:
             # print("xy", xy)
             sfv2d[i][0] = xy[0]
             sfv2d[i][1] = xy[1]
-        result = mapbox_earcut.triangulate_float32(sfv2d, rings)
+        result = mapbox_earcut.triangulate_float64(sfv2d, rings)
         # print (result.reshape(-1, 3))
 
         for i,each in enumerate(result):
@@ -1230,29 +1232,45 @@ class CityJSON:
             result[i] = sf[each]
         
         # print (result.reshape(-1, 3))
-        return result.reshape(-1, 3)
+        return (result.reshape(-1, 3), True)
 
 
     def export2obj(self):
         out = StringIO()
-        #-- vertices
+        #-- write vertices
         for v in self.j['vertices']:
             out.write('v ' + str(v[0]) + ' ' + str(v[1]) + ' ' + str(v[2]) + '\n')
         vnp = np.array(self.j["vertices"])
+        #-- translate to minx,miny
+        minx = 9e9
+        miny = 9e9
+        for each in vnp:
+            if each[0] < minx:
+                    minx = each[0]
+            if each[1] < miny:
+                    miny = each[1]
+        for each in vnp:
+            each[0] -= minx
+            each[1] -= miny
+        # print ("min", minx, miny)
+        # print(vnp)
+        #-- start with the CO
         for theid in self.j['CityObjects']:
             for geom in self.j['CityObjects'][theid]['geometry']:
                 out.write('o ' + str(theid) + '\n')
                 if ( (geom['type'] == 'MultiSurface') or (geom['type'] == 'CompositeSurface') ):
                     for face in geom['boundaries']:
-                        re = self.triangulate_face(face, vnp)
-                        for t in re:
-                            out.write("f %d %d %d\n" % (t[0] + 1, t[1] + 1, t[2] + 1))
-                elif (geom['type'] == 'Solid'):
-                    for shell in geom['boundaries']:
-                        for face in shell:
-                            re = self.triangulate_face(face, vnp)
+                        re, b = self.triangulate_face(face, vnp)
+                        if b == True:
                             for t in re:
                                 out.write("f %d %d %d\n" % (t[0] + 1, t[1] + 1, t[2] + 1))
+                elif (geom['type'] == 'Solid'):
+                    for shell in geom['boundaries']:
+                        for i, face in enumerate(shell):
+                            re, b = self.triangulate_face(face, vnp)
+                            if b == True:
+                                for t in re:
+                                    out.write("f %d %d %d\n" % (t[0] + 1, t[1] + 1, t[2] + 1))
         return out
 
 
@@ -1284,4 +1302,4 @@ class CityJSON:
                 self.j['CityObjects'][co]['geometry'].remove(each)
         self.remove_duplicate_vertices()
         self.remove_orphan_vertices()        
-        
+
