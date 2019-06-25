@@ -2,6 +2,7 @@
 
 """
 import pytest
+from math import isclose
 
 from cjio import models
 
@@ -217,6 +218,14 @@ def data_vtx_idx(request):
 
 
 class TestGeometry:
+    @pytest.mark.parametrize('vtx_original, vtx_transformed', [
+        ([52496,601650,10188], [90461.816, 436042.09, 10.188])
+    ])
+    def test_transform_vertex(self, vtx_original, vtx_transformed):
+        transform = {"scale":[0.001,0.001,0.001],"translate":[90409.32,435440.44,0.0]}
+        res = models.Geometry._transform_vertex(vtx_original, transform)
+        assert all([isclose(res[i], v) for i,v in enumerate(vtx_transformed)])
+
     def test_dereference_boundaries(self, data_geometry, data_vtx_idx):
         type, boundary, result, vertex_list = data_vtx_idx
         vertices = data_geometry[1]

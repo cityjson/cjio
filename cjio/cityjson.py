@@ -50,9 +50,11 @@ TOPLEVEL = ('Building',
             'Tunnel',
             'WaterBody')
 
-def load(path: str):
+def load(path, transform:bool=False):
     """Load a CityJSON file for working with it though the API
+
     :param path: Absolute path to a CityJSON file
+    :param transform: Apply the coordinate transformation to the vertices (if applicable)
     :return: A CityJSON object
     """
     with open(path, 'r') as fin:
@@ -61,6 +63,15 @@ def load(path: str):
         except OSError as e:
             raise FileNotFoundError
     cm.cityobjects = dict()
+    if 'transform' in cm.j:
+        cm.transform = cm.j['transform']
+    else:
+        cm.transform = None
+    if transform:
+        do_transform = cm.transform
+        del cm.j['transform']
+    else:
+        do_transform = None
     for co_id, co in cm.j['CityObjects'].items():
         # TODO BD: do some verification here
         children = co['children'] if 'children' in co else None
@@ -75,7 +86,8 @@ def load(path: str):
                     lod=geom['lod'],
                     boundaries=geom['boundaries'],
                     semantics_obj=semantics,
-                    vertices=cm.j['vertices']
+                    vertices=cm.j['vertices'],
+                    transform=do_transform
                 )
             )
         cm.cityobjects[co_id] = models.CityObject(
@@ -90,6 +102,7 @@ def load(path: str):
 
 def save(citymodel, path: str):
     """Save a city model to a CityJSON file
+
     :param citymodel: A CityJSON object
     :param path: Absolute path to a CityJSON file
     """
@@ -206,6 +219,7 @@ class CityJSON:
     # TODO BD: refactor this whole CityJSON class
     def get_cityobjects(self, type=None, id=None):
         """Return a subset of CityObjects
+
         :param type: CityObject type. If a list of types are given, then all types in the list are returned.
         :param id: CityObject ID. If a list of IDs are given, then all objects matching the IDs in the list are returned.
         """
@@ -233,9 +247,10 @@ class CityJSON:
 
     def set_cityobjects(self, cityobjects):
         """Creates or updates CityObjects
+
         .. note:: If a CityObject with the same ID already exists in the model, it will be overwritten
-        :param cityobjects: Dictionary of CityObjects, where keys are the CityObject IDs. Same structure as returned by
-        get_cityobjects()
+
+        :param cityobjects: Dictionary of CityObjects, where keys are the CityObject IDs. Same structure as returned by get_cityobjects()
         """
         for co_id, co in cityobjects.items():
             self.cityobjects[co_id] = co

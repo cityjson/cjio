@@ -2,6 +2,7 @@
 
 """
 import json
+from copy import deepcopy
 import collections
 from typing import List, Dict
 
@@ -22,9 +23,10 @@ class CityObject(object):
         self.parents = parents
 
     def __repr__(self):
-        return self.get_info()
+        return self._get_info()
 
-    def get_info(self):
+    def _get_info(self):
+        """Print information about the object"""
         info = collections.OrderedDict()
         info['id'] = self.id
         info['type'] = self.type
@@ -52,7 +54,7 @@ class CityObject(object):
             vtx += geom.get_vertices()
         return vtx
 
-    def build_index(self, vtx_lookup=dict(), vtx_idx=0):
+    def build_index(self, vtx_lookup:dict=dict(), vtx_idx:int=0):
         """Build a coordinate list and index the vertices for Geometry objects in the CityObject"""
         geometry = []
         for geom in self.geometry:
@@ -63,7 +65,7 @@ class CityObject(object):
         return (geometry, vtx_lookup, vtx_idx)
 
     def to_json(self):
-        """Return a dict that in the CityJSON schema"""
+        """Return a dictionary that conforms the CityJSON schema"""
         j = dict()
         j['type'] = self.type
         j['geometry'] = []
@@ -79,10 +81,10 @@ class Geometry(object):
     """CityJSON Geometry object"""
     def __init__(self, type: str=None, lod: int=None,
                  boundaries: List=None, semantics_obj: Dict=None,
-                 vertices=None):
+                 vertices=None, transform=None):
         self.type = type
         self.lod = lod
-        self.boundaries = self._dereference_boundaries(type, boundaries, vertices)
+        self.boundaries = self._dereference_boundaries(type, boundaries, vertices, transform)
         self.surfaces = self._dereference_surfaces(semantics_obj)
 
     @staticmethod
@@ -132,10 +134,37 @@ class Geometry(object):
             return surface_idx
 
     @staticmethod
-    def _vertex_mapper(boundary, vertices):
-        """Maps vertex coordinates to vertex indices"""
+    def _vertex_mapper(ring, vertices, transform):
+        """Maps vertex coordinates to vertex indices and/or apply transformation on them
+        :param ring: A ring defined as an array of vertex indices pointing to ``vertices``
+        :param vertices: The array of vertices from the CityJSON file
+        :param transform: A Transform object from CityJSON
+        :return: The ring with the vertex indices replaced with the vertices
+        """
         # NOTE BD: it might be ok to simply return the iterator from map()
-        return list(map(lambda x: vertices[x], boundary))
+        if vertices is not None:
+            return list(map(lambda v_i: Geometry._transform_vertex(vertices[v_i], transform), ring))
+        else:
+            return [Geometry._transform_vertex(vtx, transform) for vtx in ring]
+
+    @staticmethod
+    def _transform_vertex(vertex, transform):
+        """Apply the tranformation from a Transform object to a vertex
+        :param vertex: A vertex with 3 coordinates, typically (x,y,z)
+        :type vertex: sequence
+        :param transform: Transform object from CityJSON
+        :type transform: dict.
+        :return: A vertex with transformed coordinates
+        :type return: sequence
+        """
+        if transform is None:
+            return vertex
+        else:
+            x = deepcopy((vertex[0] * transform["scale"][0]) + transform["translate"][0])
+            y = deepcopy((vertex[1] * transform["scale"][1]) + transform["translate"][1])
+            z = deepcopy((vertex[2] * transform["scale"][2]) + transform["translate"][2])
+            return x,y,z
+
 
     @staticmethod
     def _vertex_indexer(geom, vtx_lookup, vtx_idx):
@@ -153,31 +182,71 @@ class Geometry(object):
                 ret.append(vtx_lookup[gt])
         return (ret, vtx_lookup, vtx_idx)
 
-    def _dereference_boundaries(self, btype, boundaries, vertices):
+    def transform(self, transform: dict):
+        """Apply coordinate transformation to the boundary
+
+        :param transform: `Transform object <https://www.cityjson.org/specs/latest/#transform-object>`__ from CityJSON
+        :return: A copy of the Geometry object with a boundary with transformed coordinates
+        """
+        vertices = None
+        self_cp = deepcopy(self)
+        if not self_cp.boundaries:
+            return self_cp
+        if self_cp.type.lower() == 'multipoint':
+            self_cp.boundaries = self_cp._vertex_mapper(self_cp.boundaries, vertices, transform)
+        elif self_cp.type.lower() == 'multilinestring':
+            self_cp.boundaries = [self_cp._vertex_mapper(ring, vertices, transform) for ring in self_cp.boundaries]
+        elif self_cp.type.lower() == 'multisurface' or self_cp.type.lower() == 'compositesurface':
+            s = list()
+            for surface in self_cp.boundaries:
+                s.append([self_cp._vertex_mapper(ring, vertices, transform) for ring in surface])
+            self_cp.boundaries = s
+        elif self_cp.type.lower() == 'solid':
+            sh = list()
+            for shell in self_cp.boundaries:
+                s = list()
+                for surface in shell:
+                    s.append([self_cp._vertex_mapper(ring, vertices, transform) for ring in surface])
+                sh.append(s)
+            self_cp.boundaries = sh
+        elif self_cp.type.lower() == 'multisolid' or self_cp.type.lower() == 'compositesolid':
+            solids = list()
+            for solid in self_cp.boundaries:
+                sh = list()
+                for shell in solid:
+                    s = list()
+                    for surface in shell:
+                        s.append([self_cp._vertex_mapper(ring, vertices, transform) for ring in surface])
+                    sh.append(s)
+                solids.append(sh)
+            self_cp.boundaries = solids
+        return self_cp
+
+    def _dereference_boundaries(self, btype, boundaries, vertices, transform=None):
         """Replace vertex indices with vertex coordinates in the geomery boundary
+
         :param btype: Boundary type
         :param boundaries: Boundary list
         :param vertices: Vertex list of CityJSON
         :return: Boundary list with the vertex indices replaced with vertex coordinates from the vertex list
         """
         # TODO BD optimize: would be much faster with recursion
-        # TODO BD: apply coordinate transformation
         if not boundaries:
             return list()
         if btype.lower() == 'multipoint':
             if not isinstance(boundaries[0], int):
                 raise TypeError("Boundary definition does not correspond to MultiPoint")
-            return self._vertex_mapper(boundaries, vertices)
+            return self._vertex_mapper(boundaries, vertices, transform)
         elif btype.lower() == 'multilinestring':
             if not isinstance(boundaries[0][0], int):
                 raise TypeError("Boundary definition does not correspond to MultiPoint")
-            return [self._vertex_mapper(b, vertices) for b in boundaries]
+            return [self._vertex_mapper(b, vertices, transform) for b in boundaries]
         elif btype.lower() == 'multisurface' or btype.lower() == 'compositesurface':
             s = list()
             if not isinstance(boundaries[0][0][0], int):
                 raise TypeError("Boundary definition does not correspond to MultiSurface or CompositeSurface")
             for surface in boundaries:
-                s.append([self._vertex_mapper(b, vertices) for b in surface])
+                s.append([self._vertex_mapper(ring, vertices, transform) for ring in surface])
             return s
         elif btype.lower() == 'solid':
             sh = list()
@@ -186,7 +255,7 @@ class Geometry(object):
             for shell in boundaries:
                 s = list()
                 for surface in shell:
-                    s.append([self._vertex_mapper(b, vertices) for b in surface])
+                    s.append([self._vertex_mapper(ring, vertices, transform) for ring in surface])
                 sh.append(s)
             return sh
         elif btype.lower() == 'multisolid' or btype.lower() == 'compositesolid':
@@ -198,7 +267,7 @@ class Geometry(object):
                 for shell in solid:
                     s = list()
                     for surface in shell:
-                        s.append([self._vertex_mapper(b, vertices) for b in surface])
+                        s.append([self._vertex_mapper(ring, vertices, transform) for ring in surface])
                     sh.append(s)
                 solids.append(sh)
             return solids
@@ -207,6 +276,7 @@ class Geometry(object):
 
     def _dereference_surfaces(self, semantics_obj):
         """Dereferene a semantic surface
+
         :param semantics_obj: Semantic Surface object as extracted from CityJSON file
         """
         semantic_surfaces = dict()
@@ -265,8 +335,10 @@ class Geometry(object):
 
     def get_surface_boundaries(self, surface):
         """Get the surface at the index location from the Geometry boundary
+
         .. note:: Interior surfaces don't have semantics and they are returned with the exterior.
 
+        :param surface: A semantic surface
         :return: Surfaces from the boundary that correspond to the index.
         """
         # TODO BD: essentially, this function is meant to returns a MultiSurface,
@@ -284,7 +356,7 @@ class Geometry(object):
                     else self.boundaries[i[0]][i[1]][i[2]]
                     for i in surface['surface_idx']]
 
-    def build_index(self, vtx_lookup=dict(), vtx_idx=0):
+    def build_index(self, vtx_lookup:dict=dict(), vtx_idx:int=0):
         """Build a coordinate list and index the vertices"""
         if not self.boundaries:
             return ([], vtx_lookup, vtx_idx)
@@ -336,10 +408,12 @@ class Geometry(object):
         else:
             raise TypeError("Unknown geometry type: {}".format(self.type))
 
-    def get_surfaces(self, type=None, lod=None):
+    def get_surfaces(self, type:str=None, lod:int=None):
         """Get the semantic surfaces of the given type
+
         The whole boundary is returned if a geometry does not have semantics, or has a LoD < 2,
         or the surface type is not provided.
+
         :param type: Semantic Surface type. If not provided, the whole boundary is returned.
         :param lod: Level of Detail
         :return: Return a subset of the specific surfaces of the geometry
