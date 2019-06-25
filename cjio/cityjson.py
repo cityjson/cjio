@@ -1308,3 +1308,23 @@ class CityJSON:
         self.remove_duplicate_vertices()
         self.remove_orphan_vertices()        
 
+
+    def translate(self, values, minimum_xyz):
+        if minimum_xyz == True:
+            #-- find the minimums
+            bbox = [9e9, 9e9, 9e9]    
+            for v in self.j["vertices"]:
+                for i in range(3):
+                    if v[i] < bbox[i]:
+                        bbox[i] = v[i]
+            bbox[0] = -bbox[0]
+            bbox[1] = -bbox[1]
+            bbox[2] = -bbox[2]
+        else:
+            bbox = values
+        for v in self.j['vertices']:
+            v[0] = v[0] + bbox[0]
+            v[1] = v[1] + bbox[1]
+            v[2] = v[2] + bbox[2]
+        self.set_epsg(None)
+        return bbox
