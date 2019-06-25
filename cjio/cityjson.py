@@ -456,6 +456,11 @@ class CityJSON:
 
 
     def set_epsg(self, newepsg):
+        if newepsg == None:
+            if "metadata" in self.j:
+                if "referenceSystem" in self.j["metadata"]:
+                    del self.j["metadata"]["referenceSystem"]
+            return True
         try:
             i = int(newepsg)
         except ValueError:
