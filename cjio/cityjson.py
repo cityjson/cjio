@@ -427,17 +427,15 @@ class CityJSON:
         return (isValid, woWarnings, es, ws)
 
 
-    def update_bbox(self):
-        """
-        Update the bbox (["metadata"]["bbox"]) of the CityJSON.
-        If there is none then it is added.
-        """
+    def get_bbox(self):
         if "metadata" not in self.j:
-            self.j["metadata"] = {}
-        if self.is_empty() == True:
-            bbox = [0, 0, 0, 0, 0, 0]    
-            self.j["metadata"]["geographicalExtent"] = bbox
-            return bbox
+            return self.calculate_bbox()
+        if "geographicalExtent" not in self.j["metadata"]:
+            return self.calculate_bbox()
+        return self.j["metadata"]["geographicalExtent"]
+
+
+    def calculate_bbox(self):
         bbox = [9e9, 9e9, 9e9, -9e9, -9e9, -9e9]    
         for v in self.j["vertices"]:
             for i in range(3):
@@ -451,6 +449,21 @@ class CityJSON:
                 bbox[i] = (bbox[i] * self.j["transform"]["scale"][i]) + self.j["transform"]["translate"][i]
             for i in range(3):
                 bbox[i+3] = (bbox[i+3] * self.j["transform"]["scale"][i]) + self.j["transform"]["translate"][i]
+        return bbox
+
+
+    def update_bbox(self):
+        """
+        Update the bbox (["metadata"]["bbox"]) of the CityJSON.
+        If there is none then it is added.
+        """
+        if "metadata" not in self.j:
+            self.j["metadata"] = {}
+        if self.is_empty() == True:
+            bbox = [0, 0, 0, 0, 0, 0]    
+            self.j["metadata"]["geographicalExtent"] = bbox
+            return bbox
+        bbox = self.calculate_bbox()
         self.j["metadata"]["geographicalExtent"] = bbox
         return bbox        
 
@@ -854,6 +867,7 @@ class CityJSON:
         info = collections.OrderedDict()
         info["cityjson_version"] = self.get_version()
         info["epsg"] = self.get_epsg()
+        info["bbox"] = self.get_bbox()
         if "extensions" in self.j:
             d = set()
             for i in self.j["extensions"]:
@@ -1327,4 +1341,5 @@ class CityJSON:
             v[1] = v[1] + bbox[1]
             v[2] = v[2] + bbox[2]
         self.set_epsg(None)
+        self.update_bbox()
         return bbox
