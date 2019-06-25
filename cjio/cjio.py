@@ -505,10 +505,11 @@ def extract_lod_cmd(lod):
 
 @cli.command('translate')
 @click.option('--values', nargs=3, type=float, help='(x, y, z)')
-# @click.option('--minimum_xyz', is_flag=True, help='Translate by (-minx, -miny, -minz)')
 def translate_cmd(values):
     """
-    Translate the file by (x, y, z)
+    Translate the file by its (-minx, -miny, -minz).
+
+    Three values can also be given, eg: 'translate --values -100 -25 -1'
     """
     def processor(cm):
         if len(values) == 0:
