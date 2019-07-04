@@ -26,7 +26,7 @@ To install the development branch, and still develop with it:
 
 .. code:: console
 
-    git checkout development
+    git checkout develop
     virtualenv venv
     . venv/bin/activate
     pip install --editable .
