@@ -1049,7 +1049,10 @@ class CityJSON:
                     co_attributes.add(attr)
             for geom in self.j['CityObjects'][key]['geometry']:
                 d.add(geom["type"])
-                lod.add(geom["lod"])
+                if "lod" in geom:
+                    lod.add(geom["lod"])
+                else: #-- it's a geometry-template
+                    lod.add(self.j["geometry-templates"]["templates"][geom["template"]]["lod"])
                 if "semantics" in geom:
                     for srf in geom["semantics"]["surfaces"]:
                         sem_srf.add(srf["type"])
