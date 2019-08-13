@@ -295,7 +295,7 @@ def cityjson_properties(j, js):
     ws = []
     thewarnings = {}
     for property in j:
-        if ( (property[0] != "+") and (property not in js["properties"]) ):
+        if ( ((property[0] != "+") and (property[0] != "@")) and (property not in js["properties"]) ):
             isValid = False
             s = "WARNING: root property '" + property + "' not in CityJSON schema, might be ignored by some parsers"
             ws.append(s)
