@@ -94,15 +94,17 @@ def process_pipeline(processors, input, ignore_duplicate_keys):
 
 @cli.command('info')
 @click.pass_context
-def info_cmd(context):
+@click.option('--long', is_flag=True,
+              help='More gory details about the file.')
+def info_cmd(context, long):
     """Output info in simple JSON."""
     def processor(cm):
         if isinstance(cm, list):
             for subset in cm:
                 click.echo("=============== City model: %s ===============" % subset.path)
-                click.echo(subset.get_info())
+                click.echo(subset.get_info(long=long))
         else:
-            click.echo(cm.get_info())
+            click.echo(cm.get_info(long=long))
         return cm
     return processor
 

@@ -1013,7 +1013,7 @@ class CityJSON:
         return total
 
 
-    def get_info(self):
+    def get_info(self, long=False):
         info = collections.OrderedDict()
         info["cityjson_version"] = self.get_version()
         info["epsg"] = self.get_epsg()
@@ -1023,20 +1023,30 @@ class CityJSON:
             for i in self.j["extensions"]:
                 d.add(i)
             info["extensions"] = sorted(list(d))
+        info["transform/compressed"] = "transform" in self.j
         info["cityobjects_total"] = self.number_city_objects()
         d = set()
         for key in self.j["CityObjects"]:
             d.add(self.j['CityObjects'][key]['type'])
         info["cityobjects_present"] = sorted(list(d))
+        if 'appearance' in self.j:
+            info["materials"] = 'materials' in self.j['appearance']
+            info["textures"] = 'textures' in self.j['appearance']
+        else:
+            info["materials"] = False
+            info["textures"] =  False
+        if long == False:
+            return json.dumps(info, indent=2)    
+        #-- all/long version
         info["vertices_total"] = len(self.j["vertices"])
-        info["transform/compressed"] = "transform" in self.j
         d.clear()
         lod = set()
         sem_srf = set()
         co_attributes = set()
         for key in self.j["CityObjects"]:
-            for attr in self.j['CityObjects'][key]['attributes'].keys():
-                co_attributes.add(attr)
+            if 'attributes' in self.j['CityObjects'][key]:
+                for attr in self.j['CityObjects'][key]['attributes'].keys():
+                    co_attributes.add(attr)
             for geom in self.j['CityObjects'][key]['geometry']:
                 d.add(geom["type"])
                 lod.add(geom["lod"])
@@ -1047,12 +1057,6 @@ class CityJSON:
         info["level_of_detail"] = list(lod)
         info["semantics_surfaces_present"] = list(sem_srf)
         info["cityobject_attributes"] = list(co_attributes)
-        if 'appearance' in self.j:
-            info["materials"] = 'materials' in self.j['appearance']
-            info["textures"] = 'textures' in self.j['appearance']
-        else:
-            info["materials"] = False
-            info["textures"] =  False
         return json.dumps(info, indent=2)
 
 
