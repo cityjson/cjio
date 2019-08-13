@@ -780,6 +780,8 @@ class CityJSON:
         cm2 = CityJSON()
         cm2.j["version"] = self.j["version"]
         cm2.path = self.path
+        if "extensions" in self.j:
+            cm2.j["extensions"] = self.j["extensions"]
         if "transform" in self.j:
             cm2.j["transform"] = self.j["transform"]
         #-- copy selected CO to the j2
