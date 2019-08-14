@@ -394,8 +394,6 @@ def merge_cmd(filepattern):
         if len(lsCMs) == 0:
             click.echo("WARNING: No files to merge.")
         else:
-            for i in lsCMs:
-                click.echo("\t%s" % i)
             cm.merge(lsCMs)
         return cm
     return processor
@@ -487,7 +485,7 @@ def clean_cmd():
     remove_orphan_vertices    
     """
     def processor(cm):
-        print_cmd_status('Clean the file')
+        utils.print_cmd_status('Clean the file')
         cm.remove_duplicate_vertices()
         cm.remove_orphan_vertices()
         return cm
@@ -683,6 +681,6 @@ def translate_cmd(values):
            bbox = cm.translate(values=[], minimum_xyz=True)
         else:
             bbox = cm.translate(values=values, minimum_xyz=False)
-        print_cmd_status('Translating the file by: (%f, %f, %f)' % (bbox[0], bbox[1], bbox[2]))
+        utils.print_cmd_status('Translating the file by: (%f, %f, %f)' % (bbox[0], bbox[1], bbox[2]))
         return cm
     return processor
