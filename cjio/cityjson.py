@@ -1447,6 +1447,7 @@ class CityJSON:
 
 
     def export2obj(self):
+        self.decompress()
         out = StringIO()
         #-- write vertices
         for v in self.j['vertices']:
