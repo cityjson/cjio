@@ -1211,22 +1211,32 @@ class CityJSON:
         for cm in lsCMs:
             #-- decompress 
             cm.decompress()
-            #-- add each CityObjects
-            coadded = 0
-            for theid in cm.j["CityObjects"]:
-                if theid in self.j["CityObjects"]:
-                    print ("ERROR: CityObject #", theid, "already present. Skipped.")
-                else:
-                    self.j["CityObjects"][theid] = cm.j["CityObjects"][theid]
-                    coadded += 1
-            if coadded == 0:
-                continue
-            #-- add the vertices + update the geom indices
             offset = len(self.j["vertices"])
             self.j["vertices"] += cm.j["vertices"]
+            #-- add each CityObjects
             for theid in cm.j["CityObjects"]:
-                for g in cm.j['CityObjects'][theid]['geometry']:
-                    update_geom_indices(g["boundaries"], offset)
+                if theid in self.j["CityObjects"]:
+                    #-- merge attributes if not present (based on the property name only)
+                    for a in cm.j["CityObjects"][theid]["attributes"]:
+                        if a not in self.j["CityObjects"][theid]["attributes"]:
+                            self.j["CityObjects"][theid]["attributes"][a] = cm.j["CityObjects"][theid]["attributes"][a]
+                    #-- merge geoms if not present (based on LoD only)
+                    for g in cm.j['CityObjects'][theid]['geometry']:
+                        thelod = str(g["lod"])
+                        # print ("-->", thelod)
+                        b = False
+                        for g2 in self.j['CityObjects'][theid]['geometry']:
+                            if g2["lod"] == thelod:
+                                b = True
+                                break
+                        if b == False:
+                            self.j['CityObjects'][theid]['geometry'].append(g)
+                            update_geom_indices(self.j['CityObjects'][theid]['geometry'][-1]["boundaries"], offset)    
+                else:
+                    #-- copy the CO
+                    self.j["CityObjects"][theid] = cm.j["CityObjects"][theid]
+                    for g in self.j['CityObjects'][theid]['geometry']:
+                        update_geom_indices(g["boundaries"], offset)
             #-- templates
             if "geometry-templates" in cm.j:
                 if "geometry-templates" in self.j:
@@ -1294,8 +1304,8 @@ class CityJSON:
                         if 'texture' in g:
                             for m in g['texture']:
                                 update_texture_indices(g['texture'][m]['values'], toffset, voffset)
-        # self.remove_duplicate_vertices()
-        # self.remove_orphan_vertices()
+        self.remove_duplicate_vertices()
+        self.remove_orphan_vertices()
         return True
 
 
