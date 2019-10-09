@@ -9,7 +9,6 @@ import sys
 import copy
 import glob
 import cjio
-import io
 from cjio import cityjson, tiling, utils
 
 
