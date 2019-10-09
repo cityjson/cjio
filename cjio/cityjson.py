@@ -731,8 +731,7 @@ class CityJSON:
                     re.add(child)
             if "parents" in self.j['CityObjects'][theid]:
                 for each in self.j['CityObjects'][theid]['parents']:
-                    re.add(self.j['CityObjects'][each])
-
+                    re.add(each)
         
         for each in re:
             cm2.j["CityObjects"][each] = self.j["CityObjects"][each]
