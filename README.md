@@ -45,6 +45,72 @@ You can then continue with:
 pip3 install cjio
 ```
 
+## Docker
+
+If docker is the tool of your choice, please read the following hints.
+
+To run cjio via docker simply call:
+
+```console
+docker run --rm  -v <local path where your files are>:/data tudelft3d/cjio:latest cjio --help
+```
+
+To give a simple example for the following lets assume you want to create a geojson which represents 
+the bounding boxes of the files in your directory. Lets call this script *gridder.py*. It would look like this:
+
+```python
+from cjio import cityjson
+import glob
+import ntpath
+import json
+import os
+from shapely.geometry import box, mapping
+
+def path_leaf(path):
+    head, tail = ntpath.split(path)
+    return tail or ntpath.basename(head)
+
+files = glob.glob('./*.json')
+
+geo_json_dict = {
+    "type": "FeatureCollection",
+    "features": []
+}
+
+for f in files:
+    cj_file = open(f, 'r')
+    cm = cityjson.reader(file=cj_file)
+    theinfo = json.loads(cm.get_info())
+    las_polygon = box(theinfo['bbox'][0], theinfo['bbox'][1], theinfo['bbox'][3], theinfo['bbox'][4])
+    feature = {
+        'properties': {
+            'name': path_leaf(f)
+        },
+        'geometry': mapping(las_polygon)
+    }
+    geo_json_dict["features"].append(feature)
+    geo_json_dict["crs"] = {
+        "type": "name",
+        "properties": {
+            "name": "EPSG:{}".format(theinfo['epsg'])
+        }
+    }
+geo_json_file = open(os.path.join('./', 'grid.json'), 'w+')
+geo_json_file.write(json.dumps(geo_json_dict, indent=2))
+geo_json_file.close()
+```
+
+This script will produce for all files with postfix ".json" in the directory a bbox polygon using cjio and save the complete geojson result in grid.json in place.
+
+If you have a python script like this, simply put it inside your 
+local data and call docker like this:
+
+```console
+docker run --rm  -v <local path where your files are>:/data tudelft3d/cjio:latest python gridder.py
+```
+
+This will execute your script in the context of the python environment inside the docker image.
+
 ## Usage
 
 After installation, you have a small program called `cjio`, to see its possibities:
