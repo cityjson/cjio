@@ -1,0 +1,37 @@
+sudo: required
+
+language: cpp
+
+services:
+- docker
+
+install: skip
+
+script:
+- echo "skipping tests"
+- docker login --username ${DOCKER_USERNAME} --password ${DOCKER_PASSWORD}
+- docker pull ${DOCKER_USERNAME}/cjio:latest || true
+- docker build . --cache-from ${DOCKER_USERNAME}/cjio:latest -t ${DOCKER_USERNAME}/cjio:latest
+
+
+deploy:
+- provider: script
+  script:
+    - docker push ${DOCKER_USERNAME}/cjio:latest
+  skip_cleanup: true
+  on:
+    branch: master
+- provider: script
+  script:
+    - docker tag ${DOCKER_USERNAME}/cjio:latest ${DOCKER_USERNAME}/cjio:dev
+    - docker push ${DOCKER_USERNAME}/cjio:dev
+  skip_cleanup: true
+  on:
+    branch: develop
+- provider: script
+  script:
+    - docker tag ${DOCKER_USERNAME}/cjio:latest ${DOCKER_USERNAME}/cjio:${TRAVIS_TAG}
+    - docker push ${DOCKER_USERNAME}/cjio:${TRAVIS_TAG}
+  skip_cleanup: true
+  on:
+    tags: true
