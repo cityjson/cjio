@@ -2,6 +2,12 @@
 import numpy as np
 import math
 
+MODULE_EARCUT_AVAILABLE = True
+try:
+    import mapbox_earcut
+except ImportError as e:
+    MODULE_EARCUT_AVAILABLE = False
+
 def to_2d(p, n):
     #-- n must be normalised
     # p = np.array([1, 2, 3])
@@ -36,3 +42,34 @@ def get_normal_newell(poly):
         return (n, False)
     n = n / math.sqrt(n[0]*n[0] + n[1]*n[1] + n[2]*n[2])    
     return (n, True)
+
+
+def triangulate_face(face, vnp):
+    if not MODULE_EARCUT_AVAILABLE:
+        raise ModuleNotFoundError("mapbox-earcut is not installed")
+    if ((len(face) == 1) and (len(face[0]) == 3)):
+        #        print ("Already a triangle")
+        return face
+    sf = np.array([], dtype=np.int32)
+    for ring in face:
+        sf = np.hstack((sf, np.array(ring)))
+    sfv = vnp[sf]
+    rings = np.zeros(len(face), dtype=np.int32)
+    total = 0
+    for i in range(len(face)):
+        total += len(face[i])
+        rings[i] = total
+        # 1. normal with Newell's method
+    n = get_normal_newell(sfv)
+    sfv2d = np.zeros((sfv.shape[0], 2))
+    for i, p in enumerate(sfv):
+        xy = to_2d(p, n)
+        sfv2d[i][0] = xy[0]
+        sfv2d[i][1] = xy[1]
+    result = mapbox_earcut.triangulate_float32(sfv2d, rings)
+
+    for i, each in enumerate(result):
+        result[i] = int(sf[each])
+
+    #    print (type(result.reshape(-1, 3).tolist()[0][0]))
+    return result.reshape(-1, 3).tolist()
