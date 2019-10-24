@@ -35,7 +35,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="cjio API tutorial" href="cjio_tutorial.html" />
+    <link rel="next" title="cjio API tutorial" href="api_tutorial_basics.html" />
     <link rel="prev" title="Welcome to cjio’s documentation!" href="index.html" /> 
 </head>
 
@@ -92,11 +92,12 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#usage-of-the-api">Usage of the API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#docker">Docker</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#example-cityjson-datasets">Example CityJSON datasets</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#acknowledgements">Acknowledgements</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="cjio_tutorial.html">cjio API tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_tutorial_basics.html">cjio API tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="modules.html">Reference</a></li>
 </ul>
 
@@ -203,7 +204,7 @@ model can be saved as files along the pipeline.</p>
 </pre></div>
 </div>
 <p>To install the development branch, and still develop with it:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">git checkout development</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">git checkout develop</span>
 <span class="go">virtualenv venv</span>
 <span class="go">. venv/bin/activate</span>
 <span class="go">pip install --editable .</span>
@@ -336,6 +337,65 @@ master file which links to each partition which are converted to
 <a class="reference external image-reference" href="https://mybinder.org/v2/gh/tudelft3d/cjio/develop?filepath=docs%2Fsource%2Fcjio_tutorial.ipynb"><img alt="https://mybinder.org/badge_logo.svg" src="https://mybinder.org/badge_logo.svg" /></a>
 <p>The API is experimental at the moment, but you can play around with what we already have on Binder.</p>
 </div>
+<div class="section" id="docker">
+<h2>Docker<a class="headerlink" href="#docker" title="Permalink to this headline">¶</a></h2>
+<p>If docker is the tool of your choice, please read the following hints.</p>
+<p>To run cjio via docker simply call:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> docker run --rm  -v &lt;<span class="nb">local</span> path where your files are&gt;:/data tudelft3d/cjio:latest cjio --help
+</pre></div>
+</div>
+<p>To give a simple example for the following lets assume you want to create a geojson which represents
+the bounding boxes of the files in your directory. Lets call this script <em>gridder.py</em>. It would look like this:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cjio</span> <span class="kn">import</span> <span class="n">cityjson</span>
+<span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">import</span> <span class="nn">ntpath</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">shapely.geometry</span> <span class="kn">import</span> <span class="n">box</span><span class="p">,</span> <span class="n">mapping</span>
+
+<span class="k">def</span> <span class="nf">path_leaf</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="n">head</span><span class="p">,</span> <span class="n">tail</span> <span class="o">=</span> <span class="n">ntpath</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tail</span> <span class="ow">or</span> <span class="n">ntpath</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">head</span><span class="p">)</span>
+
+<span class="n">files</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">&#39;./*.json&#39;</span><span class="p">)</span>
+
+<span class="n">geo_json_dict</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;FeatureCollection&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;features&quot;</span><span class="p">:</span> <span class="p">[]</span>
+<span class="p">}</span>
+
+<span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+    <span class="n">cj_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+    <span class="n">cm</span> <span class="o">=</span> <span class="n">cityjson</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="nb">file</span><span class="o">=</span><span class="n">cj_file</span><span class="p">)</span>
+    <span class="n">theinfo</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">get_info</span><span class="p">())</span>
+    <span class="n">las_polygon</span> <span class="o">=</span> <span class="n">box</span><span class="p">(</span><span class="n">theinfo</span><span class="p">[</span><span class="s1">&#39;bbox&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">theinfo</span><span class="p">[</span><span class="s1">&#39;bbox&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">theinfo</span><span class="p">[</span><span class="s1">&#39;bbox&#39;</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span> <span class="n">theinfo</span><span class="p">[</span><span class="s1">&#39;bbox&#39;</span><span class="p">][</span><span class="mi">4</span><span class="p">])</span>
+    <span class="n">feature</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;properties&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">path_leaf</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="p">},</span>
+        <span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="n">mapping</span><span class="p">(</span><span class="n">las_polygon</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="n">geo_json_dict</span><span class="p">[</span><span class="s2">&quot;features&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feature</span><span class="p">)</span>
+    <span class="n">geo_json_dict</span><span class="p">[</span><span class="s2">&quot;crs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;name&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;EPSG:{}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">theinfo</span><span class="p">[</span><span class="s1">&#39;epsg&#39;</span><span class="p">])</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="n">geo_json_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;./&#39;</span><span class="p">,</span> <span class="s1">&#39;grid.json&#39;</span><span class="p">),</span> <span class="s1">&#39;w+&#39;</span><span class="p">)</span>
+<span class="n">geo_json_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">geo_json_dict</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+<span class="n">geo_json_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This script will produce for all files with postfix “.json” in the directory a bbox polygon using
+cjio and save the complete geojson result in grid.json in place.</p>
+<p>If you have a python script like this, simply put it inside your
+local data and call docker like this:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">docker run --rm  -v &lt;local path where your files are&gt;:/data tudelft3d/cjio:latest python gridder.py</span>
+</pre></div>
+</div>
+<p>This will execute your script in the context of the python environment inside the docker image.</p>
+</div>
 <div class="section" id="example-cityjson-datasets">
 <h2>Example CityJSON datasets<a class="headerlink" href="#example-cityjson-datasets" title="Permalink to this headline">¶</a></h2>
 <p>There are a few <a class="reference external" href="https://www.cityjson.org/en/0.9/datasets/">example files on the CityJSON
@@ -360,7 +420,7 @@ automatically converted to CityJSON with the open-source project
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="cjio_tutorial.html" class="btn btn-neutral float-right" title="cjio API tutorial" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="api_tutorial_basics.html" class="btn btn-neutral float-right" title="cjio API tutorial" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="index.html" class="btn btn-neutral float-left" title="Welcome to cjio’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

@@ -80,7 +80,7 @@
             
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../includeme.html">cjio, or CityJSON/io</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../cjio_tutorial.html">cjio API tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api_tutorial_basics.html">cjio API tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../modules.html">Reference</a></li>
 </ul>
 
@@ -636,17 +636,24 @@
                 <span class="k">if</span> <span class="p">(</span><span class="n">isValid</span> <span class="o">==</span> <span class="kc">False</span><span class="p">):</span>
                     <span class="n">es</span> <span class="o">+=</span> <span class="n">errs</span>
                     <span class="k">return</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">es</span><span class="p">,</span> <span class="p">[])</span>
+
         <span class="c1">#-- 2. schema for Extensions</span>
         <span class="k">if</span> <span class="s2">&quot;extensions&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">:</span>
             <span class="n">b</span><span class="p">,</span> <span class="n">es</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate_extensions</span><span class="p">(</span><span class="n">folder_schemas</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">b</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
                 <span class="k">return</span> <span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">es</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1">#-- check that there are no +CityObject that do not have a schema</span>
+            <span class="c1">#-- (used if the file has no &quot;extensions&quot; property while there are +Pand for instance)</span>
+            <span class="k">for</span> <span class="n">theid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;CityObjects&quot;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="p">(</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;CityObjects&quot;</span><span class="p">][</span><span class="n">theid</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;+&quot;</span><span class="p">)</span> <span class="p">):</span>
+                    <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;ERROR:   CityObject &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;CityObjects&quot;</span><span class="p">][</span><span class="n">theid</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot; doesn&#39;t have a schema.&quot;</span>
+                    <span class="n">es</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">es</span><span class="p">,</span> <span class="p">[])</span>
 
-
-        <span class="c1">#-- 3. ERRORS</span>
+        <span class="c1">#-- 3. Internal consistency validation </span>
         <span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;-- Validating the internal consistency of the file (see docs for list)&#39;</span><span class="p">)</span>
         <span class="n">isValid</span> <span class="o">=</span> <span class="kc">True</span>
-
         <span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;version&quot;</span><span class="p">])</span> <span class="o">==</span> <span class="mf">0.6</span><span class="p">:</span>
             <span class="n">b</span><span class="p">,</span> <span class="n">errs</span> <span class="o">=</span> <span class="n">validation</span><span class="o">.</span><span class="n">building_parts</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">)</span> 
             <span class="k">if</span> <span class="n">b</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
@@ -715,17 +722,15 @@
         <span class="k">return</span> <span class="p">(</span><span class="n">isValid</span><span class="p">,</span> <span class="n">woWarnings</span><span class="p">,</span> <span class="n">es</span><span class="p">,</span> <span class="n">ws</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="CityJSON.update_bbox"><a class="viewcode-back" href="../../cjio.html#cjio.cityjson.CityJSON.update_bbox">[docs]</a>    <span class="k">def</span> <span class="nf">update_bbox</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Update the bbox ([&quot;metadata&quot;][&quot;bbox&quot;]) of the CityJSON.</span>
-<span class="sd">        If there is none then it is added.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="CityJSON.get_bbox"><a class="viewcode-back" href="../../cjio.html#cjio.cityjson.CityJSON.get_bbox">[docs]</a>    <span class="k">def</span> <span class="nf">get_bbox</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="s2">&quot;metadata&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;metadata&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_empty</span><span class="p">()</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
-            <span class="n">bbox</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>    
-            <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;metadata&quot;</span><span class="p">][</span><span class="s2">&quot;geographicalExtent&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bbox</span>
-            <span class="k">return</span> <span class="n">bbox</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_bbox</span><span class="p">()</span>
+        <span class="k">if</span> <span class="s2">&quot;geographicalExtent&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;metadata&quot;</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_bbox</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;metadata&quot;</span><span class="p">][</span><span class="s2">&quot;geographicalExtent&quot;</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="CityJSON.calculate_bbox"><a class="viewcode-back" href="../../cjio.html#cjio.cityjson.CityJSON.calculate_bbox">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_bbox</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">bbox</span> <span class="o">=</span> <span class="p">[</span><span class="mf">9e9</span><span class="p">,</span> <span class="mf">9e9</span><span class="p">,</span> <span class="mf">9e9</span><span class="p">,</span> <span class="o">-</span><span class="mf">9e9</span><span class="p">,</span> <span class="o">-</span><span class="mf">9e9</span><span class="p">,</span> <span class="o">-</span><span class="mf">9e9</span><span class="p">]</span>    
         <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;vertices&quot;</span><span class="p">]:</span>
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
@@ -739,11 +744,31 @@
                 <span class="n">bbox</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;transform&quot;</span><span class="p">][</span><span class="s2">&quot;scale&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">])</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;transform&quot;</span><span class="p">][</span><span class="s2">&quot;translate&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
                 <span class="n">bbox</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;transform&quot;</span><span class="p">][</span><span class="s2">&quot;scale&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">])</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;transform&quot;</span><span class="p">][</span><span class="s2">&quot;translate&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">bbox</span></div>
+
+
+<div class="viewcode-block" id="CityJSON.update_bbox"><a class="viewcode-back" href="../../cjio.html#cjio.cityjson.CityJSON.update_bbox">[docs]</a>    <span class="k">def</span> <span class="nf">update_bbox</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update the bbox ([&quot;metadata&quot;][&quot;bbox&quot;]) of the CityJSON.</span>
+<span class="sd">        If there is none then it is added.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;metadata&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;metadata&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_empty</span><span class="p">()</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">bbox</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>    
+            <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;metadata&quot;</span><span class="p">][</span><span class="s2">&quot;geographicalExtent&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bbox</span>
+            <span class="k">return</span> <span class="n">bbox</span>
+        <span class="n">bbox</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculate_bbox</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;metadata&quot;</span><span class="p">][</span><span class="s2">&quot;geographicalExtent&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bbox</span>
         <span class="k">return</span> <span class="n">bbox</span>        </div>
 
 
 <div class="viewcode-block" id="CityJSON.set_epsg"><a class="viewcode-back" href="../../cjio.html#cjio.cityjson.CityJSON.set_epsg">[docs]</a>    <span class="k">def</span> <span class="nf">set_epsg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newepsg</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">newepsg</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;metadata&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;referenceSystem&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;metadata&quot;</span><span class="p">]:</span>
+                    <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;metadata&quot;</span><span class="p">][</span><span class="s2">&quot;referenceSystem&quot;</span><span class="p">]</span>
+            <span class="k">return</span> <span class="kc">True</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">i</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">newepsg</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
@@ -853,8 +878,7 @@
                     <span class="n">re</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
             <span class="k">if</span> <span class="s2">&quot;parents&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">][</span><span class="n">theid</span><span class="p">]:</span>
                 <span class="k">for</span> <span class="n">each</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">][</span><span class="n">theid</span><span class="p">][</span><span class="s1">&#39;parents&#39;</span><span class="p">]:</span>
-                    <span class="n">re</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">][</span><span class="n">each</span><span class="p">])</span>
-
+                    <span class="n">re</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">each</span><span class="p">)</span>
         
         <span class="k">for</span> <span class="n">each</span> <span class="ow">in</span> <span class="n">re</span><span class="p">:</span>
             <span class="n">cm2</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;CityObjects&quot;</span><span class="p">][</span><span class="n">each</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;CityObjects&quot;</span><span class="p">][</span><span class="n">each</span><span class="p">]</span>
@@ -909,6 +933,8 @@
         <span class="n">cm2</span> <span class="o">=</span> <span class="n">CityJSON</span><span class="p">()</span>
         <span class="n">cm2</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;version&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;version&quot;</span><span class="p">]</span>
         <span class="n">cm2</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span>
+        <span class="k">if</span> <span class="s2">&quot;extensions&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">:</span>
+            <span class="n">cm2</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;extensions&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;extensions&quot;</span><span class="p">]</span>
         <span class="k">if</span> <span class="s2">&quot;transform&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">:</span>
             <span class="n">cm2</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;transform&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;transform&quot;</span><span class="p">]</span>
         <span class="c1">#-- copy selected CO to the j2</span>
@@ -1133,32 +1159,46 @@
         <span class="k">return</span> <span class="n">total</span></div>
 
 
-<div class="viewcode-block" id="CityJSON.get_info"><a class="viewcode-back" href="../../cjio.html#cjio.cityjson.CityJSON.get_info">[docs]</a>    <span class="k">def</span> <span class="nf">get_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="CityJSON.get_info"><a class="viewcode-back" href="../../cjio.html#cjio.cityjson.CityJSON.get_info">[docs]</a>    <span class="k">def</span> <span class="nf">get_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">long</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="n">info</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span>
         <span class="n">info</span><span class="p">[</span><span class="s2">&quot;cityjson_version&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_version</span><span class="p">()</span>
         <span class="n">info</span><span class="p">[</span><span class="s2">&quot;epsg&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_epsg</span><span class="p">()</span>
+        <span class="n">info</span><span class="p">[</span><span class="s2">&quot;bbox&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_bbox</span><span class="p">()</span>
         <span class="k">if</span> <span class="s2">&quot;extensions&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">:</span>
             <span class="n">d</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;extensions&quot;</span><span class="p">]:</span>
                 <span class="n">d</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
             <span class="n">info</span><span class="p">[</span><span class="s2">&quot;extensions&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
+        <span class="n">info</span><span class="p">[</span><span class="s2">&quot;transform/compressed&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;transform&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span>
         <span class="n">info</span><span class="p">[</span><span class="s2">&quot;cityobjects_total&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_city_objects</span><span class="p">()</span>
         <span class="n">d</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;CityObjects&quot;</span><span class="p">]:</span>
             <span class="n">d</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">][</span><span class="n">key</span><span class="p">][</span><span class="s1">&#39;type&#39;</span><span class="p">])</span>
         <span class="n">info</span><span class="p">[</span><span class="s2">&quot;cityobjects_present&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">d</span><span class="p">))</span>
+        <span class="k">if</span> <span class="s1">&#39;appearance&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">:</span>
+            <span class="n">info</span><span class="p">[</span><span class="s2">&quot;materials&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;materials&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;appearance&#39;</span><span class="p">]</span>
+            <span class="n">info</span><span class="p">[</span><span class="s2">&quot;textures&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;textures&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;appearance&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">info</span><span class="p">[</span><span class="s2">&quot;materials&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">info</span><span class="p">[</span><span class="s2">&quot;textures&quot;</span><span class="p">]</span> <span class="o">=</span>  <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">long</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">info</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>    
+        <span class="c1">#-- all/long version</span>
         <span class="n">info</span><span class="p">[</span><span class="s2">&quot;vertices_total&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;vertices&quot;</span><span class="p">])</span>
-        <span class="n">info</span><span class="p">[</span><span class="s2">&quot;transform/compressed&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;transform&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span>
         <span class="n">d</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
         <span class="n">lod</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="n">sem_srf</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="n">co_attributes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;CityObjects&quot;</span><span class="p">]:</span>
-            <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">][</span><span class="n">key</span><span class="p">][</span><span class="s1">&#39;attributes&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                <span class="n">co_attributes</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">attr</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s1">&#39;attributes&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">][</span><span class="n">key</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">][</span><span class="n">key</span><span class="p">][</span><span class="s1">&#39;attributes&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="n">co_attributes</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">attr</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">geom</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">][</span><span class="n">key</span><span class="p">][</span><span class="s1">&#39;geometry&#39;</span><span class="p">]:</span>
                 <span class="n">d</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">geom</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">])</span>
-                <span class="n">lod</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">geom</span><span class="p">[</span><span class="s2">&quot;lod&quot;</span><span class="p">])</span>
+                <span class="k">if</span> <span class="s2">&quot;lod&quot;</span> <span class="ow">in</span> <span class="n">geom</span><span class="p">:</span>
+                    <span class="n">lod</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">geom</span><span class="p">[</span><span class="s2">&quot;lod&quot;</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span> <span class="c1">#-- it&#39;s a geometry-template</span>
+                    <span class="n">lod</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;geometry-templates&quot;</span><span class="p">][</span><span class="s2">&quot;templates&quot;</span><span class="p">][</span><span class="n">geom</span><span class="p">[</span><span class="s2">&quot;template&quot;</span><span class="p">]][</span><span class="s2">&quot;lod&quot;</span><span class="p">])</span>
                 <span class="k">if</span> <span class="s2">&quot;semantics&quot;</span> <span class="ow">in</span> <span class="n">geom</span><span class="p">:</span>
                     <span class="k">for</span> <span class="n">srf</span> <span class="ow">in</span> <span class="n">geom</span><span class="p">[</span><span class="s2">&quot;semantics&quot;</span><span class="p">][</span><span class="s2">&quot;surfaces&quot;</span><span class="p">]:</span>
                         <span class="n">sem_srf</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">srf</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">])</span>
@@ -1166,12 +1206,6 @@
         <span class="n">info</span><span class="p">[</span><span class="s2">&quot;level_of_detail&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">lod</span><span class="p">)</span>
         <span class="n">info</span><span class="p">[</span><span class="s2">&quot;semantics_surfaces_present&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">sem_srf</span><span class="p">)</span>
         <span class="n">info</span><span class="p">[</span><span class="s2">&quot;cityobject_attributes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">co_attributes</span><span class="p">)</span>
-        <span class="k">if</span> <span class="s1">&#39;appearance&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">:</span>
-            <span class="n">info</span><span class="p">[</span><span class="s2">&quot;materials&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;materials&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;appearance&#39;</span><span class="p">]</span>
-            <span class="n">info</span><span class="p">[</span><span class="s2">&quot;textures&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;textures&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;appearance&#39;</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">info</span><span class="p">[</span><span class="s2">&quot;materials&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="n">info</span><span class="p">[</span><span class="s2">&quot;textures&quot;</span><span class="p">]</span> <span class="o">=</span>  <span class="kc">False</span>
         <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">info</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span></div>
 
 
@@ -1250,7 +1284,7 @@
 <div class="viewcode-block" id="CityJSON.compress"><a class="viewcode-back" href="../../cjio.html#cjio.cityjson.CityJSON.compress">[docs]</a>    <span class="k">def</span> <span class="nf">compress</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">important_digits</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
         <span class="k">if</span> <span class="s2">&quot;transform&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;CityJSON already compressed&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">return</span> <span class="kc">True</span> <span class="c1"># TODO: this is unreachable, will never return True</span>
         <span class="c1">#-- find the minx/miny/minz</span>
         <span class="n">bbox</span> <span class="o">=</span> <span class="p">[</span><span class="mf">9e9</span><span class="p">,</span> <span class="mf">9e9</span><span class="p">,</span> <span class="mf">9e9</span><span class="p">]</span>    
         <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;vertices&quot;</span><span class="p">]:</span>
@@ -1323,22 +1357,32 @@
         <span class="k">for</span> <span class="n">cm</span> <span class="ow">in</span> <span class="n">lsCMs</span><span class="p">:</span>
             <span class="c1">#-- decompress </span>
             <span class="n">cm</span><span class="o">.</span><span class="n">decompress</span><span class="p">()</span>
-            <span class="c1">#-- add each CityObjects</span>
-            <span class="n">coadded</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="k">for</span> <span class="n">theid</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;CityObjects&quot;</span><span class="p">]:</span>
-                <span class="k">if</span> <span class="n">theid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;CityObjects&quot;</span><span class="p">]:</span>
-                    <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;ERROR: CityObject #&quot;</span><span class="p">,</span> <span class="n">theid</span><span class="p">,</span> <span class="s2">&quot;already present. Skipped.&quot;</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;CityObjects&quot;</span><span class="p">][</span><span class="n">theid</span><span class="p">]</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;CityObjects&quot;</span><span class="p">][</span><span class="n">theid</span><span class="p">]</span>
-                    <span class="n">coadded</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="k">if</span> <span class="n">coadded</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">continue</span>
-            <span class="c1">#-- add the vertices + update the geom indices</span>
             <span class="n">offset</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;vertices&quot;</span><span class="p">])</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;vertices&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">cm</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;vertices&quot;</span><span class="p">]</span>
+            <span class="c1">#-- add each CityObjects</span>
             <span class="k">for</span> <span class="n">theid</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;CityObjects&quot;</span><span class="p">]:</span>
-                <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">][</span><span class="n">theid</span><span class="p">][</span><span class="s1">&#39;geometry&#39;</span><span class="p">]:</span>
-                    <span class="n">update_geom_indices</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="s2">&quot;boundaries&quot;</span><span class="p">],</span> <span class="n">offset</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">theid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;CityObjects&quot;</span><span class="p">]:</span>
+                    <span class="c1">#-- merge attributes if not present (based on the property name only)</span>
+                    <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;CityObjects&quot;</span><span class="p">][</span><span class="n">theid</span><span class="p">][</span><span class="s2">&quot;attributes&quot;</span><span class="p">]:</span>
+                        <span class="k">if</span> <span class="n">a</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;CityObjects&quot;</span><span class="p">][</span><span class="n">theid</span><span class="p">][</span><span class="s2">&quot;attributes&quot;</span><span class="p">]:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;CityObjects&quot;</span><span class="p">][</span><span class="n">theid</span><span class="p">][</span><span class="s2">&quot;attributes&quot;</span><span class="p">][</span><span class="n">a</span><span class="p">]</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;CityObjects&quot;</span><span class="p">][</span><span class="n">theid</span><span class="p">][</span><span class="s2">&quot;attributes&quot;</span><span class="p">][</span><span class="n">a</span><span class="p">]</span>
+                    <span class="c1">#-- merge geoms if not present (based on LoD only)</span>
+                    <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">][</span><span class="n">theid</span><span class="p">][</span><span class="s1">&#39;geometry&#39;</span><span class="p">]:</span>
+                        <span class="n">thelod</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="s2">&quot;lod&quot;</span><span class="p">])</span>
+                        <span class="c1"># print (&quot;--&gt;&quot;, thelod)</span>
+                        <span class="n">b</span> <span class="o">=</span> <span class="kc">False</span>
+                        <span class="k">for</span> <span class="n">g2</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">][</span><span class="n">theid</span><span class="p">][</span><span class="s1">&#39;geometry&#39;</span><span class="p">]:</span>
+                            <span class="k">if</span> <span class="n">g2</span><span class="p">[</span><span class="s2">&quot;lod&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">thelod</span><span class="p">:</span>
+                                <span class="n">b</span> <span class="o">=</span> <span class="kc">True</span>
+                                <span class="k">break</span>
+                        <span class="k">if</span> <span class="n">b</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">][</span><span class="n">theid</span><span class="p">][</span><span class="s1">&#39;geometry&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">g</span><span class="p">)</span>
+                            <span class="n">update_geom_indices</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">][</span><span class="n">theid</span><span class="p">][</span><span class="s1">&#39;geometry&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;boundaries&quot;</span><span class="p">],</span> <span class="n">offset</span><span class="p">)</span>    
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1">#-- copy the CO</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;CityObjects&quot;</span><span class="p">][</span><span class="n">theid</span><span class="p">]</span> <span class="o">=</span> <span class="n">cm</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;CityObjects&quot;</span><span class="p">][</span><span class="n">theid</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">][</span><span class="n">theid</span><span class="p">][</span><span class="s1">&#39;geometry&#39;</span><span class="p">]:</span>
+                        <span class="n">update_geom_indices</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="s2">&quot;boundaries&quot;</span><span class="p">],</span> <span class="n">offset</span><span class="p">)</span>
             <span class="c1">#-- templates</span>
             <span class="k">if</span> <span class="s2">&quot;geometry-templates&quot;</span> <span class="ow">in</span> <span class="n">cm</span><span class="o">.</span><span class="n">j</span><span class="p">:</span>
                 <span class="k">if</span> <span class="s2">&quot;geometry-templates&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">:</span>
@@ -1406,8 +1450,8 @@
                         <span class="k">if</span> <span class="s1">&#39;texture&#39;</span> <span class="ow">in</span> <span class="n">g</span><span class="p">:</span>
                             <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">g</span><span class="p">[</span><span class="s1">&#39;texture&#39;</span><span class="p">]:</span>
                                 <span class="n">update_texture_indices</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="s1">&#39;texture&#39;</span><span class="p">][</span><span class="n">m</span><span class="p">][</span><span class="s1">&#39;values&#39;</span><span class="p">],</span> <span class="n">toffset</span><span class="p">,</span> <span class="n">voffset</span><span class="p">)</span>
-        <span class="c1"># self.remove_duplicate_vertices()</span>
-        <span class="c1"># self.remove_orphan_vertices()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove_duplicate_vertices</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove_orphan_vertices</span><span class="p">()</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
 
@@ -1497,7 +1541,7 @@
 <div class="viewcode-block" id="CityJSON.triangulate_face"><a class="viewcode-back" href="../../cjio.html#cjio.cityjson.CityJSON.triangulate_face">[docs]</a>    <span class="k">def</span> <span class="nf">triangulate_face</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">face</span><span class="p">,</span> <span class="n">vnp</span><span class="p">):</span>
         <span class="c1">#-- if already a triangle then return it</span>
         <span class="k">if</span> <span class="p">(</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">face</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">face</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="mi">3</span><span class="p">)</span> <span class="p">):</span>
-            <span class="k">return</span> <span class="n">face</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">face</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
         <span class="n">sf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">ring</span> <span class="ow">in</span> <span class="n">face</span><span class="p">:</span>
             <span class="n">sf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span> <span class="p">(</span><span class="n">sf</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ring</span><span class="p">))</span> <span class="p">)</span>
@@ -1512,7 +1556,9 @@
         <span class="c1"># print(rings)</span>
 
         <span class="c1"># 1. normal with Newell&#39;s method</span>
-        <span class="n">n</span> <span class="o">=</span> <span class="n">geom_help</span><span class="o">.</span><span class="n">get_normal_newell</span><span class="p">(</span><span class="n">sfv</span><span class="p">)</span>
+        <span class="n">n</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">geom_help</span><span class="o">.</span><span class="n">get_normal_newell</span><span class="p">(</span><span class="n">sfv</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">b</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
         <span class="c1"># print (&quot;Newell:&quot;, n)</span>
         <span class="c1"># 2. project to the plane to get xy</span>
         <span class="n">sfv2d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span> <span class="p">(</span><span class="n">sfv</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">))</span>
@@ -1522,7 +1568,7 @@
             <span class="c1"># print(&quot;xy&quot;, xy)</span>
             <span class="n">sfv2d</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">xy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">sfv2d</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">xy</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="n">mapbox_earcut</span><span class="o">.</span><span class="n">triangulate_float32</span><span class="p">(</span><span class="n">sfv2d</span><span class="p">,</span> <span class="n">rings</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">mapbox_earcut</span><span class="o">.</span><span class="n">triangulate_float64</span><span class="p">(</span><span class="n">sfv2d</span><span class="p">,</span> <span class="n">rings</span><span class="p">)</span>
         <span class="c1"># print (result.reshape(-1, 3))</span>
 
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">each</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">result</span><span class="p">):</span>
@@ -1530,7 +1576,7 @@
             <span class="n">result</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">sf</span><span class="p">[</span><span class="n">each</span><span class="p">]</span>
         
         <span class="c1"># print (result.reshape(-1, 3))</span>
-        <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="kc">True</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="CityJSON.export2b3dm"><a class="viewcode-back" href="../../cjio.html#cjio.cityjson.CityJSON.export2b3dm">[docs]</a>    <span class="k">def</span> <span class="nf">export2b3dm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1547,25 +1593,42 @@
 
 
 <div class="viewcode-block" id="CityJSON.export2obj"><a class="viewcode-back" href="../../cjio.html#cjio.cityjson.CityJSON.export2obj">[docs]</a>    <span class="k">def</span> <span class="nf">export2obj</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">decompress</span><span class="p">()</span>
         <span class="n">out</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
-        <span class="c1">#-- vertices</span>
+        <span class="c1">#-- write vertices</span>
         <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;vertices&#39;</span><span class="p">]:</span>
             <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;v &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="n">vnp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;vertices&quot;</span><span class="p">])</span>
+        <span class="c1">#-- translate to minx,miny</span>
+        <span class="n">minx</span> <span class="o">=</span> <span class="mf">9e9</span>
+        <span class="n">miny</span> <span class="o">=</span> <span class="mf">9e9</span>
+        <span class="k">for</span> <span class="n">each</span> <span class="ow">in</span> <span class="n">vnp</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">each</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">minx</span><span class="p">:</span>
+                    <span class="n">minx</span> <span class="o">=</span> <span class="n">each</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">each</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">miny</span><span class="p">:</span>
+                    <span class="n">miny</span> <span class="o">=</span> <span class="n">each</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">each</span> <span class="ow">in</span> <span class="n">vnp</span><span class="p">:</span>
+            <span class="n">each</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-=</span> <span class="n">minx</span>
+            <span class="n">each</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-=</span> <span class="n">miny</span>
+        <span class="c1"># print (&quot;min&quot;, minx, miny)</span>
+        <span class="c1"># print(vnp)</span>
+        <span class="c1">#-- start with the CO</span>
         <span class="k">for</span> <span class="n">theid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">]:</span>
             <span class="k">for</span> <span class="n">geom</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">][</span><span class="n">theid</span><span class="p">][</span><span class="s1">&#39;geometry&#39;</span><span class="p">]:</span>
                 <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;o &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">theid</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
                 <span class="k">if</span> <span class="p">(</span> <span class="p">(</span><span class="n">geom</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;MultiSurface&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">geom</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;CompositeSurface&#39;</span><span class="p">)</span> <span class="p">):</span>
                     <span class="k">for</span> <span class="n">face</span> <span class="ow">in</span> <span class="n">geom</span><span class="p">[</span><span class="s1">&#39;boundaries&#39;</span><span class="p">]:</span>
-                        <span class="n">re</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">triangulate_face</span><span class="p">(</span><span class="n">face</span><span class="p">,</span> <span class="n">vnp</span><span class="p">)</span>
-                        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">re</span><span class="p">:</span>
-                            <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;f </span><span class="si">%d</span><span class="s2"> </span><span class="si">%d</span><span class="s2"> </span><span class="si">%d</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
-                <span class="k">elif</span> <span class="p">(</span><span class="n">geom</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Solid&#39;</span><span class="p">):</span>
-                    <span class="k">for</span> <span class="n">shell</span> <span class="ow">in</span> <span class="n">geom</span><span class="p">[</span><span class="s1">&#39;boundaries&#39;</span><span class="p">]:</span>
-                        <span class="k">for</span> <span class="n">face</span> <span class="ow">in</span> <span class="n">shell</span><span class="p">:</span>
-                            <span class="n">re</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">triangulate_face</span><span class="p">(</span><span class="n">face</span><span class="p">,</span> <span class="n">vnp</span><span class="p">)</span>
+                        <span class="n">re</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">triangulate_face</span><span class="p">(</span><span class="n">face</span><span class="p">,</span> <span class="n">vnp</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">b</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
                             <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">re</span><span class="p">:</span>
                                 <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;f </span><span class="si">%d</span><span class="s2"> </span><span class="si">%d</span><span class="s2"> </span><span class="si">%d</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="k">elif</span> <span class="p">(</span><span class="n">geom</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Solid&#39;</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">shell</span> <span class="ow">in</span> <span class="n">geom</span><span class="p">[</span><span class="s1">&#39;boundaries&#39;</span><span class="p">]:</span>
+                        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">face</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shell</span><span class="p">):</span>
+                            <span class="n">re</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">triangulate_face</span><span class="p">(</span><span class="n">face</span><span class="p">,</span> <span class="n">vnp</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="n">b</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+                                <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">re</span><span class="p">:</span>
+                                    <span class="n">out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;f </span><span class="si">%d</span><span class="s2"> </span><span class="si">%d</span><span class="s2"> </span><span class="si">%d</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">out</span></div>
 
 
@@ -1597,8 +1660,29 @@
             <span class="k">for</span> <span class="n">each</span> <span class="ow">in</span> <span class="n">re</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">][</span><span class="n">co</span><span class="p">][</span><span class="s1">&#39;geometry&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">each</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">remove_duplicate_vertices</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">remove_orphan_vertices</span><span class="p">()</span>        </div></div>
-        
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove_orphan_vertices</span><span class="p">()</span>        </div>
+
+
+<div class="viewcode-block" id="CityJSON.translate"><a class="viewcode-back" href="../../cjio.html#cjio.cityjson.CityJSON.translate">[docs]</a>    <span class="k">def</span> <span class="nf">translate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">minimum_xyz</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">minimum_xyz</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="c1">#-- find the minimums</span>
+            <span class="n">bbox</span> <span class="o">=</span> <span class="p">[</span><span class="mf">9e9</span><span class="p">,</span> <span class="mf">9e9</span><span class="p">,</span> <span class="mf">9e9</span><span class="p">]</span>    
+            <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s2">&quot;vertices&quot;</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">v</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">bbox</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+                        <span class="n">bbox</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bbox</span> <span class="o">=</span> <span class="n">values</span>
+        <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;vertices&#39;</span><span class="p">]:</span>
+            <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_epsg</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_bbox</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">bbox</span></div></div>
 </pre></div>
 
            </div>

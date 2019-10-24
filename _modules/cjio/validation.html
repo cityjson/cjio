@@ -80,7 +80,7 @@
             
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../includeme.html">cjio, or CityJSON/io</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../cjio_tutorial.html">cjio API tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api_tutorial_basics.html">cjio API tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../modules.html">Reference</a></li>
 </ul>
 
@@ -442,7 +442,7 @@
     <span class="n">ws</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">thewarnings</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="nb">property</span> <span class="ow">in</span> <span class="n">j</span><span class="p">:</span>
-        <span class="k">if</span> <span class="p">(</span> <span class="p">(</span><span class="nb">property</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;+&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">property</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">js</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">])</span> <span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="p">((</span><span class="nb">property</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;+&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">property</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;@&quot;</span><span class="p">))</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">property</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">js</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">])</span> <span class="p">):</span>
             <span class="n">isValid</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;WARNING: root property &#39;&quot;</span> <span class="o">+</span> <span class="nb">property</span> <span class="o">+</span> <span class="s2">&quot;&#39; not in CityJSON schema, might be ignored by some parsers&quot;</span>
             <span class="n">ws</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
@@ -506,7 +506,7 @@
     <span class="n">isValid</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">es</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="c1">#-- lazy validation to catch as many as possible</span>
-    <span class="n">myvalidator</span> <span class="o">=</span> <span class="n">jsonschema</span><span class="o">.</span><span class="n">Draft4Validator</span><span class="p">(</span><span class="n">js</span><span class="p">,</span> <span class="n">format_checker</span><span class="o">=</span><span class="n">jsonschema</span><span class="o">.</span><span class="n">FormatChecker</span><span class="p">())</span>
+    <span class="n">myvalidator</span> <span class="o">=</span> <span class="n">jsonschema</span><span class="o">.</span><span class="n">Draft7Validator</span><span class="p">(</span><span class="n">js</span><span class="p">,</span> <span class="n">format_checker</span><span class="o">=</span><span class="n">jsonschema</span><span class="o">.</span><span class="n">FormatChecker</span><span class="p">())</span>
     <span class="k">for</span> <span class="n">err</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">myvalidator</span><span class="o">.</span><span class="n">iter_errors</span><span class="p">(</span><span class="n">j</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
         <span class="n">isValid</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">es</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">err</span><span class="o">.</span><span class="n">message</span><span class="p">)</span>
