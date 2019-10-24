@@ -1,5 +1,6 @@
 # Data
 tmp
+/tests/data/zurich/zurich.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

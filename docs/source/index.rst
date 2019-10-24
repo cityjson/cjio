@@ -11,7 +11,7 @@ Welcome to cjio's documentation!
    :maxdepth: 2
 
    includeme
-   cjio_tutorial.ipynb
+   tutorials
    modules
 
 

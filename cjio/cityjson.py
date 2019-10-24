@@ -1137,7 +1137,7 @@ class CityJSON:
     def compress(self, important_digits=3):
         if "transform" in self.j:
             raise Exception("CityJSON already compressed")
-            return True
+            return True # TODO: this is unreachable, will never return True
         #-- find the minx/miny/minz
         bbox = [9e9, 9e9, 9e9]    
         for v in self.j["vertices"]:
