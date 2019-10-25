@@ -58,13 +58,17 @@ class CityObject(object):
         return vtx
 
     def build_index(self, vtx_lookup: Mapping=None, vtx_idx: int=0):
-        """Build a coordinate list and index the vertices for Geometry objects in the CityObject"""
+        """Build a coordinate list and index the vertices for Geometry objects
+        in the CityObject.
+        """
         vtx_lookup = {} if vtx_lookup is None else vtx_lookup
         geometry = []
         for geom in self.geometry:
             geom_idx, vtx_lookup, vtx_idx = geom.build_index(vtx_lookup, vtx_idx)
             j = geom.to_json()
             j['boundaries'] = geom_idx
+            geom.build_semantic_surface_index()
+            j['semantics'] = geom.semantics
             geometry.append(j)
         return (geometry, vtx_lookup, vtx_idx)
 
@@ -90,6 +94,7 @@ class Geometry(object):
         self.lod = lod
         self.boundaries = self._dereference_boundaries(type, boundaries, vertices, transform)
         self.surfaces = self._dereference_surfaces(semantics_obj)
+        self.semantics = {}
 
     @staticmethod
     def _index_surface_boundaries(values):
@@ -361,7 +366,10 @@ class Geometry(object):
                     for i in surface['surface_idx'])
 
     def build_index(self, vtx_lookup: Mapping=None, vtx_idx: int=0):
-        """Build a coordinate list and index the vertices"""
+        """Build a coordinate list and index the vertices in the boundary.
+
+        This method is used when converting the Geometry to the JSON output.
+        """
         vtx_lookup = {} if vtx_lookup is None else vtx_lookup
         if not self.boundaries:
             return ([], vtx_lookup, vtx_idx)
@@ -413,7 +421,37 @@ class Geometry(object):
         else:
             raise TypeError("Unknown geometry type: {}".format(self.type))
 
-    def get_surfaces(self, type:str=None, lod:str=None):
+    def build_semantic_surface_index(self):
+        """Index the semantic surfaces in way that is stored in JSON."""
+        # TODO: handle parent-children
+        self.semantics['surfaces'] = []
+        if self.type.lower() == 'multisurface':
+            self.semantics['values'] = [None for i in range(len(self.boundaries))]
+        elif self.type.lower() == 'solid':
+            self.semantics['values'] = []
+            for i in range(len(self.boundaries)):
+                self.semantics['values'].append([])
+                for j in range(len(self.boundaries[i])):
+                    self.semantics['values'][i].append(None)
+        else:
+            raise ValueError(f"{self.type} is not supported at the moment for semantic surfaces")
+        for i,srf in self.surfaces.items():
+            _surface = dict()
+            _surface['type'] = srf['type']
+            if 'attributes' in srf:
+                for attr, value in srf['attributes'].items():
+                    _surface[attr] = value
+                    # TODO: make it work with null-s in semantic surfaces
+            self.semantics['surfaces'].append(_surface)
+            # TODO: optimize for loop by switching it with the conditional
+            for bdry in srf['surface_idx']:
+                if len(bdry) == 1:
+                    self.semantics['values'][bdry[0]] = i
+                elif len(bdry) == 2:
+                    self.semantics['values'][bdry[0]][bdry[1]] = i
+
+
+    def get_surfaces(self, type: str=None, lod: str=None):
         """Get the semantic surfaces of the given type
 
         The whole boundary is returned if a geometry does not have semantics, or has a LoD < 2,
@@ -435,5 +473,5 @@ class Geometry(object):
         j['lod'] = self.lod
         j['boundaries'] = []
         if self.surfaces:
-            j['surfaces'] = self.surfaces
+            j['semantics'] = {}
         return j
