@@ -623,12 +623,12 @@ expected to exists with the texture files in it.</p>
 <p>Demonstrate what is when we define the CityModel-objects in a top-down approach</p>
 <dl class="class">
 <dt id="cjio.models.CityObject">
-<em class="property">class </em><code class="sig-prename descclassname">cjio.models.</code><code class="sig-name descname">CityObject</code><span class="sig-paren">(</span><em class="sig-param">id</em>, <em class="sig-param">type=None</em>, <em class="sig-param">geometry=None</em>, <em class="sig-param">attributes=None</em>, <em class="sig-param">children=None</em>, <em class="sig-param">parents=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#CityObject"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.CityObject" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">cjio.models.</code><code class="sig-name descname">CityObject</code><span class="sig-paren">(</span><em class="sig-param">id</em>, <em class="sig-param">type: str = None</em>, <em class="sig-param">geometry: Iterable = None</em>, <em class="sig-param">attributes: Mapping = None</em>, <em class="sig-param">children: Iterable = None</em>, <em class="sig-param">parents: Iterable = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#CityObject"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.CityObject" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>CityObject class</p>
 <dl class="method">
 <dt id="cjio.models.CityObject.build_index">
-<code class="sig-name descname">build_index</code><span class="sig-paren">(</span><em class="sig-param">vtx_lookup: dict = {}</em>, <em class="sig-param">vtx_idx: int = 0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#CityObject.build_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.CityObject.build_index" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">build_index</code><span class="sig-paren">(</span><em class="sig-param">vtx_lookup: Mapping = None</em>, <em class="sig-param">vtx_idx: int = 0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#CityObject.build_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.CityObject.build_index" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build a coordinate list and index the vertices for Geometry objects in the CityObject</p>
 </dd></dl>
 
@@ -648,12 +648,12 @@ expected to exists with the texture files in it.</p>
 
 <dl class="class">
 <dt id="cjio.models.Geometry">
-<em class="property">class </em><code class="sig-prename descclassname">cjio.models.</code><code class="sig-name descname">Geometry</code><span class="sig-paren">(</span><em class="sig-param">type: str = None</em>, <em class="sig-param">lod: int = None</em>, <em class="sig-param">boundaries: List = None</em>, <em class="sig-param">semantics_obj: Dict = None</em>, <em class="sig-param">vertices=None</em>, <em class="sig-param">transform=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#Geometry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.Geometry" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">cjio.models.</code><code class="sig-name descname">Geometry</code><span class="sig-paren">(</span><em class="sig-param">type: str = None</em>, <em class="sig-param">lod: str = None</em>, <em class="sig-param">boundaries: Iterable = None</em>, <em class="sig-param">semantics_obj: Mapping = None</em>, <em class="sig-param">vertices=None</em>, <em class="sig-param">transform=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#Geometry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.Geometry" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>CityJSON Geometry object</p>
 <dl class="method">
 <dt id="cjio.models.Geometry.build_index">
-<code class="sig-name descname">build_index</code><span class="sig-paren">(</span><em class="sig-param">vtx_lookup: dict = {}</em>, <em class="sig-param">vtx_idx: int = 0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#Geometry.build_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.Geometry.build_index" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">build_index</code><span class="sig-paren">(</span><em class="sig-param">vtx_lookup: Mapping = None</em>, <em class="sig-param">vtx_idx: int = 0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#Geometry.build_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.Geometry.build_index" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build a coordinate list and index the vertices</p>
 </dd></dl>
 
@@ -677,7 +677,7 @@ expected to exists with the texture files in it.</p>
 
 <dl class="method">
 <dt id="cjio.models.Geometry.get_surfaces">
-<code class="sig-name descname">get_surfaces</code><span class="sig-paren">(</span><em class="sig-param">type: str = None</em>, <em class="sig-param">lod: int = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#Geometry.get_surfaces"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.Geometry.get_surfaces" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_surfaces</code><span class="sig-paren">(</span><em class="sig-param">type: str = None</em>, <em class="sig-param">lod: str = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#Geometry.get_surfaces"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.Geometry.get_surfaces" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the semantic surfaces of the given type</p>
 <p>The whole boundary is returned if a geometry does not have semantics, or has a LoD &lt; 2,
 or the surface type is not provided.</p>

@@ -1,0 +1,582 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "collapsed": true,
+    "pycharm": {
+     "name": "#%% md\n"
+    }
+   },
+   "source": [
+    "# Creating city models and objects\n",
+    "\n",
+    "In this tutorial we explore how to create new city models with using `cjio`'s\n",
+    " API."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "outputs": [],
+   "source": [
+    "from pathlib import Path\n",
+    "\n",
+    "from cjio import cityjson\n",
+    "from cjio.models import CityObject, Geometry"
+   ],
+   "metadata": {
+    "collapsed": false,
+    "pycharm": {
+     "name": "#%%\n",
+     "is_executing": false
+    }
+   }
+  },
+  {
+   "cell_type": "markdown",
+   "source": [
+    "Set up paths for the tutorial.\n",
+    "    "
+   ],
+   "metadata": {
+    "collapsed": false,
+    "pycharm": {
+     "name": "#%% md\n"
+    }
+   }
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "outputs": [],
+   "source": [
+    "package_dir = Path(__name__).resolve().parent.parent.parent\n",
+    "data_dir = package_dir / 'tests' / 'data'"
+   ],
+   "metadata": {
+    "collapsed": false,
+    "pycharm": {
+     "name": "#%%\n",
+     "is_executing": false
+    }
+   }
+  },
+  {
+   "cell_type": "markdown",
+   "source": [
+    "## Creating a single CityObject\n",
+    "\n",
+    "We are building a single CityObject of type *Building*. This building has an \n",
+    "LoD2 geometry, thus it has Semantic Surfaces. The geometric shape of the \n",
+    "building is a simple cube (size 10x10x10), which is sufficient for this \n",
+    "demonstration.\n",
+    "\n",
+    "The idea is that we create empty containers for the CityModel, CityObjects and\n",
+    "Geometries, then fill those up and add to the CityModel."
+   ],
+   "metadata": {
+    "collapsed": false,
+    "pycharm": {
+     "name": "#%% md\n"
+    }
+   }
+  },
+  {
+   "cell_type": "markdown",
+   "source": [
+    "We create an empty CityModel"
+   ],
+   "metadata": {
+    "collapsed": false,
+    "pycharm": {
+     "name": "#%% md\n"
+    }
+   }
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "outputs": [
+    {
+     "name": "stdout",
+     "text": [
+      "{\n  \"cityjson_version\": \"1.0\",\n  \"epsg\": null,\n  \"bbox\": [\n    9000000000.0,\n    9000000000.0,\n    9000000000.0,\n    -9000000000.0,\n    -9000000000.0,\n    -9000000000.0\n  ],\n  \"transform/compressed\": false,\n  \"cityobjects_total\": 0,\n  \"cityobjects_present\": [],\n  \"materials\": false,\n  \"textures\": false\n}\n"
+     ],
+     "output_type": "stream"
+    }
+   ],
+   "source": [
+    "cm = cityjson.CityJSON()\n",
+    "print(cm)"
+   ],
+   "metadata": {
+    "collapsed": false,
+    "pycharm": {
+     "name": "#%%\n",
+     "is_executing": false
+    }
+   }
+  },
+  {
+   "cell_type": "markdown",
+   "source": [
+    "An empty CityObject. Note that the ID is required."
+   ],
+   "metadata": {
+    "collapsed": false,
+    "pycharm": {
+     "name": "#%% md\n"
+    }
+   }
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "outputs": [],
+   "source": [
+    "co = CityObject(\n",
+    "    id='1'\n",
+    ")"
+   ],
+   "metadata": {
+    "collapsed": false,
+    "pycharm": {
+     "name": "#%%\n",
+     "is_executing": false
+    }
+   }
+  },
+  {
+   "cell_type": "markdown",
+   "source": [
+    "We can also add attributes"
+   ],
+   "metadata": {
+    "collapsed": false,
+    "pycharm": {
+     "name": "#%% md\n"
+    }
+   }
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "outputs": [],
+   "source": [
+    "co_attrs = {\n",
+    "    'some_attribute': 42,\n",
+    "    'other_attribute': 'bla bla'\n",
+    "}\n",
+    "co.attributes = co_attrs"
+   ],
+   "metadata": {
+    "collapsed": false,
+    "pycharm": {
+     "name": "#%%\n",
+     "is_executing": false
+    }
+   }
+  },
+  {
+   "cell_type": "markdown",
+   "source": [
+    "Let's see what do we have"
+   ],
+   "metadata": {
+    "collapsed": false,
+    "pycharm": {
+     "name": "#%% md\n"
+    }
+   }
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "outputs": [
+    {
+     "name": "stdout",
+     "text": [
+      "{\n  \"id\": \"1\",\n  \"type\": null,\n  \"attributes\": {\n    \"some_attribute\": 42,\n    \"other_attribute\": \"bla bla\"\n  },\n  \"children\": [],\n  \"parents\": [],\n  \"geometry_type\": [],\n  \"geometry_lod\": [],\n  \"semantic_surfaces\": []\n}\n"
+     ],
+     "output_type": "stream"
+    }
+   ],
+   "source": [
+    "print(co)"
+   ],
+   "metadata": {
+    "collapsed": false,
+    "pycharm": {
+     "name": "#%%\n",
+     "is_executing": false
+    }
+   }
+  },
+  {
+   "cell_type": "markdown",
+   "source": [
+    "Instantiate a Geometry without boundaries and semantics"
+   ],
+   "metadata": {
+    "collapsed": false,
+    "pycharm": {
+     "name": "#%% md\n"
+    }
+   }
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "outputs": [],
+   "source": [
+    "geom = Geometry(type='Solid', lod='2.0')"
+   ],
+   "metadata": {
+    "collapsed": false,
+    "pycharm": {
+     "name": "#%%\n",
+     "is_executing": false
+    }
+   }
+  },
+  {
+   "cell_type": "markdown",
+   "source": [
+    "We build the boundary Solid of the cube\n",
+    "The surfaces are in this order: WallSurface, WallSurface, WallSurface, WallSurface, GroundSurface, RoofSurface"
+   ],
+   "metadata": {
+    "collapsed": false,
+    "pycharm": {
+     "name": "#%% md\n"
+    }
+   }
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "outputs": [],
+   "source": [
+    "bdry = [\n",
+    "    [[(0.0, 0.0, 0.0), (10.0, 0.0, 0.0), (10.0, 0.0, 10.0), (0.0, 0.0, 10.0)]],\n",
+    "    [[(10.0, 0.0, 0.0), (10.0, 10.0, 0.0), (10.0, 10.0, 10.0), (10.0, 0.0, 10.0)]],\n",
+    "    [[(10.0, 10.0, 0.0), (0.0, 10.0, 0.0), (0.0, 10.0, 10.0), (10.0, 10.0, 10.0)]],\n",
+    "    [[(0.0, 10.0, 0.0), (0.0, 0.0, 0.0), (0.0, 0.0, 10.0), (0.0, 10.0, 10.0)]],\n",
+    "    [[(0.0, 0.0, 0.0), (0.0, 10.0, 0.0), (10.0, 10.0, 0.0), (10.0, 0.0, 0.0)]],\n",
+    "    [[(10.0, 0.0, 10.0), (10.0, 10.0, 10.0), (0.0, 10.0, 10.0), (0.0, 0.0, 10.0)]]\n",
+    "]"
+   ],
+   "metadata": {
+    "collapsed": false,
+    "pycharm": {
+     "name": "#%%\n",
+     "is_executing": false
+    }
+   }
+  },
+  {
+   "cell_type": "markdown",
+   "source": [
+    "Add the boundary to the Geometry"
+   ],
+   "metadata": {
+    "collapsed": false,
+    "pycharm": {
+     "name": "#%% md\n"
+    }
+   }
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "outputs": [],
+   "source": [
+    "geom.boundaries.append(bdry)"
+   ],
+   "metadata": {
+    "collapsed": false,
+    "pycharm": {
+     "name": "#%%\n",
+     "is_executing": false
+    }
+   }
+  },
+  {
+   "cell_type": "markdown",
+   "source": [
+    "We build the SemanticSurfaces for the boundary. The `surfaces` attribute must\n",
+    "contain at least the `surface_idx` and `type` keys, optionally `attributes`.\n",
+    "We have three semantic surface types, WallSurface, GroundSurface, RoofSurface."
+   ],
+   "metadata": {
+    "collapsed": false,
+    "pycharm": {
+     "name": "#%% md\n"
+    }
+   }
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "outputs": [],
+   "source": [
+    "srf = {\n",
+    "    0: {'surface_idx': [], 'type': 'WallSurface'},\n",
+    "    1: {'surface_idx': [], 'type': 'GroundSurface'},\n",
+    "    2: {'surface_idx': [], 'type': 'RoofSurface'}\n",
+    "}"
+   ],
+   "metadata": {
+    "collapsed": false,
+    "pycharm": {
+     "name": "#%%\n",
+     "is_executing": false
+    }
+   }
+  },
+  {
+   "cell_type": "markdown",
+   "source": [
+    "We use the `surface_idx` to point to the surfaces of the boundary. Thus the\n",
+    "index to a single boundary surface is composed as [Solid index, Shell index, Surface index].\n",
+    "Consequently, in case of a CompositeSolid which first Solid, outer Shell,\n",
+    "second Surface is a WallSurface, one element in the `surface_idx` would be\n",
+    "`[0, 0, 1]`. Then assuming that there is only a single WallSurface in the\n",
+    "mentioned CompositeSolid, the index to the WallSurfaces is composed as\n",
+    "`{'surface_idx': [ [0, 0, 1] ], 'type': 'WallSurface'}`.\n",
+    "In case of a Solid boundary type the *Solid index* is omitted from the elements\n",
+    "of `surface_idx`. In case of a MultiSurface boundary type both the *Solid index*\n",
+    "and *Shell index* are omitted from the elements of `surface_idx`.\n",
+    "\n",
+    "We create the surface index accordingly and assign them to the geometry."
+   ],
+   "metadata": {
+    "collapsed": false,
+    "pycharm": {
+     "name": "#%% md\n"
+    }
+   }
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "outputs": [],
+   "source": [
+    "geom.surfaces[0] = {'surface_idx': [[0,0], [0,1], [0,2], [0,3]], 'type': 'WallSurface'}\n",
+    "geom.surfaces[1] = {'surface_idx': [[0,4]], 'type': 'GroundSurface'}\n",
+    "geom.surfaces[2] = {'surface_idx': [[0,5]], 'type': 'RoofSurface'}"
+   ],
+   "metadata": {
+    "collapsed": false,
+    "pycharm": {
+     "name": "#%%\n",
+     "is_executing": false
+    }
+   }
+  },
+  {
+   "cell_type": "markdown",
+   "source": [
+    "Then we test if it works."
+   ],
+   "metadata": {
+    "collapsed": false,
+    "pycharm": {
+     "name": "#%% md\n"
+    }
+   }
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "outputs": [],
+   "source": [
+    "ground = geom.get_surfaces('groundsurface')\n",
+    "ground_boundaries = []\n",
+    "for g in ground.values():\n",
+    "    ground_boundaries.append(geom.get_surface_boundaries(g))"
+   ],
+   "metadata": {
+    "collapsed": false,
+    "pycharm": {
+     "name": "#%%\n",
+     "is_executing": false
+    }
+   }
+  },
+  {
+   "cell_type": "markdown",
+   "source": [
+    "We have a list of generators"
+   ],
+   "metadata": {
+    "collapsed": false,
+    "pycharm": {
+     "name": "#%% md\n"
+    }
+   }
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "outputs": [],
+   "source": [
+    "res = list(ground_boundaries[0])"
+   ],
+   "metadata": {
+    "collapsed": false,
+    "pycharm": {
+     "name": "#%%\n",
+     "is_executing": false
+    }
+   }
+  },
+  {
+   "cell_type": "markdown",
+   "source": [
+    "The generator creates a list of surfaces --> a MultiSurface"
+   ],
+   "metadata": {
+    "collapsed": false,
+    "pycharm": {
+     "name": "#%% md\n"
+    }
+   }
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "outputs": [],
+   "source": [
+    "assert  res[0] == bdry[4]\n",
+    "\n",
+    "# %%\n",
+    "wall = geom.get_surfaces('wallsurface')\n",
+    "wall_boundaries = []\n",
+    "for w in wall.values():\n",
+    "    wall_boundaries.append(geom.get_surface_boundaries(w))"
+   ],
+   "metadata": {
+    "collapsed": false,
+    "pycharm": {
+     "name": "#%%\n",
+     "is_executing": false
+    }
+   }
+  },
+  {
+   "cell_type": "markdown",
+   "source": [
+    "We put everything together, first filling up the CityObject"
+   ],
+   "metadata": {
+    "collapsed": false,
+    "pycharm": {
+     "name": "#%% md\n"
+    }
+   }
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "outputs": [],
+   "source": [
+    "co.geometry.append(geom)\n",
+    "co.type = 'Building'"
+   ],
+   "metadata": {
+    "collapsed": false,
+    "pycharm": {
+     "name": "#%%\n",
+     "is_executing": false
+    }
+   }
+  },
+  {
+   "cell_type": "markdown",
+   "source": [
+    "Then adding the CityObject to the CityModel"
+   ],
+   "metadata": {
+    "collapsed": false,
+    "pycharm": {
+     "name": "#%% md\n"
+    }
+   }
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "outputs": [],
+   "source": [
+    "cm.cityobjects[co.id] = co"
+   ],
+   "metadata": {
+    "collapsed": false,
+    "pycharm": {
+     "name": "#%%\n",
+     "is_executing": false
+    }
+   }
+  },
+  {
+   "cell_type": "markdown",
+   "source": [
+    "Finally, we write the citymodel to a CityJSON file"
+   ],
+   "metadata": {
+    "collapsed": false,
+    "pycharm": {
+     "name": "#%% md\n"
+    }
+   }
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 17,
+   "outputs": [],
+   "source": [
+    "outfile = data_dir / 'test_create.json'\n",
+    "cityjson.save(cm, outfile)\n"
+   ],
+   "metadata": {
+    "collapsed": false,
+    "pycharm": {
+     "name": "#%%\n",
+     "is_executing": false
+    }
+   }
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 2
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython2",
+   "version": "2.7.6"
+  },
+  "pycharm": {
+   "stem_cell": {
+    "cell_type": "raw",
+    "source": [],
+    "metadata": {
+     "collapsed": false
+    }
+   }
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 0
+}
