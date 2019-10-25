@@ -254,8 +254,7 @@
 <span class="sd">    :param path: Absolute path to a CityJSON file</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">cityobjects</span><span class="p">,</span> <span class="n">vertex_lookup</span> <span class="o">=</span> <span class="n">citymodel</span><span class="o">.</span><span class="n">reference_geometry</span><span class="p">()</span>
-    <span class="n">citymodel</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;vertices&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">vertex_lookup</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-    <span class="n">citymodel</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cityobjects</span>
+    <span class="n">citymodel</span><span class="o">.</span><span class="n">add_to_j</span><span class="p">(</span><span class="n">cityobjects</span><span class="p">,</span> <span class="n">vertex_lookup</span><span class="p">)</span>
     <span class="n">citymodel</span><span class="o">.</span><span class="n">remove_duplicate_vertices</span><span class="p">()</span>
     <span class="n">citymodel</span><span class="o">.</span><span class="n">remove_orphan_vertices</span><span class="p">()</span>
     <span class="k">try</span><span class="p">:</span>
@@ -412,7 +411,8 @@
 
 
 <div class="viewcode-block" id="CityJSON.reference_geometry"><a class="viewcode-back" href="../../cjio.html#cjio.cityjson.CityJSON.reference_geometry">[docs]</a>    <span class="k">def</span> <span class="nf">reference_geometry</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Build a coordinate list and index the vertices&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Build a coordinate list and index the vertices for writing out to</span>
+<span class="sd">        CityJSON.&quot;&quot;&quot;</span>
         <span class="n">cityobjects</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
         <span class="n">vertex_lookup</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
         <span class="n">vertex_idx</span> <span class="o">=</span> <span class="mi">0</span>
@@ -421,8 +421,12 @@
             <span class="n">geometry</span><span class="p">,</span> <span class="n">vertex_lookup</span><span class="p">,</span> <span class="n">vertex_idx</span> <span class="o">=</span> <span class="n">co</span><span class="o">.</span><span class="n">build_index</span><span class="p">(</span><span class="n">vertex_lookup</span><span class="p">,</span> <span class="n">vertex_idx</span><span class="p">)</span>
             <span class="n">j_co</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">geometry</span>
             <span class="n">cityobjects</span><span class="p">[</span><span class="n">co_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">j_co</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">cityobjects</span><span class="p">,</span> <span class="n">vertex_lookup</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">cityobjects</span><span class="p">,</span> <span class="n">vertex_lookup</span></div>
 
+
+<div class="viewcode-block" id="CityJSON.add_to_j"><a class="viewcode-back" href="../../cjio.html#cjio.cityjson.CityJSON.add_to_j">[docs]</a>    <span class="k">def</span> <span class="nf">add_to_j</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cityobjects</span><span class="p">,</span> <span class="n">vertex_lookup</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;vertices&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">vertex_lookup</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">j</span><span class="p">[</span><span class="s1">&#39;CityObjects&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cityobjects</span></div>
 
     <span class="c1">##-- end API functions</span>
 

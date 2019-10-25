@@ -204,6 +204,11 @@
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="cjio.cityjson.CityJSON.add_to_j">
+<code class="sig-name descname">add_to_j</code><span class="sig-paren">(</span><em class="sig-param">cityobjects</em>, <em class="sig-param">vertex_lookup</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.add_to_j"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.add_to_j" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="cjio.cityjson.CityJSON.calculate_bbox">
 <code class="sig-name descname">calculate_bbox</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.calculate_bbox"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.calculate_bbox" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -366,7 +371,8 @@ are expanded to absolute paths.</p>
 <dl class="method">
 <dt id="cjio.cityjson.CityJSON.reference_geometry">
 <code class="sig-name descname">reference_geometry</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/cityjson.html#CityJSON.reference_geometry"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.cityjson.CityJSON.reference_geometry" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build a coordinate list and index the vertices</p>
+<dd><p>Build a coordinate list and index the vertices for writing out to
+CityJSON.</p>
 </dd></dl>
 
 <dl class="method">
@@ -629,7 +635,8 @@ expected to exists with the texture files in it.</p>
 <dl class="method">
 <dt id="cjio.models.CityObject.build_index">
 <code class="sig-name descname">build_index</code><span class="sig-paren">(</span><em class="sig-param">vtx_lookup: Mapping = None</em>, <em class="sig-param">vtx_idx: int = 0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#CityObject.build_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.CityObject.build_index" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build a coordinate list and index the vertices for Geometry objects in the CityObject</p>
+<dd><p>Build a coordinate list and index the vertices for Geometry objects
+in the CityObject.</p>
 </dd></dl>
 
 <dl class="method">
@@ -654,7 +661,14 @@ expected to exists with the texture files in it.</p>
 <dl class="method">
 <dt id="cjio.models.Geometry.build_index">
 <code class="sig-name descname">build_index</code><span class="sig-paren">(</span><em class="sig-param">vtx_lookup: Mapping = None</em>, <em class="sig-param">vtx_idx: int = 0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#Geometry.build_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.Geometry.build_index" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build a coordinate list and index the vertices</p>
+<dd><p>Build a coordinate list and index the vertices in the boundary.</p>
+<p>This method is used when converting the Geometry to the JSON output.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cjio.models.Geometry.build_semantic_surface_index">
+<code class="sig-name descname">build_semantic_surface_index</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/cjio/models.html#Geometry.build_semantic_surface_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cjio.models.Geometry.build_semantic_surface_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Index the semantic surfaces in way that is stored in JSON.</p>
 </dd></dl>
 
 <dl class="method">

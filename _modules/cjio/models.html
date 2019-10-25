@@ -205,13 +205,17 @@
         <span class="k">return</span> <span class="n">vtx</span></div>
 
 <div class="viewcode-block" id="CityObject.build_index"><a class="viewcode-back" href="../../cjio.html#cjio.models.CityObject.build_index">[docs]</a>    <span class="k">def</span> <span class="nf">build_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vtx_lookup</span><span class="p">:</span> <span class="n">Mapping</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">vtx_idx</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Build a coordinate list and index the vertices for Geometry objects in the CityObject&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Build a coordinate list and index the vertices for Geometry objects</span>
+<span class="sd">        in the CityObject.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">vtx_lookup</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">vtx_lookup</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">vtx_lookup</span>
         <span class="n">geometry</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">geom</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">geometry</span><span class="p">:</span>
             <span class="n">geom_idx</span><span class="p">,</span> <span class="n">vtx_lookup</span><span class="p">,</span> <span class="n">vtx_idx</span> <span class="o">=</span> <span class="n">geom</span><span class="o">.</span><span class="n">build_index</span><span class="p">(</span><span class="n">vtx_lookup</span><span class="p">,</span> <span class="n">vtx_idx</span><span class="p">)</span>
             <span class="n">j</span> <span class="o">=</span> <span class="n">geom</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
             <span class="n">j</span><span class="p">[</span><span class="s1">&#39;boundaries&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">geom_idx</span>
+            <span class="n">geom</span><span class="o">.</span><span class="n">build_semantic_surface_index</span><span class="p">()</span>
+            <span class="n">j</span><span class="p">[</span><span class="s1">&#39;semantics&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">geom</span><span class="o">.</span><span class="n">semantics</span>
             <span class="n">geometry</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">geometry</span><span class="p">,</span> <span class="n">vtx_lookup</span><span class="p">,</span> <span class="n">vtx_idx</span><span class="p">)</span></div>
 
@@ -237,6 +241,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">lod</span> <span class="o">=</span> <span class="n">lod</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dereference_boundaries</span><span class="p">(</span><span class="nb">type</span><span class="p">,</span> <span class="n">boundaries</span><span class="p">,</span> <span class="n">vertices</span><span class="p">,</span> <span class="n">transform</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">surfaces</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dereference_surfaces</span><span class="p">(</span><span class="n">semantics_obj</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">semantics</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_index_surface_boundaries</span><span class="p">(</span><span class="n">values</span><span class="p">):</span>
@@ -508,7 +513,10 @@
                     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">surface</span><span class="p">[</span><span class="s1">&#39;surface_idx&#39;</span><span class="p">])</span></div>
 
 <div class="viewcode-block" id="Geometry.build_index"><a class="viewcode-back" href="../../cjio.html#cjio.models.Geometry.build_index">[docs]</a>    <span class="k">def</span> <span class="nf">build_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vtx_lookup</span><span class="p">:</span> <span class="n">Mapping</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">vtx_idx</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Build a coordinate list and index the vertices&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Build a coordinate list and index the vertices in the boundary.</span>
+
+<span class="sd">        This method is used when converting the Geometry to the JSON output.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">vtx_lookup</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">vtx_lookup</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">vtx_lookup</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">([],</span> <span class="n">vtx_lookup</span><span class="p">,</span> <span class="n">vtx_idx</span><span class="p">)</span>
@@ -560,7 +568,37 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Unknown geometry type: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="Geometry.get_surfaces"><a class="viewcode-back" href="../../cjio.html#cjio.models.Geometry.get_surfaces">[docs]</a>    <span class="k">def</span> <span class="nf">get_surfaces</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">type</span><span class="p">:</span><span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lod</span><span class="p">:</span><span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Geometry.build_semantic_surface_index"><a class="viewcode-back" href="../../cjio.html#cjio.models.Geometry.build_semantic_surface_index">[docs]</a>    <span class="k">def</span> <span class="nf">build_semantic_surface_index</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Index the semantic surfaces in way that is stored in JSON.&quot;&quot;&quot;</span>
+        <span class="c1"># TODO: handle parent-children</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">semantics</span><span class="p">[</span><span class="s1">&#39;surfaces&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;multisurface&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">semantics</span><span class="p">[</span><span class="s1">&#39;values&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span><span class="p">))]</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;solid&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">semantics</span><span class="p">[</span><span class="s1">&#39;values&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span><span class="p">)):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">semantics</span><span class="p">[</span><span class="s1">&#39;values&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([])</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">boundaries</span><span class="p">[</span><span class="n">i</span><span class="p">])):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">semantics</span><span class="p">[</span><span class="s1">&#39;values&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{self.type}</span><span class="s2"> is not supported at the moment for semantic surfaces&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">srf</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">surfaces</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">_surface</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+            <span class="n">_surface</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">srf</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s1">&#39;attributes&#39;</span> <span class="ow">in</span> <span class="n">srf</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">attr</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">srf</span><span class="p">[</span><span class="s1">&#39;attributes&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="n">_surface</span><span class="p">[</span><span class="n">attr</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+                    <span class="c1"># TODO: make it work with null-s in semantic surfaces</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">semantics</span><span class="p">[</span><span class="s1">&#39;surfaces&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_surface</span><span class="p">)</span>
+            <span class="c1"># TODO: optimize for loop by switching it with the conditional</span>
+            <span class="k">for</span> <span class="n">bdry</span> <span class="ow">in</span> <span class="n">srf</span><span class="p">[</span><span class="s1">&#39;surface_idx&#39;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bdry</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">semantics</span><span class="p">[</span><span class="s1">&#39;values&#39;</span><span class="p">][</span><span class="n">bdry</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">i</span>
+                <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">bdry</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">semantics</span><span class="p">[</span><span class="s1">&#39;values&#39;</span><span class="p">][</span><span class="n">bdry</span><span class="p">[</span><span class="mi">0</span><span class="p">]][</span><span class="n">bdry</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">i</span></div>
+
+
+<div class="viewcode-block" id="Geometry.get_surfaces"><a class="viewcode-back" href="../../cjio.html#cjio.models.Geometry.get_surfaces">[docs]</a>    <span class="k">def</span> <span class="nf">get_surfaces</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lod</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Get the semantic surfaces of the given type</span>
 
 <span class="sd">        The whole boundary is returned if a geometry does not have semantics, or has a LoD &lt; 2,</span>
@@ -582,7 +620,7 @@
         <span class="n">j</span><span class="p">[</span><span class="s1">&#39;lod&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lod</span>
         <span class="n">j</span><span class="p">[</span><span class="s1">&#39;boundaries&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">surfaces</span><span class="p">:</span>
-            <span class="n">j</span><span class="p">[</span><span class="s1">&#39;surfaces&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">surfaces</span>
+            <span class="n">j</span><span class="p">[</span><span class="s1">&#39;semantics&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">return</span> <span class="n">j</span></div></div>
 </pre></div>
 
