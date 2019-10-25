@@ -198,17 +198,17 @@ class CityJSON:
         if file is not None:
             self.read(file, ignore_duplicate_keys)
             self.path = os.path.abspath(file.name)
-            self.cityobjects = None
+            self.cityobjects = {}
         elif j is not None:
             self.j = j
-            self.cityobjects = None
+            self.cityobjects = {}
         else: #-- create an empty one
             self.j = {}
             self.j["type"] = "CityJSON"
             self.j["version"] = CITYJSON_VERSIONS_SUPPORTED[-1]
             self.j["CityObjects"] = {}
             self.j["vertices"] = []
-            self.cityobjects = None
+            self.cityobjects = {}
 
 
     def __repr__(self):

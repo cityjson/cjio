@@ -4,7 +4,7 @@
 import json
 from copy import deepcopy
 import collections
-from typing import List, Dict
+from typing import Iterable, Mapping
 
 # TODO BD: this iteration is not really nice, maybe implement it in a way that don't need to use .items() and .values()
 # for co_id, co in cm.cityobjects.items():
@@ -13,14 +13,16 @@ from typing import List, Dict
 
 class CityObject(object):
     """CityObject class"""
-    def __init__(self, id, type=None, geometry=None, attributes=None,
-                 children=None, parents=None):
+    def __init__(self, id,
+                 type: str=None, geometry: Iterable=None,
+                 attributes: Mapping=None,
+                 children: Iterable=None, parents: Iterable=None):
         self.id = id
         self.type = type
-        self.geometry = geometry
-        self.attributes = attributes
-        self.children = children
-        self.parents = parents
+        self.geometry = [] if geometry is None else geometry
+        self.attributes = {} if attributes is None else attributes
+        self.children = [] if children is None else children
+        self.parents = [] if parents is None else parents
 
     def __repr__(self):
         return self._get_info()
@@ -36,12 +38,13 @@ class CityObject(object):
         gt = set()
         gl = set()
         sf = set()
-        for geom in self.geometry:
-            gt.add(geom.type)
-            gl.add(geom.lod)
-            if geom.surfaces:
-                for s_i, srf in geom.surfaces.items():
-                    sf.add(srf['type'])
+        if len(self.geometry) > 0:
+            for geom in self.geometry:
+                gt.add(geom.type)
+                gl.add(geom.lod)
+                if geom.surfaces:
+                    for s_i, srf in geom.surfaces.items():
+                        sf.add(srf['type'])
         info['geometry_type'] = list(gt)
         info['geometry_lod'] = list(gl)
         info['semantic_surfaces'] = list(sf)
@@ -54,8 +57,9 @@ class CityObject(object):
             vtx += geom.get_vertices()
         return vtx
 
-    def build_index(self, vtx_lookup:dict=dict(), vtx_idx:int=0):
+    def build_index(self, vtx_lookup: Mapping=None, vtx_idx: int=0):
         """Build a coordinate list and index the vertices for Geometry objects in the CityObject"""
+        vtx_lookup = {} if vtx_lookup is None else vtx_lookup
         geometry = []
         for geom in self.geometry:
             geom_idx, vtx_lookup, vtx_idx = geom.build_index(vtx_lookup, vtx_idx)
@@ -79,10 +83,10 @@ class CityObject(object):
 
 class Geometry(object):
     """CityJSON Geometry object"""
-    def __init__(self, type: str=None, lod: int=None,
-                 boundaries: List=None, semantics_obj: Dict=None,
+    def __init__(self, type: str=None, lod: str=None,
+                 boundaries: Iterable=None, semantics_obj: Mapping=None,
                  vertices=None, transform=None):
-        self.type = type
+        self.type = type # TODO: use a property for allowing only the specified types
         self.lod = lod
         self.boundaries = self._dereference_boundaries(type, boundaries, vertices, transform)
         self.surfaces = self._dereference_surfaces(semantics_obj)
@@ -351,13 +355,14 @@ class Geometry(object):
         if not surface['surface_idx'] or len(surface['surface_idx']) == 0:
             return []
         else:
-            return [self.boundaries[i[0]] if len(i) == 1
+            return (self.boundaries[i[0]] if len(i) == 1
                     else self.boundaries[i[0]][i[1]] if len(i) == 2
                     else self.boundaries[i[0]][i[1]][i[2]]
-                    for i in surface['surface_idx']]
+                    for i in surface['surface_idx'])
 
-    def build_index(self, vtx_lookup:dict=dict(), vtx_idx:int=0):
+    def build_index(self, vtx_lookup: Mapping=None, vtx_idx: int=0):
         """Build a coordinate list and index the vertices"""
+        vtx_lookup = {} if vtx_lookup is None else vtx_lookup
         if not self.boundaries:
             return ([], vtx_lookup, vtx_idx)
         if self.type.lower() == 'multipoint':
@@ -365,27 +370,27 @@ class Geometry(object):
             return (bdry, vtx_lookup, vtx_idx)
         elif self.type.lower() == 'multilinestring':
             mline = list()
-            for boundary in self.boundaries:
-                bdry, vtx_lookup, vtx_idx = self._vertex_indexer(boundary, vtx_lookup, vtx_idx)
+            for _boundary in self.boundaries:
+                bdry, vtx_lookup, vtx_idx = self._vertex_indexer(_boundary, vtx_lookup, vtx_idx)
                 mline.append(bdry)
             return (mline, vtx_lookup, vtx_idx)
         elif self.type.lower() == 'multisurface' or self.type.lower() == 'compositesurface':
             msurface = list()
-            for surface in self.boundaries:
+            for _surface in self.boundaries:
                 r = list()
-                for ring in surface:
-                    bdry, vtx_lookup, vtx_idx = self._vertex_indexer(ring, vtx_lookup, vtx_idx)
+                for _ring in _surface:
+                    bdry, vtx_lookup, vtx_idx = self._vertex_indexer(_ring, vtx_lookup, vtx_idx)
                     r.append(bdry)
                 msurface.append(r)
             return (msurface, vtx_lookup, vtx_idx)
         elif self.type.lower() == 'solid':
             shell = list()
-            for shell in self.boundaries:
+            for _shell in self.boundaries:
                 msurface = list()
-                for surface in shell:
+                for _surface in _shell:
                     r = list()
-                    for ring in surface:
-                        bdry, vtx_lookup, vtx_idx = self._vertex_indexer(ring, vtx_lookup, vtx_idx)
+                    for _ring in _surface:
+                        bdry, vtx_lookup, vtx_idx = self._vertex_indexer(_ring, vtx_lookup, vtx_idx)
                         r.append(bdry)
                     msurface.append(r)
                 shell.append(msurface)
@@ -394,12 +399,12 @@ class Geometry(object):
             msolid = list()
             for solid in self.boundaries:
                 shell = list()
-                for shell in solid:
+                for _shell in solid:
                     msurface = list()
-                    for surface in shell:
+                    for _surface in _shell:
                         r = list()
-                        for ring in surface:
-                            bdry, vtx_lookup, vtx_idx = self._vertex_indexer(ring, vtx_lookup, vtx_idx)
+                        for _ring in _surface:
+                            bdry, vtx_lookup, vtx_idx = self._vertex_indexer(_ring, vtx_lookup, vtx_idx)
                             r.append(bdry)
                         msurface.append(r)
                     shell.append(msurface)
@@ -408,7 +413,7 @@ class Geometry(object):
         else:
             raise TypeError("Unknown geometry type: {}".format(self.type))
 
-    def get_surfaces(self, type:str=None, lod:int=None):
+    def get_surfaces(self, type:str=None, lod:str=None):
         """Get the semantic surfaces of the given type
 
         The whole boundary is returned if a geometry does not have semantics, or has a LoD < 2,
@@ -418,7 +423,7 @@ class Geometry(object):
         :param lod: Level of Detail
         :return: Return a subset of the specific surfaces of the geometry
         """
-        if (type is None) or (lod and lod < 2.0) or len(self.surfaces) == 0:
+        if (type is None) or (lod and float(lod) < 2.0) or len(self.surfaces) == 0:
             return self.boundaries
         else:
             return {i:srf for i,srf in self.surfaces.items() if srf['type'].lower() == type.lower()}
