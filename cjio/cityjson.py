@@ -107,8 +107,7 @@ def save(citymodel, path: str):
     :param path: Absolute path to a CityJSON file
     """
     cityobjects, vertex_lookup = citymodel.reference_geometry()
-    citymodel.j['vertices'] = list(vertex_lookup.keys())
-    citymodel.j['CityObjects'] = cityobjects
+    citymodel.add_to_j(cityobjects, vertex_lookup)
     citymodel.remove_duplicate_vertices()
     citymodel.remove_orphan_vertices()
     try:
@@ -265,7 +264,8 @@ class CityJSON:
 
 
     def reference_geometry(self):
-        """Build a coordinate list and index the vertices"""
+        """Build a coordinate list and index the vertices for writing out to
+        CityJSON."""
         cityobjects = dict()
         vertex_lookup = dict()
         vertex_idx = 0
@@ -274,8 +274,12 @@ class CityJSON:
             geometry, vertex_lookup, vertex_idx = co.build_index(vertex_lookup, vertex_idx)
             j_co['geometry'] = geometry
             cityobjects[co_id] = j_co
-        return (cityobjects, vertex_lookup)
+        return cityobjects, vertex_lookup
 
+
+    def add_to_j(self, cityobjects, vertex_lookup):
+        self.j['vertices'] = list(vertex_lookup.keys())
+        self.j['CityObjects'] = cityobjects
 
     ##-- end API functions
 
