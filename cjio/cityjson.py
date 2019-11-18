@@ -1220,9 +1220,10 @@ class CityJSON:
             for theid in cm.j["CityObjects"]:
                 if theid in self.j["CityObjects"]:
                     #-- merge attributes if not present (based on the property name only)
-                    for a in cm.j["CityObjects"][theid]["attributes"]:
-                        if a not in self.j["CityObjects"][theid]["attributes"]:
-                            self.j["CityObjects"][theid]["attributes"][a] = cm.j["CityObjects"][theid]["attributes"][a]
+                    if "attributes" in cm.j["CityObjects"][theid]:
+                        for a in cm.j["CityObjects"][theid]["attributes"]:
+                            if a not in self.j["CityObjects"][theid]["attributes"]:
+                                self.j["CityObjects"][theid]["attributes"][a] = cm.j["CityObjects"][theid]["attributes"][a]
                     #-- merge geoms if not present (based on LoD only)
                     for g in cm.j['CityObjects'][theid]['geometry']:
                         thelod = str(g["lod"])
