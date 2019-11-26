@@ -9,7 +9,7 @@ can be chained to perform several processing operations in one step, the
 CityJSON model goes through them and different versions of the CityJSON
 model can be saved as files along the pipeline.
 
-Also see the `complete documentation <https://tudelft3d.github.io/cjio/>`__
+Also see the `complete documentation <https://cityjson.github.io/cjio/>`__
 
 Installation
 ------------
@@ -103,7 +103,7 @@ Validation of CityJSON files against the schema
 -----------------------------------------------
 
 To validate a CityJSON file against the `schemas of
-CityJSON <https://github.com/tudelft3d/cityjson/tree/master/schema>`__
+CityJSON <https://github.com/cityjson/specs/tree/master/schemas>`__
 (this will automatically fetch the schemas for the version of CityJSON):
 
 .. code:: console
@@ -261,7 +261,7 @@ Example CityJSON datasets
 -------------------------
 
 There are a few `example files on the CityJSON
-webpage <https://www.cityjson.org/en/0.9/datasets/>`__.
+webpage <https://www.cityjson.org/datasets/>`__.
 
 Alternatively, any `CityGML <https://www.citygml.org>`__ file can be
 automatically converted to CityJSON with the open-source project
