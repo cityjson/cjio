@@ -1,5 +1,4 @@
 from setuptools import setup
-import re
 from pathlib import Path
 import cjio
 
@@ -38,7 +37,6 @@ setup(
         'jsonschema',
         'jsonref',
         'numpy',
-        'strict-rfc3339',
         'pyproj'
     ],
     entry_points='''
