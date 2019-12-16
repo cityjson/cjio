@@ -8,7 +8,7 @@ from cjio import cityjson
 @pytest.fixture(scope='session')
 def data_dir():
     package_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-    yield os.path.join(package_dir, 'example_data')
+    yield os.path.join(package_dir, 'tests', 'data')
 
 @pytest.fixture(scope='session')
 def data_output_dir():

@@ -100,7 +100,7 @@ def load(path, transform:bool=False):
         )
     return cm
 
-def save(citymodel, path: str):
+def save(citymodel, path: str, indent=None):
     """Save a city model to a CityJSON file
 
     :param citymodel: A CityJSON object
@@ -112,7 +112,7 @@ def save(citymodel, path: str):
     citymodel.remove_orphan_vertices()
     try:
         with open(path, 'w') as fout:
-            json_str = json.dumps(citymodel.j, indent=2)
+            json_str = json.dumps(citymodel.j, indent=indent)
             fout.write(json_str)
     except IOError as e:
         raise IOError('Invalid output file: %s \n%s' % (path, e))
