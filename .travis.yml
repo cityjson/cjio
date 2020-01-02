@@ -10,23 +10,23 @@ install: skip
 script:
   - echo "skipping tests"
   - docker login --username ${DOCKER_USERNAME} --password ${DOCKER_PASSWORD}
-  - docker pull ${DOCKER_USERNAME}/cjio:latest || true
-  - docker build . --cache-from ${DOCKER_USERNAME}/cjio:latest -t ${DOCKER_USERNAME}/cjio:latest
+  - docker pull tudelft3d/cjio:latest || true
+  - docker build . --cache-from tudelft3d/cjio:latest -t tudelft3d/cjio:latest
 
 
 deploy:
   - provider: script
-    script: docker push ${DOCKER_USERNAME}/cjio:latest
+    script: docker push tudelft3d/cjio:latest
     skip_cleanup: true
     on:
       branch: master
   - provider: script
-    script: docker tag ${DOCKER_USERNAME}/cjio:latest ${DOCKER_USERNAME}/cjio:dev ; docker push ${DOCKER_USERNAME}/cjio:dev
+    script: docker tag tudelft3d/cjio:latest tudelft3d/cjio:dev ; docker push tudelft3d/cjio:dev
     skip_cleanup: true
     on:
       branch: develop
   - provider: script
-    script: docker tag ${DOCKER_USERNAME}/cjio:latest ${DOCKER_USERNAME}/cjio:${TRAVIS_TAG} ; docker push ${DOCKER_USERNAME}/cjio:${TRAVIS_TAG}
+    script: docker tag tudelft3d/cjio:latest tudelft3d/cjio:${TRAVIS_TAG} ; docker push tudelft3d/cjio:${TRAVIS_TAG}
     skip_cleanup: true
     on:
       tags: true
