@@ -1,10 +1,8 @@
 
 import os.path
-from os import makedirs
 
 import click
 import json
-import sys
 import copy
 import glob
 import cjio
@@ -597,6 +595,12 @@ def update_crs_cmd(epsg):
     The current file must have an EPSG defined (do it with function assign_epsg).
     """
     def processor(cm):
+        if (cityjson.MODULE_PYPROJ_AVAILABLE == False):
+            str = "Reprojection skipped: Python module 'pyproj' missing (to reproject coordinates)"
+            click.echo(click.style(str, fg='red'))
+            str = "Install it: https://pypi.org/project/pyproj/"
+            click.echo(str)
+            return cm
         utils.print_cmd_status('Reproject to EPSG:%d' % epsg)
         if (cm.get_epsg() == None):
             click.echo("WARNING: CityJSON has no EPSG defined, can't be reprojected.")

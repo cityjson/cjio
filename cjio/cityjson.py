@@ -12,13 +12,17 @@ import copy
 import random
 from io import StringIO
 import numpy as np
-import pyproj
 from sys import platform
 from click import progressbar
 
+MODULE_PYPROJ_AVAILABLE = True
 MODULE_EARCUT_AVAILABLE = True
 MODULE_PANDAS_AVAILABLE = True
 
+try:
+    import pyproj
+except ImportError as e:
+    MODULE_PYPROJ_AVAILABLE = False
 try:
     import mapbox_earcut
 except ImportError as e:
@@ -258,7 +262,7 @@ class CityJSON:
     def to_dataframe(self):
         """Converts the city model to a Pandas data frame where fields are CityObject attributes"""
         if not MODULE_PANDAS_AVAILABLE:
-            raise ModuleNotFoundError("pandas is not available, please install it")
+            raise ModuleNotFoundError("Modul 'pandas' is not available, please install it")
         return pandas.DataFrame([co.attributes for co_id,co in self.cityobjects.items()],
                                 index=list(self.cityobjects.keys()))
 
@@ -1491,6 +1495,8 @@ class CityJSON:
 
 
     def reproject(self, epsg):
+        if not MODULE_PYPROJ_AVAILABLE:
+            raise ModuleNotFoundError("Modul 'pyproj' is not available, please install it from https://pypi.org/project/pyproj/")
         wascompressed = False
         if "transform" in self.j:
             self.decompress()
