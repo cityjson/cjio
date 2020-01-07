@@ -1,4 +1,4 @@
-
+import sys
 import os.path
 
 import click
@@ -688,3 +688,8 @@ def translate_cmd(values):
         utils.print_cmd_status('Translating the file by: (%f, %f, %f)' % (bbox[0], bbox[1], bbox[2]))
         return cm
     return processor
+
+
+# Needed for the executable created by PyInstaller
+if getattr(sys, 'frozen', False):
+    cli(sys.argv[1:])
