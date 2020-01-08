@@ -11,14 +11,18 @@ from pkg_resources import resource_listdir
 import copy
 import random
 from io import StringIO
-import numpy as np
 from sys import platform
 from click import progressbar
 
+MODULE_NUMPY_AVAILABLE = True
 MODULE_PYPROJ_AVAILABLE = True
 MODULE_EARCUT_AVAILABLE = True
 MODULE_PANDAS_AVAILABLE = True
 
+try:
+    import numpy as np
+except ImportError as e:
+    MODULE_NUMPY_AVAILABLE = False
 try:
     import pyproj
 except ImportError as e:

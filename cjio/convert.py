@@ -1,9 +1,13 @@
 from io import BytesIO
 import json
-import numpy as np
 
 from cjio import geom_help
 
+MODULE_NUMPY_AVAILABLE = True
+try:
+    import numpy as np
+except ImportError as e:
+    MODULE_NUMPY_AVAILABLE = False
 
 def flatten(x):
     result = []
