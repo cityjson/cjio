@@ -67,8 +67,13 @@ class CityObject(object):
             geom_idx, vtx_lookup, vtx_idx = geom.build_index(vtx_lookup, vtx_idx)
             j = geom.to_json()
             j['boundaries'] = geom_idx
-            geom.build_semantic_surface_index()
-            j['semantics'] = geom.semantics
+            if isinstance(geom.lod, int) or isinstance(geom.lod, float):
+                if geom.lod >=2.0:
+                    geom.build_semantic_surface_index()
+                    j['semantics'] = geom.semantics
+            elif geom.lod >= '2':
+                geom.build_semantic_surface_index()
+                j['semantics'] = geom.semantics
             geometry.append(j)
         return (geometry, vtx_lookup, vtx_idx)
 

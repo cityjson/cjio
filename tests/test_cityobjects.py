@@ -44,3 +44,11 @@ class TestCityObject:
         for co_id,co in cm.cityobjects.items():
             j_co[co_id] = co.to_json()
         print(j_co)
+
+    @pytest.mark.parametrize('lod', [1, 1.2, '1', '1.3'])
+    def test_build_index(self, lod):
+        co = models.CityObject(id='one')
+        geom = models.Geometry(type='Solid', lod=lod)
+        co.geometry.append(geom)
+        geometry, vtx_lookup, vtx_idx = co.build_index()
+        assert 'semantics' not in geometry[0]
