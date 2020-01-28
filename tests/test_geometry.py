@@ -249,6 +249,24 @@ class TestGeometry:
         geom_idx, vertex_lookup, vertex_index = geom.build_index()
         print(geom_idx, vertex_lookup)
 
+
+    @pytest.mark.balazs
+    def test_vertex_indexer(self, ms_triangles):
+        vtx_lookup = {}
+        vtx_idx = 0
+        geom = models.Geometry(type='MultiSurface', lod=1)
+        for record in ms_triangles:
+            msurface = list()
+            for _surface in record:
+                r = list()
+                for _ring in _surface:
+                    bdry, vtx_lookup, vtx_idx = geom._vertex_indexer(_ring,
+                                                                     vtx_lookup,
+                                                                     vtx_idx)
+                    r.append(bdry)
+                msurface.append(r)
+
+
     def test_to_json(self, data_geometry,data_vtx_idx):
         type, boundary, result, vertex_list = data_vtx_idx
         vertices = data_geometry[1]
