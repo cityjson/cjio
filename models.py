@@ -331,7 +331,7 @@ class Geometry(object):
                 textures = texture_obj[ele]['values']
                 if self.type == 'Solid':
                     textures = textures[0]
-                textures = textures[0]
+                textures = textures[c]
                 d = {'texture':[],'vertices-texture':[]}
                 for texture_list in textures:
                     if texture_list == [None]:
