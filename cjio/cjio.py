@@ -491,7 +491,8 @@ def clean_cmd():
 
 
 @cli.command('remove_duplicate_vertices')
-def remove_duplicate_vertices_cmd():
+@click.argument('precision')
+def remove_duplicate_vertices_cmd(precision):
     """
     Remove duplicate vertices a CityJSON file.
     Only the geometry vertices are processed,
@@ -499,7 +500,7 @@ def remove_duplicate_vertices_cmd():
     """
     def processor(cm):
         utils.print_cmd_status('Remove duplicate vertices')
-        cm.remove_duplicate_vertices()
+        cm.remove_duplicate_vertices(precision)
         return cm
     return processor
 
