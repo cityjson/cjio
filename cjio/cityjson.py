@@ -770,8 +770,23 @@ class CityJSON:
         else:
             return False
 
+    def number_top_co(self):
+        count = 0
+        allkeys = list(self.j["CityObjects"].keys())
+        for k in allkeys:
+            if self.is_co_toplevel(self.j["CityObjects"][k]):
+                count += 1
+        return count
 
+    def get_ordered_ids_top_co(self, limit, offset):
+        re = []
+        allkeys = list(self.j["CityObjects"].keys())
+        for k in allkeys:
+            if self.is_co_toplevel(self.j["CityObjects"][k]):
+                re.append(k)
+        return re[offset:(offset+limit)]
 
+               
 
     def get_subset_random(self, number=1, exclude=False):
         random.seed()
