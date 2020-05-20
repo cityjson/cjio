@@ -5,6 +5,7 @@ import click
 import json
 import copy
 import glob
+import re
 import cjio
 from cjio import cityjson, tiling, utils
 
@@ -71,16 +72,28 @@ def process_pipeline(processors, input, ignore_duplicate_keys):
         else: 
             utils.print_cmd_status("Parsing %s" % (input))
             cm = cityjson.reader(file=f, ignore_duplicate_keys=ignore_duplicate_keys)
+            if not isinstance(cm.get_version(), str):
+                str1 = "CityJSON version should be a string 'X.Y' (eg '1.0')"
+                raise click.ClickException(str1) 
+            pattern = re.compile("^(\d\.)(\d)$") #-- correct pattern for version
+            pattern2 = re.compile("^(\d\.)(\d\.)(\d)$") #-- wrong pattern with X.Y.Z
+            if pattern.fullmatch(cm.get_version()) == None:
+                if pattern2.fullmatch(cm.get_version()) != None:
+                    str1 = "CityJSON version should be only X.Y (eg '1.0') and not X.Y.Z (eg '1.0.1')"
+                    raise click.ClickException(str1)
+                else:
+                    str1 = "CityJSON version is wrongly formatted"
+                    raise click.ClickException(str1)
             if (cm.get_version() not in cityjson.CITYJSON_VERSIONS_SUPPORTED):
                 allv = ""
                 for v in cityjson.CITYJSON_VERSIONS_SUPPORTED:
                     allv = allv + v + "/"
-                str = "CityJSON version %s not supported (only versions: %s), not every operators will work.\nPerhaps it's time to upgrade cjio? 'pip install cjio -U'" % (cm.get_version(), allv)
-                raise click.ClickException(str)
+                str1 = "CityJSON version %s not supported (only versions: %s), not every operators will work.\nPerhaps it's time to upgrade cjio? 'pip install cjio -U'" % (cm.get_version(), allv)
+                raise click.ClickException(str1)
             elif (cm.get_version() != cityjson.CITYJSON_VERSIONS_SUPPORTED[-1]):
-                str = "v%s is not the latest version, and not everything will work.\n" % cm.get_version()
-                str += "Upgrade the file with 'upgrade_version' command: 'cjio input.json upgrade_version save out.json'" 
-                click.echo(click.style(str, fg='red'))
+                str1 = "v%s is not the latest version, and not everything will work.\n" % cm.get_version()
+                str1 += "Upgrade the file with 'upgrade_version' command: 'cjio input.json upgrade_version save out.json'" 
+                click.echo(click.style(str1, fg='red'))
             
     except ValueError as e:
         raise click.ClickException('%s: "%s".' % (e, input))
