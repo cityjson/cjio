@@ -704,6 +704,19 @@ def translate_cmd(values):
     return processor
 
 
+@cli.command('update_metadata')
+def update_metadata_cmd():
+    """
+    Update the metadata for properties/values that can be
+    computed. Updates the dataset.
+    """
+    def processor(cm):
+        utils.print_cmd_status('Update the metadata')
+        cm.update_metadata()
+        return cm
+    return processor
+
+
 # Needed for the executable created by PyInstaller
 if getattr(sys, 'frozen', False):
     cli(sys.argv[1:])

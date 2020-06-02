@@ -1566,3 +1566,6 @@ class CityJSON:
         self.set_epsg(None)
         self.update_bbox()
         return bbox
+
+    def update_metadata(self):
+        self.update_bbox()
