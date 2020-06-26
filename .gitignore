@@ -117,3 +117,6 @@ ENV/
 
 # KDE
 .directory
+
+# VS Code
+.vscode

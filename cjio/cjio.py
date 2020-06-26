@@ -712,7 +712,11 @@ def update_metadata_cmd():
     """
     def processor(cm):
         utils.print_cmd_status('Update the metadata')
-        cm.update_metadata()
+        re, errors = cm.update_metadata(False)
+
+        for e in errors:
+            utils.print_cmd_warning(e)
+
         return cm
     return processor
 

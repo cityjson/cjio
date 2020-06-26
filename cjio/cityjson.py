@@ -13,6 +13,7 @@ import random
 from io import StringIO
 from sys import platform
 from click import progressbar
+from datetime import datetime
 
 MODULE_NUMPY_AVAILABLE = True
 MODULE_PYPROJ_AVAILABLE = True
@@ -39,6 +40,7 @@ except ImportError as e:
 from cjio import validation, subset, geom_help, convert, models
 from cjio.errors import InvalidOperation
 from cjio.utils import print_cmd_warning
+from cjio.metadata import generate_metadata
 
 
 CITYJSON_VERSIONS_SUPPORTED = ['0.6', '0.8', '0.9', '1.0']
@@ -205,10 +207,12 @@ class CityJSON:
         if file is not None:
             self.read(file, ignore_duplicate_keys)
             self.path = os.path.abspath(file.name)
+            self.reference_date = datetime.fromtimestamp(os.path.getmtime(file.name)).strftime('%Y-%m-%d')
             self.cityobjects = {}
         elif j is not None:
             self.j = j
             self.cityobjects = {}
+            self.reference_date = datetime.now()
         else: #-- create an empty one
             self.j = {}
             self.j["type"] = "CityJSON"
@@ -216,6 +220,7 @@ class CityJSON:
             self.j["CityObjects"] = {}
             self.j["vertices"] = []
             self.cityobjects = {}
+            self.reference_date = datetime.now()
 
 
     def __repr__(self):
@@ -1566,6 +1571,15 @@ class CityJSON:
         self.set_epsg(None)
         self.update_bbox()
         return bbox
+    
+    def get_metadata(self, overwrite=False):
+        return generate_metadata(self.j, self.path, self.reference_date, overwrite)
 
-    def update_metadata(self):
+    def update_metadata(self, overwrite=False):
         self.update_bbox()
+
+        metadata, errors = self.get_metadata(overwrite)
+
+        self.j["metadata"] = metadata
+
+        return (True, errors)
