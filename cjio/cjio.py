@@ -704,6 +704,18 @@ def translate_cmd(values):
     return processor
 
 
+@cli.command('metadata')
+def metadata_cmd():
+    """
+    Output the metadata as a JSON object.
+    """
+    def processor(cm):
+        if "metadata" in cm.j:
+            click.echo(json.dumps(cm.j["metadata"], indent=2))
+        return cm
+    return processor
+
+
 # Needed for the executable created by PyInstaller
 if getattr(sys, 'frozen', False):
     cli(sys.argv[1:])
