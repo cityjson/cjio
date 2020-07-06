@@ -1188,7 +1188,7 @@ class CityJSON:
         self.j["transform"]["scale"] = [ss, ss, ss]
         self.j["transform"]["translate"] = [bbox[0], bbox[1], bbox[2]]
         #-- clean the file
-        re = self.remove_duplicate_vertices()
+        re = self.remove_duplicate_vertices(0)
         # print ("Remove duplicates:", re)
         re = self.remove_orphan_vertices()
         # print ("Remove orphans:", re)
