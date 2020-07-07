@@ -5,6 +5,7 @@ import pytest
 import copy
 from cjio import cityjson,models
 
+
 @pytest.fixture(scope='module')
 def cm_zur_subset(zurich_subset):
     zurich_subset.cityobjects = dict()
@@ -70,8 +71,9 @@ class TestCityJSON:
     def test_get_parents(self):
         """# TODO BD: Get all parents of a CityObject"""
 
-    def test_compression(self, delft):
+    def test_de_compression(self, delft):
         cm = copy.deepcopy(delft)
+        assert cm.decompress() == False
         cm.compress(3)
         assert cm.j["transform"]["scale"][0] == 0.001
         assert len(delft.j["vertices"]) == len(cm.j["vertices"])
@@ -79,3 +81,13 @@ class TestCityJSON:
         v2 = cm.j["vertices"][0][0]
         assert isinstance(v1, float)
         assert isinstance(v2, int)
+        assert cm.decompress() == True
+
+    def test_de_compression_2(self, cube):
+        cubec = copy.deepcopy(cube)
+        assert cubec.compress(2) == True
+        assert len(cube.j["vertices"]) == len(cubec.j["vertices"])
+        cubec.decompress()
+        assert cube.j["vertices"][0][0] == cubec.j["vertices"][0][0]
+
+
