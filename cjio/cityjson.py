@@ -1528,6 +1528,7 @@ class CityJSON:
                 v[1] = y
                 v[2] = z
         self.set_epsg(epsg)
+        self.update_bbox()
         if wascompressed == True:
             self.compress()
 
