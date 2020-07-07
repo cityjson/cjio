@@ -553,9 +553,8 @@ def compress_cmd(digit):
     def processor(cm):
         utils.print_cmd_status('Compressing the CityJSON (with %d digit)' % digit)
         try:
-            cm.compress(digit)
-        except Exception as e:
-            click.echo("WARNING: %s." % e)
+        if cm.compress(digit) == False
+            click.echo("WARNING: CityJSON already compressed.")
         return cm
     return processor
 
