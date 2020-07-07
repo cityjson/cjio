@@ -2,6 +2,7 @@
 
 """
 import pytest
+import copy
 from cjio import cityjson,models
 
 @pytest.fixture(scope='module')
@@ -68,3 +69,13 @@ class TestCityJSON:
 
     def test_get_parents(self):
         """# TODO BD: Get all parents of a CityObject"""
+
+    def test_compression(self, delft):
+        cm = copy.deepcopy(delft)
+        cm.compress(3)
+        assert cm.j["transform"]["scale"][0] == 0.001
+        assert len(delft.j["vertices"]) == len(cm.j["vertices"])
+        v1 = delft.j["vertices"][0][0]
+        v2 = cm.j["vertices"][0][0]
+        assert isinstance(v1, float)
+        assert isinstance(v2, int)
