@@ -8,6 +8,7 @@ import re
 import collections, functools, operator
 import sys
 from datetime import date, datetime
+import platform
 
 def generate_metadata(citymodel: dict, filename: str, reference_date: 'datetime', overwrite_values: bool = False):
     """Returns a tuple containing a dictionary of the metadata and a list of errors.
@@ -22,7 +23,21 @@ def generate_metadata(citymodel: dict, filename: str, reference_date: 'datetime'
         return str(uuid.uuid4())
 
     def datasetReferenceDate_func():
-        return reference_date
+        """
+        Try to get the date that a file was created, falling back to when it was
+        last modified if that isn't possible.
+        See http://stackoverflow.com/a/39501288/1709587 for explanation.
+        """
+        if platform.system() == 'Windows':
+            return str(date.fromtimestamp(os.path.getctime(filename)))
+        else:
+            stat = os.stat(filename)
+            try:
+                return str(date.fromtimestamp(stat.st_birthtime))
+            except AttributeError:
+                # We're probably on Linux. No easy way to get creation dates here,
+                # so we'll settle for when its content was last modified.
+                return str(date.fromtimestamp(stat.st_mtime))
 
     def distributionFormatVersion_func():
         return citymodel["version"]
