@@ -705,14 +705,15 @@ def translate_cmd(values):
 
 
 @cli.command('update_metadata')
-def update_metadata_cmd():
+@click.option('--overwrite', is_flag=True, help='Overwrite existing values.')
+def update_metadata_cmd(overwrite):
     """
     Update the metadata for properties/values that can be
     computed. Updates the dataset.
     """
     def processor(cm):
         utils.print_cmd_status('Update the metadata')
-        re, errors = cm.update_metadata(False)
+        re, errors = cm.update_metadata(overwrite)
 
         for e in errors:
             utils.print_cmd_warning(e)
