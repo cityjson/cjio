@@ -63,8 +63,8 @@ def generate_metadata(citymodel: dict, filename: str, reference_date: 'datetime'
                 if len(citymodel["appearance"][k]) > 0:
                     if any(len(d) > 0 for d in citymodel["appearance"][k]):
                         return "present"
-        else:
-            return "absent"
+        
+        return "absent"
 
     def textures_func():
         return is_present_in_appearance("textures")
