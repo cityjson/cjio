@@ -131,7 +131,6 @@ def generate_metadata(citymodel: dict, filename: str, reference_date: 'datetime'
                 [v["presentLoDs"] for k,v in metadata["cityfeatureMetadata"].items() if k != "CityObjectGroup"])))
 
     md_dictionary = {
-        "datasetReferenceDate": datasetReferenceDate_func,
         "datasetCharacterSet": "UTF-8",
         "datasetTopicCategory": "geoscientificInformation",
         "distributionFormatVersion": distributionFormatVersion_func,
@@ -167,6 +166,9 @@ def generate_metadata(citymodel: dict, filename: str, reference_date: 'datetime'
     metadata = citymodel["metadata"]
     if "citymodelIdentifier" not in metadata:
         metadata["citymodelIdentifier"] = citymodelIdentifier_func()
+    if "datasetReferenceDate" not in metadata:
+        metadata["datasetReferenceDate"] = datasetReferenceDate_func()
+
     bad_list = []
     populate_metadata_dict(md_dictionary)
     populate_metadata_dict(md_dependent_dictionary)
