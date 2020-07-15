@@ -1124,7 +1124,7 @@ class CityJSON:
         return (totalinput - len(self.j["vertices"]))
 
 
-    def remove_duplicate_vertices(self, precision):
+    def remove_duplicate_vertices(self, precision=3):
         def update_geom_indices(a, newids):
           for i, each in enumerate(a):
             if isinstance(each, list):

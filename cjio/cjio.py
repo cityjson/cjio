@@ -498,7 +498,7 @@ def clean_cmd(digit):
     """
     def processor(cm):
         utils.print_cmd_status('Clean the file')
-        cm.remove_duplicate_vertices()
+        cm.remove_duplicate_vertices(digit)
         cm.remove_orphan_vertices()
         return cm
     return processor
