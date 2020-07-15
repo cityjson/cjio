@@ -487,7 +487,8 @@ def subset_cmd(id, bbox, random, cotype, exclude):
 
 
 @cli.command('clean')
-def clean_cmd():
+@click.option('--digit', default=3, type=click.IntRange(1, 10), help='Number of digit to use to compare vertices (default=3).')
+def clean_cmd(digit):
     """
     Clean 
     =
