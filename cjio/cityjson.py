@@ -291,7 +291,7 @@ class CityJSON:
 
 
     def add_to_j(self, cityobjects, vertex_lookup):
-        self.j['vertices'] = list(vertex_lookup.keys())
+        self.j['vertices'] = [[vtx[0], vtx[1], vtx[2]] for vtx in vertex_lookup.keys()]
         self.j['CityObjects'] = cityobjects
 
     ##-- end API functions
