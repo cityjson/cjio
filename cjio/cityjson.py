@@ -317,6 +317,9 @@ class CityJSON:
         else:
             return False
 
+    def is_transform(self):
+        return ("transform" in self.j)
+
     def read(self, file, ignore_duplicate_keys=False):
         if ignore_duplicate_keys == True:
             self.j = json.loads(file.read())
@@ -1136,6 +1139,8 @@ class CityJSON:
         h = {}
         newids = [-1] * len(self.j["vertices"])
         newvertices = []
+        if self.is_transform() == True:
+            precision = 0
         for i, v in enumerate(self.j["vertices"]):
             s = "{{x:.{p}f}} {{y:.{p}f}} {{z:.{p}f}}".format(p=precision).format(x=v[0], y=v[1], z=v[2])
             if s not in h:
