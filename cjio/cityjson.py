@@ -116,8 +116,8 @@ def save(citymodel, path: str, indent=None):
     """
     cityobjects, vertex_lookup = citymodel.reference_geometry()
     citymodel.add_to_j(cityobjects, vertex_lookup)
-    citymodel.remove_duplicate_vertices()
-    citymodel.remove_orphan_vertices()
+    # citymodel.remove_duplicate_vertices()
+    # citymodel.remove_orphan_vertices()
     try:
         with open(path, 'w') as fout:
             json_str = json.dumps(citymodel.j, indent=indent)
@@ -316,6 +316,9 @@ class CityJSON:
             return True
         else:
             return False
+
+    def is_transform(self):
+        return ("transform" in self.j)
 
     def read(self, file, ignore_duplicate_keys=False):
         if ignore_duplicate_keys == True:
@@ -1124,7 +1127,7 @@ class CityJSON:
         return (totalinput - len(self.j["vertices"]))
 
 
-    def remove_duplicate_vertices(self, precision):
+    def remove_duplicate_vertices(self, precision=3):
         def update_geom_indices(a, newids):
           for i, each in enumerate(a):
             if isinstance(each, list):
@@ -1136,6 +1139,8 @@ class CityJSON:
         h = {}
         newids = [-1] * len(self.j["vertices"])
         newvertices = []
+        if self.is_transform() == True:
+            precision = 0
         for i, v in enumerate(self.j["vertices"]):
             s = "{{x:.{p}f}} {{y:.{p}f}} {{z:.{p}f}}".format(p=precision).format(x=v[0], y=v[1], z=v[2])
             if s not in h:
@@ -1163,8 +1168,7 @@ class CityJSON:
 
     def compress(self, important_digits=3):
         if "transform" in self.j:
-            raise Exception("CityJSON already compressed")
-            return True # TODO: this is unreachable, will never return True
+            return False
         #-- find the minx/miny/minz
         bbox = [9e9, 9e9, 9e9]    
         for v in self.j["vertices"]:
@@ -1331,8 +1335,8 @@ class CityJSON:
                         if 'texture' in g:
                             for m in g['texture']:
                                 update_texture_indices(g['texture'][m]['values'], toffset, voffset)
-        self.remove_duplicate_vertices()
-        self.remove_orphan_vertices()
+        # self.remove_duplicate_vertices()
+        # self.remove_orphan_vertices()
         return True
 
 
@@ -1529,6 +1533,7 @@ class CityJSON:
                 v[1] = y
                 v[2] = z
         self.set_epsg(epsg)
+        self.update_bbox()
         if wascompressed == True:
             self.compress()
 
