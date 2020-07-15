@@ -116,8 +116,8 @@ def save(citymodel, path: str, indent=None):
     """
     cityobjects, vertex_lookup = citymodel.reference_geometry()
     citymodel.add_to_j(cityobjects, vertex_lookup)
-    citymodel.remove_duplicate_vertices()
-    citymodel.remove_orphan_vertices()
+    # citymodel.remove_duplicate_vertices()
+    # citymodel.remove_orphan_vertices()
     try:
         with open(path, 'w') as fout:
             json_str = json.dumps(citymodel.j, indent=indent)
@@ -1330,8 +1330,8 @@ class CityJSON:
                         if 'texture' in g:
                             for m in g['texture']:
                                 update_texture_indices(g['texture'][m]['values'], toffset, voffset)
-        self.remove_duplicate_vertices()
-        self.remove_orphan_vertices()
+        # self.remove_duplicate_vertices()
+        # self.remove_orphan_vertices()
         return True
 
 
