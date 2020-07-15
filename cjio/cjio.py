@@ -5,6 +5,7 @@ import click
 import json
 import copy
 import glob
+import re
 import cjio
 from cjio import cityjson, tiling, utils
 
@@ -71,16 +72,28 @@ def process_pipeline(processors, input, ignore_duplicate_keys):
         else: 
             utils.print_cmd_status("Parsing %s" % (input))
             cm = cityjson.reader(file=f, ignore_duplicate_keys=ignore_duplicate_keys)
+            if not isinstance(cm.get_version(), str):
+                str1 = "CityJSON version should be a string 'X.Y' (eg '1.0')"
+                raise click.ClickException(str1) 
+            pattern = re.compile("^(\d\.)(\d)$") #-- correct pattern for version
+            pattern2 = re.compile("^(\d\.)(\d\.)(\d)$") #-- wrong pattern with X.Y.Z
+            if pattern.fullmatch(cm.get_version()) == None:
+                if pattern2.fullmatch(cm.get_version()) != None:
+                    str1 = "CityJSON version should be only X.Y (eg '1.0') and not X.Y.Z (eg '1.0.1')"
+                    raise click.ClickException(str1)
+                else:
+                    str1 = "CityJSON version is wrongly formatted"
+                    raise click.ClickException(str1)
             if (cm.get_version() not in cityjson.CITYJSON_VERSIONS_SUPPORTED):
                 allv = ""
                 for v in cityjson.CITYJSON_VERSIONS_SUPPORTED:
                     allv = allv + v + "/"
-                str = "CityJSON version %s not supported (only versions: %s), not every operators will work.\nPerhaps it's time to upgrade cjio? 'pip install cjio -U'" % (cm.get_version(), allv)
-                raise click.ClickException(str)
+                str1 = "CityJSON version %s not supported (only versions: %s), not every operators will work.\nPerhaps it's time to upgrade cjio? 'pip install cjio -U'" % (cm.get_version(), allv)
+                raise click.ClickException(str1)
             elif (cm.get_version() != cityjson.CITYJSON_VERSIONS_SUPPORTED[-1]):
-                str = "v%s is not the latest version, and not everything will work.\n" % cm.get_version()
-                str += "Upgrade the file with 'upgrade_version' command: 'cjio input.json upgrade_version save out.json'" 
-                click.echo(click.style(str, fg='red'))
+                str1 = "v%s is not the latest version, and not everything will work.\n" % cm.get_version()
+                str1 += "Upgrade the file with 'upgrade_version' command: 'cjio input.json upgrade_version save out.json'" 
+                click.echo(click.style(str1, fg='red'))
             
     except ValueError as e:
         raise click.ClickException('%s: "%s".' % (e, input))
@@ -245,7 +258,7 @@ def export_cmd(filename, format):
         if (cityjson.MODULE_EARCUT_AVAILABLE == False):
             str = "OBJ|glTF|b3dm export skipped: Python module 'mapbox_earcut' missing (to triangulate faces)"
             click.echo(click.style(str, fg='red'))
-            str = "Install it: https://github.com/skogler/mapbox_earcut_python"
+            str = "Install it: https://pypi.org/project/mapbox-earcut/"
             click.echo(str)
             return cm
         # NOTE BD: export_cmd can take a list of citymodels, which is the output of the partitioner
@@ -474,7 +487,8 @@ def subset_cmd(id, bbox, random, cotype, exclude):
 
 
 @cli.command('clean')
-def clean_cmd():
+@click.option('--digit', default=3, type=click.IntRange(1, 10), help='Number of digit to use to compare vertices (default=3).')
+def clean_cmd(digit):
     """
     Clean 
     =
@@ -484,14 +498,15 @@ def clean_cmd():
     """
     def processor(cm):
         utils.print_cmd_status('Clean the file')
-        cm.remove_duplicate_vertices()
+        cm.remove_duplicate_vertices(digit)
         cm.remove_orphan_vertices()
         return cm
     return processor
 
 
 @cli.command('remove_duplicate_vertices')
-def remove_duplicate_vertices_cmd():
+@click.argument('precision')
+def remove_duplicate_vertices_cmd(precision):
     """
     Remove duplicate vertices a CityJSON file.
     Only the geometry vertices are processed,
@@ -499,7 +514,7 @@ def remove_duplicate_vertices_cmd():
     """
     def processor(cm):
         utils.print_cmd_status('Remove duplicate vertices')
-        cm.remove_duplicate_vertices()
+        cm.remove_duplicate_vertices(precision)
         return cm
     return processor
 
@@ -538,10 +553,8 @@ def compress_cmd(digit):
     """
     def processor(cm):
         utils.print_cmd_status('Compressing the CityJSON (with %d digit)' % digit)
-        try:
-            cm.compress(digit)
-        except Exception as e:
-            click.echo("WARNING: %s." % e)
+        if cm.compress(digit) == False:
+            click.echo("WARNING: CityJSON already compressed.")
         return cm
     return processor
 
@@ -686,6 +699,18 @@ def translate_cmd(values):
         else:
             bbox = cm.translate(values=values, minimum_xyz=False)
         utils.print_cmd_status('Translating the file by: (%f, %f, %f)' % (bbox[0], bbox[1], bbox[2]))
+        return cm
+    return processor
+
+
+@cli.command('metadata')
+def metadata_cmd():
+    """
+    Output the metadata as a JSON object.
+    """
+    def processor(cm):
+        if "metadata" in cm.j:
+            click.echo(json.dumps(cm.j["metadata"], indent=2))
         return cm
     return processor
 

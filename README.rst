@@ -4,12 +4,12 @@ cjio, or CityJSON/io
 |License: MIT| |image1|
 
 Python CLI to process and manipulate
-`CityJSON <http://www.cityjson.org>`__ files. The different operators
+`CityJSON <http://www.cityjson.org>`_ files. The different operators
 can be chained to perform several processing operations in one step, the
 CityJSON model goes through them and different versions of the CityJSON
 model can be saved as files along the pipeline.
 
-Also see the `complete documentation <https://cityjson.github.io/cjio/>`__
+Also see the `complete documentation <https://cityjson.github.io/cjio/>`_
 
 Installation
 ------------
@@ -32,7 +32,7 @@ To install the development branch, and still develop with it:
     pip install --editable .
 
 Alternatively, you can use the included Pipfile to manage the virtual
-environment with `pipenv <https://pipenv.readthedocs.io/en/latest/>`__.
+environment with `pipenv <https://pipenv.readthedocs.io/en/latest/>`_.
 
 **Note for Windows users**
 
@@ -40,17 +40,18 @@ If your installation fails based on a *pyproj* or *pyrsistent* error
 there is a small hack to get around it. Based on the python version you
 have installed you can download a wheel (binary of a python package) of
 the problem package/s. A good website to use is
-`here <https://www.lfd.uci.edu/~gohlke/pythonlibs>`__. You then run:
+`here <https://www.lfd.uci.edu/~gohlke/pythonlibs>`_. You then run:
 
 .. code:: console
 
-    pip3 install [name of wheel file]
+    pip install [name of wheel file]
 
 You can then continue with:
 
 .. code:: console
 
-    pip3 install cjio
+    pip install cjio
+
 
 Usage of the CLI
 ----------------
@@ -64,6 +65,7 @@ possibities:
 
     Commands:
       assign_epsg                Assign a (new) EPSG.
+      clean                      Clean = remove_duplicate_vertices +...
       compress                   Compress a CityJSON file, ie stores its...
       decompress                 Decompress a CityJSON file, ie remove the...
       export                     Export the CityJSON to another format.
@@ -79,6 +81,7 @@ possibities:
       reproject                  Reproject the CityJSON to a new EPSG.
       save                       Save the city model to a CityJSON file.
       subset                     Create a subset of a CityJSON file.
+      translate                  Translate the file by its (-minx, -miny,...
       update_bbox                Update the bbox of a CityJSON file.
       update_textures            Update the location of the texture files.
       upgrade_version            Upgrade the CityJSON to the latest version.
@@ -94,35 +97,35 @@ model to the next operator.
 
 .. code:: console
 
-    $ cjio example.json subset --id house12 info remove_materials info save out.json
-    $ cjio example.json remove_textures compress info
-    $ cjio example.json upgrade_version save new.json
-    $ cjio myfile.json merge '/home/elvis/temp/*.json' save all_merged.json
+    cjio example.json subset --id house12 info remove_materials info save out.json
+    cjio example.json remove_textures compress info
+    cjio example.json upgrade_version save new.json
+    cjio myfile.json merge '/home/elvis/temp/*.json' save all_merged.json
 
 Validation of CityJSON files against the schema
 -----------------------------------------------
 
 To validate a CityJSON file against the `schemas of
-CityJSON <https://github.com/cityjson/specs/tree/master/schemas>`__
+CityJSON <https://github.com/cityjson/specs/tree/master/schemas>`_
 (this will automatically fetch the schemas for the version of CityJSON):
 
 .. code:: console
 
-    $ cjio myfile.json validate
+    cjio myfile.json validate
 
 If the file is too large (and thus validation is slow), an option is to
 crop a subset and just validate it:
 
 .. code:: console
 
-    $ cjio myfile.json subset --random 2 validate
+    cjio myfile.json subset --random 2 validate
 
 If you want to use your own schemas, give the folder where the master
 schema file ``cityjson.json`` is located:
 
 .. code:: console
 
-    $ cjio example.json validate --folder_schemas /home/elvis/temp/myschemas/
+    cjio example.json validate --folder_schemas /home/elvis/temp/myschemas/
 
 Generating Binary glTF or Cesium 3DTiles from a CityJSON
 --------------------------------------------------------
@@ -132,14 +135,14 @@ Convert the CityJSON ``example.json`` to a glb file
 
 .. code:: console
 
-    $ cjio example.json export --format glb /home/elvis/gltfs
+    cjio example.json export --format glb /home/elvis/gltfs
 
 Convert the CityJSON ``example.json`` to a glb file
 ``/home/elvis/test.glb``
 
 .. code:: console
 
-    $ cjio example.json export --format glb /home/elvis/test.glb
+    cjio example.json export --format glb /home/elvis/test.glb
 
 Partitioning
 ~~~~~~~~~~~~
@@ -158,13 +161,13 @@ Partition the CityJSON ``example.json`` into 16 equal area parts
 
 .. code:: console
 
-    $ cjio example.json partiton --depth 2 export --format glb /home/elvis/gltfs
+    cjio example.json partition --depth 2 export --format glb /home/elvis/gltfs
 
 Partition the CityJSON and get information about each part
 
 .. code:: console
 
-    $ cjio example.json partiton --depth 2 info
+    cjio example.json partition --depth 2 info
 
 Export to 3DTiles
 ~~~~~~~~~~~~~~~~~
@@ -176,7 +179,7 @@ master file which links to each partition which are converted to
 
 .. code:: console
 
-    $ cjio example.json partition --depth 2 export --format 3dtiles /home/elvis/3dtiles
+    cjio example.json partition --depth 2 export --format 3dtiles /home/elvis/3dtiles
 
 Usage of the API
 ----------------
@@ -195,7 +198,7 @@ To run cjio via docker simply call:
 
 .. code:: console
 
-    $ docker run --rm  -v <local path where your files are>:/data tudelft3d/cjio:latest cjio --help
+    docker run --rm  -v <local path where your files are>:/data tudelft3d/cjio:latest cjio --help
 
 
 To give a simple example for the following lets assume you want to create a geojson which represents 
@@ -261,18 +264,18 @@ Example CityJSON datasets
 -------------------------
 
 There are a few `example files on the CityJSON
-webpage <https://www.cityjson.org/datasets/>`__.
+webpage <https://www.cityjson.org/datasets/>`_.
 
-Alternatively, any `CityGML <https://www.citygml.org>`__ file can be
+Alternatively, any `CityGML <https://www.ogc.org/standards/citygml>`_ file can be
 automatically converted to CityJSON with the open-source project
-`citygml-tools <https://github.com/citygml4j/citygml-tools>`__ (based on
-`citygml4j <https://github.com/citygml4j/citygml4j>`__).
+`citygml-tools <https://github.com/citygml4j/citygml-tools>`_ (based on
+`citygml4j <https://github.com/citygml4j/citygml4j>`_).
 
 Acknowledgements
 ----------------
 
 The glTF exporter is adapted from Kavisha's
-`CityJSON2glTF <https://github.com/tudelft3d/CityJSON2glTF>`__.
+`CityJSON2glTF <https://github.com/tudelft3d/CityJSON2glTF>`_.
 
 .. |License: MIT| image:: https://img.shields.io/badge/License-MIT-yellow.svg
    :target: https://github.com/tudelft3d/cjio/blob/master/LICENSE
