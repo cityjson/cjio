@@ -601,6 +601,9 @@ class CityJSON:
 
 
     def calculate_bbox(self):
+        """
+        Calculate the bbox of the CityJSON.
+        """
         x, y, z = zip(*self.j["vertices"])
         bbox = [min(x), min(y), min(z), max(x), max(y), max(z)]
         if "transform" in self.j:
