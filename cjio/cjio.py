@@ -313,20 +313,6 @@ def save_cmd(filename, indent, textures):
         return cm
     return processor
 
-
-@cli.command('update_bbox')
-def update_bbox_cmd():
-    """
-    Update the bbox of a CityJSON file.
-    If there is none then it is added.
-    """
-    def processor(cm):
-        utils.print_cmd_status("Updating bbox")
-        cm.update_bbox()
-        return cm
-    return processor
-
-
 @cli.command('validate')
 @click.option('--hide_errors', is_flag=True, help='Do not print all the errors.')
 @click.option('--skip_schema', is_flag=True, help='Skip the schema validation (since it can be painfully slow).')
