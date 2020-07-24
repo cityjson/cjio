@@ -1601,4 +1601,39 @@ class CityJSON:
         self.j["metadata"] = metadata
 
         return (True, errors)
+    
+    def add_lineage_item(self, description: str, features: list = None, source: list = None, processor: dict = None):
+        """
+        Adds a lineage item in metadata.
+
+        description --- A string with the description of the process
+        features (optional) --- A list of object ids that are affected by it
+        source (optional) --- A list of sources. Every source is a dict with
+            the respective info (description, sourceReferenceSystem etc.)
+        processor (optional) --- A dict with contact information for the
+            person that conducted the processing
+        """
+
+        new_item = {
+            "processStep": {
+                "description": description
+            }
+        }
+
+        if isinstance(features, list):
+            new_item["featureIDs"] = features
+        
+        if isinstance(source, list):
+            new_item["source"] = source
+        
+        if isinstance(processor, dict):
+            new_item["processStep"]["processor"] = processor
+
+        if not self.has_metadata():
+            self.j["metadata"] = {}
+
+        if not "lineage" in self.j["metadata"]:
+            self.j["metadata"]["lineage"] = []
+
+        self.j["metadata"]["lineage"].append(new_item)
         

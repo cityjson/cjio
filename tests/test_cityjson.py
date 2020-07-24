@@ -98,3 +98,22 @@ class TestCityJSON:
         bbox = cm.calculate_bbox()
 
         assert bbox == [100, 100, 100, 100.001, 100.001, 100.001]
+
+    def test_add_lineage_item(self):
+        """Test the add_lineage_item function"""
+
+        test_desc = "We did something"
+
+        cm = cityjson.CityJSON()
+
+        cm.add_lineage_item(test_desc)
+
+        assert cm.j["metadata"]["lineage"][0]["processStep"]["description"] == test_desc
+
+        cm.add_lineage_item("Something else", features=["id1", "id2"], source=[{"description": "BAG"}], processor={"contactName": "3D geoinfo"})
+
+        item = cm.j["metadata"]["lineage"][1]
+        assert item["processStep"]["description"] == "Something else"
+        assert len(item["featureIDs"]) == 2
+        assert len(item["source"]) == 1
+        assert item["processStep"]["processor"]["contactName"] == "3D geoinfo"
