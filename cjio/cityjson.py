@@ -1568,13 +1568,19 @@ class CityJSON:
         self.update_bbox()
         return bbox
     
-    def get_metadata(self, overwrite=False):
+    def compute_metadata(self, overwrite=False):
+        """
+        Returns the metadata of this CityJSON file
+        """
         return generate_metadata(self.j, self.path, self.reference_date, overwrite)
 
     def update_metadata(self, overwrite=False):
+        """
+        Computes and updates the "metadata" property of this CityJSON file
+        """
         self.update_bbox()
 
-        metadata, errors = self.get_metadata(overwrite)
+        metadata, errors = self.compute_metadata(overwrite)
 
         self.j["metadata"] = metadata
 
