@@ -772,9 +772,12 @@ class CityJSON:
             cm2.j["appearance"] = {}
             subset.process_appearance(self.j, cm2.j)
         #-- metadata
-        cm2.update_metadata()
-        fids = [fid for fid in self.j["CityObjects"]]
-        cm2.add_lineage_item("Subset of {} by bounding box {}".format(self.get_identifier(), bbox), features=fids)
+        try:
+            cm2.update_metadata()
+            fids = [fid for fid in cm2.j["CityObjects"]]
+            cm2.add_lineage_item("Subset of {} by bounding box {}".format(self.get_identifier(), bbox), features=fids)
+        except:
+            print("Issue with metadata creation")
         
         return cm2
 
@@ -822,7 +825,12 @@ class CityJSON:
             sallkeys = set(self.j["CityObjects"].keys())
             re = sallkeys ^ re
         re = list(re)
-        return self.get_subset_ids(re)
+        cm = self.get_subset_ids(re)
+        try:
+            cm.j["metadata"]["lineage"][-1]["processStep"]["description"] = "Random subset of {}".format(self.get_identifier())
+        except:
+            print("Problem with metadata")
+        return cm
 
 
     def get_subset_ids(self, lsIDs, exclude=False):
@@ -850,9 +858,12 @@ class CityJSON:
             cm2.j["appearance"] = {}
             subset.process_appearance(self.j, cm2.j)
         #-- metadata
-        if ("metadata" in self.j):
-            cm2.j["metadata"] = self.j["metadata"]
-        cm2.update_bbox()
+        try:
+            cm2.update_metadata()
+            fids = [fid for fid in cm2.j["CityObjects"]]
+            cm2.add_lineage_item("Subset of {} based on user specified IDs".format(self.get_identifier()), features=fids)
+        except:
+            print("Issue with metadata creation")
         return cm2
 
 
@@ -892,9 +903,11 @@ class CityJSON:
             cm2.j["appearance"] = {}
             subset.process_appearance(self.j, cm2.j)
         #-- metadata
-        if ("metadata" in self.j):
-            cm2.j["metadata"] = self.j["metadata"]
-        cm2.update_bbox()
+        try:
+            cm2.update_metadata()
+            cm2.add_lineage_item("Subset of {} by object type {}".format(self.get_identifier(), cotype))
+        except:
+            print("Issue with metadata creation")
         return cm2
         
 

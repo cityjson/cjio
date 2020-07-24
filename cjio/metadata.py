@@ -47,15 +47,6 @@ def generate_metadata(citymodel: dict, filename: str, reference_date: 'datetime'
     def fileIdentifier_func():
         return os.path.basename(filename)
 
-    def geographicalExtent_func():
-        x, y, z = zip(*citymodel["vertices"])
-        ge = [min(x), min(y), min(z), max(x), max(y), max(z)]
-        if "transform" in citymodel:
-            s = citymodel["transform"]["scale"]
-            t = citymodel["transform"]["translate"]
-            ge = [a * b + c for a, b, c in zip(ge, (s + s), (t + t))]
-        return ge
-
     def metadataDateStamp_func():
         return str(date.today())
 
@@ -138,7 +129,6 @@ def generate_metadata(citymodel: dict, filename: str, reference_date: 'datetime'
         "distributionFormatVersion": distributionFormatVersion_func,
         "spatialRepresentationType": "vector",
         "fileIdentifier": fileIdentifier_func,
-        "geographicalExtent": geographicalExtent_func,
         "metadataStandard": "ISO 19115 - Geographic Information - Metadata",
         "metadataStandardVersion": "ISO 19115:2014(E)",
         "metadataCharacterSet": "UTF-8",
