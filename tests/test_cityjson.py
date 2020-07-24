@@ -2,7 +2,7 @@
 
 """
 import pytest
-from cjio import cityjson,models
+from cjio import cityjson, models
 
 @pytest.fixture(scope='module')
 def cm_zur_subset(zurich_subset):
@@ -68,3 +68,33 @@ class TestCityJSON:
 
     def test_get_parents(self):
         """# TODO BD: Get all parents of a CityObject"""
+
+    def test_calculate_bbox(self):
+        """Test the calculate_bbox function"""
+
+        data = {"vertices": [
+            [0, 0, 0],
+            [1, 1, 1]
+        ]}
+
+        cm = cityjson.CityJSON(j=data)
+        bbox = cm.calculate_bbox()
+
+        assert bbox == [0, 0, 0, 1, 1, 1]
+    
+    def test_calculate_bbox_with_transform(self):
+        """Test the calculate_bbox function"""
+
+        data = {"vertices": [
+            [0, 0, 0],
+            [1, 1, 1]
+        ],
+        "transform": {
+            "scale": [0.001, 0.001, 0.001],
+            "translate": [100, 100, 100]
+        }}
+
+        cm = cityjson.CityJSON(j=data)
+        bbox = cm.calculate_bbox()
+
+        assert bbox == [100, 100, 100, 100.001, 100.001, 100.001]

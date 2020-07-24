@@ -601,19 +601,12 @@ class CityJSON:
 
 
     def calculate_bbox(self):
-        bbox = [9e9, 9e9, 9e9, -9e9, -9e9, -9e9]    
-        for v in self.j["vertices"]:
-            for i in range(3):
-                if v[i] < bbox[i]:
-                    bbox[i] = v[i]
-            for i in range(3):
-                if v[i] > bbox[i+3]:
-                    bbox[i+3] = v[i]
+        x, y, z = zip(*self.j["vertices"])
+        bbox = [min(x), min(y), min(z), max(x), max(y), max(z)]
         if "transform" in self.j:
-            for i in range(3):
-                bbox[i] = (bbox[i] * self.j["transform"]["scale"][i]) + self.j["transform"]["translate"][i]
-            for i in range(3):
-                bbox[i+3] = (bbox[i+3] * self.j["transform"]["scale"][i]) + self.j["transform"]["translate"][i]
+            s = self.j["transform"]["scale"]
+            t = self.j["transform"]["translate"]
+            bbox = [a * b + c for a, b, c in zip(bbox, (s + s), (t + t))]
         return bbox
 
 
@@ -1583,3 +1576,4 @@ class CityJSON:
         self.j["metadata"] = metadata
 
         return (True, errors)
+        
