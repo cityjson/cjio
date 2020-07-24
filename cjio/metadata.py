@@ -38,6 +38,8 @@ def generate_metadata(citymodel: dict, filename: str, reference_date: 'datetime'
                 # We're probably on Linux. No easy way to get creation dates here,
                 # so we'll settle for when its content was last modified.
                 return str(date.fromtimestamp(stat.st_mtime))
+        
+        return reference_dates
 
     def distributionFormatVersion_func():
         return citymodel["version"]
@@ -46,12 +48,12 @@ def generate_metadata(citymodel: dict, filename: str, reference_date: 'datetime'
         return os.path.basename(filename)
 
     def geographicalExtent_func():
-        x,y,z = zip(*citymodel["vertices"])
-        ge = [min(x),min(y),min(z),max(x),max(y),max(z)]
+        x, y, z = zip(*citymodel["vertices"])
+        ge = [min(x), min(y), min(z), max(x), max(y), max(z)]
         if "transform" in citymodel:
             s = citymodel["transform"]["scale"]
             t = citymodel["transform"]["translate"]
-            ge = [a*b+c for a,b,c in zip(ge,(s+s),(t+t))]    
+            ge = [a * b + c for a, b, c in zip(ge, (s + s), (t + t))]
         return ge
 
     def metadataDateStamp_func():
