@@ -716,6 +716,21 @@ class CityJSON:
             return None
 
 
+    def get_identifier(self):
+        """
+        Returns the identifier of this file.
+
+        If there is one in metadata, it will be returned. Otherwise, the filename will.
+        """
+        if "metadata" in self.j:
+            if "fileIdentifier" in self.j["metadata"]:
+                return self.j["metadata"]["fileIdentifier"]
+        
+        if self.path:
+            return os.path.basename(self.path)
+        
+        return "unknown"
+
     def get_subset_bbox(self, bbox, exclude=False):
         # print ('get_subset_bbox')
         #-- new sliced CityJSON object
@@ -757,9 +772,10 @@ class CityJSON:
             cm2.j["appearance"] = {}
             subset.process_appearance(self.j, cm2.j)
         #-- metadata
-        if ("metadata" in self.j):
-            cm2.j["metadata"] = self.j["metadata"]
-        cm2.update_bbox()
+        cm2.update_metadata()
+        fids = [fid for fid in self.j["CityObjects"]]
+        cm2.add_lineage_item("Subset of {} by bounding box {}".format(self.get_identifier(), bbox), features=fids)
+        
         return cm2
 
 
