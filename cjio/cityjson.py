@@ -1568,6 +1568,22 @@ class CityJSON:
         self.update_bbox()
         return bbox
     
+    def has_metadata(self):
+        """
+        Returns whether metadata exist in this CityJSON file or not
+        """
+        return "metadata" in self.j
+
+    def get_metadata(self):
+        """
+        Returns the "metadata" property of this CityJSON file
+
+        Raises a KeyError exception if metadata is missing
+        """
+        if not "metadata" in self.j:
+            raise KeyError("Metadata is missing")
+        return self.j["metadata"]
+    
     def compute_metadata(self, overwrite=False):
         """
         Returns the metadata of this CityJSON file

@@ -708,6 +708,25 @@ def update_metadata_cmd(overwrite):
     return processor
 
 
+@cli.command('get_metadata')
+def get_metadata_cmd():
+    """
+    Shows the metadata of this dataset.
+
+    The difference between 'info' and this command is that this
+    command lists the "pure" metadata as stored in the file.
+    The 'info' command should be used when an overview of the
+    file is needed.
+    """
+    def processor(cm):
+        if cm.has_metadata():
+            click.echo("=============== Metadata ===============")
+            click.echo_via_pager(json.dumps(cm.get_metadata(), indent=2))
+        else:
+            utils.print_cmd_warning("You are missing metadata! Quickly! Run 'update_metadata' before it's too late!")
+    return processor
+
+
 # Needed for the executable created by PyInstaller
 if getattr(sys, 'frozen', False):
     cli(sys.argv[1:])
