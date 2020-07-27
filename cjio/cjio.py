@@ -435,6 +435,11 @@ def partition_cmd(depth, cellsize):
         input_filename = os.path.splitext(os.path.basename(cm.path))[0]
         for idx, colist in partitions.items():
             s = cm.get_subset_ids(colist)
+            try:
+                s.update_metadata()
+                s.j["metadata"]["lineage"][-1]["processStep"]["description"] = "Partition {}/{} of {}".format(idx, len(partitions), s.get_identifier())
+            except:
+                pass
             filename = '{}_{}.json'.format(input_filename, idx)
             s.path = filename
             cms.append(s)
