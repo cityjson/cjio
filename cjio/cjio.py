@@ -289,6 +289,12 @@ def save_cmd(filename, indent, textures):
                 f=input_filename, ext='json'))
         else:
             os.makedirs(os.path.dirname(output['path']), exist_ok=True)
+        
+        try:
+            if "metadata" in cm.j:
+                cm.j["metadata"]["fileIdentifier"] = os.path.basename(output['path'])
+        except:
+            pass
 
         utils.print_cmd_status("Saving CityJSON to a file %s" % output['path'])
         try:
