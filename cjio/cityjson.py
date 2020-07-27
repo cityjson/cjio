@@ -13,7 +13,7 @@ import random
 from io import StringIO
 from sys import platform
 from click import progressbar
-from datetime import datetime
+from datetime import datetime, date
 
 MODULE_NUMPY_AVAILABLE = True
 MODULE_PYPROJ_AVAILABLE = True
@@ -1677,7 +1677,8 @@ class CityJSON:
 
         new_item = {
             "processStep": {
-                "description": description
+                "description": description,
+                "stepDateTime": str(date.today())
             }
         }
 
