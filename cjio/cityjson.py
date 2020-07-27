@@ -751,6 +751,19 @@ class CityJSON:
         return "unknown"
 
 
+    def get_title(self):
+        """
+        Returns the description of this file from metadata.
+
+        If there is none, the identifier will be returned, instead.
+        """
+
+        if "metadata" in self.j:
+            if "datasetTitle" in self.j["metadata"]:
+                return self.j["metadata"]["datasetTitle"]
+        
+        return self.get_identifier()
+
     def get_subset_bbox(self, bbox, exclude=False):
         # print ('get_subset_bbox')
         #-- new sliced CityJSON object
@@ -1288,6 +1301,12 @@ class CityJSON:
                         a[i] = each + voffset
         #-- decompress current CM                        
         self.decompress()
+
+        #-- metadata
+        try:
+            self.update_metadata(overwrite=True)
+        except:
+            print("Issue with metadata creation")
         for cm in lsCMs:
             #-- decompress 
             cm.decompress()
@@ -1385,6 +1404,16 @@ class CityJSON:
                         if 'texture' in g:
                             for m in g['texture']:
                                 update_texture_indices(g['texture'][m]['values'], toffset, voffset)
+            #-- metadata
+            try:
+                fids = [fid for fid in cm.j["CityObjects"]]
+                src = {
+                    "description": cm.get_title(),
+                    "sourceReferenceSystem": "urn:ogc:def:crs:EPSG::{}".format(cm.get_epsg()) if cm.get_epsg() else None
+                }
+                self.add_lineage_item("Merge {} into {}".format(cm.get_identifier(), self.get_identifier()), features=fids, source=[src])
+            except:
+                pass
         # self.remove_duplicate_vertices()
         # self.remove_orphan_vertices()
         return True
