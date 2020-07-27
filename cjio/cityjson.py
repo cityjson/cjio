@@ -1133,6 +1133,8 @@ class CityJSON:
 
 
     def remove_duplicate_vertices(self, precision=3):
+        if "transform" in self.j:
+            precision = 0
         def update_geom_indices(a, newids):
           for i, each in enumerate(a):
             if isinstance(each, list):
