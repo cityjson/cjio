@@ -473,7 +473,8 @@ def subset_cmd(id, bbox, random, cotype, exclude):
 
 
 @cli.command('clean')
-def clean_cmd():
+@click.option('--digit', default=3, type=click.IntRange(1, 10), help='Number of digit to use to compare vertices (default=3).')
+def clean_cmd(digit):
     """
     Clean 
     =
@@ -483,7 +484,7 @@ def clean_cmd():
     """
     def processor(cm):
         utils.print_cmd_status('Clean the file')
-        cm.remove_duplicate_vertices()
+        cm.remove_duplicate_vertices(digit)
         cm.remove_orphan_vertices()
         return cm
     return processor
@@ -538,10 +539,8 @@ def compress_cmd(digit):
     """
     def processor(cm):
         utils.print_cmd_status('Compressing the CityJSON (with %d digit)' % digit)
-        try:
-            cm.compress(digit)
-        except Exception as e:
-            click.echo("WARNING: %s." % e)
+        if cm.compress(digit) == False:
+            click.echo("WARNING: CityJSON already compressed.")
         return cm
     return processor
 
@@ -704,9 +703,6 @@ def update_metadata_cmd(overwrite):
         for e in errors:
             utils.print_cmd_warning(e)
 
-        return cm
-    return processor
-
 
 @cli.command('get_metadata')
 def get_metadata_cmd():
@@ -720,7 +716,6 @@ def get_metadata_cmd():
     """
     def processor(cm):
         if cm.has_metadata():
-            click.echo("=============== Metadata ===============")
             click.echo_via_pager(json.dumps(cm.get_metadata(), indent=2))
         else:
             utils.print_cmd_warning("You are missing metadata! Quickly! Run 'update_metadata' before it's too late!")

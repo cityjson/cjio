@@ -37,6 +37,12 @@ def delft(data_dir):
         yield cityjson.CityJSON(file=f)
 
 @pytest.fixture(scope='session')
+def delft_1b(data_dir):
+    p = os.path.join(data_dir, 'delft_1b.json')
+    with open(p, 'r') as f:
+        yield cityjson.CityJSON(file=f)
+
+@pytest.fixture(scope='session')
 def rotterdam_subset(data_dir):
     p = os.path.join(data_dir, 'rotterdam', 'rotterdam_subset.json')
     with open(p, 'r') as f:
@@ -70,7 +76,19 @@ def dummy_noappearance(data_dir):
 
 @pytest.fixture(scope='session')
 def cube(data_dir):
-    p = os.path.join(data_dir, 'dummy', 'cube.json')
+    p = os.path.join(data_dir, 'cube.json')
+    with open(p, 'r') as f:
+        yield cityjson.CityJSON(file=f)
+
+@pytest.fixture(scope='session')
+def cube_compressed(data_dir):
+    p = os.path.join(data_dir, 'cube.c.json')
+    with open(p, 'r') as f:
+        yield cityjson.CityJSON(file=f)
+
+@pytest.fixture(scope='session')
+def minimal(data_dir):
+    p = os.path.join(data_dir, 'minimal.json')
     with open(p, 'r') as f:
         yield cityjson.CityJSON(file=f)
 

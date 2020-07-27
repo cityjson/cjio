@@ -2,7 +2,9 @@
 
 """
 import pytest
+import copy
 from cjio import cityjson, models
+
 
 @pytest.fixture(scope='module')
 def cm_zur_subset(zurich_subset):
@@ -117,3 +119,28 @@ class TestCityJSON:
         assert len(item["featureIDs"]) == 2
         assert len(item["source"]) == 1
         assert item["processStep"]["processor"]["contactName"] == "3D geoinfo"
+
+    def test_de_compression(self, delft):
+        cm = copy.deepcopy(delft)
+        assert cm.decompress() == False
+        cm.compress(3)
+        assert cm.j["transform"]["scale"][0] == 0.001
+        assert len(delft.j["vertices"]) == len(cm.j["vertices"])
+        v1 = delft.j["vertices"][0][0]
+        v2 = cm.j["vertices"][0][0]
+        assert isinstance(v1, float)
+        assert isinstance(v2, int)
+        assert cm.decompress() == True
+
+    def test_de_compression_2(self, cube):
+        cubec = copy.deepcopy(cube)
+        assert cubec.compress(2) == True
+        assert len(cube.j["vertices"]) == len(cubec.j["vertices"])
+        cubec.decompress()
+        assert cube.j["vertices"][0][0] == cubec.j["vertices"][0][0]
+
+    def test_reproject(self, delft_1b):
+        cm = copy.deepcopy(delft_1b)
+        cm.reproject(4937) #-- z values should stay the same
+        assert cm.j["vertices"][0][0] == 4.36772776578513
+        assert (cm.j["metadata"]["geographicalExtent"][5] - cm.j["metadata"]["geographicalExtent"][2]) == 6.1

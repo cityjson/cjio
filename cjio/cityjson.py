@@ -110,7 +110,7 @@ def load(path, transform:bool=False):
         )
     return cm
 
-def save(citymodel, path: str, indent=None):
+def save(citymodel, path: str, indent: bool = False):
     """Save a city model to a CityJSON file
 
     :param citymodel: A CityJSON object
@@ -118,12 +118,17 @@ def save(citymodel, path: str, indent=None):
     """
     cityobjects, vertex_lookup = citymodel.reference_geometry()
     citymodel.add_to_j(cityobjects, vertex_lookup)
+    # FIXME: here should be compression, however the current compression does not work with immutable tuples, but requires mutable lists for the points
     citymodel.remove_duplicate_vertices()
     citymodel.remove_orphan_vertices()
     try:
         with open(path, 'w') as fout:
-            json_str = json.dumps(citymodel.j, indent=indent)
-            fout.write(json_str)
+            if indent:
+                json_str = json.dumps(citymodel.j, indent="\t")
+                fout.write(json_str)
+            else:
+                json_str = json.dumps(citymodel.j, separators=(',',':'))
+                fout.write(json_str)
     except IOError as e:
         raise IOError('Invalid output file: %s \n%s' % (path, e))
 
@@ -291,7 +296,7 @@ class CityJSON:
 
 
     def add_to_j(self, cityobjects, vertex_lookup):
-        self.j['vertices'] = list(vertex_lookup.keys())
+        self.j['vertices'] = [[vtx[0], vtx[1], vtx[2]] for vtx in vertex_lookup.keys()]
         self.j['CityObjects'] = cityobjects
 
     ##-- end API functions
@@ -321,6 +326,9 @@ class CityJSON:
             return True
         else:
             return False
+
+    def is_transform(self):
+        return ("transform" in self.j)
 
     def read(self, file, ignore_duplicate_keys=False):
         if ignore_duplicate_keys == True:
@@ -1154,7 +1162,9 @@ class CityJSON:
         return (totalinput - len(self.j["vertices"]))
 
 
-    def remove_duplicate_vertices(self, precision):
+    def remove_duplicate_vertices(self, precision=3):
+        if "transform" in self.j:
+            precision = 0
         def update_geom_indices(a, newids):
           for i, each in enumerate(a):
             if isinstance(each, list):
@@ -1166,6 +1176,8 @@ class CityJSON:
         h = {}
         newids = [-1] * len(self.j["vertices"])
         newvertices = []
+        if self.is_transform() == True:
+            precision = 0
         for i, v in enumerate(self.j["vertices"]):
             s = "{{x:.{p}f}} {{y:.{p}f}} {{z:.{p}f}}".format(p=precision).format(x=v[0], y=v[1], z=v[2])
             if s not in h:
@@ -1193,8 +1205,7 @@ class CityJSON:
 
     def compress(self, important_digits=3):
         if "transform" in self.j:
-            raise Exception("CityJSON already compressed")
-            return True # TODO: this is unreachable, will never return True
+            return False
         #-- find the minx/miny/minz
         bbox = [9e9, 9e9, 9e9]    
         for v in self.j["vertices"]:
@@ -1218,7 +1229,7 @@ class CityJSON:
         self.j["transform"]["scale"] = [ss, ss, ss]
         self.j["transform"]["translate"] = [bbox[0], bbox[1], bbox[2]]
         #-- clean the file
-        re = self.remove_duplicate_vertices()
+        re = self.remove_duplicate_vertices(0)
         # print ("Remove duplicates:", re)
         re = self.remove_orphan_vertices()
         # print ("Remove orphans:", re)
@@ -1361,8 +1372,8 @@ class CityJSON:
                         if 'texture' in g:
                             for m in g['texture']:
                                 update_texture_indices(g['texture'][m]['values'], toffset, voffset)
-        self.remove_duplicate_vertices()
-        self.remove_orphan_vertices()
+        # self.remove_duplicate_vertices()
+        # self.remove_orphan_vertices()
         return True
 
 
@@ -1559,6 +1570,7 @@ class CityJSON:
                 v[1] = y
                 v[2] = z
         self.set_epsg(epsg)
+        self.update_bbox()
         if wascompressed == True:
             self.compress()
 
