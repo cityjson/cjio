@@ -806,6 +806,7 @@ class CityJSON:
             subset.process_appearance(self.j, cm2.j)
         #-- metadata
         try:
+            cm2.j["metadata"] = copy.deepcopy(self.j["metadata"])
             cm2.update_metadata(overwrite=True, new_uuid=True)
             fids = [fid for fid in cm2.j["CityObjects"]]
             cm2.add_lineage_item("Subset of {} by bounding box {}".format(self.get_identifier(), bbox), features=fids)
@@ -938,6 +939,7 @@ class CityJSON:
             subset.process_appearance(self.j, cm2.j)
         #-- metadata
         try:
+            cm2.j["metadata"] = copy.deepcopy(self.j["metadata"])
             cm2.update_metadata(overwrite=True, new_uuid=True)
             cm2.add_lineage_item("Subset of {} by object type {}".format(self.get_identifier(), cotype))
         except:
