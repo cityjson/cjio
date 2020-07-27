@@ -733,13 +733,23 @@ class CityJSON:
         If there is one in metadata, it will be returned. Otherwise, the filename will.
         """
         if "metadata" in self.j:
-            if "fileIdentifier" in self.j["metadata"]:
-                return self.j["metadata"]["fileIdentifier"]
+            if "citymodelIdentifier" in self.j["metadata"]:
+                cm_id = self.j["metadata"]["citymodelIdentifier"]
         
+        if cm_id:
+            template = "{cm_id} ({file_id})"
+        else:
+            template = "{file_id}"
+
+        if "metadata" in self.j:
+            if "fileIdentifier" in self.j["metadata"]:
+                return template.format(cm_id=cm_id, file_id=self.j["metadata"]["fileIdentifier"])
+
         if self.path:
             return os.path.basename(self.path)
         
         return "unknown"
+
 
     def get_subset_bbox(self, bbox, exclude=False):
         # print ('get_subset_bbox')
@@ -1167,6 +1177,7 @@ class CityJSON:
     def remove_duplicate_vertices(self, precision=3):
         if "transform" in self.j:
             precision = 0
+
         def update_geom_indices(a, newids):
           for i, each in enumerate(a):
             if isinstance(each, list):
@@ -1587,7 +1598,14 @@ class CityJSON:
             for each in re:
                 self.j['CityObjects'][co]['geometry'].remove(each)
         self.remove_duplicate_vertices()
-        self.remove_orphan_vertices()        
+        self.remove_orphan_vertices()
+        #-- metadata
+        try:
+            self.update_metadata(overwrite=True)
+            fids = [fid for fid in self.j["CityObjects"]]
+            self.add_lineage_item("Extract LoD{} from {}".format(thelod, self.get_identifier()), features=fids)
+        except:
+            print("Issue with metadata creation")
 
 
     def translate(self, values, minimum_xyz):
