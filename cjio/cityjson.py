@@ -806,7 +806,7 @@ class CityJSON:
             subset.process_appearance(self.j, cm2.j)
         #-- metadata
         try:
-            cm2.update_metadata(overwrite=True)
+            cm2.update_metadata(overwrite=True, new_uuid=True)
             fids = [fid for fid in cm2.j["CityObjects"]]
             cm2.add_lineage_item("Subset of {} by bounding box {}".format(self.get_identifier(), bbox), features=fids)
         except:
@@ -892,7 +892,8 @@ class CityJSON:
             subset.process_appearance(self.j, cm2.j)
         #-- metadata
         try:
-            cm2.update_metadata(overwrite=True)
+            cm2.j["metadata"] = copy.deepcopy(self.j["metadata"])
+            cm2.update_metadata(overwrite=True, new_uuid=True)
             fids = [fid for fid in cm2.j["CityObjects"]]
             cm2.add_lineage_item("Subset of {} based on user specified IDs".format(self.get_identifier()), features=fids)
         except:
@@ -937,7 +938,7 @@ class CityJSON:
             subset.process_appearance(self.j, cm2.j)
         #-- metadata
         try:
-            cm2.update_metadata(overwrite=True)
+            cm2.update_metadata(overwrite=True, new_uuid=True)
             cm2.add_lineage_item("Subset of {} by object type {}".format(self.get_identifier(), cotype))
         except:
             pass
@@ -1674,19 +1675,19 @@ class CityJSON:
             raise KeyError("Metadata is missing")
         return self.j["metadata"]
     
-    def compute_metadata(self, overwrite=False):
+    def compute_metadata(self, overwrite=False, new_uuid=False):
         """
         Returns the metadata of this CityJSON file
         """
-        return generate_metadata(self.j, self.path, self.reference_date, overwrite)
+        return generate_metadata(self.j, self.path, self.reference_date, overwrite, new_uuid)
 
-    def update_metadata(self, overwrite=False):
+    def update_metadata(self, overwrite=False, new_uuid=False):
         """
         Computes and updates the "metadata" property of this CityJSON file
         """
         self.update_bbox()
 
-        metadata, errors = self.compute_metadata(overwrite)
+        metadata, errors = self.compute_metadata(overwrite, new_uuid)
 
         self.j["metadata"] = metadata
 

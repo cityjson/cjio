@@ -10,7 +10,7 @@ import sys
 from datetime import date, datetime
 import platform
 
-def generate_metadata(citymodel: dict, filename: str, reference_date: 'datetime', overwrite_values: bool = False):
+def generate_metadata(citymodel: dict, filename: str, reference_date: 'datetime', overwrite_values: bool = False, recompute_uuid: bool = False):
     """Returns a tuple containing a dictionary of the metadata and a list of errors.
 
     Keyword arguments:
@@ -156,7 +156,7 @@ def generate_metadata(citymodel: dict, filename: str, reference_date: 'datetime'
                 compute_item(k, v)
 
     metadata = citymodel["metadata"]
-    if "citymodelIdentifier" not in metadata:
+    if ("citymodelIdentifier" not in metadata) or recompute_uuid:
         metadata["citymodelIdentifier"] = citymodelIdentifier_func()
     if "datasetReferenceDate" not in metadata:
         metadata["datasetReferenceDate"] = datasetReferenceDate_func()

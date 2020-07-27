@@ -436,7 +436,6 @@ def partition_cmd(depth, cellsize):
         for idx, colist in partitions.items():
             s = cm.get_subset_ids(colist)
             try:
-                s.update_metadata()
                 s.j["metadata"]["lineage"][-1]["processStep"]["description"] = "Partition {}/{} of {}".format(idx + 1, len(partitions), s.get_identifier())
             except:
                 pass
