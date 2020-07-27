@@ -810,7 +810,7 @@ class CityJSON:
             fids = [fid for fid in cm2.j["CityObjects"]]
             cm2.add_lineage_item("Subset of {} by bounding box {}".format(self.get_identifier(), bbox), features=fids)
         except:
-            print("Issue with metadata creation")
+            pass
         
         return cm2
 
@@ -862,7 +862,7 @@ class CityJSON:
         try:
             cm.j["metadata"]["lineage"][-1]["processStep"]["description"] = "Random subset of {}".format(self.get_identifier())
         except:
-            print("Problem with metadata")
+            pass
         return cm
 
 
@@ -896,7 +896,7 @@ class CityJSON:
             fids = [fid for fid in cm2.j["CityObjects"]]
             cm2.add_lineage_item("Subset of {} based on user specified IDs".format(self.get_identifier()), features=fids)
         except:
-            print("Issue with metadata creation")
+            pass
         return cm2
 
 
@@ -940,7 +940,7 @@ class CityJSON:
             cm2.update_metadata(overwrite=True)
             cm2.add_lineage_item("Subset of {} by object type {}".format(self.get_identifier(), cotype))
         except:
-            print("Issue with metadata creation")
+            pass
         return cm2
         
 
@@ -1306,7 +1306,7 @@ class CityJSON:
         try:
             self.update_metadata(overwrite=True)
         except:
-            print("Issue with metadata creation")
+            pass
         for cm in lsCMs:
             #-- decompress 
             cm.decompress()
@@ -1634,7 +1634,7 @@ class CityJSON:
             fids = [fid for fid in self.j["CityObjects"]]
             self.add_lineage_item("Extract LoD{} from {}".format(thelod, self.get_identifier()), features=fids)
         except:
-            print("Issue with metadata creation")
+            pass
 
 
     def translate(self, values, minimum_xyz):

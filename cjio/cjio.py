@@ -437,7 +437,7 @@ def partition_cmd(depth, cellsize):
             s = cm.get_subset_ids(colist)
             try:
                 s.update_metadata()
-                s.j["metadata"]["lineage"][-1]["processStep"]["description"] = "Partition {}/{} of {}".format(idx, len(partitions), s.get_identifier())
+                s.j["metadata"]["lineage"][-1]["processStep"]["description"] = "Partition {}/{} of {}".format(idx + 1, len(partitions), s.get_identifier())
             except:
                 pass
             filename = '{}_{}.json'.format(input_filename, idx)
