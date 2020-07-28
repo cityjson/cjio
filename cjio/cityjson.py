@@ -80,6 +80,7 @@ def load(path, transform:bool=False):
         del cm.j['transform']
     else:
         do_transform = None
+    appearance = cm.j['appearance'] if 'appearance' in cm.j else None
     for co_id, co in cm.j['CityObjects'].items():
         # TODO BD: do some verification here
         children = co['children'] if 'children' in co else None
@@ -88,12 +89,15 @@ def load(path, transform:bool=False):
         geometry = []
         for geom in co['geometry']:
             semantics = geom['semantics'] if 'semantics' in geom else None
+            texture = geom['texture'] if 'texture' in geom else None
             geometry.append(
                 models.Geometry(
                     type=geom['type'],
                     lod=geom['lod'],
                     boundaries=geom['boundaries'],
                     semantics_obj=semantics,
+                    texture_obj=texture,
+                    appearance=appearance,
                     vertices=cm.j['vertices'],
                     transform=do_transform
                 )
