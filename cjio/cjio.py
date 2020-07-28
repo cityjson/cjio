@@ -289,6 +289,12 @@ def save_cmd(filename, indent, textures):
                 f=input_filename, ext='json'))
         else:
             os.makedirs(os.path.dirname(output['path']), exist_ok=True)
+        
+        try:
+            if "metadata" in cm.j:
+                cm.j["metadata"]["fileIdentifier"] = os.path.basename(output['path'])
+        except:
+            pass
 
         utils.print_cmd_status("Saving CityJSON to a file %s" % output['path'])
         try:
@@ -312,20 +318,6 @@ def save_cmd(filename, indent, textures):
             saver(cm)
         return cm
     return processor
-
-
-@cli.command('update_bbox')
-def update_bbox_cmd():
-    """
-    Update the bbox of a CityJSON file.
-    If there is none then it is added.
-    """
-    def processor(cm):
-        utils.print_cmd_status("Updating bbox")
-        cm.update_bbox()
-        return cm
-    return processor
-
 
 @cli.command('validate')
 @click.option('--hide_errors', is_flag=True, help='Do not print all the errors.')
@@ -443,6 +435,10 @@ def partition_cmd(depth, cellsize):
         input_filename = os.path.splitext(os.path.basename(cm.path))[0]
         for idx, colist in partitions.items():
             s = cm.get_subset_ids(colist)
+            try:
+                s.j["metadata"]["lineage"][-1]["processStep"]["description"] = "Partition {}/{} of {}".format(idx + 1, len(partitions), s.get_identifier())
+            except:
+                pass
             filename = '{}_{}.json'.format(input_filename, idx)
             s.path = filename
             cms.append(s)
@@ -703,15 +699,36 @@ def translate_cmd(values):
     return processor
 
 
-@cli.command('metadata')
-def metadata_cmd():
+@cli.command('update_metadata')
+@click.option('--overwrite', is_flag=True, help='Overwrite existing values.')
+def update_metadata_cmd(overwrite):
     """
-    Output the metadata as a JSON object.
+    Update the metadata for properties/values that can be
+    computed. Updates the dataset.
     """
     def processor(cm):
-        if "metadata" in cm.j:
-            click.echo(json.dumps(cm.j["metadata"], indent=2))
-        return cm
+        utils.print_cmd_status('Update the metadata')
+        re, errors = cm.update_metadata(overwrite)
+
+        for e in errors:
+            utils.print_cmd_warning(e)
+
+
+@cli.command('get_metadata')
+def get_metadata_cmd():
+    """
+    Shows the metadata of this dataset.
+
+    The difference between 'info' and this command is that this
+    command lists the "pure" metadata as stored in the file.
+    The 'info' command should be used when an overview of the
+    file is needed.
+    """
+    def processor(cm):
+        if cm.has_metadata():
+            click.echo_via_pager(json.dumps(cm.get_metadata(), indent=2))
+        else:
+            utils.print_cmd_warning("You are missing metadata! Quickly! Run 'update_metadata' before it's too late!")
     return processor
 
 

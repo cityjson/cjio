@@ -13,6 +13,7 @@ import random
 from io import StringIO
 from sys import platform
 from click import progressbar
+from datetime import datetime, date
 
 MODULE_NUMPY_AVAILABLE = True
 MODULE_PYPROJ_AVAILABLE = True
@@ -39,6 +40,7 @@ except ImportError as e:
 from cjio import validation, subset, geom_help, convert, models
 from cjio.errors import InvalidOperation
 from cjio.utils import print_cmd_warning
+from cjio.metadata import generate_metadata
 
 
 CITYJSON_VERSIONS_SUPPORTED = ['0.6', '0.8', '0.9', '1.0']
@@ -214,10 +216,12 @@ class CityJSON:
         if file is not None:
             self.read(file, ignore_duplicate_keys)
             self.path = os.path.abspath(file.name)
+            self.reference_date = datetime.fromtimestamp(os.path.getmtime(file.name)).strftime('%Y-%m-%d')
             self.cityobjects = {}
         elif j is not None:
             self.j = j
             self.cityobjects = {}
+            self.reference_date = datetime.now()
         else: #-- create an empty one
             self.j = {}
             self.j["type"] = "CityJSON"
@@ -225,6 +229,7 @@ class CityJSON:
             self.j["CityObjects"] = {}
             self.j["vertices"] = []
             self.cityobjects = {}
+            self.reference_date = datetime.now()
 
 
     def __repr__(self):
@@ -608,19 +613,17 @@ class CityJSON:
 
 
     def calculate_bbox(self):
-        bbox = [9e9, 9e9, 9e9, -9e9, -9e9, -9e9]    
-        for v in self.j["vertices"]:
-            for i in range(3):
-                if v[i] < bbox[i]:
-                    bbox[i] = v[i]
-            for i in range(3):
-                if v[i] > bbox[i+3]:
-                    bbox[i+3] = v[i]
+        """
+        Calculate the bbox of the CityJSON.
+        """
+        if len(self.j["vertices"]) == 0:
+            return [0, 0, 0, 0, 0, 0]
+        x, y, z = zip(*self.j["vertices"])
+        bbox = [min(x), min(y), min(z), max(x), max(y), max(z)]
         if "transform" in self.j:
-            for i in range(3):
-                bbox[i] = (bbox[i] * self.j["transform"]["scale"][i]) + self.j["transform"]["translate"][i]
-            for i in range(3):
-                bbox[i+3] = (bbox[i+3] * self.j["transform"]["scale"][i]) + self.j["transform"]["translate"][i]
+            s = self.j["transform"]["scale"]
+            t = self.j["transform"]["translate"]
+            bbox = [a * b + c for a, b, c in zip(bbox, (s + s), (t + t))]
         return bbox
 
 
@@ -727,6 +730,44 @@ class CityJSON:
             return None
 
 
+    def get_identifier(self):
+        """
+        Returns the identifier of this file.
+
+        If there is one in metadata, it will be returned. Otherwise, the filename will.
+        """
+        if "metadata" in self.j:
+            if "citymodelIdentifier" in self.j["metadata"]:
+                cm_id = self.j["metadata"]["citymodelIdentifier"]
+        
+        if cm_id:
+            template = "{cm_id} ({file_id})"
+        else:
+            template = "{file_id}"
+
+        if "metadata" in self.j:
+            if "fileIdentifier" in self.j["metadata"]:
+                return template.format(cm_id=cm_id, file_id=self.j["metadata"]["fileIdentifier"])
+
+        if self.path:
+            return os.path.basename(self.path)
+        
+        return "unknown"
+
+
+    def get_title(self):
+        """
+        Returns the description of this file from metadata.
+
+        If there is none, the identifier will be returned, instead.
+        """
+
+        if "metadata" in self.j:
+            if "datasetTitle" in self.j["metadata"]:
+                return self.j["metadata"]["datasetTitle"]
+        
+        return self.get_identifier()
+
     def get_subset_bbox(self, bbox, exclude=False):
         # print ('get_subset_bbox')
         #-- new sliced CityJSON object
@@ -768,9 +809,14 @@ class CityJSON:
             cm2.j["appearance"] = {}
             subset.process_appearance(self.j, cm2.j)
         #-- metadata
-        if ("metadata" in self.j):
-            cm2.j["metadata"] = self.j["metadata"]
-        cm2.update_bbox()
+        try:
+            cm2.j["metadata"] = copy.deepcopy(self.j["metadata"])
+            cm2.update_metadata(overwrite=True, new_uuid=True)
+            fids = [fid for fid in cm2.j["CityObjects"]]
+            cm2.add_lineage_item("Subset of {} by bounding box {}".format(self.get_identifier(), bbox), features=fids)
+        except:
+            pass
+        
         return cm2
 
 
@@ -817,7 +863,12 @@ class CityJSON:
             sallkeys = set(self.j["CityObjects"].keys())
             re = sallkeys ^ re
         re = list(re)
-        return self.get_subset_ids(re)
+        cm = self.get_subset_ids(re)
+        try:
+            cm.j["metadata"]["lineage"][-1]["processStep"]["description"] = "Random subset of {}".format(self.get_identifier())
+        except:
+            pass
+        return cm
 
 
     def get_subset_ids(self, lsIDs, exclude=False):
@@ -845,9 +896,13 @@ class CityJSON:
             cm2.j["appearance"] = {}
             subset.process_appearance(self.j, cm2.j)
         #-- metadata
-        if ("metadata" in self.j):
-            cm2.j["metadata"] = self.j["metadata"]
-        cm2.update_bbox()
+        try:
+            cm2.j["metadata"] = copy.deepcopy(self.j["metadata"])
+            cm2.update_metadata(overwrite=True, new_uuid=True)
+            fids = [fid for fid in cm2.j["CityObjects"]]
+            cm2.add_lineage_item("Subset of {} based on user specified IDs".format(self.get_identifier()), features=fids)
+        except:
+            pass
         return cm2
 
 
@@ -887,9 +942,12 @@ class CityJSON:
             cm2.j["appearance"] = {}
             subset.process_appearance(self.j, cm2.j)
         #-- metadata
-        if ("metadata" in self.j):
-            cm2.j["metadata"] = self.j["metadata"]
-        cm2.update_bbox()
+        try:
+            cm2.j["metadata"] = copy.deepcopy(self.j["metadata"])
+            cm2.update_metadata(overwrite=True, new_uuid=True)
+            cm2.add_lineage_item("Subset of {} by object type {}".format(self.get_identifier(), cotype))
+        except:
+            pass
         return cm2
         
 
@@ -1137,6 +1195,9 @@ class CityJSON:
 
 
     def remove_duplicate_vertices(self, precision=3):
+        if "transform" in self.j:
+            precision = 0
+
         def update_geom_indices(a, newids):
           for i, each in enumerate(a):
             if isinstance(each, list):
@@ -1247,6 +1308,12 @@ class CityJSON:
                         a[i] = each + voffset
         #-- decompress current CM                        
         self.decompress()
+
+        #-- metadata
+        try:
+            self.update_metadata(overwrite=True)
+        except:
+            pass
         for cm in lsCMs:
             #-- decompress 
             cm.decompress()
@@ -1344,6 +1411,16 @@ class CityJSON:
                         if 'texture' in g:
                             for m in g['texture']:
                                 update_texture_indices(g['texture'][m]['values'], toffset, voffset)
+            #-- metadata
+            try:
+                fids = [fid for fid in cm.j["CityObjects"]]
+                src = {
+                    "description": cm.get_title(),
+                    "sourceReferenceSystem": "urn:ogc:def:crs:EPSG::{}".format(cm.get_epsg()) if cm.get_epsg() else None
+                }
+                self.add_lineage_item("Merge {} into {}".format(cm.get_identifier(), self.get_identifier()), features=fids, source=[src])
+            except:
+                pass
         # self.remove_duplicate_vertices()
         # self.remove_orphan_vertices()
         return True
@@ -1557,7 +1634,14 @@ class CityJSON:
             for each in re:
                 self.j['CityObjects'][co]['geometry'].remove(each)
         self.remove_duplicate_vertices()
-        self.remove_orphan_vertices()        
+        self.remove_orphan_vertices()
+        #-- metadata
+        try:
+            self.update_metadata(overwrite=True)
+            fids = [fid for fid in self.j["CityObjects"]]
+            self.add_lineage_item("Extract LoD{} from {}".format(thelod, self.get_identifier()), features=fids)
+        except:
+            pass
 
 
     def translate(self, values, minimum_xyz):
@@ -1580,3 +1664,74 @@ class CityJSON:
         self.set_epsg(None)
         self.update_bbox()
         return bbox
+    
+    def has_metadata(self):
+        """
+        Returns whether metadata exist in this CityJSON file or not
+        """
+        return "metadata" in self.j
+
+    def get_metadata(self):
+        """
+        Returns the "metadata" property of this CityJSON file
+
+        Raises a KeyError exception if metadata is missing
+        """
+        if not "metadata" in self.j:
+            raise KeyError("Metadata is missing")
+        return self.j["metadata"]
+    
+    def compute_metadata(self, overwrite=False, new_uuid=False):
+        """
+        Returns the metadata of this CityJSON file
+        """
+        return generate_metadata(self.j, self.path, self.reference_date, overwrite, new_uuid)
+
+    def update_metadata(self, overwrite=False, new_uuid=False):
+        """
+        Computes and updates the "metadata" property of this CityJSON file
+        """
+        self.update_bbox()
+
+        metadata, errors = self.compute_metadata(overwrite, new_uuid)
+
+        self.j["metadata"] = metadata
+
+        return (True, errors)
+    
+    def add_lineage_item(self, description: str, features: list = None, source: list = None, processor: dict = None):
+        """
+        Adds a lineage item in metadata.
+
+        description --- A string with the description of the process
+        features (optional) --- A list of object ids that are affected by it
+        source (optional) --- A list of sources. Every source is a dict with
+            the respective info (description, sourceReferenceSystem etc.)
+        processor (optional) --- A dict with contact information for the
+            person that conducted the processing
+        """
+
+        new_item = {
+            "processStep": {
+                "description": description,
+                "stepDateTime": str(date.today())
+            }
+        }
+
+        if isinstance(features, list):
+            new_item["featureIDs"] = features
+        
+        if isinstance(source, list):
+            new_item["source"] = source
+        
+        if isinstance(processor, dict):
+            new_item["processStep"]["processor"] = processor
+
+        if not self.has_metadata():
+            self.j["metadata"] = {}
+
+        if not "lineage" in self.j["metadata"]:
+            self.j["metadata"]["lineage"] = []
+
+        self.j["metadata"]["lineage"].append(new_item)
+        

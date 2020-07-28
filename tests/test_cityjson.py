@@ -3,7 +3,7 @@
 """
 import pytest
 import copy
-from cjio import cityjson,models
+from cjio import cityjson, models
 
 
 @pytest.fixture(scope='module')
@@ -71,6 +71,55 @@ class TestCityJSON:
     def test_get_parents(self):
         """# TODO BD: Get all parents of a CityObject"""
 
+    def test_calculate_bbox(self):
+        """Test the calculate_bbox function"""
+
+        data = {"vertices": [
+            [0, 0, 0],
+            [1, 1, 1]
+        ]}
+
+        cm = cityjson.CityJSON(j=data)
+        bbox = cm.calculate_bbox()
+
+        assert bbox == [0, 0, 0, 1, 1, 1]
+    
+    def test_calculate_bbox_with_transform(self):
+        """Test the calculate_bbox function"""
+
+        data = {"vertices": [
+            [0, 0, 0],
+            [1, 1, 1]
+        ],
+        "transform": {
+            "scale": [0.001, 0.001, 0.001],
+            "translate": [100, 100, 100]
+        }}
+
+        cm = cityjson.CityJSON(j=data)
+        bbox = cm.calculate_bbox()
+
+        assert bbox == [100, 100, 100, 100.001, 100.001, 100.001]
+
+    def test_add_lineage_item(self):
+        """Test the add_lineage_item function"""
+
+        test_desc = "We did something"
+
+        cm = cityjson.CityJSON()
+
+        cm.add_lineage_item(test_desc)
+
+        assert cm.j["metadata"]["lineage"][0]["processStep"]["description"] == test_desc
+
+        cm.add_lineage_item("Something else", features=["id1", "id2"], source=[{"description": "BAG"}], processor={"contactName": "3D geoinfo"})
+
+        item = cm.j["metadata"]["lineage"][1]
+        assert item["processStep"]["description"] == "Something else"
+        assert len(item["featureIDs"]) == 2
+        assert len(item["source"]) == 1
+        assert item["processStep"]["processor"]["contactName"] == "3D geoinfo"
+
     def test_de_compression(self, delft):
         cm = copy.deepcopy(delft)
         assert cm.decompress() == False
@@ -95,9 +144,3 @@ class TestCityJSON:
         cm.reproject(4937) #-- z values should stay the same
         assert cm.j["vertices"][0][0] == 4.36772776578513
         assert (cm.j["metadata"]["geographicalExtent"][5] - cm.j["metadata"]["geographicalExtent"][2]) == 6.1
-
-
-
-
-
-
