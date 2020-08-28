@@ -112,7 +112,7 @@ def info_cmd(context):
 def export_cmd(filename):
     """Export the CityJSON to another format.
 
-    Currently only OBJ file are supported; textures are not supported, sorry.
+    Currently only OBJ and STL file are supported; textures are not supported, sorry.
     """
     def processor(cm):
         #-- mapbox_earcut available?
@@ -123,9 +123,8 @@ def export_cmd(filename):
             click.echo(str)
             return cm
         #-- output allowed
-        extensions = ['.obj'] 
+        extensions = ['.obj','.stl'] 
         #--
-        print_cmd_status("Converting CityJSON to OBJ (%s)" % (filename))
         f = os.path.basename(filename)
         d = os.path.abspath(os.path.dirname(filename))
         if not os.path.isdir(d):
@@ -133,10 +132,14 @@ def export_cmd(filename):
         p = os.path.join(d, f)
         try:
             extension = os.path.splitext(p)[1].lower()
+            print_cmd_status("Converting CityJSON to %s (%s)" % (extension, filename))
             if (extension not in extensions):
                 raise IOError("Only .obj files supported")
             fo = click.open_file(p, mode='w')
-            re = cm.export2obj()
+            if (extension == '.obj'):
+                re = cm.export2obj()
+            if (extension == '.stl'):
+                re = cm.export2stl()
             fo.write(re.getvalue())
         except IOError as e:
             raise click.ClickException('Invalid output file: "%s".\n%s' % (p, e))                
