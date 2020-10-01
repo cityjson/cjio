@@ -94,7 +94,7 @@ class Geometry(object):
     """CityJSON Geometry object"""
     def __init__(self, type: str=None, lod: str=None,
                  boundaries: Iterable=None, semantics_obj: Mapping=None,
-                 vertices=None, transform=None):
+                 vertices=None, transform=None, texture_obj=None, appearance=None):
         self.type = type # TODO: use a property for allowing only the specified types
         self.lod = lod
         self.boundaries = self._dereference_boundaries(type, boundaries, vertices, transform)
