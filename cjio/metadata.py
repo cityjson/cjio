@@ -10,7 +10,11 @@ import sys
 from datetime import date, datetime
 import platform
 
-def generate_metadata(citymodel: dict, filename: str, reference_date: 'datetime', overwrite_values: bool = False, recompute_uuid: bool = False):
+def generate_metadata(citymodel: dict,
+                      filename: str = None,
+                      reference_date: datetime = None,
+                      overwrite_values: bool = False,
+                      recompute_uuid: bool = False):
     """Returns a tuple containing a dictionary of the metadata and a list of errors.
 
     Keyword arguments:
@@ -27,19 +31,26 @@ def generate_metadata(citymodel: dict, filename: str, reference_date: 'datetime'
         Try to get the date that a file was created, falling back to when it was
         last modified if that isn't possible.
         See http://stackoverflow.com/a/39501288/1709587 for explanation.
+
+        If the CityModel is newly created then the file doesn't exist yet. In this case
+        we fall back to the 'reference_date' argument.
         """
-        if platform.system() == 'Windows':
-            return str(date.fromtimestamp(os.path.getctime(filename)))
+        if filename is None and reference_date is None:
+            raise ValueError("Need to provide either a filename or reference_date in order to compute the datasetReferenceDate")
+        elif filename:
+            if platform.system() == 'Windows':
+                return str(date.fromtimestamp(os.path.getctime(filename)))
+            else:
+                stat = os.stat(filename)
+                try:
+                    return str(date.fromtimestamp(stat.st_birthtime))
+                except AttributeError:
+                    # We're probably on Linux. No easy way to get creation dates here,
+                    # so we'll settle for when its content was last modified.
+                    return str(date.fromtimestamp(stat.st_mtime))
         else:
-            stat = os.stat(filename)
-            try:
-                return str(date.fromtimestamp(stat.st_birthtime))
-            except AttributeError:
-                # We're probably on Linux. No easy way to get creation dates here,
-                # so we'll settle for when its content was last modified.
-                return str(date.fromtimestamp(stat.st_mtime))
-        
-        return reference_dates
+            return reference_date
+
 
     def distributionFormatVersion_func():
         return citymodel["version"]

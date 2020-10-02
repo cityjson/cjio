@@ -1685,7 +1685,11 @@ class CityJSON:
         """
         Returns the metadata of this CityJSON file
         """
-        return generate_metadata(self.j, self.path, self.reference_date, overwrite, new_uuid)
+        return generate_metadata(citymodel=self.j,
+                                 filename=self.path,
+                                 reference_date=self.reference_date,
+                                 overwrite_values=overwrite,
+                                 recompute_uuid=new_uuid)
 
     def update_metadata(self, overwrite=False, new_uuid=False):
         """
