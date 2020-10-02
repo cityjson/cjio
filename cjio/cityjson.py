@@ -221,6 +221,7 @@ class CityJSON:
         elif j is not None:
             self.j = j
             self.cityobjects = {}
+            self.path = None
             self.reference_date = datetime.now()
         else: #-- create an empty one
             self.j = {}
@@ -229,6 +230,7 @@ class CityJSON:
             self.j["CityObjects"] = {}
             self.j["vertices"] = []
             self.cityobjects = {}
+            self.path = None
             self.reference_date = datetime.now()
 
 
