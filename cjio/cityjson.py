@@ -222,7 +222,7 @@ class CityJSON:
             self.j = j
             self.cityobjects = {}
             self.path = None
-            self.reference_date = datetime.now()
+            self.reference_date = datetime.now().strftime('%Y-%m-%d')
         else: #-- create an empty one
             self.j = {}
             self.j["type"] = "CityJSON"
@@ -231,7 +231,7 @@ class CityJSON:
             self.j["vertices"] = []
             self.cityobjects = {}
             self.path = None
-            self.reference_date = datetime.now()
+            self.reference_date = datetime.now().strftime('%Y-%m-%d')
 
 
     def __repr__(self):
