@@ -12,7 +12,7 @@ import platform
 
 def generate_metadata(citymodel: dict,
                       filename: str = None,
-                      reference_date: datetime = None,
+                      reference_date: str = None,
                       overwrite_values: bool = False,
                       recompute_uuid: bool = False):
     """Returns a tuple containing a dictionary of the metadata and a list of errors.
@@ -26,7 +26,7 @@ def generate_metadata(citymodel: dict,
     def citymodelIdentifier_func():
         return str(uuid.uuid4())
 
-    def datasetReferenceDate_func():
+    def datasetReferenceDate_func() -> str:
         """
         Try to get the date that a file was created, falling back to when it was
         last modified if that isn't possible.
