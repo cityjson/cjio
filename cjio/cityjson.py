@@ -221,7 +221,8 @@ class CityJSON:
         elif j is not None:
             self.j = j
             self.cityobjects = {}
-            self.reference_date = datetime.now()
+            self.path = None
+            self.reference_date = datetime.now().strftime('%Y-%m-%d')
         else: #-- create an empty one
             self.j = {}
             self.j["type"] = "CityJSON"
@@ -229,7 +230,8 @@ class CityJSON:
             self.j["CityObjects"] = {}
             self.j["vertices"] = []
             self.cityobjects = {}
-            self.reference_date = datetime.now()
+            self.path = None
+            self.reference_date = datetime.now().strftime('%Y-%m-%d')
 
 
     def __repr__(self):
@@ -1685,7 +1687,11 @@ class CityJSON:
         """
         Returns the metadata of this CityJSON file
         """
-        return generate_metadata(self.j, self.path, self.reference_date, overwrite, new_uuid)
+        return generate_metadata(citymodel=self.j,
+                                 filename=self.path,
+                                 reference_date=self.reference_date,
+                                 overwrite_values=overwrite,
+                                 recompute_uuid=new_uuid)
 
     def update_metadata(self, overwrite=False, new_uuid=False):
         """
