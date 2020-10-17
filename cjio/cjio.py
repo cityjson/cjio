@@ -7,7 +7,7 @@ import copy
 import glob
 import re
 import cjio
-from cjio import cityjson, tiling, utils
+from cjio import cityjson, utils
 
 
 #-- https://stackoverflow.com/questions/47437472/in-python-click-how-do-i-see-help-for-subcommands-whose-parents-have-required
@@ -110,12 +110,7 @@ def process_pipeline(processors, input, ignore_duplicate_keys):
 def info_cmd(context, long):
     """Output info in simple JSON."""
     def processor(cm):
-        if isinstance(cm, list):
-            for subset in cm:
-                click.echo("=============== City model: %s ===============" % subset.path)
-                click.echo(subset.get_info(long=long))
-        else:
-            click.echo(cm.get_info(long=long))
+        click.echo(cm.get_info(long=long))
         return cm
     return processor
 
@@ -123,7 +118,7 @@ def info_cmd(context, long):
 @cli.command('export')
 @click.argument('filename')
 @click.option('--format',
-              type=click.Choice(['obj', 'glb', 'b3dm', '3dtiles']),
+              type=click.Choice(['obj', 'glb', 'b3dm']),
               help="Export format")
 def export_cmd(filename, format):
     """Export the CityJSON to another format.
@@ -131,22 +126,16 @@ def export_cmd(filename, format):
     OBJ, Binary glTF (glb), Batched 3DModel, Cesium 3D Tiles. Currently textures are not supported, sorry.
     """
     def exporter(cm):
-        # TODO B: refactor for handling partitions for each format
         output = utils.verify_filename(filename)
         if output['dir']:
             os.makedirs(output['path'], exist_ok=True)
-            if isinstance(cm, list):
-                pass
-            else:
-                input_filename = os.path.splitext(os.path.basename(cm.path))[0]
-                output['path'] = os.path.join(output['path'], '{f}.{ext}'.format(
-                    f=input_filename, ext=format))
+            input_filename = os.path.splitext(os.path.basename(cm.path))[0]
+            output['path'] = os.path.join(output['path'], '{f}.{ext}'.format(
+                f=input_filename, ext=format))
         else:
             os.makedirs(os.path.dirname(output['path']), exist_ok=True)
         if format.lower() == 'obj':
             utils.print_cmd_status("Exporting CityJSON to OBJ (%s)" % (output['path']))
-            if isinstance(cm, list):
-                click.ClickException("Not implemented for exporting multiple citymodels")
             try:
                 fo = click.open_file(output['path'], mode='w')
                 re = cm.export2obj()
@@ -155,8 +144,6 @@ def export_cmd(filename, format):
             except IOError as e:
                 raise click.ClickException('Invalid output file: "%s".\n%s' % (output['path'], e))
         elif format.lower() == 'glb':
-            if isinstance(cm, list):
-                click.ClickException("Not implemented for exporting multiple citymodels")
             fname = os.path.splitext(os.path.basename(output['path']))[0]
             bufferbin = "{}.glb".format(fname)
             binfile = os.path.join(os.path.dirname(output['path']), bufferbin)
@@ -170,8 +157,6 @@ def export_cmd(filename, format):
             except IOError as e:
                 raise click.ClickException('Invalid output file: "%s".\n%s' % (binfile, e))
         elif format.lower() == 'b3dm':
-            if isinstance(cm, list):
-                click.ClickException("Not implemented for exporting multiple citymodels")
             fname = os.path.splitext(os.path.basename(output['path']))[0]
             b3dmbin = "{}.b3dm".format(fname)
             binfile = os.path.join(os.path.dirname(output['path']), b3dmbin)
@@ -184,73 +169,6 @@ def export_cmd(filename, format):
                     bo.write(b3dm.getvalue())
             except IOError as e:
                 raise click.ClickException('Invalid output file: "%s".\n%s' % (binfile, e))
-        elif format.lower() == '3dtiles':
-            utils.print_cmd_status("Exporting CityJSON to 3dtiles")
-            utils.print_cmd_warning("Although the conversion works, the output is probably incorrect.")
-            tileset = tiling.generate_tileset_json()
-            if isinstance(cm, list):
-                bbox_list = []
-                for i,subset in enumerate(cm):
-                    fname = os.path.splitext(os.path.basename(subset.path))[0]
-                    b3dmbin = "{}.b3dm".format(fname)
-                    binfile = os.path.join(output['path'], b3dmbin)
-                    bbox = subset.update_bbox()
-                    b3dm = subset.export2b3dm()
-                    bbox_list.append(bbox)
-                    tile = tiling.generate_tile_json()
-                    tile['boundingVolume']['box'] = tiling.compute_obb(bbox)
-                    tile['content']['uri'] = b3dmbin
-                    tileset['root']['children'].append(tile)
-                    utils.print_cmd_substatus("Exporting b3dm %s" % binfile)
-                    try:
-                        b3dm.seek(0)
-                        with click.open_file(binfile, mode='wb') as bo:
-                            bo.write(b3dm.getvalue())
-                    except IOError as e:
-                        raise click.ClickException('Invalid output file: "%s".\n%s' % (binfile, e))
-                tilesetfile = os.path.join(output['path'], 'tileset.json')
-                bbox_root = tiling.compute_root_obb(bbox_list)
-                tileset['root']['boundingVolume']['box'] = tiling.compute_obb(bbox_root)
-                del tileset['root']['content']
-                utils.print_cmd_substatus("Exporting tileset.json %s" % tilesetfile)
-                try:
-                    with click.open_file(tilesetfile, mode='w') as fo:
-                        json_str = json.dumps(tileset, indent=2)
-                        fo.write(json_str)
-                except IOError as e:
-                    raise click.ClickException('Invalid output file: %s \n%s' % (output['path'], e))
-            else:
-                # if the citymodel is not partitioned, then the whole model is the root tile
-                # if (cm.get_epsg() == None):
-                #     raise click.ClickException("CityJSON has no EPSG defined, can't be reprojected.")
-                # elif cm.get_epsg() != 4326:
-                #     utils.print_cmd_status("Reprojecting CityJSON to EPSG:4326")
-                #     cm.reproject(3857)
-                fname = os.path.splitext(os.path.basename(output['path']))[0]
-                b3dmbin = "{}.b3dm".format(fname)
-                binfile = os.path.join(os.path.dirname(output['path']), b3dmbin)
-                tilesetfile = os.path.join(os.path.dirname(output['path']), 'tileset.json')
-                bbox = cm.update_bbox()
-                b3dm = cm.export2b3dm()
-                bbox_root = [coordinate * 1.1 for coordinate in bbox] # methinks the root boundingVolume should be larger than that of the children, even when there is only one child
-                tileset['root']['boundingVolume']['box'] = tiling.compute_obb(bbox_root)
-                tileset['root']['content']['boundingVolume']['box'] = tiling.compute_obb(bbox)
-                tileset['root']['content']['uri'] = b3dmbin
-                del tileset['root']['children']
-                utils.print_cmd_status("Exporting b3dm %s" % binfile)
-                try:
-                    b3dm.seek(0)
-                    with click.open_file(binfile, mode='wb') as bo:
-                        bo.write(b3dm.getvalue())
-                except IOError as e:
-                    raise click.ClickException('Invalid output file: "%s".\n%s' % (binfile, e))
-                utils.print_cmd_status("Exporting tileset.json %s" % tilesetfile)
-                try:
-                    with click.open_file(tilesetfile, mode='w') as fo:
-                        json_str = json.dumps(tileset, indent=2)
-                        fo.write(json_str)
-                except IOError as e:
-                    raise click.ClickException('Invalid output file: %s \n%s' % (output['path'], e))
 
 
     def processor(cm):
@@ -311,11 +229,7 @@ def save_cmd(filename, indent, textures):
             raise click.ClickException('Invalid output file: %s \n%s' % (output['path'], e))
 
     def processor(cm):
-        if isinstance(cm, list):
-            for subset in cm:
-                saver(subset)
-        else:
-            saver(cm)
+        saver(cm)
         return cm
     return processor
 
@@ -401,49 +315,6 @@ def merge_cmd(filepattern):
         return cm
     return processor
 
-@cli.command('partition')
-@click.option('--depth', type=int, help='Number of times to subdivide the BBOX.')
-@click.option('--cellsize', nargs=2, type=float, help='Size of the cells in the partitioning (length x, length y).')
-def partition_cmd(depth, cellsize):
-    """
-    Partition the city model into tiles.
-    One can provide either
-
-    (1) --depth as the depth of the quadtree that is generated from the BBOX of the input citymodel. For example --depth 2 yields 16 cells;
-
-        $ cjio myfile.json partition --depth 2
-
-    (2) --cellsize as the approx. size of cells that partition the BBOX of the input citymodel.
-
-        $ cjio myfile.json partition --cellsize 500.0 500.0
-    """
-    def processor(cm):
-        utils.print_cmd_status('===== Partitioning CityJSON =====')
-        if (cellsize and depth):
-            raise click.ClickException("Please choose either --depth or --cellsize")
-        if cellsize:
-            raise click.ClickException("Sorry, --cellsize is not implemented yet")
-        bbox = cm.update_bbox()
-        grid_idx = tiling.create_grid(bbox, depth)
-        partitions = tiling.partitioner(cm, grid_idx)
-
-        textures = None
-        indent = 0
-
-        # NOTE BD: for now i store the subsets in the list to they can be passed forward to the exporter, but probably there more memory efficient ways to do this
-        cms = []
-        input_filename = os.path.splitext(os.path.basename(cm.path))[0]
-        for idx, colist in partitions.items():
-            s = cm.get_subset_ids(colist)
-            try:
-                s.j["metadata"]["lineage"][-1]["processStep"]["description"] = "Partition {}/{} of {}".format(idx + 1, len(partitions), s.get_identifier())
-            except:
-                pass
-            filename = '{}_{}.json'.format(input_filename, idx)
-            s.path = filename
-            cms.append(s)
-        return cms
-    return processor
 
 @cli.command('subset')
 @click.option('--id', multiple=True, help='The ID of the City Objects; can be used multiple times.')

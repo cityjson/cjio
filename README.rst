@@ -73,7 +73,6 @@ possibities:
       info                       Output info in simple JSON.
       locate_textures            Output the location of the texture files.
       merge                      Merge the current CityJSON with others.
-      partition                  Partition the city model into tiles.
       remove_duplicate_vertices  Remove duplicate vertices a CityJSON file.
       remove_materials           Remove all materials from a CityJSON file.
       remove_orphan_vertices     Remove orphan vertices a CityJSON file.
@@ -127,8 +126,8 @@ schema file ``cityjson.json`` is located:
 
     cjio example.json validate --folder_schemas /home/elvis/temp/myschemas/
 
-Generating Binary glTF or Cesium 3DTiles from a CityJSON
---------------------------------------------------------
+Generating Binary glTF
+----------------------
 
 Convert the CityJSON ``example.json`` to a glb file
 ``/home/elvis/gltfs/example.glb``
@@ -144,50 +143,10 @@ Convert the CityJSON ``example.json`` to a glb file
 
     cjio example.json export --format glb /home/elvis/test.glb
 
-Partitioning
-~~~~~~~~~~~~
-
-**The ``partition`` command returns several subsets of the input city
-model and this functionality is not fully** **integrated yet. At the
-moment only these commands can follow ``partition``:**
-
--  ``save``
--  ``export``
--  ``info``
-
-Partition the CityJSON ``example.json`` into 16 equal area parts
-(quadtree of depth 2) and export each part as binary glTF to
-``/home/elvis/gltfs``.
-
-.. code:: console
-
-    cjio example.json partition --depth 2 export --format glb /home/elvis/gltfs
-
-Partition the CityJSON and get information about each part
-
-.. code:: console
-
-    cjio example.json partition --depth 2 info
-
-Export to 3DTiles
-~~~~~~~~~~~~~~~~~
-
-Partition the CityJSON ``example.json`` and export as 3DTiles into
-``/home/elvis/3dtiles``. The exporter creates the ``tileset.json``
-master file which links to each partition which are converted to
-``b3dm``.
-
-.. code:: console
-
-    cjio example.json partition --depth 2 export --format 3dtiles /home/elvis/3dtiles
-
 Usage of the API
 ----------------
 
-.. image:: https://mybinder.org/badge_logo.svg
-   :target: https://mybinder.org/v2/gh/tudelft3d/cjio/develop?filepath=docs%2Fsource%2Fcjio_tutorial.ipynb
-
-The API is experimental at the moment, but you can play around with what we already have on Binder.
+TODO
 
 Docker
 ------
