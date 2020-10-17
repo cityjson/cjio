@@ -4,6 +4,7 @@
 import pytest
 import copy
 from cjio import cityjson, models
+from math import isclose
 
 
 @pytest.fixture(scope='module')
@@ -142,5 +143,5 @@ class TestCityJSON:
     def test_reproject(self, delft_1b):
         cm = copy.deepcopy(delft_1b)
         cm.reproject(4937) #-- z values should stay the same
-        assert cm.j["vertices"][0][0] == 4.36772776578513
+        assert isclose(cm.j["vertices"][0][0], 4.36772776578513, abs_tol=0.00001)
         assert (cm.j["metadata"]["geographicalExtent"][5] - cm.j["metadata"]["geographicalExtent"][2]) == 6.1

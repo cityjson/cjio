@@ -338,7 +338,7 @@ class TestGeometry:
     def test_get_surface_boundaries(self, boundaries, surface, surfaces):
         geom = models.Geometry()
         geom.boundaries = boundaries
-        res = geom.get_surface_boundaries(surface)
+        res = list(geom.get_surface_boundaries(surface))
         assert res == surfaces
 
 

@@ -7,18 +7,18 @@ from cjio import utils
 
 @pytest.fixture(scope='session',
                 params=[("doesnt_exist.json", False),
-                        ("example_data/rotterdam", True),
-                        ("example_data/rotterdam/", True),
-                        ("example_data/delft.json", False),
-                        ("example_data/doesnt_exist", True)
+                        ("tests/data/rotterdam", True),
+                        ("tests/data/rotterdam/", True),
+                        ("tests/data/delft.json", False),
+                        ("tests/data/doesnt_exist", True)
 ])
 def valid_path(request):
     package_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
     yield (os.path.join(package_dir, request.param[0]), request.param[1])
 
 @pytest.fixture(scope='session',
-                params=[("example_data/doesnt_exist/doesnt_exist.json", False),
-                        ("example_data/doesnt_exist/other_dir", True)
+                params=[("tests/data/doesnt_exist/doesnt_exist.json", False),
+                        ("tests/data/doesnt_exist/other_dir", True)
 ])
 def invalid_path(request):
     package_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
