@@ -1706,14 +1706,13 @@ class CityJSON:
         return (True, errors)
     
     def add_lineage_item(self, description: str, features: list = None, source: list = None, processor: dict = None):
-        """
-        Adds a lineage item in metadata.
+        """Adds a lineage item in metadata.
 
-        description --- A string with the description of the process
-        features (optional) --- A list of object ids that are affected by it
-        source (optional) --- A list of sources. Every source is a dict with
+        :param description: A string with the description of the process
+        :param features: A list of object ids that are affected by it
+        :param source: A list of sources. Every source is a dict with
             the respective info (description, sourceReferenceSystem etc.)
-        processor (optional) --- A dict with contact information for the
+        :param processor: A dict with contact information for the
             person that conducted the processing
         """
 
