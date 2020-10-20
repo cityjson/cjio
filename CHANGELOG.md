@@ -1,7 +1,6 @@
-
 # Changelog
 
-## [Unreleased]
+## [0.6.0]
 ### Added
 - Convert to Binary glTF (glb)
 - Convert to Batched 3D Models (b3dm) - Output is probably incorrect though
