@@ -118,7 +118,7 @@ def info_cmd(context, long):
 @cli.command('export')
 @click.argument('filename')
 @click.option('--format',
-              type=click.Choice(['obj', 'glb', 'b3dm']),
+              type=click.Choice(['obj', 'stl', 'glb', 'b3dm']),
               help="Export format")
 def export_cmd(filename, format):
     """Export the CityJSON to another format.
@@ -139,6 +139,15 @@ def export_cmd(filename, format):
             try:
                 fo = click.open_file(output['path'], mode='w')
                 re = cm.export2obj()
+                # TODO B: why don't you close the file @hugoledoux?
+                fo.write(re.getvalue())
+            except IOError as e:
+                raise click.ClickException('Invalid output file: "%s".\n%s' % (output['path'], e))
+        elif format.lower() == 'stl':
+            utils.print_cmd_status("Exporting CityJSON to STL (%s)" % (output['path']))
+            try:
+                fo = click.open_file(output['path'], mode='w')
+                re = cm.export2stl()
                 # TODO B: why don't you close the file @hugoledoux?
                 fo.write(re.getvalue())
             except IOError as e:

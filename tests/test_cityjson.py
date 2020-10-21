@@ -2,8 +2,11 @@
 
 """
 import pytest
+import os.path
+from click.testing import CliRunner
 import copy
 from cjio import cityjson, models
+from cjio import cjio
 from math import isclose
 
 
@@ -145,3 +148,17 @@ class TestCityJSON:
         cm.reproject(4937) #-- z values should stay the same
         assert isclose(cm.j["vertices"][0][0], 4.36772776578513, abs_tol=0.00001)
         assert (cm.j["metadata"]["geographicalExtent"][5] - cm.j["metadata"]["geographicalExtent"][2]) == 6.1
+
+    def test_convert_to_stl(self, delft):
+         cm = copy.deepcopy(delft)
+         obj = cm.export2stl()
+
+    def test_export_stl_cmd(self, data_dir, data_output_dir):
+        """Debugging"""
+        p = os.path.join(data_dir, 'delft.json')
+        runner = CliRunner()
+        result = runner.invoke(cjio.cli,
+                               args=[p,
+                                     'export',
+                                     '--format', 'stl',
+                                     data_output_dir])
