@@ -1,0 +1,4 @@
+sphinx == 3.2.1
+pydata-sphinx-theme
+Pygments == 2.7.1
+nbsphinx == 0.7.1

@@ -1,20 +1,18 @@
 from setuptools import setup
-import re
 from pathlib import Path
 import cjio
 
 CURRENT_DIR = Path(__file__).parent
 
-with open("README.md", "r") as fh:
+with open("README.rst", "r") as fh:
     long_description = fh.read()
-
 
 setup(
     name='cjio',
     version=cjio.__version__,
     description='CLI to process and manipulate CityJSON files',
     long_description=long_description,
-    long_description_content_type="text/markdown",
+    long_description_content_type="text/x-rst",
     url='https://github.com/tudelft3d/cjio',
     author='Hugo Ledoux, Balázs Dukai',
     author_email='h.ledoux@tudelft.nl, b.dukai@tudelft.nl',
@@ -37,10 +35,7 @@ setup(
     install_requires=[
         'Click',
         'jsonschema',
-        'jsonref',
-        'numpy',
-        'strict-rfc3339',
-        'pyproj'
+        'jsonref'
     ],
     entry_points='''
         [console_scripts]

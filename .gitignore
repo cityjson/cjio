@@ -1,7 +1,6 @@
 # Data
-example_data/rotterdam/appearances
-example_data/rotterdam/textures*
-
+tmp
+/tests/data/zurich/zurich.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -79,6 +78,9 @@ target/
 # pyenv
 .python-version
 
+# pipenv
+Pipfile.lock
+
 # celery beat schedule file
 celerybeat-schedule
 
@@ -109,3 +111,12 @@ ENV/
 # Eclipse
 .project
 .pydevproject
+
+# PyCharm
+.idea*
+
+# KDE
+.directory
+
+# VS Code
+.vscode

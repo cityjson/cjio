@@ -295,7 +295,7 @@ def cityjson_properties(j, js):
     ws = []
     thewarnings = {}
     for property in j:
-        if ( (property[0] != "+") and (property not in js["properties"]) ):
+        if ( ((property[0] != "+") and (property[0] != "@")) and (property not in js["properties"]) ):
             isValid = False
             s = "WARNING: root property '" + property + "' not in CityJSON schema, might be ignored by some parsers"
             ws.append(s)
@@ -359,7 +359,7 @@ def validate_against_schema(j, js):
     isValid = True
     es = []
     #-- lazy validation to catch as many as possible
-    myvalidator = jsonschema.Draft4Validator(js, format_checker=jsonschema.FormatChecker())
+    myvalidator = jsonschema.Draft7Validator(js, format_checker=jsonschema.FormatChecker())
     for err in sorted(myvalidator.iter_errors(j), key=str):
         isValid = False
         es.append(err.message)

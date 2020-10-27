@@ -1,0 +1,1137 @@
+{
+  "type": "CityJSON",
+  "version": "1.0",
+  "metadata": {
+    "referenceSystem": "urn:ogc:def:crs:EPSG::7415",
+    "geographicalExtent": [
+      0.0,
+      0.0,
+      0.0,
+      771.0,
+      61.0,
+      51.0
+    ]
+  },
+  "CityObjects": {
+    "mygroup1": {
+      "type": "CityObjectGroup",
+      "members": [
+        "102636712",
+        "mylake"
+      ],
+      "geometry": [
+        {
+          "type": "MultiSurface",
+          "lod": 2,
+          "boundaries": [
+            [
+              [
+                2,
+                4,
+                5
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    "102636712": {
+      "type": "Building",
+      "attributes": {
+        "measuredHeight": 22.3,
+        "roofType": "gable",
+        "yearOfConstruction": 1904,
+        "owner": "Elvis Presley"
+      },
+      "address": {
+        "CountryName": "Canada",
+        "LocalityName": "Chibougamau",
+        "ThoroughfareNumber": "666",
+        "ThoroughfareName": "rue du Diable",
+        "PostalCode": "H0H 0H0"
+      },
+      "geometry": [
+        {
+          "type": "Solid",
+          "lod": 1.1,
+          "boundaries": [
+            [
+              [
+                [
+                  0,
+                  3,
+                  2,
+                  1
+                ],
+                [
+                  0,
+                  1,
+                  2
+                ]
+              ],
+              [
+                [
+                  4,
+                  5,
+                  6,
+                  7
+                ]
+              ],
+              [
+                [
+                  0,
+                  1,
+                  5,
+                  4
+                ]
+              ],
+              [
+                [
+                  1,
+                  2,
+                  6,
+                  5
+                ]
+              ],
+              [
+                [
+                  2,
+                  3,
+                  7,
+                  6
+                ]
+              ],
+              [
+                [
+                  3,
+                  0,
+                  4,
+                  7
+                ]
+              ]
+            ]
+          ],
+          "semantics": {
+            "surfaces": [
+              {
+                "type": "RoofSurface",
+                "slope": 33.4
+              },
+              {
+                "type": "RoofSurface",
+                "slope": 66.6
+              },
+              {
+                "type": "WallSurface",
+                "paint": "blue"
+              },
+              {
+                "type": "WallSurface",
+                "paint": "red"
+              }
+            ],
+            "values": [
+              [
+                0,
+                1,
+                null,
+                null,
+                2,
+                3
+              ]
+            ]
+          },
+          "material": {
+            "irradiation": {
+              "values": [
+                [
+                  0,
+                  0,
+                  null,
+                  null,
+                  2,
+                  2
+                ]
+              ]
+            },
+            "irradiation-2": {
+              "value": 1
+            }
+          }
+        },
+        {
+          "type": "Solid",
+          "lod": 2.1,
+          "boundaries": [
+            [
+              [
+                [
+                  0,
+                  3,
+                  2,
+                  1
+                ]
+              ],
+              [
+                [
+                  4,
+                  5,
+                  6,
+                  7
+                ]
+              ],
+              [
+                [
+                  0,
+                  1,
+                  5,
+                  4
+                ]
+              ],
+              [
+                [
+                  1,
+                  2,
+                  6,
+                  5
+                ]
+              ],
+              [
+                [
+                  2,
+                  3,
+                  7,
+                  6
+                ]
+              ],
+              [
+                [
+                  3,
+                  0,
+                  4,
+                  7
+                ]
+              ]
+            ],
+            [
+              [
+                [
+                  0,
+                  3,
+                  2,
+                  1
+                ]
+              ],
+              [
+                [
+                  4,
+                  5,
+                  6,
+                  7
+                ]
+              ],
+              [
+                [
+                  0,
+                  1,
+                  5,
+                  4
+                ]
+              ],
+              [
+                [
+                  1,
+                  2,
+                  6,
+                  5
+                ]
+              ]
+            ]
+          ],
+          "semantics": {
+            "surfaces": [
+              {
+                "type": "RoofSurface"
+              },
+              {
+                "type": "WallSurface"
+              }
+            ],
+            "values": [
+              [
+                0,
+                1,
+                null,
+                null,
+                1,
+                1
+              ],
+              null
+            ]
+          },
+          "texture": {
+            "winter-textures": {
+              "values": [
+                [
+                  [
+                    [
+                      0,
+                      10,
+                      13,
+                      12,
+                      19
+                    ]
+                  ],
+                  [
+                    [
+                      null
+                    ]
+                  ],
+                  [
+                    [
+                      null
+                    ]
+                  ],
+                  [
+                    [
+                      0,
+                      1,
+                      2,
+                      6,
+                      5
+                    ]
+                  ],
+                  [
+                    [
+                      0,
+                      2,
+                      3,
+                      7,
+                      6
+                    ]
+                  ],
+                  [
+                    [
+                      0,
+                      3,
+                      0,
+                      4,
+                      7
+                    ]
+                  ]
+                ],
+                [
+                  [
+                    [
+                      null
+                    ]
+                  ],
+                  [
+                    [
+                      null
+                    ]
+                  ],
+                  [
+                    [
+                      0,
+                      0,
+                      1,
+                      5,
+                      4
+                    ]
+                  ],
+                  [
+                    [
+                      0,
+                      1,
+                      2,
+                      6,
+                      5
+                    ]
+                  ]
+                ]
+              ]
+            },
+            "summer-textures": {
+              "values": [
+                [
+                  [
+                    [
+                      1,
+                      7,
+                      3,
+                      2,
+                      1
+                    ]
+                  ],
+                  [
+                    [
+                      null
+                    ]
+                  ],
+                  [
+                    [
+                      null
+                    ]
+                  ],
+                  [
+                    [
+                      1,
+                      1,
+                      2,
+                      6,
+                      5
+                    ]
+                  ],
+                  [
+                    [
+                      1,
+                      2,
+                      3,
+                      7,
+                      6
+                    ]
+                  ],
+                  [
+                    [
+                      1,
+                      3,
+                      0,
+                      4,
+                      7
+                    ]
+                  ]
+                ],
+                [
+                  [
+                    [
+                      null
+                    ]
+                  ],
+                  [
+                    [
+                      null
+                    ]
+                  ],
+                  [
+                    [
+                      1,
+                      0,
+                      1,
+                      5,
+                      4
+                    ]
+                  ],
+                  [
+                    [
+                      1,
+                      1,
+                      2,
+                      6,
+                      5
+                    ]
+                  ]
+                ]
+              ]
+            }
+          }
+        }
+      ],
+      "children": [
+        "2929"
+      ]
+    },
+    "2929": {
+      "type": "BuildingPart",
+      "attributes": {
+        "renovation": "2001/09/11"
+      },
+      "geometry": [
+        {
+          "type": "Solid",
+          "lod": 2,
+          "boundaries": [
+            [
+              [
+                [
+                  0,
+                  3,
+                  2,
+                  1
+                ]
+              ],
+              [
+                [
+                  4,
+                  5,
+                  6,
+                  7
+                ]
+              ],
+              [
+                [
+                  0,
+                  1,
+                  5,
+                  4
+                ]
+              ],
+              [
+                [
+                  1,
+                  2,
+                  6,
+                  5
+                ]
+              ],
+              [
+                [
+                  2,
+                  3,
+                  7,
+                  6
+                ]
+              ],
+              [
+                [
+                  3,
+                  0,
+                  4,
+                  7
+                ]
+              ]
+            ]
+          ]
+        }
+      ],
+      "parents": [
+        "102636712"
+      ]
+    },
+    "onebigtree-template": {
+      "type": "SolitaryVegetationObject",
+      "geometry": [
+        {
+          "type": "GeometryInstance",
+          "template": 0,
+          "boundaries": [
+            2
+          ],
+          "transformationMatrix": [
+            2.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            2.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            2.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        }
+      ]
+    },
+    "itcanbeastringtoo": {
+      "type": "Building",
+      "attributes": {
+        "measuredHeight": 223
+      },
+      "geometry": [
+        {
+          "type": "MultiSurface",
+          "lod": 2,
+          "boundaries": [
+            [
+              [
+                0,
+                3,
+                2,
+                1
+              ]
+            ],
+            [
+              [
+                4,
+                5,
+                6,
+                7
+              ]
+            ],
+            [
+              [
+                0,
+                1,
+                5,
+                4
+              ]
+            ],
+            [
+              [
+                1,
+                2,
+                6,
+                5
+              ]
+            ],
+            [
+              [
+                2,
+                3,
+                7,
+                6
+              ]
+            ],
+            [
+              [
+                3,
+                0,
+                4,
+                7
+              ]
+            ]
+          ],
+          "material": {
+            "blablabla": {
+              "value": 1
+            }
+          }
+        }
+      ],
+      "children": [
+        "801"
+      ]
+    },
+    "801": {
+      "type": "BuildingInstallation",
+      "attributes": {
+        "function": "balcony"
+      },
+      "geometry": [
+        {
+          "type": "MultiSurface",
+          "lod": 2.2,
+          "boundaries": [
+            [
+              [
+                0,
+                3,
+                2,
+                1
+              ]
+            ],
+            [
+              [
+                4,
+                5,
+                6,
+                7
+              ]
+            ],
+            [
+              [
+                0,
+                1,
+                5,
+                4
+              ]
+            ],
+            [
+              [
+                1,
+                2,
+                6,
+                5
+              ]
+            ],
+            [
+              [
+                2,
+                3,
+                7,
+                6
+              ]
+            ],
+            [
+              [
+                3,
+                0,
+                4,
+                7
+              ]
+            ]
+          ]
+        }
+      ],
+      "parents": [
+        "itcanbeastringtoo"
+      ]
+    },
+    "myterrain01": {
+      "type": "TINRelief",
+      "geometry": [
+        {
+          "type": "CompositeSurface",
+          "lod": 2,
+          "boundaries": [
+            [
+              [
+                0,
+                3,
+                2
+              ]
+            ],
+            [
+              [
+                4,
+                5,
+                6
+              ]
+            ],
+            [
+              [
+                0,
+                1,
+                5
+              ]
+            ],
+            [
+              [
+                1,
+                2,
+                6
+              ]
+            ],
+            [
+              [
+                2,
+                3,
+                7
+              ]
+            ],
+            [
+              [
+                3,
+                0,
+                4
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    "mycanal": {
+      "type": "WaterBody",
+      "geometry": [
+        {
+          "type": "CompositeSurface",
+          "lod": 1,
+          "boundaries": [
+            [
+              [
+                0,
+                3,
+                2,
+                1
+              ]
+            ],
+            [
+              [
+                4,
+                5,
+                6,
+                8
+              ]
+            ],
+            [
+              [
+                0,
+                1,
+                5,
+                4
+              ]
+            ],
+            [
+              [
+                1,
+                2,
+                6,
+                5
+              ]
+            ],
+            [
+              [
+                2,
+                3,
+                7,
+                6
+              ]
+            ],
+            [
+              [
+                3,
+                0,
+                4,
+                7
+              ]
+            ]
+          ],
+          "semantics": {
+            "surfaces": [],
+            "values": null
+          }
+        }
+      ]
+    },
+    "LondonTower": {
+      "type": "Bridge",
+      "address": {
+        "CountryName": "UK",
+        "LocalityName": "London"
+      },
+      "geometry": [
+        {
+          "type": "MultiSurface",
+          "lod": 2,
+          "boundaries": [
+            [
+              [
+                0,
+                3,
+                2,
+                1
+              ]
+            ],
+            [
+              [
+                4,
+                5,
+                6,
+                7
+              ]
+            ],
+            [
+              [
+                0,
+                1,
+                5,
+                4
+              ]
+            ],
+            [
+              [
+                1,
+                2,
+                6,
+                5
+              ]
+            ],
+            [
+              [
+                2,
+                3,
+                7,
+                6
+              ]
+            ],
+            [
+              [
+                3,
+                0,
+                4,
+                7
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    "mylake": {
+      "type": "WaterBody",
+      "attributes": {
+        "usage": "leisure",
+        "function": "leisure"
+      },
+      "geometry": [
+        {
+          "type": "MultiSurface",
+          "lod": 1,
+          "boundaries": [
+            [
+              [
+                0,
+                3,
+                2,
+                1
+              ]
+            ],
+            [
+              [
+                4,
+                5,
+                6,
+                7
+              ]
+            ],
+            [
+              [
+                0,
+                1,
+                5,
+                4
+              ]
+            ],
+            [
+              [
+                1,
+                2,
+                6,
+                5
+              ]
+            ],
+            [
+              [
+                2,
+                3,
+                7,
+                6
+              ]
+            ],
+            [
+              [
+                3,
+                0,
+                4,
+                7
+              ]
+            ]
+          ],
+          "semantics": {
+            "surfaces": [
+              {
+                "type": "WaterSurface"
+              },
+              {
+                "type": "WaterGroundSurface"
+              }
+            ],
+            "values": [
+              0,
+              0,
+              0,
+              0,
+              1,
+              1
+            ]
+          }
+        }
+      ],
+      "geographicalExtent": [
+        84710,
+        446846,
+        -5,
+        84757,
+        446944,
+        40
+      ]
+    }
+  },
+  "vertices": [
+    [
+      0.0,
+      0.0,
+      0.0
+    ],
+    [
+      1.0,
+      0.0,
+      0.0
+    ],
+    [
+      1.0,
+      0.0,
+      0.0
+    ],
+    [
+      1.0,
+      0.0,
+      0.0
+    ],
+    [
+      1.0,
+      1.0,
+      0.0
+    ],
+    [
+      0.0,
+      1.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      1.0
+    ],
+    [
+      1.0,
+      0.0,
+      1.0
+    ],
+    [
+      1.0,
+      1.0,
+      1.0
+    ],
+    [
+      11.0,
+      11.0,
+      11.0
+    ],
+    [
+      21.0,
+      21.0,
+      21.0
+    ],
+    [
+      31.0,
+      31.0,
+      31.0
+    ],
+    [
+      31.0,
+      41.0,
+      41.0
+    ],
+    [
+      31.0,
+      51.0,
+      51.0
+    ],
+    [
+      771.0,
+      61.0,
+      1.0
+    ],
+    [
+      0.0,
+      1.0,
+      1.0
+    ]
+  ],
+  "something-else": {
+    "this": 1.0,
+    "that": "blablabla"
+  },
+  "geometry-templates": {
+    "templates": [
+      {
+        "type": "MultiSurface",
+        "lod": 2,
+        "boundaries": [
+          [
+            [
+              0,
+              3,
+              2,
+              1
+            ]
+          ],
+          [
+            [
+              4,
+              5,
+              6,
+              7
+            ]
+          ],
+          [
+            [
+              0,
+              1,
+              5,
+              4
+            ]
+          ]
+        ]
+      },
+      {
+        "type": "MultiSurface",
+        "lod": 2,
+        "boundaries": [
+          [
+            [
+              1,
+              2,
+              6,
+              5
+            ]
+          ],
+          [
+            [
+              2,
+              3,
+              7,
+              6
+            ]
+          ],
+          [
+            [
+              3,
+              0,
+              4,
+              7
+            ]
+          ]
+        ]
+      }
+    ],
+    "vertices-templates": [
+      [
+        0.0,
+        0.5,
+        0.0
+      ],
+      [
+        1.0,
+        0.0,
+        0.0
+      ],
+      [
+        11.0,
+        0.0,
+        0.0
+      ],
+      [
+        11.0,
+        10.0,
+        0.0
+      ],
+      [
+        1.0,
+        12.0,
+        0.0
+      ],
+      [
+        1.0,
+        40.0,
+        0.0
+      ],
+      [
+        1.0,
+        1.0,
+        0.0
+      ],
+      [
+        0.0,
+        1.0,
+        0.0
+      ]
+    ]
+  }
+}

@@ -1,6 +1,34 @@
-
-import numpy as np
 import math
+
+# FIXME: temporary solution to make Numpy conditional because of PyInstaller issues on Windows
+# Traceback (most recent call last):
+#
+#   File "site-packages\numpy\core\__init__.py", line 24, in <module>
+#
+#   File "c:\python38\lib\site-packages\PyInstaller\loader\pyimod03_importers.py", line 621, in exec_module
+#
+#     exec(bytecode, module.__dict__)
+#
+#   File "site-packages\numpy\core\multiarray.py", line 14, in <module>
+#
+#   File "c:\python38\lib\site-packages\PyInstaller\loader\pyimod03_importers.py", line 621, in exec_module
+#
+#     exec(bytecode, module.__dict__)
+#
+#   File "site-packages\numpy\core\overrides.py", line 7, in <module>
+#
+# ImportError: DLL load failed while importing _multiarray_umath: The specified module could not be found.
+MODULE_NUMPY_AVAILABLE = True
+try:
+    import numpy as np
+except ImportError as e:
+    MODULE_NUMPY_AVAILABLE = False
+
+MODULE_EARCUT_AVAILABLE = True
+try:
+    import mapbox_earcut
+except ImportError as e:
+    MODULE_EARCUT_AVAILABLE = False
 
 def to_2d(p, n):
     #-- n must be normalised
@@ -36,3 +64,34 @@ def get_normal_newell(poly):
         return (n, False)
     n = n / math.sqrt(n[0]*n[0] + n[1]*n[1] + n[2]*n[2])    
     return (n, True)
+
+
+def triangulate_face(face, vnp):
+    if not MODULE_EARCUT_AVAILABLE:
+        raise ModuleNotFoundError("mapbox-earcut is not installed")
+    if ((len(face) == 1) and (len(face[0]) == 3)):
+        #        print ("Already a triangle")
+        return face
+    sf = np.array([], dtype=np.int32)
+    for ring in face:
+        sf = np.hstack((sf, np.array(ring)))
+    sfv = vnp[sf]
+    rings = np.zeros(len(face), dtype=np.int32)
+    total = 0
+    for i in range(len(face)):
+        total += len(face[i])
+        rings[i] = total
+        # 1. normal with Newell's method
+    n = get_normal_newell(sfv)
+    sfv2d = np.zeros((sfv.shape[0], 2))
+    for i, p in enumerate(sfv):
+        xy = to_2d(p, n)
+        sfv2d[i][0] = xy[0]
+        sfv2d[i][1] = xy[1]
+    result = mapbox_earcut.triangulate_float32(sfv2d, rings)
+
+    for i, each in enumerate(result):
+        result[i] = int(sf[each])
+
+    #    print (type(result.reshape(-1, 3).tolist()[0][0]))
+    return result.reshape(-1, 3).tolist()

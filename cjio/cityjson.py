@@ -1,33 +1,46 @@
 
 import os
-import sys
 import re
 import shutil
 
 import json
 import collections
 import jsonref
-import urllib
 from pkg_resources import resource_filename
 from pkg_resources import resource_listdir
 import copy
 import random
 from io import StringIO
-import numpy as np
-import pyproj
 from sys import platform
+from click import progressbar
+from datetime import datetime, date
 
+MODULE_NUMPY_AVAILABLE = True
+MODULE_PYPROJ_AVAILABLE = True
 MODULE_EARCUT_AVAILABLE = True
+MODULE_PANDAS_AVAILABLE = True
+
+try:
+    import numpy as np
+except ImportError as e:
+    MODULE_NUMPY_AVAILABLE = False
+try:
+    import pyproj
+except ImportError as e:
+    MODULE_PYPROJ_AVAILABLE = False
 try:
     import mapbox_earcut
 except ImportError as e:
     MODULE_EARCUT_AVAILABLE = False
+try:
+    import pandas
+except ImportError as e:
+    MODULE_PANDAS_AVAILABLE = False
 
-from cjio import validation
-from cjio import subset
-from cjio import geom_help
-from cjio import errors
+from cjio import validation, subset, geom_help, convert, models
 from cjio.errors import InvalidOperation
+from cjio.utils import print_cmd_warning
+from cjio.metadata import generate_metadata
 
 
 CITYJSON_VERSIONS_SUPPORTED = ['0.6', '0.8', '0.9', '1.0']
@@ -47,6 +60,81 @@ TOPLEVEL = ('Building',
             'Tunnel',
             'WaterBody')
 
+def load(path, transform:bool=False):
+    """Load a CityJSON file for working with it though the API
+
+    :param path: Absolute path to a CityJSON file
+    :param transform: Apply the coordinate transformation to the vertices (if applicable)
+    :return: A CityJSON object
+    """
+    with open(path, 'r') as fin:
+        try:
+            cm = CityJSON(file=fin)
+        except OSError as e:
+            raise FileNotFoundError
+    cm.cityobjects = dict()
+    if 'transform' in cm.j:
+        cm.transform = cm.j['transform']
+    else:
+        cm.transform = None
+    if transform:
+        do_transform = cm.transform
+        del cm.j['transform']
+    else:
+        do_transform = None
+    appearance = cm.j['appearance'] if 'appearance' in cm.j else None
+    for co_id, co in cm.j['CityObjects'].items():
+        # TODO BD: do some verification here
+        children = co['children'] if 'children' in co else None
+        parents = co['parents'] if 'parents' in co else None
+        attributes = co['attributes'] if 'attributes' in co else None
+        geometry = []
+        for geom in co['geometry']:
+            semantics = geom['semantics'] if 'semantics' in geom else None
+            texture = geom['texture'] if 'texture' in geom else None
+            geometry.append(
+                models.Geometry(
+                    type=geom['type'],
+                    lod=geom['lod'],
+                    boundaries=geom['boundaries'],
+                    semantics_obj=semantics,
+                    texture_obj=texture,
+                    appearance=appearance,
+                    vertices=cm.j['vertices'],
+                    transform=do_transform
+                )
+            )
+        cm.cityobjects[co_id] = models.CityObject(
+            id=co_id,
+            type=co['type'],
+            attributes=attributes,
+            children=children,
+            parents=parents,
+            geometry=geometry
+        )
+    return cm
+
+def save(citymodel, path: str, indent: bool = False):
+    """Save a city model to a CityJSON file
+
+    :param citymodel: A CityJSON object
+    :param path: Absolute path to a CityJSON file
+    """
+    cityobjects, vertex_lookup = citymodel.reference_geometry()
+    citymodel.add_to_j(cityobjects, vertex_lookup)
+    # FIXME: here should be compression, however the current compression does not work with immutable tuples, but requires mutable lists for the points
+    citymodel.remove_duplicate_vertices()
+    citymodel.remove_orphan_vertices()
+    try:
+        with open(path, 'w') as fout:
+            if indent:
+                json_str = json.dumps(citymodel.j, indent="\t")
+                fout.write(json_str)
+            else:
+                json_str = json.dumps(citymodel.j, separators=(',',':'))
+                fout.write(json_str)
+    except IOError as e:
+        raise IOError('Invalid output file: %s \n%s' % (path, e))
 
 def reader(file, ignore_duplicate_keys=False):
     return CityJSON(file=file, ignore_duplicate_keys=ignore_duplicate_keys)
@@ -68,7 +156,7 @@ def off2cj(file):
         lstFaces.append(list(map(int, file.readline().split()[1:])))
     cm = {}
     cm["type"] = "CityJSON"
-    cm["version"] = "0.6"
+    cm["version"] = CITYJSON_VERSIONS_SUPPORTED[-1]
     cm["CityObjects"] = {}
     cm["vertices"] = []
     for v in lstVertices:
@@ -105,7 +193,7 @@ def poly2cj(file):
         lstFaces.append(face)
     cm = {}
     cm["type"] = "CityJSON"
-    cm["version"] = "0.6"
+    cm["version"] = CITYJSON_VERSIONS_SUPPORTED[-1]
     cm["CityObjects"] = {}
     cm["vertices"] = []
     for v in lstVertices:
@@ -128,19 +216,96 @@ class CityJSON:
         if file is not None:
             self.read(file, ignore_duplicate_keys)
             self.path = os.path.abspath(file.name)
+            self.reference_date = datetime.fromtimestamp(os.path.getmtime(file.name)).strftime('%Y-%m-%d')
+            self.cityobjects = {}
         elif j is not None:
             self.j = j
+            self.cityobjects = {}
+            self.path = None
+            self.reference_date = datetime.now().strftime('%Y-%m-%d')
         else: #-- create an empty one
             self.j = {}
             self.j["type"] = "CityJSON"
             self.j["version"] = CITYJSON_VERSIONS_SUPPORTED[-1]
             self.j["CityObjects"] = {}
             self.j["vertices"] = []
+            self.cityobjects = {}
+            self.path = None
+            self.reference_date = datetime.now().strftime('%Y-%m-%d')
 
 
     def __repr__(self):
         return self.get_info()
 
+
+    ##-- API functions
+    # TODO BD: refactor this whole CityJSON class
+    def get_cityobjects(self, type=None, id=None):
+        """Return a subset of CityObjects
+
+        :param type: CityObject type. If a list of types are given, then all types in the list are returned.
+        :param id: CityObject ID. If a list of IDs are given, then all objects matching the IDs in the list are returned.
+        """
+        if type is None and id is None:
+            return self.cityobjects
+        elif (type is not None) and (id is not None):
+            raise AttributeError("Please provide either 'type' or 'id'")
+        elif type is not None:
+            if isinstance(type, str):
+                type_list = [type.lower()]
+            elif isinstance(type, list) and isinstance(type[0], str):
+                type_list = [t.lower() for t in type]
+            else:
+                raise TypeError("'type' must be a string or list of strings")
+            return {i:co for i,co in self.cityobjects.items() if co.type.lower() in type_list}
+        elif id is not None:
+            if isinstance(id, str):
+                id_list = [id]
+            elif isinstance(id, list) and isinstance(id[0], str):
+                id_list = id
+            else:
+                raise TypeError("'id' must be a string or list of strings")
+            return {i:co for i,co in self.cityobjects.items() if co.id in id_list}
+
+
+    def set_cityobjects(self, cityobjects):
+        """Creates or updates CityObjects
+
+        .. note:: If a CityObject with the same ID already exists in the model, it will be overwritten
+
+        :param cityobjects: Dictionary of CityObjects, where keys are the CityObject IDs. Same structure as returned by get_cityobjects()
+        """
+        for co_id, co in cityobjects.items():
+            self.cityobjects[co_id] = co
+
+
+    def to_dataframe(self):
+        """Converts the city model to a Pandas data frame where fields are CityObject attributes"""
+        if not MODULE_PANDAS_AVAILABLE:
+            raise ModuleNotFoundError("Modul 'pandas' is not available, please install it")
+        return pandas.DataFrame([co.attributes for co_id,co in self.cityobjects.items()],
+                                index=list(self.cityobjects.keys()))
+
+
+    def reference_geometry(self):
+        """Build a coordinate list and index the vertices for writing out to
+        CityJSON."""
+        cityobjects = dict()
+        vertex_lookup = dict()
+        vertex_idx = 0
+        for co_id, co in self.cityobjects.items():
+            j_co = co.to_json()
+            geometry, vertex_lookup, vertex_idx = co.build_index(vertex_lookup, vertex_idx)
+            j_co['geometry'] = geometry
+            cityobjects[co_id] = j_co
+        return cityobjects, vertex_lookup
+
+
+    def add_to_j(self, cityobjects, vertex_lookup):
+        self.j['vertices'] = [[vtx[0], vtx[1], vtx[2]] for vtx in vertex_lookup.keys()]
+        self.j['CityObjects'] = cityobjects
+
+    ##-- end API functions
 
     def get_version(self):
         return self.j["version"]
@@ -153,7 +318,11 @@ class CityJSON:
             return self.j["metadata"]["crs"]["epsg"]
         elif "referenceSystem" in self.j["metadata"]:
             s = self.j["metadata"]["referenceSystem"]
-            return int(s[s.find("::")+2:])
+            if "epsg" in s.lower():
+                return int(s[s.find("::")+2:])
+            else:
+                print_cmd_warning("Only EPSG codes are supported in the URN. CRS is set to undefined.")
+                return None
         else:
             return None
 
@@ -163,6 +332,9 @@ class CityJSON:
             return True
         else:
             return False
+
+    def is_transform(self):
+        return ("transform" in self.j)
 
     def read(self, file, ignore_duplicate_keys=False):
         if ignore_duplicate_keys == True:
@@ -348,17 +520,24 @@ class CityJSON:
                 if (isValid == False):
                     es += errs
                     return (False, False, es, [])
+
         #-- 2. schema for Extensions
         if "extensions" in self.j:
             b, es = self.validate_extensions(folder_schemas)
             if b == False:
                 return (b, True, es, [])
+        else:
+            #-- check that there are no +CityObject that do not have a schema
+            #-- (used if the file has no "extensions" property while there are +Pand for instance)
+            for theid in self.j["CityObjects"]:
+                if ( (self.j["CityObjects"][theid]["type"][0] == "+") ):
+                    s = "ERROR:   CityObject " + self.j["CityObjects"][theid]["type"] + " doesn't have a schema."
+                    es.append(s)
+                    return (False, False, es, [])
 
-
-        #-- 3. ERRORS
+        #-- 3. Internal consistency validation 
         print ('-- Validating the internal consistency of the file (see docs for list)')
         isValid = True
-
         if float(self.j["version"]) == 0.6:
             b, errs = validation.building_parts(self.j) 
             if b == False:
@@ -436,19 +615,17 @@ class CityJSON:
 
 
     def calculate_bbox(self):
-        bbox = [9e9, 9e9, 9e9, -9e9, -9e9, -9e9]    
-        for v in self.j["vertices"]:
-            for i in range(3):
-                if v[i] < bbox[i]:
-                    bbox[i] = v[i]
-            for i in range(3):
-                if v[i] > bbox[i+3]:
-                    bbox[i+3] = v[i]
+        """
+        Calculate the bbox of the CityJSON.
+        """
+        if len(self.j["vertices"]) == 0:
+            return [0, 0, 0, 0, 0, 0]
+        x, y, z = zip(*self.j["vertices"])
+        bbox = [min(x), min(y), min(z), max(x), max(y), max(z)]
         if "transform" in self.j:
-            for i in range(3):
-                bbox[i] = (bbox[i] * self.j["transform"]["scale"][i]) + self.j["transform"]["translate"][i]
-            for i in range(3):
-                bbox[i+3] = (bbox[i+3] * self.j["transform"]["scale"][i]) + self.j["transform"]["translate"][i]
+            s = self.j["transform"]["scale"]
+            t = self.j["transform"]["translate"]
+            bbox = [a * b + c for a, b, c in zip(bbox, (s + s), (t + t))]
         return bbox
 
 
@@ -555,6 +732,44 @@ class CityJSON:
             return None
 
 
+    def get_identifier(self):
+        """
+        Returns the identifier of this file.
+
+        If there is one in metadata, it will be returned. Otherwise, the filename will.
+        """
+        if "metadata" in self.j:
+            if "citymodelIdentifier" in self.j["metadata"]:
+                cm_id = self.j["metadata"]["citymodelIdentifier"]
+        
+        if cm_id:
+            template = "{cm_id} ({file_id})"
+        else:
+            template = "{file_id}"
+
+        if "metadata" in self.j:
+            if "fileIdentifier" in self.j["metadata"]:
+                return template.format(cm_id=cm_id, file_id=self.j["metadata"]["fileIdentifier"])
+
+        if self.path:
+            return os.path.basename(self.path)
+        
+        return "unknown"
+
+
+    def get_title(self):
+        """
+        Returns the description of this file from metadata.
+
+        If there is none, the identifier will be returned, instead.
+        """
+
+        if "metadata" in self.j:
+            if "datasetTitle" in self.j["metadata"]:
+                return self.j["metadata"]["datasetTitle"]
+        
+        return self.get_identifier()
+
     def get_subset_bbox(self, bbox, exclude=False):
         # print ('get_subset_bbox')
         #-- new sliced CityJSON object
@@ -583,8 +798,7 @@ class CityJSON:
                     re.add(child)
             if "parents" in self.j['CityObjects'][theid]:
                 for each in self.j['CityObjects'][theid]['parents']:
-                    re.add(self.j['CityObjects'][each])
-
+                    re.add(each)
         
         for each in re:
             cm2.j["CityObjects"][each] = self.j["CityObjects"][each]
@@ -597,9 +811,14 @@ class CityJSON:
             cm2.j["appearance"] = {}
             subset.process_appearance(self.j, cm2.j)
         #-- metadata
-        if ("metadata" in self.j):
-            cm2.j["metadata"] = self.j["metadata"]
-        cm2.update_bbox()
+        try:
+            cm2.j["metadata"] = copy.deepcopy(self.j["metadata"])
+            cm2.update_metadata(overwrite=True, new_uuid=True)
+            fids = [fid for fid in cm2.j["CityObjects"]]
+            cm2.add_lineage_item("Subset of {} by bounding box {}".format(self.get_identifier(), bbox), features=fids)
+        except:
+            pass
+        
         return cm2
 
 
@@ -611,8 +830,23 @@ class CityJSON:
         else:
             return False
 
+    def number_top_co(self):
+        count = 0
+        allkeys = list(self.j["CityObjects"].keys())
+        for k in allkeys:
+            if self.is_co_toplevel(self.j["CityObjects"][k]):
+                count += 1
+        return count
 
+    def get_ordered_ids_top_co(self, limit, offset):
+        re = []
+        allkeys = list(self.j["CityObjects"].keys())
+        for k in allkeys:
+            if self.is_co_toplevel(self.j["CityObjects"][k]):
+                re.append(k)
+        return re[offset:(offset+limit)]
 
+               
 
     def get_subset_random(self, number=1, exclude=False):
         random.seed()
@@ -631,7 +865,12 @@ class CityJSON:
             sallkeys = set(self.j["CityObjects"].keys())
             re = sallkeys ^ re
         re = list(re)
-        return self.get_subset_ids(re)
+        cm = self.get_subset_ids(re)
+        try:
+            cm.j["metadata"]["lineage"][-1]["processStep"]["description"] = "Random subset of {}".format(self.get_identifier())
+        except:
+            pass
+        return cm
 
 
     def get_subset_ids(self, lsIDs, exclude=False):
@@ -639,6 +878,8 @@ class CityJSON:
         cm2 = CityJSON()
         cm2.j["version"] = self.j["version"]
         cm2.path = self.path
+        if "extensions" in self.j:
+            cm2.j["extensions"] = self.j["extensions"]
         if "transform" in self.j:
             cm2.j["transform"] = self.j["transform"]
         #-- copy selected CO to the j2
@@ -657,9 +898,13 @@ class CityJSON:
             cm2.j["appearance"] = {}
             subset.process_appearance(self.j, cm2.j)
         #-- metadata
-        if ("metadata" in self.j):
-            cm2.j["metadata"] = self.j["metadata"]
-        cm2.update_bbox()
+        try:
+            cm2.j["metadata"] = copy.deepcopy(self.j["metadata"])
+            cm2.update_metadata(overwrite=True, new_uuid=True)
+            fids = [fid for fid in cm2.j["CityObjects"]]
+            cm2.add_lineage_item("Subset of {} based on user specified IDs".format(self.get_identifier()), features=fids)
+        except:
+            pass
         return cm2
 
 
@@ -699,9 +944,12 @@ class CityJSON:
             cm2.j["appearance"] = {}
             subset.process_appearance(self.j, cm2.j)
         #-- metadata
-        if ("metadata" in self.j):
-            cm2.j["metadata"] = self.j["metadata"]
-        cm2.update_bbox()
+        try:
+            cm2.j["metadata"] = copy.deepcopy(self.j["metadata"])
+            cm2.update_metadata(overwrite=True, new_uuid=True)
+            cm2.add_lineage_item("Subset of {} by object type {}".format(self.get_identifier(), cotype))
+        except:
+            pass
         return cm2
         
 
@@ -863,7 +1111,7 @@ class CityJSON:
         return total
 
 
-    def get_info(self):
+    def get_info(self, long=False):
         info = collections.OrderedDict()
         info["cityjson_version"] = self.get_version()
         info["epsg"] = self.get_epsg()
@@ -873,24 +1121,43 @@ class CityJSON:
             for i in self.j["extensions"]:
                 d.add(i)
             info["extensions"] = sorted(list(d))
+        info["transform/compressed"] = "transform" in self.j
         info["cityobjects_total"] = self.number_city_objects()
         d = set()
         for key in self.j["CityObjects"]:
             d.add(self.j['CityObjects'][key]['type'])
         info["cityobjects_present"] = sorted(list(d))
-        info["vertices_total"] = len(self.j["vertices"])
-        info["transform/compressed"] = "transform" in self.j
-        d.clear()
-        for key in self.j["CityObjects"]:
-            for geom in self.j['CityObjects'][key]['geometry']:
-                d.add(geom["type"])
-        info["geom_primitives_present"] = list(d)
         if 'appearance' in self.j:
             info["materials"] = 'materials' in self.j['appearance']
             info["textures"] = 'textures' in self.j['appearance']
         else:
             info["materials"] = False
             info["textures"] =  False
+        if long == False:
+            return json.dumps(info, indent=2)    
+        #-- all/long version
+        info["vertices_total"] = len(self.j["vertices"])
+        d.clear()
+        lod = set()
+        sem_srf = set()
+        co_attributes = set()
+        for key in self.j["CityObjects"]:
+            if 'attributes' in self.j['CityObjects'][key]:
+                for attr in self.j['CityObjects'][key]['attributes'].keys():
+                    co_attributes.add(attr)
+            for geom in self.j['CityObjects'][key]['geometry']:
+                d.add(geom["type"])
+                if "lod" in geom:
+                    lod.add(geom["lod"])
+                else: #-- it's a geometry-template
+                    lod.add(self.j["geometry-templates"]["templates"][geom["template"]]["lod"])
+                if "semantics" in geom:
+                    for srf in geom["semantics"]["surfaces"]:
+                        sem_srf.add(srf["type"])
+        info["geom_primitives_present"] = list(d)
+        info["level_of_detail"] = list(lod)
+        info["semantics_surfaces_present"] = list(sem_srf)
+        info["cityobject_attributes"] = list(co_attributes)
         return json.dumps(info, indent=2)
 
 
@@ -929,7 +1196,10 @@ class CityJSON:
         return (totalinput - len(self.j["vertices"]))
 
 
-    def remove_duplicate_vertices(self):
+    def remove_duplicate_vertices(self, precision=3):
+        if "transform" in self.j:
+            precision = 0
+
         def update_geom_indices(a, newids):
           for i, each in enumerate(a):
             if isinstance(each, list):
@@ -941,8 +1211,10 @@ class CityJSON:
         h = {}
         newids = [-1] * len(self.j["vertices"])
         newvertices = []
+        if self.is_transform() == True:
+            precision = 0
         for i, v in enumerate(self.j["vertices"]):
-            s = str(v[0]) + " " + str(v[1]) + " " + str(v[2])
+            s = "{{x:.{p}f}} {{y:.{p}f}} {{z:.{p}f}}".format(p=precision).format(x=v[0], y=v[1], z=v[2])
             if s not in h:
                 newid = len(h)
                 newids[i] = newid
@@ -968,8 +1240,7 @@ class CityJSON:
 
     def compress(self, important_digits=3):
         if "transform" in self.j:
-            raise Exception("CityJSON already compressed")
-            return True
+            return False
         #-- find the minx/miny/minz
         bbox = [9e9, 9e9, 9e9]    
         for v in self.j["vertices"]:
@@ -993,7 +1264,7 @@ class CityJSON:
         self.j["transform"]["scale"] = [ss, ss, ss]
         self.j["transform"]["translate"] = [bbox[0], bbox[1], bbox[2]]
         #-- clean the file
-        re = self.remove_duplicate_vertices()
+        re = self.remove_duplicate_vertices(0)
         # print ("Remove duplicates:", re)
         re = self.remove_orphan_vertices()
         # print ("Remove orphans:", re)
@@ -1039,25 +1310,42 @@ class CityJSON:
                         a[i] = each + voffset
         #-- decompress current CM                        
         self.decompress()
+
+        #-- metadata
+        try:
+            self.update_metadata(overwrite=True)
+        except:
+            pass
         for cm in lsCMs:
             #-- decompress 
             cm.decompress()
-            #-- add each CityObjects
-            coadded = 0
-            for theid in cm.j["CityObjects"]:
-                if theid in self.j["CityObjects"]:
-                    print ("ERROR: CityObject #", theid, "already present. Skipped.")
-                else:
-                    self.j["CityObjects"][theid] = cm.j["CityObjects"][theid]
-                    coadded += 1
-            if coadded == 0:
-                continue
-            #-- add the vertices + update the geom indices
             offset = len(self.j["vertices"])
             self.j["vertices"] += cm.j["vertices"]
+            #-- add each CityObjects
             for theid in cm.j["CityObjects"]:
-                for g in cm.j['CityObjects'][theid]['geometry']:
-                    update_geom_indices(g["boundaries"], offset)
+                if theid in self.j["CityObjects"]:
+                    #-- merge attributes if not present (based on the property name only)
+                    if "attributes" in cm.j["CityObjects"][theid]:
+                        for a in cm.j["CityObjects"][theid]["attributes"]:
+                            if a not in self.j["CityObjects"][theid]["attributes"]:
+                                self.j["CityObjects"][theid]["attributes"][a] = cm.j["CityObjects"][theid]["attributes"][a]
+                    #-- merge geoms if not present (based on LoD only)
+                    for g in cm.j['CityObjects'][theid]['geometry']:
+                        thelod = str(g["lod"])
+                        # print ("-->", thelod)
+                        b = False
+                        for g2 in self.j['CityObjects'][theid]['geometry']:
+                            if g2["lod"] == thelod:
+                                b = True
+                                break
+                        if b == False:
+                            self.j['CityObjects'][theid]['geometry'].append(g)
+                            update_geom_indices(self.j['CityObjects'][theid]['geometry'][-1]["boundaries"], offset)    
+                else:
+                    #-- copy the CO
+                    self.j["CityObjects"][theid] = cm.j["CityObjects"][theid]
+                    for g in self.j['CityObjects'][theid]['geometry']:
+                        update_geom_indices(g["boundaries"], offset)
             #-- templates
             if "geometry-templates" in cm.j:
                 if "geometry-templates" in self.j:
@@ -1125,6 +1413,16 @@ class CityJSON:
                         if 'texture' in g:
                             for m in g['texture']:
                                 update_texture_indices(g['texture'][m]['values'], toffset, voffset)
+            #-- metadata
+            try:
+                fids = [fid for fid in cm.j["CityObjects"]]
+                src = {
+                    "description": cm.get_title(),
+                    "sourceReferenceSystem": "urn:ogc:def:crs:EPSG::{}".format(cm.get_epsg()) if cm.get_epsg() else None
+                }
+                self.add_lineage_item("Merge {} into {}".format(cm.get_identifier(), self.get_identifier()), features=fids, source=[src])
+            except:
+                pass
         # self.remove_duplicate_vertices()
         # self.remove_orphan_vertices()
         return True
@@ -1214,9 +1512,7 @@ class CityJSON:
 
 
     def triangulate_face(self, face, vnp):
-        #-- if already a triangle then return it
-        if ( (len(face) == 1) and (len(face[0]) == 3) ):
-            return (face, True)
+
         sf = np.array([], dtype=np.int32)
         for ring in face:
             sf = np.hstack( (sf, np.array(ring)) )
@@ -1232,9 +1528,14 @@ class CityJSON:
 
         # 1. normal with Newell's method
         n, b = geom_help.get_normal_newell(sfv)
+
+        #-- if already a triangle then return it
+        if ( (len(face) == 1) and (len(face[0]) == 3) ):
+            return (face, True, n)
         if b == False:
-            return (n, False)
+            return (n, False, n)
         # print ("Newell:", n)
+
         # 2. project to the plane to get xy
         sfv2d = np.zeros( (sfv.shape[0], 2))
         # print (sfv2d)
@@ -1251,10 +1552,24 @@ class CityJSON:
             result[i] = sf[each]
         
         # print (result.reshape(-1, 3))
-        return (result.reshape(-1, 3), True)
+        return (result.reshape(-1, 3), True, n)
+
+
+    def export2b3dm(self):
+        glb = convert.to_glb(self.j)
+        b3dm = convert.to_b3dm(self, glb)
+        return b3dm
+
+
+    def export2gltf(self):
+        # TODO B: probably no need to double wrap this to_gltf(), but its long, and
+        # the current cityjson.py is long already
+        glb = convert.to_glb(self.j)
+        return glb
 
 
     def export2obj(self):
+        self.decompress()
         out = StringIO()
         #-- write vertices
         for v in self.j['vertices']:
@@ -1279,33 +1594,82 @@ class CityJSON:
                 out.write('o ' + str(theid) + '\n')
                 if ( (geom['type'] == 'MultiSurface') or (geom['type'] == 'CompositeSurface') ):
                     for face in geom['boundaries']:
-                        re, b = self.triangulate_face(face, vnp)
+                        re, b, n = self.triangulate_face(face, vnp)
                         if b == True:
                             for t in re:
                                 out.write("f %d %d %d\n" % (t[0] + 1, t[1] + 1, t[2] + 1))
                 elif (geom['type'] == 'Solid'):
                     for shell in geom['boundaries']:
                         for i, face in enumerate(shell):
-                            re, b = self.triangulate_face(face, vnp)
+                            re, b, n = self.triangulate_face(face, vnp)
                             if b == True:
                                 for t in re:
                                     out.write("f %d %d %d\n" % (t[0] + 1, t[1] + 1, t[2] + 1))
         return out
 
+    def export2stl(self):
+        #TODO: refectoring, duplicated code from 2obj()
+        out = StringIO()
+        out.write("solid\n")
+
+        #-- translate to minx,miny
+        vnp = np.array(self.j["vertices"])
+        minx = 9e9
+        miny = 9e9
+        for each in vnp:
+            if each[0] < minx:
+                    minx = each[0]
+            if each[1] < miny:
+                    miny = each[1]
+        for each in vnp:
+            each[0] -= minx
+            each[1] -= miny
+        # print ("min", minx, miny)
+        # print(vnp)
+        #-- start with the CO
+        for theid in self.j['CityObjects']:
+            for geom in self.j['CityObjects'][theid]['geometry']:
+                if ( (geom['type'] == 'MultiSurface') or (geom['type'] == 'CompositeSurface') ):
+                    for face in geom['boundaries']:
+                        re, b, n = self.triangulate_face(face, vnp)
+                        if b == True:
+                            for t in re:
+                                out.write("facet normal %f %f %f\nouter loop\n" % (n[0], n[1], n[2]))
+                                out.write("vertex %s %s %s\n" % (str(self.j["vertices"][t[0]][0]), str(self.j["vertices"][t[0]][1]), str(self.j["vertices"][t[0]][2])))
+                                out.write("vertex %s %s %s\n" % (str(self.j["vertices"][t[1]][0]), str(self.j["vertices"][t[1]][1]), str(self.j["vertices"][t[1]][2])))
+                                out.write("vertex %s %s %s\n" % (str(self.j["vertices"][t[2]][0]), str(self.j["vertices"][t[2]][1]), str(self.j["vertices"][t[2]][2])))
+                                out.write("endloop\nendfacet\n")
+                elif (geom['type'] == 'Solid'):
+                    for shell in geom['boundaries']:
+                        for i, face in enumerate(shell):
+                            re, b, n = self.triangulate_face(face, vnp)
+                            if b == True:
+                                for t in re:
+                                    out.write("facet normal %f %f %f\nouter loop\n" % (n[0], n[1], n[2]))
+                                    out.write("vertex %s %s %s\n" % (str(self.j["vertices"][t[0]][0]), str(self.j["vertices"][t[0]][1]), str(self.j["vertices"][t[0]][2])))
+                                    out.write("vertex %s %s %s\n" % (str(self.j["vertices"][t[1]][0]), str(self.j["vertices"][t[1]][1]), str(self.j["vertices"][t[1]][2])))
+                                    out.write("vertex %s %s %s\n" % (str(self.j["vertices"][t[2]][0]), str(self.j["vertices"][t[2]][1]), str(self.j["vertices"][t[2]][2])))
+                                    out.write("endloop\nendfacet\n")
+        out.write("endsolid")
+        return out
 
     def reproject(self, epsg):
+        if not MODULE_PYPROJ_AVAILABLE:
+            raise ModuleNotFoundError("Modul 'pyproj' is not available, please install it from https://pypi.org/project/pyproj/")
         wascompressed = False
         if "transform" in self.j:
             self.decompress()
             wascompressed = True
         p1 = pyproj.Proj(init='epsg:%d' % (self.get_epsg()))
         p2 = pyproj.Proj(init='epsg:%d' % (epsg))
-        for v in self.j['vertices']:
-            x, y, z = pyproj.transform(p1, p2, v[0], v[1], v[2])
-            v[0] = x
-            v[1] = y
-            v[2] = z
+        with progressbar(self.j['vertices']) as vertices:
+            for v in vertices:
+                x, y, z = pyproj.transform(p1, p2, v[0], v[1], v[2])
+                v[0] = x
+                v[1] = y
+                v[2] = z
         self.set_epsg(epsg)
+        self.update_bbox()
         if wascompressed == True:
             self.compress()
 
@@ -1320,7 +1684,14 @@ class CityJSON:
             for each in re:
                 self.j['CityObjects'][co]['geometry'].remove(each)
         self.remove_duplicate_vertices()
-        self.remove_orphan_vertices()        
+        self.remove_orphan_vertices()
+        #-- metadata
+        try:
+            self.update_metadata(overwrite=True)
+            fids = [fid for fid in self.j["CityObjects"]]
+            self.add_lineage_item("Extract LoD{} from {}".format(thelod, self.get_identifier()), features=fids)
+        except:
+            pass
 
 
     def translate(self, values, minimum_xyz):
@@ -1343,3 +1714,77 @@ class CityJSON:
         self.set_epsg(None)
         self.update_bbox()
         return bbox
+    
+    def has_metadata(self):
+        """
+        Returns whether metadata exist in this CityJSON file or not
+        """
+        return "metadata" in self.j
+
+    def get_metadata(self):
+        """
+        Returns the "metadata" property of this CityJSON file
+
+        Raises a KeyError exception if metadata is missing
+        """
+        if not "metadata" in self.j:
+            raise KeyError("Metadata is missing")
+        return self.j["metadata"]
+    
+    def compute_metadata(self, overwrite=False, new_uuid=False):
+        """
+        Returns the metadata of this CityJSON file
+        """
+        return generate_metadata(citymodel=self.j,
+                                 filename=self.path,
+                                 reference_date=self.reference_date,
+                                 overwrite_values=overwrite,
+                                 recompute_uuid=new_uuid)
+
+    def update_metadata(self, overwrite=False, new_uuid=False):
+        """
+        Computes and updates the "metadata" property of this CityJSON file
+        """
+        self.update_bbox()
+
+        metadata, errors = self.compute_metadata(overwrite, new_uuid)
+
+        self.j["metadata"] = metadata
+
+        return (True, errors)
+    
+    def add_lineage_item(self, description: str, features: list = None, source: list = None, processor: dict = None):
+        """Adds a lineage item in metadata.
+
+        :param description: A string with the description of the process
+        :param features: A list of object ids that are affected by it
+        :param source: A list of sources. Every source is a dict with
+            the respective info (description, sourceReferenceSystem etc.)
+        :param processor: A dict with contact information for the
+            person that conducted the processing
+        """
+
+        new_item = {
+            "processStep": {
+                "description": description,
+                "stepDateTime": str(date.today())
+            }
+        }
+
+        if isinstance(features, list):
+            new_item["featureIDs"] = features
+        
+        if isinstance(source, list):
+            new_item["source"] = source
+        
+        if isinstance(processor, dict):
+            new_item["processStep"]["processor"] = processor
+
+        if not self.has_metadata():
+            self.j["metadata"] = {}
+
+        if not "lineage" in self.j["metadata"]:
+            self.j["metadata"]["lineage"] = []
+
+        self.j["metadata"]["lineage"].append(new_item)
+        
