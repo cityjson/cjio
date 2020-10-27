@@ -7,8 +7,9 @@
 - Progress bar for the `reproject` command
 - Started a proof of concept for an API. You can read about the first struggles in `docs/design_document.ipynb`. Mainly implemented in `models` and a few additional methods in `cityjson`
 - A bunch of tests for the API
-- Started documenting the functions and wrote an API tutorial [https://tudelft3d.github.io/cjio/](https://tudelft3d.github.io/cjio/)
+- Started documenting the functions and wrote an API tutorial
 - Docker image and Travis build for it
+- STL export format
 
 ### Changed
 - click messages, warnings got their functions and placed into the `utils` module

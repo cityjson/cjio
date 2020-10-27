@@ -9,7 +9,10 @@ can be chained to perform several processing operations in one step, the
 CityJSON model goes through them and different versions of the CityJSON
 model can be saved as files along the pipeline.
 
-Also see the `complete documentation <https://cityjson.github.io/cjio/>`_
+Documentation
+-------------
+
+`cjio.readthedocs.io <https://cjio.readthedocs.io>`_
 
 Installation
 ------------
