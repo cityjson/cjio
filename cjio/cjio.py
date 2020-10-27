@@ -123,7 +123,7 @@ def info_cmd(context, long):
 def export_cmd(filename, format):
     """Export the CityJSON to another format.
 
-    OBJ, Binary glTF (glb), Batched 3DModel, Cesium 3D Tiles. Currently textures are not supported, sorry.
+    OBJ, Binary glTF (glb), Batched 3DModel (b3dm), STL. Currently textures are not supported, sorry.
     """
     def exporter(cm):
         output = utils.verify_filename(filename)
