@@ -137,19 +137,17 @@ def export_cmd(filename, format):
         if format.lower() == 'obj':
             utils.print_cmd_status("Exporting CityJSON to OBJ (%s)" % (output['path']))
             try:
-                fo = click.open_file(output['path'], mode='w')
-                re = cm.export2obj()
-                # TODO B: why don't you close the file @hugoledoux?
-                fo.write(re.getvalue())
+                with click.open_file(output['path'], mode='w') as fo:
+                    re = cm.export2obj()
+                    fo.write(re.getvalue())
             except IOError as e:
                 raise click.ClickException('Invalid output file: "%s".\n%s' % (output['path'], e))
         elif format.lower() == 'stl':
             utils.print_cmd_status("Exporting CityJSON to STL (%s)" % (output['path']))
             try:
-                fo = click.open_file(output['path'], mode='w')
-                re = cm.export2stl()
-                # TODO B: why don't you close the file @hugoledoux?
-                fo.write(re.getvalue())
+                with click.open_file(output['path'], mode='w') as fo:
+                    re = cm.export2stl()
+                    fo.write(re.getvalue())
             except IOError as e:
                 raise click.ClickException('Invalid output file: "%s".\n%s' % (output['path'], e))
         elif format.lower() == 'glb':
