@@ -1512,9 +1512,7 @@ class CityJSON:
 
 
     def triangulate_face(self, face, vnp):
-        #-- if already a triangle then return it
-        if ( (len(face) == 1) and (len(face[0]) == 3) ):
-            return (face, True)
+
         sf = np.array([], dtype=np.int32)
         for ring in face:
             sf = np.hstack( (sf, np.array(ring)) )
@@ -1530,9 +1528,14 @@ class CityJSON:
 
         # 1. normal with Newell's method
         n, b = geom_help.get_normal_newell(sfv)
+
+        #-- if already a triangle then return it
+        if ( (len(face) == 1) and (len(face[0]) == 3) ):
+            return (face, True, n)
         if b == False:
-            return (n, False)
+            return (n, False, n)
         # print ("Newell:", n)
+
         # 2. project to the plane to get xy
         sfv2d = np.zeros( (sfv.shape[0], 2))
         # print (sfv2d)
@@ -1549,7 +1552,7 @@ class CityJSON:
             result[i] = sf[each]
         
         # print (result.reshape(-1, 3))
-        return (result.reshape(-1, 3), True)
+        return (result.reshape(-1, 3), True, n)
 
 
     def export2b3dm(self):
@@ -1591,19 +1594,64 @@ class CityJSON:
                 out.write('o ' + str(theid) + '\n')
                 if ( (geom['type'] == 'MultiSurface') or (geom['type'] == 'CompositeSurface') ):
                     for face in geom['boundaries']:
-                        re, b = self.triangulate_face(face, vnp)
+                        re, b, n = self.triangulate_face(face, vnp)
                         if b == True:
                             for t in re:
                                 out.write("f %d %d %d\n" % (t[0] + 1, t[1] + 1, t[2] + 1))
                 elif (geom['type'] == 'Solid'):
                     for shell in geom['boundaries']:
                         for i, face in enumerate(shell):
-                            re, b = self.triangulate_face(face, vnp)
+                            re, b, n = self.triangulate_face(face, vnp)
                             if b == True:
                                 for t in re:
                                     out.write("f %d %d %d\n" % (t[0] + 1, t[1] + 1, t[2] + 1))
         return out
 
+    def export2stl(self):
+        #TODO: refectoring, duplicated code from 2obj()
+        out = StringIO()
+        out.write("solid\n")
+
+        #-- translate to minx,miny
+        vnp = np.array(self.j["vertices"])
+        minx = 9e9
+        miny = 9e9
+        for each in vnp:
+            if each[0] < minx:
+                    minx = each[0]
+            if each[1] < miny:
+                    miny = each[1]
+        for each in vnp:
+            each[0] -= minx
+            each[1] -= miny
+        # print ("min", minx, miny)
+        # print(vnp)
+        #-- start with the CO
+        for theid in self.j['CityObjects']:
+            for geom in self.j['CityObjects'][theid]['geometry']:
+                if ( (geom['type'] == 'MultiSurface') or (geom['type'] == 'CompositeSurface') ):
+                    for face in geom['boundaries']:
+                        re, b, n = self.triangulate_face(face, vnp)
+                        if b == True:
+                            for t in re:
+                                out.write("facet normal %f %f %f\nouter loop\n" % (n[0], n[1], n[2]))
+                                out.write("vertex %s %s %s\n" % (str(self.j["vertices"][t[0]][0]), str(self.j["vertices"][t[0]][1]), str(self.j["vertices"][t[0]][2])))
+                                out.write("vertex %s %s %s\n" % (str(self.j["vertices"][t[1]][0]), str(self.j["vertices"][t[1]][1]), str(self.j["vertices"][t[1]][2])))
+                                out.write("vertex %s %s %s\n" % (str(self.j["vertices"][t[2]][0]), str(self.j["vertices"][t[2]][1]), str(self.j["vertices"][t[2]][2])))
+                                out.write("endloop\nendfacet\n")
+                elif (geom['type'] == 'Solid'):
+                    for shell in geom['boundaries']:
+                        for i, face in enumerate(shell):
+                            re, b, n = self.triangulate_face(face, vnp)
+                            if b == True:
+                                for t in re:
+                                    out.write("facet normal %f %f %f\nouter loop\n" % (n[0], n[1], n[2]))
+                                    out.write("vertex %s %s %s\n" % (str(self.j["vertices"][t[0]][0]), str(self.j["vertices"][t[0]][1]), str(self.j["vertices"][t[0]][2])))
+                                    out.write("vertex %s %s %s\n" % (str(self.j["vertices"][t[1]][0]), str(self.j["vertices"][t[1]][1]), str(self.j["vertices"][t[1]][2])))
+                                    out.write("vertex %s %s %s\n" % (str(self.j["vertices"][t[2]][0]), str(self.j["vertices"][t[2]][1]), str(self.j["vertices"][t[2]][2])))
+                                    out.write("endloop\nendfacet\n")
+        out.write("endsolid")
+        return out
 
     def reproject(self, epsg):
         if not MODULE_PYPROJ_AVAILABLE:
