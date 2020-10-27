@@ -149,7 +149,7 @@ Convert the CityJSON ``example.json`` to a glb file
 Usage of the API
 ----------------
 
-TODO
+`cjio.readthedocs.io/en/stable/tutorials.html <https://cjio.readthedocs.io/en/stable/tutorials.html>`_
 
 Docker
 ------
