@@ -5,16 +5,19 @@
 - Convert to Binary glTF (glb)
 - Convert to Batched 3D Models (b3dm) - Output is probably incorrect though
 - Progress bar for the `reproject` command
-- Started a proof of concept for an API. You can read about the first struggles in `docs/design_document.ipynb`. Mainly implemented in `models` and a few additional methods in `cityjson`
-- A bunch of tests for the API
-- Started documenting the functions and wrote an API tutorial
-- Docker image and Travis build for it
-- STL export format
+- Started a proof of concept for an API. You can read about the first struggles in `docs/design_document.ipynb`. Mainly implemented in `models` and a few additional methods in `cityjson`. Plus a bunch of tests for the API (#13)
+- Add tutorials and dedicated documentation 
+- Docker image and Travis build for it (#25)
+- Generate metadata (#56)
+- STL export format (#66)
 
 ### Changed
 - click messages, warnings got their functions and placed into the `utils` module
 - only EPSG codes are supported for the CRS's URN
 - When `--indent` is passed to `save`, tabs are used instead of spaces. Results in smaller files.
+
+### Fixes
+- Fix precision when removing duplicates (#50)
 
 
 ## [0.5.4] - 2019-06-18
