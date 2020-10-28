@@ -89,6 +89,35 @@ possibities:
       upgrade_version            Upgrade the CityJSON to the latest version.
       validate                   Validate the CityJSON file: (1) against its...
 
+
+Or see the command-specific help by calling ``--help`` after a command:
+
+.. code:: console
+
+    cjio subset --help
+
+    Usage: cjio subset [OPTIONS]
+
+      Create a subset of a CityJSON file. One can select City Objects by (1) IDs
+      of City Objects; (2) bbox; (3) City Object type; (4) randomly.
+
+      These can be combined, except random which overwrites others.
+
+      Option '--exclude' excludes the selected objects, or "reverse" the
+      selection.
+
+    Options:
+      --id TEXT                       The ID of the City Objects; can be used
+                                      multiple times.
+      --bbox FLOAT...                 2D bbox: (minx miny maxx maxy).
+      --random INTEGER                Number of random City Objects to select.
+      --cotype [Building|Bridge|Road|TransportSquare|LandUse|Railway|TINRelief|WaterBody|PlantCover|SolitaryVegetationObject|CityFurniture|GenericCityObject|Tunnel]
+                                      The City Object type
+      --exclude                       Excludes the selection, thus delete the
+                                      selected object(s).
+      --help                          Show this message and exit.
+
+
 Pipelines of operators
 ----------------------
 
