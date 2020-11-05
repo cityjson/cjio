@@ -9,7 +9,10 @@ can be chained to perform several processing operations in one step, the
 CityJSON model goes through them and different versions of the CityJSON
 model can be saved as files along the pipeline.
 
-Also see the `complete documentation <https://cityjson.github.io/cjio/>`_
+Documentation
+-------------
+
+`cjio.readthedocs.io <https://cjio.readthedocs.io>`_
 
 Installation
 ------------
@@ -73,7 +76,6 @@ possibities:
       info                       Output info in simple JSON.
       locate_textures            Output the location of the texture files.
       merge                      Merge the current CityJSON with others.
-      partition                  Partition the city model into tiles.
       remove_duplicate_vertices  Remove duplicate vertices a CityJSON file.
       remove_materials           Remove all materials from a CityJSON file.
       remove_orphan_vertices     Remove orphan vertices a CityJSON file.
@@ -86,6 +88,35 @@ possibities:
       update_textures            Update the location of the texture files.
       upgrade_version            Upgrade the CityJSON to the latest version.
       validate                   Validate the CityJSON file: (1) against its...
+
+
+Or see the command-specific help by calling ``--help`` after a command:
+
+.. code:: console
+
+    cjio subset --help
+
+    Usage: cjio subset [OPTIONS]
+
+      Create a subset of a CityJSON file. One can select City Objects by (1) IDs
+      of City Objects; (2) bbox; (3) City Object type; (4) randomly.
+
+      These can be combined, except random which overwrites others.
+
+      Option '--exclude' excludes the selected objects, or "reverse" the
+      selection.
+
+    Options:
+      --id TEXT                       The ID of the City Objects; can be used
+                                      multiple times.
+      --bbox FLOAT...                 2D bbox: (minx miny maxx maxy).
+      --random INTEGER                Number of random City Objects to select.
+      --cotype [Building|Bridge|Road|TransportSquare|LandUse|Railway|TINRelief|WaterBody|PlantCover|SolitaryVegetationObject|CityFurniture|GenericCityObject|Tunnel]
+                                      The City Object type
+      --exclude                       Excludes the selection, thus delete the
+                                      selected object(s).
+      --help                          Show this message and exit.
+
 
 Pipelines of operators
 ----------------------
@@ -127,8 +158,8 @@ schema file ``cityjson.json`` is located:
 
     cjio example.json validate --folder_schemas /home/elvis/temp/myschemas/
 
-Generating Binary glTF or Cesium 3DTiles from a CityJSON
---------------------------------------------------------
+Generating Binary glTF
+----------------------
 
 Convert the CityJSON ``example.json`` to a glb file
 ``/home/elvis/gltfs/example.glb``
@@ -144,50 +175,10 @@ Convert the CityJSON ``example.json`` to a glb file
 
     cjio example.json export --format glb /home/elvis/test.glb
 
-Partitioning
-~~~~~~~~~~~~
-
-**The ``partition`` command returns several subsets of the input city
-model and this functionality is not fully** **integrated yet. At the
-moment only these commands can follow ``partition``:**
-
--  ``save``
--  ``export``
--  ``info``
-
-Partition the CityJSON ``example.json`` into 16 equal area parts
-(quadtree of depth 2) and export each part as binary glTF to
-``/home/elvis/gltfs``.
-
-.. code:: console
-
-    cjio example.json partition --depth 2 export --format glb /home/elvis/gltfs
-
-Partition the CityJSON and get information about each part
-
-.. code:: console
-
-    cjio example.json partition --depth 2 info
-
-Export to 3DTiles
-~~~~~~~~~~~~~~~~~
-
-Partition the CityJSON ``example.json`` and export as 3DTiles into
-``/home/elvis/3dtiles``. The exporter creates the ``tileset.json``
-master file which links to each partition which are converted to
-``b3dm``.
-
-.. code:: console
-
-    cjio example.json partition --depth 2 export --format 3dtiles /home/elvis/3dtiles
-
 Usage of the API
 ----------------
 
-.. image:: https://mybinder.org/badge_logo.svg
-   :target: https://mybinder.org/v2/gh/tudelft3d/cjio/develop?filepath=docs%2Fsource%2Fcjio_tutorial.ipynb
-
-The API is experimental at the moment, but you can play around with what we already have on Binder.
+`cjio.readthedocs.io/en/stable/tutorials.html <https://cjio.readthedocs.io/en/stable/tutorials.html>`_
 
 Docker
 ------

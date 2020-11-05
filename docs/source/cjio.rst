@@ -65,14 +65,6 @@ cjio.subset module
    :undoc-members:
    :show-inheritance:
 
-cjio.tiling module
-------------------
-
-.. automodule:: cjio.tiling
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 cjio.utils module
 -----------------
 

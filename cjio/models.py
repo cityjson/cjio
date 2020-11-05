@@ -94,12 +94,13 @@ class Geometry(object):
     """CityJSON Geometry object"""
     def __init__(self, type: str=None, lod: str=None,
                  boundaries: Iterable=None, semantics_obj: Mapping=None,
-                 vertices=None, transform=None):
+                 vertices=None, transform=None, texture_obj=None, appearance=None):
         self.type = type # TODO: use a property for allowing only the specified types
         self.lod = lod
         self.boundaries = self._dereference_boundaries(type, boundaries, vertices, transform)
         self.surfaces = self._dereference_surfaces(semantics_obj)
         self.semantics = {}
+        self.texture = self._dereference_textures(texture_obj, appearance)
 
     @staticmethod
     def _index_surface_boundaries(values):
@@ -313,6 +314,36 @@ class Geometry(object):
                 if len(attributes) > 0:
                     semantic_surfaces[i]['attributes'] = attributes
             return semantic_surfaces
+
+    def _dereference_textures(self, texture_obj, appearance):
+        '''
+        Creates a mapping from surfaces to associated textures and vertices-texture
+        '''
+        if texture_obj == None or appearance == None:
+            return {}
+        texture_idx = {}
+        num_surfaces = len(self.boundaries)
+        if self.type == 'Solid':
+            num_surfaces = len(self.boundaries[0])
+        for c in range(num_surfaces):
+            t = {}
+            for ele in texture_obj:
+                textures = texture_obj[ele]['values']
+                if self.type == 'Solid':
+                    textures = textures[0]
+                textures = textures[c]
+                d = {'texture':[],'vertices-texture':[]}
+                for texture_list in textures:
+                    if texture_list == [None]:
+                        continue
+                    d['texture'].append(appearance['textures'][texture_list[0]])
+                    vt = []
+                    for i in texture_list[1:]:
+                        vt.append(appearance['vertices-texture'][i])
+                    d['vertices-texture'].append(vt)
+                t[ele] = d
+            texture_idx[c] = t
+        return texture_idx
 
     def get_vertices(self):
         """Dump the vertex coordinates into a list"""

@@ -46,7 +46,7 @@ class TestAPI:
                 if geom.lod >= 2.0:
                     for i, rsrf in geom.get_surfaces('roofsurface').items():
                         roof_geoms.append(
-                            geom.get_surface_boundaries(rsrf)
+                            list(geom.get_surface_boundaries(rsrf))
                         )
         # But since we don't have geometry classes, the user needs to know
         # how the boundaries are defined in cityjson, eg. this is one multisurface

@@ -338,7 +338,7 @@ class TestGeometry:
     def test_get_surface_boundaries(self, boundaries, surface, surfaces):
         geom = models.Geometry()
         geom.boundaries = boundaries
-        res = geom.get_surface_boundaries(surface)
+        res = list(geom.get_surface_boundaries(surface))
         assert res == surfaces
 
 
@@ -495,7 +495,7 @@ class TestGeometryIntegration:
                                semantics_obj=geometry[0]['semantics'],
                                vertices=vertices)
         roofsurfaces = geom.get_surfaces('roofsurface')
-        rsrf_bndry = [geom.get_surface_boundaries(rsrf)
+        rsrf_bndry = [list(geom.get_surface_boundaries(rsrf))
                       for i,rsrf in roofsurfaces.items()]
         roof_geom = [
             [
@@ -506,7 +506,7 @@ class TestGeometryIntegration:
         assert rsrf_bndry == roof_geom
 
         doorsurfaces = geom.get_surfaces('door')
-        dsrf_bndry = [geom.get_surface_boundaries(dsrf)
+        dsrf_bndry = [list(geom.get_surface_boundaries(dsrf))
                       for i,dsrf in doorsurfaces.items()]
         door_geom = [
             [

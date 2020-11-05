@@ -1,3 +1,0 @@
-# This file is used by Binder for creating an environment for cjio_tutorial.ipynb
-
-pandas
