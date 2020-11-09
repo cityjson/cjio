@@ -221,6 +221,8 @@ def save_cmd(filename, indent, textures):
         except:
             pass
 
+        print(cm)
+
         utils.print_cmd_status("Saving CityJSON to a file %s" % output['path'])
         try:
             fo = click.open_file(output['path'], mode='w')
@@ -586,10 +588,13 @@ def update_metadata_cmd(overwrite):
     """
     def processor(cm):
         utils.print_cmd_status('Update the metadata')
-        re, errors = cm.update_metadata(overwrite)
+        _, errors = cm.update_metadata(overwrite)
 
         for e in errors:
             utils.print_cmd_warning(e)
+        
+        return cm
+    return processor
 
 
 @cli.command('get_metadata')
