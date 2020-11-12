@@ -18,7 +18,7 @@ setup(
     author_email='h.ledoux@tudelft.nl, b.dukai@tudelft.nl',
     python_requires='~=3.5',
     packages=['cjio'],
-    package_data={'cjio': ['schemas/0.9/*', 'schemas/1.0.0/*', , 'schemas/1.0.1/*']},
+    package_data={'cjio': ['schemas/0.9/*', 'schemas/1.0.0/*', 'schemas/1.0.1/*']},
     # include_package_data=True,
     license = 'MIT',
     classifiers=[
