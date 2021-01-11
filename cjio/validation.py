@@ -342,7 +342,7 @@ def orphan_vertices(j):
         s = 'WARNING: there are ' + str(noorphans) + ' orphan vertices in j["vertices"]'
         ws.append(s)
         isValid = False
-    if noorphans > 5:
+    if noorphans < 5:
         all = set()
         for i in range(len(j["vertices"])):
             all.add(i)
