@@ -500,11 +500,11 @@ class CityJSON:
         return (isValid, es)
 
 
-    def validate(self, skip_schema=False, folder_schemas=None):
+    def validate(self, skip_schema=False, folder_schemas=None, longerr=False):
         #-- only latest version, otherwise a mess with versions and different schemas
         #-- this is it, sorry people
         if (self.j["version"] != CITYJSON_VERSIONS_SUPPORTED[-1]):
-            return (False, False, ["Only files with version v%s can be validated." % (CITYJSON_VERSIONS_SUPPORTED[-1])], "")
+            return (False, True, ["Only files with version v%s can be validated." % (CITYJSON_VERSIONS_SUPPORTED[-1])], "")
         es = []
         ws = []
         #-- 1. schema
@@ -512,13 +512,13 @@ class CityJSON:
             print ('-- Validating the syntax of the file')
             b, js, v = self.fetch_schema(folder_schemas)
             if b == False:
-                return (False, False, ["Can't find the schema."], [])
+                return (False, True, ["Can't find the schema."], [])
             else:
                 print ('\t(using the schemas %s)' % (v))
-                isValid, errs = validation.validate_against_schema(self.j, js)
+                isValid, errs = validation.validate_against_schema(self.j, js, longerr)
                 if (isValid == False):
                     es += errs
-                    return (False, False, es, [])
+                    return (False, True, es, [])
 
         #-- 2. schema for Extensions
         if "extensions" in self.j:
@@ -532,7 +532,7 @@ class CityJSON:
                 if ( (self.j["CityObjects"][theid]["type"][0] == "+") ):
                     s = "ERROR:   CityObject " + self.j["CityObjects"][theid]["type"] + " doesn't have a schema."
                     es.append(s)
-                    return (False, False, es, [])
+                    return (False, True, es, [])
 
         #-- 3. Internal consistency validation 
         print ('-- Validating the internal consistency of the file (see docs for list)')

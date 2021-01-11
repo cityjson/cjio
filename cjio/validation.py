@@ -342,7 +342,7 @@ def orphan_vertices(j):
         s = 'WARNING: there are ' + str(noorphans) + ' orphan vertices in j["vertices"]'
         ws.append(s)
         isValid = False
-    if noorphans > 5:
+    if noorphans < 5:
         all = set()
         for i in range(len(j["vertices"])):
             all.add(i)
@@ -355,14 +355,18 @@ def orphan_vertices(j):
     return (isValid, ws)
 
 
-def validate_against_schema(j, js):
+def validate_against_schema(j, js, longerr):
     isValid = True
     es = []
     #-- lazy validation to catch as many as possible
     myvalidator = jsonschema.Draft7Validator(js, format_checker=jsonschema.FormatChecker())
     for err in sorted(myvalidator.iter_errors(j), key=str):
         isValid = False
-        es.append(err.message)
+        if (longerr == False) and (err.relative_path[0] == 'CityObjects'):
+            a = "CityObject is not schema-valid: " + err.relative_path[1]
+            es.append(a)
+        else:
+            es.append(err.message)
     return (isValid, es)
 
     # try:
