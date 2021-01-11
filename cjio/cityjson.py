@@ -500,7 +500,7 @@ class CityJSON:
         return (isValid, es)
 
 
-    def validate(self, skip_schema=False, folder_schemas=None):
+    def validate(self, skip_schema=False, folder_schemas=None, longerr=False):
         #-- only latest version, otherwise a mess with versions and different schemas
         #-- this is it, sorry people
         if (self.j["version"] != CITYJSON_VERSIONS_SUPPORTED[-1]):
@@ -515,7 +515,7 @@ class CityJSON:
                 return (False, True, ["Can't find the schema."], [])
             else:
                 print ('\t(using the schemas %s)' % (v))
-                isValid, errs = validation.validate_against_schema(self.j, js)
+                isValid, errs = validation.validate_against_schema(self.j, js, longerr)
                 if (isValid == False):
                     es += errs
                     return (False, True, es, [])
