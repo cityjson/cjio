@@ -280,10 +280,8 @@ def validate_cmd(hide_errors, skip_schema, folder_schemas):
             click.echo(click.style('File has warnings', fg='red'))
         if not hide_errors and bValid is False:
             click.echo("--- ERRORS (total = %d) ---" % len(errors))
-            for e in errors:
-                click.echo(e)
-                # for l in e:
-                    # click.echo(l)
+            for i, e in enumerate(errors):
+                click.echo(str(i + 1) + " ==> " + e + "\n")
         if not hide_errors and woWarnings is False:
             click.echo("--- WARNINGS ---")
             for e in warnings:
