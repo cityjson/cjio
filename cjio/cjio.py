@@ -259,7 +259,11 @@ def validate_cmd(hide_errors, skip_schema, folder_schemas, long):
     If the file is too large (and thus validation is slow),
     an option is to crop a subset and just validate it:
 
-        cjio myfile.json subset --random 2 validate
+        $ cjio myfile.json subset --random 2 validate
+    
+    Get all the details of the validation and output to a text report:
+    
+        $ cjio myfile.json validate --long > ~/temp/report.txt
     """
     def processor(cm):
         if folder_schemas is not None:
