@@ -379,12 +379,17 @@ def clean_cmd(digit):
 
 
 @cli.command('remove_duplicate_vertices')
-@click.argument('precision')
+@click.argument('precision', type=click.IntRange(1, 12))
 def remove_duplicate_vertices_cmd(precision):
     """
     Remove duplicate vertices a CityJSON file.
     Only the geometry vertices are processed,
     and not those of the textures/templates.
+
+    The precision is the number of digits to preserve, so
+    millimeter precision that would be '3'.
+
+        $ cjio myfile.json remove_duplicate_vertices 3 info
     """
     def processor(cm):
         utils.print_cmd_status('Remove duplicate vertices')
@@ -420,10 +425,16 @@ def remove_materials_cmd():
 
 
 @cli.command('compress')
-@click.option('--digit', default=3, type=click.IntRange(1, 10), help='Number of digit to keep.')
+@click.option('--digit', default=3, type=click.IntRange(1, 12), help='Number of digit to keep.')
 def compress_cmd(digit):
     """
     Compress a CityJSON file, ie stores its vertices with integers.
+
+    The '--digit' parameter is the number of digits to preserve, so
+    millimeter precision that would be '3'.
+
+        $ cjio myfile.json compress 3 info
+
     """
     def processor(cm):
         utils.print_cmd_status('Compressing the CityJSON (with %d digit)' % digit)
