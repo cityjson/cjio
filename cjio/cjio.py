@@ -119,6 +119,7 @@ def info_cmd(context, long):
 @click.argument('filename')
 @click.option('--format',
               type=click.Choice(['obj', 'stl', 'glb', 'b3dm']),
+              required=True,
               help="Export format")
 def export_cmd(filename, format):
     """Export the CityJSON to another format.
@@ -245,8 +246,11 @@ def save_cmd(filename, indent, textures):
 @cli.command('validate')
 @click.option('--hide_errors', is_flag=True, help='Do not print all the errors.')
 @click.option('--skip_schema', is_flag=True, help='Skip the schema validation (since it can be painfully slow).')
-@click.option('--folder_schemas', help='Specify a folder where the schemas are (cityjson.json needs to be the master file).')
-def validate_cmd(hide_errors, skip_schema, folder_schemas):
+@click.option('--folder_schemas', 
+              help='Specify a folder where the schemas are (cityjson.json needs to be the master file).')
+@click.option('--long', is_flag=True,
+              help='More gory details about the validation errors.')
+def validate_cmd(hide_errors, skip_schema, folder_schemas, long):
     """
     Validate the CityJSON file: (1) against its schemas; (2) extra validations.
 
@@ -257,7 +261,11 @@ def validate_cmd(hide_errors, skip_schema, folder_schemas):
     If the file is too large (and thus validation is slow),
     an option is to crop a subset and just validate it:
 
-        cjio myfile.json subset --random 2 validate
+        $ cjio myfile.json subset --random 2 validate
+    
+    Get all the details of the validation and output to a text report:
+    
+        $ cjio myfile.json validate --long > ~/temp/report.txt
     """
     def processor(cm):
         if folder_schemas is not None:
@@ -269,7 +277,7 @@ def validate_cmd(hide_errors, skip_schema, folder_schemas):
         else:
             utils.print_cmd_status('===== Validation (with official CityJSON schemas) =====')
         #-- validate    
-        bValid, woWarnings, errors, warnings = cm.validate(skip_schema=skip_schema, folder_schemas=folder_schemas)
+        bValid, woWarnings, errors, warnings = cm.validate(skip_schema=skip_schema, folder_schemas=folder_schemas, longerr=long)
         click.echo('=====')
         if bValid == True:
             click.echo(click.style('File is valid', fg='green'))
@@ -281,10 +289,8 @@ def validate_cmd(hide_errors, skip_schema, folder_schemas):
             click.echo(click.style('File has warnings', fg='red'))
         if not hide_errors and bValid is False:
             click.echo("--- ERRORS (total = %d) ---" % len(errors))
-            for e in errors:
-                click.echo(e)
-                # for l in e:
-                    # click.echo(l)
+            for i, e in enumerate(errors):
+                click.echo(str(i + 1) + " ==> " + e + "\n")
         if not hide_errors and woWarnings is False:
             click.echo("--- WARNINGS ---")
             for e in warnings:
@@ -381,12 +387,17 @@ def clean_cmd(digit):
 
 
 @cli.command('remove_duplicate_vertices')
-@click.argument('precision')
+@click.argument('precision', type=click.IntRange(1, 12))
 def remove_duplicate_vertices_cmd(precision):
     """
     Remove duplicate vertices a CityJSON file.
     Only the geometry vertices are processed,
     and not those of the textures/templates.
+
+    The precision is the number of digits to preserve, so
+    millimeter precision that would be '3'.
+
+        $ cjio myfile.json remove_duplicate_vertices 3 info
     """
     def processor(cm):
         utils.print_cmd_status('Remove duplicate vertices')
@@ -422,10 +433,16 @@ def remove_materials_cmd():
 
 
 @cli.command('compress')
-@click.option('--digit', default=3, type=click.IntRange(1, 10), help='Number of digit to keep.')
+@click.option('--digit', default=3, type=click.IntRange(1, 12), help='Number of digit to keep.')
 def compress_cmd(digit):
     """
     Compress a CityJSON file, ie stores its vertices with integers.
+
+    The '--digit' parameter is the number of digits to preserve, so
+    millimeter precision that would be '3'.
+
+        $ cjio myfile.json compress 3 info
+
     """
     def processor(cm):
         utils.print_cmd_status('Compressing the CityJSON (with %d digit)' % digit)

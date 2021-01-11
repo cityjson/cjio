@@ -144,6 +144,12 @@ CityJSON <https://github.com/cityjson/specs/tree/master/schemas>`_
 
     cjio myfile.json validate
 
+If the errors are too many, you can save the validation output to a file:
+
+.. code:: console
+
+    cjio myfile.json validate > /path/to/report.txt
+
 If the file is too large (and thus validation is slow), an option is to
 crop a subset and just validate it:
 
