@@ -119,6 +119,7 @@ def info_cmd(context, long):
 @click.argument('filename')
 @click.option('--format',
               type=click.Choice(['obj', 'stl', 'glb', 'b3dm']),
+              required=True,
               help="Export format")
 def export_cmd(filename, format):
     """Export the CityJSON to another format.
