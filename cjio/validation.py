@@ -362,7 +362,7 @@ def validate_against_schema(j, js, longerr):
     myvalidator = jsonschema.Draft7Validator(js, format_checker=jsonschema.FormatChecker())
     for err in sorted(myvalidator.iter_errors(j), key=str):
         isValid = False
-        if (longerr == False) and (err.relative_path[0] == 'CityObjects'):
+        if (longerr == False) and (len(err.relative_path) > 0) and (err.relative_path[0] == 'CityObjects'):
             a = "CityObject is not schema-valid: " + err.relative_path[1]
             es.append(a)
         else:
