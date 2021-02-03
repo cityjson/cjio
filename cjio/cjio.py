@@ -436,10 +436,10 @@ def compress_cmd(digit):
     """
     Compress a CityJSON file, ie stores its vertices with integers.
 
-    The '--digit' parameter is the number of digits to preserve, so
+    The '--digit' parameter is the number of digits to preserve (default=3), so
     millimeter precision that would be '3'.
 
-        $ cjio myfile.json compress 3 info
+        $ cjio myfile.json compress --digit 3 info
 
     """
     def processor(cm):
