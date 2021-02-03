@@ -158,7 +158,7 @@ crop a subset and just validate it:
     cjio myfile.json subset --random 2 validate
 
 If you want to use your own schemas, give the folder where the master
-schema file ``cityjson.json`` is located:
+schema file ``cityjson.schema.json`` is located:
 
 .. code:: console
 
