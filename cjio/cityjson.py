@@ -405,7 +405,7 @@ class CityJSON:
         return (True, jsco)
 
 
-    def validate_extensions(self, folder_schemas=None):
+    def validate_extensions(self, folder_schemas=None, longerr=False):
         print ('-- Validating the Extensions')
         if "extensions" not in self.j:
             print ("--- No extensions in the file.")
@@ -448,7 +448,7 @@ class CityJSON:
                     for theid in self.j["CityObjects"]:
                         if self.j["CityObjects"][theid]["type"] == nco:
                             nco1 = self.j["CityObjects"][theid]
-                            v, errs = validation.validate_against_schema(nco1, jsotf)
+                            v, errs = validation.validate_against_schema(nco1, jsotf, longerr)
                             if (v == False):
                                 isValid = False
                                 es += errs
@@ -464,7 +464,7 @@ class CityJSON:
                     for p in self.j:
                         if p == nrp:
                             thep = self.j[p]
-                            v, errs = validation.validate_against_schema(thep, jsotf)
+                            v, errs = validation.validate_against_schema(thep, jsotf, longerr)
                             if (v == False):
                                 isValid = False
                                 es += errs
@@ -483,7 +483,7 @@ class CityJSON:
                                  ("attributes" in self.j["CityObjects"][theid])    and
                                  (ea in self.j["CityObjects"][theid]["attributes"]) ):
                                 a = self.j["CityObjects"][theid]["attributes"][ea]
-                                v, errs = validation.validate_against_schema(a, jsotf)
+                                v, errs = validation.validate_against_schema(a, jsotf, longerr)
                                 if (v == False):
                                     isValid = False
                                     es += errs
