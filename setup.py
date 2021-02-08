@@ -13,7 +13,7 @@ setup(
     description='CLI to process and manipulate CityJSON files',
     long_description=long_description,
     long_description_content_type="text/x-rst",
-    url='https://github.com/tudelft3d/cjio',
+    url='https://github.com/cityjson/cjio',
     author='Hugo Ledoux, Balázs Dukai',
     author_email='h.ledoux@tudelft.nl, b.dukai@tudelft.nl',
     python_requires='~=3.5',
