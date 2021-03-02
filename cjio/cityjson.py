@@ -43,7 +43,7 @@ from cjio.utils import print_cmd_warning
 from cjio.metadata import generate_metadata
 
 
-CITYJSON_VERSIONS_SUPPORTED = ['0.6', '0.8', '0.9', '1.0']
+CITYJSON_VERSIONS_SUPPORTED = ['0.6', '0.8', '0.9', '1.0', '1.1']
 
 TOPLEVEL = ('Building',
             'Bridge',
@@ -1493,6 +1493,18 @@ class CityJSON:
         return (True, "")
 
 
+    def upgrade_version_v10_v11(self, reasons):
+        #-- version 
+        self.j["version"] = "1.1"
+        #-- compress
+        self.compress()
+        #-- lod=string
+        for theid in self.j["CityObjects"]:
+            for each, geom in enumerate(self.j['CityObjects'][theid]['geometry']):
+                self.j['CityObjects'][theid]['geometry'][each]['lod'] = str(self.j['CityObjects'][theid]['geometry'][each]['lod'])
+
+        return (True, "")
+
     def upgrade_version(self, newversion):
         re = True
         reasons = ""
@@ -1507,6 +1519,10 @@ class CityJSON:
         #-- v0.9
         if (self.get_version() == CITYJSON_VERSIONS_SUPPORTED[2]):
             (re, reasons) = self.upgrade_version_v09_v10(reasons)
+        #-- v1.0
+        if (self.get_version() == CITYJSON_VERSIONS_SUPPORTED[3]):
+            (re, reasons) = self.upgrade_version_v10_v11(reasons)
+
         return (re, reasons)
 
 
