@@ -1124,12 +1124,14 @@ class CityJSON:
         if long == False:
             return json.dumps(info, indent=2)    
         #-- all/long version
+        info["transform/compressed"] = self.j["transform"]
         info["vertices_total"] = len(self.j["vertices"])
-        d.clear()
+        d = set()
         lod = set()
         sem_srf = set()
         co_attributes = set()
         for key in self.j["CityObjects"]:
+            print(key)
             if 'attributes' in self.j['CityObjects'][key]:
                 for attr in self.j['CityObjects'][key]['attributes'].keys():
                     co_attributes.add(attr)
