@@ -574,11 +574,6 @@ class CityJSON:
         if b == False:
             woWarnings = False
             ws += errs
-        print("\t--Empty geometries")
-        b, errs = validation.geometry_empty(self.j)
-        if b == False:
-            woWarnings = False
-            ws += errs
         print("\t--Duplicate vertices")
         b, errs = validation.duplicate_vertices(self.j)
         if b == False:
@@ -1139,15 +1134,16 @@ class CityJSON:
             if 'attributes' in self.j['CityObjects'][key]:
                 for attr in self.j['CityObjects'][key]['attributes'].keys():
                     co_attributes.add(attr)
-            for geom in self.j['CityObjects'][key]['geometry']:
-                d.add(geom["type"])
-                if "lod" in geom:
-                    lod.add(geom["lod"])
-                else: #-- it's a geometry-template
-                    lod.add(self.j["geometry-templates"]["templates"][geom["template"]]["lod"])
-                if "semantics" in geom:
-                    for srf in geom["semantics"]["surfaces"]:
-                        sem_srf.add(srf["type"])
+            if 'geometry' in self.j['CityObjects'][key]: 
+                for geom in self.j['CityObjects'][key]['geometry']:
+                    d.add(geom["type"])
+                    if "lod" in geom:
+                        lod.add(geom["lod"])
+                    else: #-- it's a geometry-template
+                        lod.add(self.j["geometry-templates"]["templates"][geom["template"]]["lod"])
+                    if "semantics" in geom:
+                        for srf in geom["semantics"]["surfaces"]:
+                            sem_srf.add(srf["type"])
         info["geom_primitives_present"] = list(d)
         info["level_of_detail"] = list(lod)
         info["semantics_surfaces_present"] = list(sem_srf)
@@ -1497,6 +1493,9 @@ class CityJSON:
         for theid in self.j["CityObjects"]:
             for each, geom in enumerate(self.j['CityObjects'][theid]['geometry']):
                 self.j['CityObjects'][theid]['geometry'][each]['lod'] = str(self.j['CityObjects'][theid]['geometry'][each]['lod'])
+            if "geometry" in self.j['CityObjects'][theid]:
+                for each, geom in enumerate(self.j['CityObjects'][theid]['geometry']):
+                    self.j['CityObjects'][theid]['geometry'][each]['lod'] = str(self.j['CityObjects'][theid]['geometry'][each]['lod'])
 
         return (True, "")
 

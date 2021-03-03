@@ -17,7 +17,6 @@ import jsonref
  # metadata
  # cityjson_properties
  # citygml_attributes
- # geometry_empty
  # duplicate_vertices
  # orphan_vertices
 
@@ -131,6 +130,8 @@ def semantics_array(j):
     for id in j["CityObjects"]:
         # print("--", id)
         geomid = 0
+        if "geometry" not in j['CityObjects'][id]:
+            continue
         for g in j['CityObjects'][id]['geometry']:
             if 'semantics' not in g:
                 continue
@@ -236,17 +237,6 @@ def citygml_attributes(j, js):
     return (isValid, ws)
 
 
-def geometry_empty(j):
-    isValid = True
-    ws = []
-    for id in j["CityObjects"]:
-        if (j['CityObjects'][id]['type'] != 'CityObjectGroup') and (len(j['CityObjects'][id]['geometry']) == 0):
-            isValid = False
-            s = "WARNING: " + j['CityObjects'][id]['type'] + " #" + id + " has no geometry."
-            ws.append(s)
-    return (isValid, ws)
-
-
 def wrong_vertex_index(j):
     def recusionvisit(a, co, errs):
       for each in a:
@@ -262,8 +252,9 @@ def wrong_vertex_index(j):
                 errs.append(es)
     errs = []
     for co in j["CityObjects"]:
-        for g in j['CityObjects'][co]['geometry']:
-            recusionvisit(g["boundaries"], co, errs)    
+        if "geometry" in j['CityObjects'][co]:
+            for g in j['CityObjects'][co]['geometry']:
+                recusionvisit(g["boundaries"], co, errs)    
     es = []
     if (len(errs) > 0):
         isValid = False
@@ -318,8 +309,9 @@ def orphan_vertices(j):
     ws = []
     ids = set()
     for co in j["CityObjects"]:
-        for g in j['CityObjects'][co]['geometry']:
-            recusionvisit(g["boundaries"], ids)
+        if "geometry" in j['CityObjects'][co]:
+            for g in j['CityObjects'][co]['geometry']:
+                recusionvisit(g["boundaries"], ids)
     noorphans = len(j["vertices"]) - len(ids)
     if noorphans > 0:
         s = 'WARNING: there are ' + str(noorphans) + ' orphan vertices in j["vertices"]'
