@@ -298,7 +298,7 @@ def duplicate_vertices(j):
     return (isValid, ws)
 
 
-def orphan_vertices(j):
+def unused_vertices(j):
     def recusionvisit(a, ids):
       for each in a:
         if isinstance(each, list):
@@ -314,7 +314,7 @@ def orphan_vertices(j):
                 recusionvisit(g["boundaries"], ids)
     noorphans = len(j["vertices"]) - len(ids)
     if noorphans > 0:
-        s = 'WARNING: there are ' + str(noorphans) + ' orphan vertices in j["vertices"]'
+        s = 'WARNING: there are ' + str(noorphans) + ' unused vertices in j["vertices"]'
         ws.append(s)
         isValid = False
     if noorphans < 5:

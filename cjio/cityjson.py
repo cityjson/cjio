@@ -579,8 +579,8 @@ class CityJSON:
         if b == False:
             woWarnings = False
             ws += errs
-        print("\t--Orphan vertices")
-        b, errs = validation.orphan_vertices(self.j)
+        print("\t--Unused vertices")
+        b, errs = validation.unused_vertices(self.j)
         if b == False:
             woWarnings = False
             ws += errs
