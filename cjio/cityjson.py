@@ -1491,11 +1491,25 @@ class CityJSON:
         self.compress()
         #-- lod=string
         for theid in self.j["CityObjects"]:
-            for each, geom in enumerate(self.j['CityObjects'][theid]['geometry']):
-                self.j['CityObjects'][theid]['geometry'][each]['lod'] = str(self.j['CityObjects'][theid]['geometry'][each]['lod'])
             if "geometry" in self.j['CityObjects'][theid]:
                 for each, geom in enumerate(self.j['CityObjects'][theid]['geometry']):
                     self.j['CityObjects'][theid]['geometry'][each]['lod'] = str(self.j['CityObjects'][theid]['geometry'][each]['lod'])
+        #-- CityObjectGroup
+            # members -> children
+            # add parents to children
+        for theid in self.j["CityObjects"]:
+            if self.j["CityObjects"][theid]['type'] == 'CityObjectGroup':
+                self.j["CityObjects"][theid]['children'] = self.j["CityObjects"][theid]['members']
+                del self.j["CityObjects"][theid]['members']
+                for ch in self.j["CityObjects"][theid]['children']:
+                    if 'parents' not in self.j["CityObjects"][ch]:
+                        self.j["CityObjects"][ch]["parents"] = []
+                    if theid not in self.j["CityObjects"][ch]["parents"]:
+                        self.j["CityObjects"][ch]["parents"].append(theid)
+        #-- empty geometries
+        for theid in self.j["CityObjects"]:
+            if ("geometry" in self.j['CityObjects'][theid]) and (len(self.j['CityObjects'][theid]['geometry']) == 0):
+                del self.j['CityObjects'][theid]['geometry']
 
         return (True, "")
 
