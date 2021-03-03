@@ -562,11 +562,6 @@ class CityJSON:
         if b == False:
             isValid = False
             es += errs
-        print("\t--Specific for CityGroups")
-        b, errs = validation.city_object_groups(self.j) 
-        if b == False:
-            isValid = False
-            es += errs
         print("\t--Semantic arrays coherent with geometry")
         b, errs = validation.semantics_array(self.j)
         if b == False:

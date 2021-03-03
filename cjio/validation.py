@@ -7,7 +7,6 @@ import jsonref
 #-- ERRORS
  # validate_against_schema
  # parent_children_consistency
- # city_object_groups
  # semantics_array
  # wrong_vertex_index
  # building_parts
@@ -34,21 +33,6 @@ def dict_raise_on_duplicates(ordered_pairs):
     return d
 
 
-def city_object_groups(j):
-    isValid = True
-    es = []
-    for id in j["CityObjects"]:
-        if j['CityObjects'][id]['type'] == 'CityObjectGroup':
-            for each in j['CityObjects'][id]['members']:
-                if each in j['CityObjects']:
-                    pass
-                else:
-                    s = "ERROR:   CityObjectGroup (#" + id + ") contains member #" + each + ", but it doesn't exist." 
-                    es.append(s)
-                    isValid = False
-    return (isValid, es)
-
-
 def parent_children_consistency(j):
     isValid = True
     es = []
@@ -63,10 +47,9 @@ def parent_children_consistency(j):
                     es.append(s)
                     isValid = False
                 else:
-                    if theid not in j['CityObjects'][child]['parents']:    
-                        s = "ERROR:   CityObject #" + child + " doesn't reference correct parent."
-                        es.append(s)
-                        s = "\t(Parent should be CityObject #" + theid + ")"   
+                    if ("parents" not in j['CityObjects'][child]) or (theid not in j['CityObjects'][child]['parents']):    
+                        s = "CityObject #" + child + " doesn't reference correct parent"
+                        s += " (#" + theid + ")"   
                         es.append(s)
                         isValid = False
     #-- are there orphans?
@@ -74,7 +57,7 @@ def parent_children_consistency(j):
         if "parents" in j['CityObjects'][theid]:
             for parent in j['CityObjects'][theid]['parents']:
                 if (parent not in j['CityObjects']):
-                    s = "ERROR:   CityObject #" + theid + " is an orphan (parent #" + parent + " doesn't exist)."
+                    s = "ERROR:   CityObject #" + theid + " is an orphan (parent #" + parent + " doesn't exist)"
                     es.append(s)
                     isValid = False
     return (isValid, es)
