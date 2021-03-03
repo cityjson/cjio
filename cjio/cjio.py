@@ -517,17 +517,23 @@ def update_crs_cmd(epsg):
 
 
 @cli.command('upgrade_version')
-def upgrade_version_cmd():
+@click.option('--digit', default=3, type=click.IntRange(1, 12), help='Number of digit to keep to compress.')
+def upgrade_version_cmd(digit):
     """
     Upgrade the CityJSON to the latest version.
     It takes care of *everything* (touch wood).
 
         $ cjio myfile.json upgrade_version
+    
+    For v1.1+, the file needs to be compressed, and you can 
+    speficy the number of digits to keep (default=3)
+
+        $ cjio myfile.json upgrade_version --digit 2
     """
     def processor(cm):
         vlatest = cityjson.CITYJSON_VERSIONS_SUPPORTED[-1]
         utils.print_cmd_status('Upgrade CityJSON file to v%s' % vlatest)
-        re, reasons = cm.upgrade_version(vlatest)
+        re, reasons = cm.upgrade_version(vlatest, digit)
         if (re == False):
             click.echo(click.style("WARNING: %s" % (reasons), fg='red'))
         return cm

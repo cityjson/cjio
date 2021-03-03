@@ -1484,11 +1484,12 @@ class CityJSON:
         return (True, "")
 
 
-    def upgrade_version_v10_v11(self, reasons):
+    def upgrade_version_v10_v11(self, reasons, digit):
         #-- version 
         self.j["version"] = "1.1"
-        #-- compress
-        self.compress()
+        #-- compress to for "transform"
+        print("digit:", digit)
+        self.compress(digit)
         #-- lod=string
         for theid in self.j["CityObjects"]:
             if "geometry" in self.j['CityObjects'][theid]:
@@ -1510,10 +1511,10 @@ class CityJSON:
         for theid in self.j["CityObjects"]:
             if ("geometry" in self.j['CityObjects'][theid]) and (len(self.j['CityObjects'][theid]['geometry']) == 0):
                 del self.j['CityObjects'][theid]['geometry']
-
         return (True, "")
 
-    def upgrade_version(self, newversion):
+
+    def upgrade_version(self, newversion, digit):
         re = True
         reasons = ""
         if CITYJSON_VERSIONS_SUPPORTED.count(newversion) == 0:
@@ -1529,8 +1530,7 @@ class CityJSON:
             (re, reasons) = self.upgrade_version_v09_v10(reasons)
         #-- v1.0
         if (self.get_version() == CITYJSON_VERSIONS_SUPPORTED[3]):
-            (re, reasons) = self.upgrade_version_v10_v11(reasons)
-
+            (re, reasons) = self.upgrade_version_v10_v11(reasons, digit)
         return (re, reasons)
 
 
