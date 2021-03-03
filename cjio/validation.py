@@ -40,9 +40,8 @@ def parent_children_consistency(j):
         if "children" in j['CityObjects'][theid]:
             for child in j['CityObjects'][theid]['children']:
                 if (child not in j['CityObjects']):
-                    s = "ERROR:   CityObject #" + child + " doesn't exist."
-                    es.append(s)
-                    s = "\t(CityObject #" + theid + " references it as children)"   
+                    s = "CityObject #" + child + " doesn't exist."
+                    s += " (CityObject #" + theid + " references it as children)"   
                     es.append(s)
                     isValid = False
                 else:
@@ -56,7 +55,7 @@ def parent_children_consistency(j):
         if "parents" in j['CityObjects'][theid]:
             for parent in j['CityObjects'][theid]['parents']:
                 if (parent not in j['CityObjects']):
-                    s = "ERROR:   CityObject #" + theid + " is an orphan (parent #" + parent + " doesn't exist)"
+                    s = "CityObject #" + theid + " is an orphan (parent #" + parent + " doesn't exist)"
                     es.append(s)
                     isValid = False
     return (isValid, es)
@@ -71,9 +70,8 @@ def building_parts(j):
                 if (each in j['CityObjects']) and (j['CityObjects'][each]['type'] == 'BuildingPart'):
                     pass
                 else:
-                    s = "ERROR:   BuildingPart #" + each + " doesn't exist."
-                    es.append(s)
-                    s = "\t(Building #" + id + " references it)"   
+                    s = "BuildingPart #" + each + " doesn't exist."
+                    s += " (Building #" + id + " references it)"   
                     es.append(s)
                     isValid = False
     return (isValid, es)
@@ -88,9 +86,8 @@ def building_installations(j):
                 if (each in j['CityObjects']) and (j['CityObjects'][each]['type'] == 'BuildingInstallation'):
                     pass
                 else:
-                    s = "ERROR:   BuildingInstallation #" + each + " doesn't exist."
-                    es.append(s)
-                    s = "\t(Building #" + id + " references it)"
+                    s = "BuildingInstallation #" + each + " doesn't exist."
+                    s += " (Building #" + id + " references it)"
                     es.append(s)
                     isValid = False
     return (isValid, es)
@@ -116,10 +113,10 @@ def building_pi_parent(j):
                         pis.remove(pid)
     if len(pis) > 0:
         isValid = False
-        s = "ERROR:   BuildingParts and/or BuildingInstallations don't have a parent:"
+        s = "BuildingParts and/or BuildingInstallations don't have a parent: "
         es.append(s)
         for each in pis:
-            s = "\t#" + each
+            s += " #" + each
             es.append(s)
     return (isValid, es)
 
@@ -149,9 +146,8 @@ def semantics_array(j):
                                     i = sem['values'][shellid][surfaceid]
                             if i is not None:
                                 if ( (type(i) is not int) or (i > (len(sem['surfaces']) - 1)) ):
-                                    s = "ERROR:   semantics arrays problems ( #" + id
-                                    es.append(s)
-                                    s = "; geom=" + str(geomid) + ",shell=" + str(shellid) + ",surface=" + str(surfaceid) + " )"
+                                    s = "semantics arrays problems ( #" + id
+                                    s += "; geom=" + str(geomid) + ",shell=" + str(shellid) + ",surface=" + str(surfaceid) + " )"
                                     es.append(s)
                                     isValid = False;
                                     break
@@ -167,9 +163,8 @@ def semantics_array(j):
                                 i = sem['values'][surfaceid]
                         if i is not None:
                             if ( (type(i) is not int) or (i > (len(sem['surfaces']) - 1)) ):
-                                s = "ERROR:   semantics arrays problems ( #" + id
-                                es.append(s)
-                                s = "; geom=" + str(geomid) + ",surface=" + str(surfaceid) + " )"
+                                s = "semantics arrays problems ( #" + id
+                                s += "; geom=" + str(geomid) + ",surface=" + str(surfaceid) + " )"
                                 es.append(s)
                                 isValid = False;
                                 break
