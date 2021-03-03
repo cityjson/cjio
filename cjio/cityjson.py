@@ -812,12 +812,7 @@ class CityJSON:
 
 
     def is_co_toplevel(self, co):
-        if ('toplevel' in co):
-            return co['toplevel']
-        if co["type"] in TOPLEVEL:
-            return True
-        else:
-            return False
+        return ("parents" not in co)
 
     def number_top_co(self):
         count = 0
@@ -1092,7 +1087,7 @@ class CityJSON:
         return True
 
 
-    def number_city_objects(self):
+    def number_city_objects_level1(self):
         total = 0
         for id in self.j["CityObjects"]:
             if self.is_co_toplevel(self.j["CityObjects"][id]):
@@ -1110,12 +1105,16 @@ class CityJSON:
             for i in self.j["extensions"]:
                 d.add(i)
             info["extensions"] = sorted(list(d))
-        info["transform/compressed"] = "transform" in self.j
-        info["cityobjects_total"] = self.number_city_objects()
-        d = set()
+        info["cityobjects_1stlevel"] = self.number_city_objects_level1()
+        # info["cityobjects_total"] = len(self.j["CityObjects"])
+        dc = {}
         for key in self.j["CityObjects"]:
-            d.add(self.j['CityObjects'][key]['type'])
-        info["cityobjects_present"] = sorted(list(d))
+            ty = self.j['CityObjects'][key]['type']
+            if ty not in dc:
+                dc[ty] = 1
+            else:
+                dc[ty] += 1
+        info["cityobjects_present"] = {key: value for key, value in sorted(dc.items(), key=lambda item: item[1], reverse=True)}
         if 'appearance' in self.j:
             info["materials"] = 'materials' in self.j['appearance']
             info["textures"] = 'textures' in self.j['appearance']
