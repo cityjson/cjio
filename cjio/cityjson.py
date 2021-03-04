@@ -671,22 +671,23 @@ class CityJSON:
         for co in self.j["CityObjects"]:
             vs = []
             bbox = [9e9, 9e9, 9e9, -9e9, -9e9, -9e9]    
-            for g in self.j['CityObjects'][co]['geometry']:
-                recusionvisit(g["boundaries"], vs)
-                for each in vs:
-                    v = self.j["vertices"][each]
-                    for i in range(3):
-                        if v[i] < bbox[i]:
-                            bbox[i] = v[i]
-                    for i in range(3):
-                        if v[i] > bbox[i+3]:
-                            bbox[i+3] = v[i]
-                if "transform" in self.j:
-                    for i in range(3):
-                        bbox[i] = (bbox[i] * self.j["transform"]["scale"][i]) + self.j["transform"]["translate"][i]
-                    for i in range(3):
-                        bbox[i+3] = (bbox[i+3] * self.j["transform"]["scale"][i]) + self.j["transform"]["translate"][i]
-                self.j["CityObjects"][co]["geographicalExtent"] = bbox
+            if 'geometry' in self.j['CityObjects'][co]:
+                for g in self.j['CityObjects'][co]['geometry']:
+                    recusionvisit(g["boundaries"], vs)
+                    for each in vs:
+                        v = self.j["vertices"][each]
+                        for i in range(3):
+                            if v[i] < bbox[i]:
+                                bbox[i] = v[i]
+                        for i in range(3):
+                            if v[i] > bbox[i+3]:
+                                bbox[i+3] = v[i]
+                    if "transform" in self.j:
+                        for i in range(3):
+                            bbox[i] = (bbox[i] * self.j["transform"]["scale"][i]) + self.j["transform"]["translate"][i]
+                        for i in range(3):
+                            bbox[i+3] = (bbox[i+3] * self.j["transform"]["scale"][i]) + self.j["transform"]["translate"][i]
+                    self.j["CityObjects"][co]["geographicalExtent"] = bbox
 
 
     def get_centroid(self, coid):
@@ -699,15 +700,16 @@ class CityJSON:
         #-- find the 3D centroid
         centroid = [0, 0, 0]
         total = 0
-        for g in self.j['CityObjects'][coid]['geometry']:
-            vs = []
-            recusionvisit(g["boundaries"], vs)
-            for each in vs:
-                v = self.j["vertices"][each]
-                total += 1
-                centroid[0] += v[0]
-                centroid[1] += v[1]
-                centroid[2] += v[2]
+        if 'geometry' in self.j['CityObjects'][co]:
+            for g in self.j['CityObjects'][coid]['geometry']:
+                vs = []
+                recusionvisit(g["boundaries"], vs)
+                for each in vs:
+                    v = self.j["vertices"][each]
+                    total += 1
+                    centroid[0] += v[0]
+                    centroid[1] += v[1]
+                    centroid[2] += v[2]
         if (total != 0):
             centroid[0] /= total
             centroid[1] /= total
@@ -1131,7 +1133,6 @@ class CityJSON:
         sem_srf = set()
         co_attributes = set()
         for key in self.j["CityObjects"]:
-            print(key)
             if 'attributes' in self.j['CityObjects'][key]:
                 for attr in self.j['CityObjects'][key]['attributes'].keys():
                     co_attributes.add(attr)
@@ -1173,10 +1174,12 @@ class CityJSON:
         newvertices = []
         #-- visit each geom to gather used ids 
         for theid in self.j["CityObjects"]:
+            if 'geometry' in self.j['CityObjects'][theid]:
                 for g in self.j['CityObjects'][theid]['geometry']:
                     visit_geom(g["boundaries"], oldnewids, newvertices)
         #-- update the faces ids
         for theid in self.j["CityObjects"]:
+            if 'geometry' in self.j['CityObjects'][theid]:
                 for g in self.j['CityObjects'][theid]['geometry']:
                     update_face(g["boundaries"], oldnewids)
         #-- replace the vertices, innit?
@@ -1215,6 +1218,7 @@ class CityJSON:
                 newids[i] = h[s]
         #-- update indices
         for theid in self.j["CityObjects"]:
+            if 'geometry' in self.j['CityObjects'][theid]:
                 for g in self.j['CityObjects'][theid]['geometry']:
                     update_geom_indices(g["boundaries"], newids)
         #-- replace the vertices, innit?
@@ -1321,22 +1325,24 @@ class CityJSON:
                             if a not in self.j["CityObjects"][theid]["attributes"]:
                                 self.j["CityObjects"][theid]["attributes"][a] = cm.j["CityObjects"][theid]["attributes"][a]
                     #-- merge geoms if not present (based on LoD only)
-                    for g in cm.j['CityObjects'][theid]['geometry']:
-                        thelod = str(g["lod"])
-                        # print ("-->", thelod)
-                        b = False
-                        for g2 in self.j['CityObjects'][theid]['geometry']:
-                            if g2["lod"] == thelod:
-                                b = True
-                                break
-                        if b == False:
-                            self.j['CityObjects'][theid]['geometry'].append(g)
-                            update_geom_indices(self.j['CityObjects'][theid]['geometry'][-1]["boundaries"], offset)    
+                    if 'geometry' in self.j['CityObjects'][theid]:
+                        for g in cm.j['CityObjects'][theid]['geometry']:
+                            thelod = str(g["lod"])
+                            # print ("-->", thelod)
+                            b = False
+                            for g2 in self.j['CityObjects'][theid]['geometry']:
+                                if g2["lod"] == thelod:
+                                    b = True
+                                    break
+                            if b == False:
+                                self.j['CityObjects'][theid]['geometry'].append(g)
+                                update_geom_indices(self.j['CityObjects'][theid]['geometry'][-1]["boundaries"], offset)    
                 else:
                     #-- copy the CO
                     self.j["CityObjects"][theid] = cm.j["CityObjects"][theid]
-                    for g in self.j['CityObjects'][theid]['geometry']:
-                        update_geom_indices(g["boundaries"], offset)
+                    if 'geometry' in self.j['CityObjects'][theid]:
+                        for g in self.j['CityObjects'][theid]['geometry']:
+                            update_geom_indices(g["boundaries"], offset)
             #-- templates
             if "geometry-templates" in cm.j:
                 if "geometry-templates" in self.j:
@@ -1357,9 +1363,10 @@ class CityJSON:
                 self.j["geometry-templates"]["vertices-templates"] += cm.j["geometry-templates"]["vertices-templates"]
                 #-- update the "template" in each GeometryInstance
                 for theid in cm.j["CityObjects"]:
-                    for g in self.j['CityObjects'][theid]['geometry']:
-                        if g["type"] == 'GeometryInstance':
-                            g["template"] += notemplates
+                    if 'geometry' in self.j['CityObjects'][theid]:
+                        for g in self.j['CityObjects'][theid]['geometry']:
+                            if g["type"] == 'GeometryInstance':
+                                g["template"] += notemplates
             #-- materials
             if ("appearance" in cm.j) and ("materials" in cm.j["appearance"]):
                 if ("appearance" in self.j) and ("materials" in self.j["appearance"]):
@@ -1375,10 +1382,11 @@ class CityJSON:
                     self.j["appearance"]["materials"].append(m)
                 #-- update the "material" in each Geometry
                 for theid in cm.j["CityObjects"]:
-                    for g in self.j['CityObjects'][theid]['geometry']:
-                        if 'material' in g:
-                            for m in g['material']:
-                                update_geom_indices(g['material'][m]['values'], offset)
+                    if 'geometry' in self.j['CityObjects'][theid]:
+                        for g in self.j['CityObjects'][theid]['geometry']:
+                            if 'material' in g:
+                                for m in g['material']:
+                                    update_geom_indices(g['material'][m]['values'], offset)
             #-- textures
             if ("appearance" in cm.j) and ("textures" in cm.j["appearance"]):
                 if ("appearance" in self.j) and ("textures" in self.j["appearance"]):
@@ -1400,10 +1408,11 @@ class CityJSON:
                     self.j["appearance"]["textures"].append(t)
                 #-- update the "texture" in each Geometry
                 for theid in cm.j["CityObjects"]:
-                    for g in self.j['CityObjects'][theid]['geometry']:
-                        if 'texture' in g:
-                            for m in g['texture']:
-                                update_texture_indices(g['texture'][m]['values'], toffset, voffset)
+                    if 'geometry' in self.j['CityObjects'][theid]:
+                        for g in self.j['CityObjects'][theid]['geometry']:
+                            if 'texture' in g:
+                                for m in g['texture']:
+                                    update_texture_indices(g['texture'][m]['values'], toffset, voffset)
             #-- metadata
             try:
                 fids = [fid for fid in cm.j["CityObjects"]]
