@@ -1498,7 +1498,6 @@ class CityJSON:
         #-- version 
         self.j["version"] = "1.1"
         #-- compress to for "transform"
-        print("digit:", digit)
         self.compress(digit)
         #-- lod=string
         for theid in self.j["CityObjects"]:
