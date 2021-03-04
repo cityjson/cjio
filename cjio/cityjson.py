@@ -1512,6 +1512,8 @@ class CityJSON:
         for theid in self.j["CityObjects"]:
             if ("geometry" in self.j['CityObjects'][theid]) and (len(self.j['CityObjects'][theid]['geometry']) == 0):
                 del self.j['CityObjects'][theid]['geometry']
+        #-- metadata calculate
+        self.update_metadata(overwrite=True, new_uuid=True)
         return (True, "")
 
 
