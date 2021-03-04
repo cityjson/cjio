@@ -431,40 +431,6 @@ def remove_materials_cmd():
         return cm
     return processor
 
-
-@cli.command('compress')
-@click.option('--digit', default=3, type=click.IntRange(1, 12), help='Number of digit to keep.')
-def compress_cmd(digit):
-    """
-    Compress a CityJSON file, ie stores its vertices with integers.
-
-    The '--digit' parameter is the number of digits to preserve (default=3), so
-    millimeter precision that would be '3'.
-
-        $ cjio myfile.json compress --digit 3 info
-
-    """
-    def processor(cm):
-        utils.print_cmd_status('Compressing the CityJSON (with %d digit)' % digit)
-        if cm.compress(digit) == False:
-            click.echo("WARNING: CityJSON already compressed.")
-        return cm
-    return processor
-
-
-@cli.command('decompress')
-def decompress_cmd():
-    """
-    Decompress a CityJSON file, ie remove the "tranform".
-    """
-    def processor(cm):
-        utils.print_cmd_status('Decompressing the CityJSON')
-        if (cm.decompress() == False):
-            click.echo("File is not compressed, nothing done.")
-        return cm
-    return processor
-
-
 @cli.command('remove_textures')
 def remove_textures_cmd():
     """
@@ -632,7 +598,7 @@ def get_metadata_cmd():
     """
     def processor(cm):
         if cm.has_metadata():
-            click.echo_via_pager(json.dumps(cm.get_metadata(), indent=2))
+            click.echo(json.dumps(cm.get_metadata(), indent=2))
         else:
             utils.print_cmd_warning("You are missing metadata! Quickly! Run 'update_metadata' before it's too late!")
     return processor
