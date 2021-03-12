@@ -443,7 +443,10 @@ class CityJSON:
                     jtmp = {}
                     jtmp["$schema"] = "http://json-schema.org/draft-07/schema#"
                     jtmp["type"] = "object"
-                    jtmp["$ref"] = "file://%s#/extraCityObjects/%s" % (schemapath, nco)
+                    if platform == "darwin" or platform == "linux" or platform == "linux2":
+                        jtmp["$ref"] = "file://%s#/extraCityObjects/%s" % (schemapath, nco)
+                    else:
+                        jtmp["$ref"] = "file:\\%s#/extraCityObjects/%s" % (schemapath, nco)
                     jsotf = jsonref.loads(json.dumps(jtmp), jsonschema=True, base_uri=base_uri)
                     for theid in self.j["CityObjects"]:
                         if self.j["CityObjects"][theid]["type"] == nco:
@@ -459,7 +462,10 @@ class CityJSON:
                     jtmp = {}
                     jtmp["$schema"] = "http://json-schema.org/draft-07/schema#"
                     jtmp["type"] = "object"
-                    jtmp["$ref"] = "file://%s#/extraRootProperties/%s" % (schemapath, nrp)
+                    if platform == "darwin" or platform == "linux" or platform == "linux2":
+                        jtmp["$ref"] = "file://%s#/extraRootProperties/%s" % (schemapath, nrp)
+                    else:
+                        jtmp["$ref"] = "file:\\%s#/extraRootProperties/%s" % (schemapath, nrp)
                     jsotf = jsonref.loads(json.dumps(jtmp), jsonschema=True, base_uri=base_uri)
                     for p in self.j:
                         if p == nrp:
@@ -476,7 +482,10 @@ class CityJSON:
                         jtmp = {}
                         jtmp["$schema"] = "http://json-schema.org/draft-07/schema#"
                         jtmp["type"] = "object"
-                        jtmp["$ref"] = "file://%s#/extraAttributes/%s/%s" % (schemapath, thetype, ea)
+                        if platform == "darwin" or platform == "linux" or platform == "linux2":
+                            jtmp["$ref"] = "file://%s#/extraAttributes/%s/%s" % (schemapath, thetype, ea)
+                        else:
+                            jtmp["$ref"] = "file:\\%s#/extraAttributes/%s/%s" % (schemapath, thetype, ea)
                         jsotf = jsonref.loads(json.dumps(jtmp), jsonschema=True, base_uri=base_uri)
                         for theid in self.j["CityObjects"]:
                             if ( (self.j["CityObjects"][theid]["type"] == thetype) and 
