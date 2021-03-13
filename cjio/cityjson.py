@@ -1160,7 +1160,7 @@ class CityJSON:
                 else: #-- it's a geometry-template
                     lod.add(self.j["geometry-templates"]["templates"][geom["template"]]["lod"])
                 if "semantics" in geom:
-                    if "surfaces" in ["geom"]["surfaces"]:
+                    if "surfaces" in geom["semantics"]:
                         for srf in geom["semantics"]["surfaces"]:
                             sem_srf.add(srf["type"])
         info["geom_primitives_present"] = list(d)
