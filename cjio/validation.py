@@ -363,7 +363,7 @@ def validate_against_schema(j, js, longerr):
     for err in sorted(myvalidator.iter_errors(j), key=str):
         isValid = False
         if (longerr == False) and (len(err.relative_path) > 0) and (err.relative_path[0] == 'CityObjects'):
-            a = "CityObject is not schema-valid: " + err.relative_path[1]
+            a = "CityObject is not schema-valid: " + str(err.relative_path[1])
             es.append(a)
         else:
             es.append(err.message)
