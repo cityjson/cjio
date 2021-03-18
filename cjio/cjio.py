@@ -118,13 +118,13 @@ def info_cmd(context, long):
 @cli.command('export')
 @click.argument('filename')
 @click.option('--format',
-              type=click.Choice(['obj', 'stl', 'glb', 'b3dm']),
+              type=click.Choice(['obj', 'jsonl', 'stl', 'glb', 'b3dm']),
               required=True,
               help="Export format")
 def export_cmd(filename, format):
     """Export the CityJSON to another format.
 
-    OBJ, Binary glTF (glb), Batched 3DModel (b3dm), STL. Currently textures are not supported, sorry.
+    OBJ, Binary glTF (glb), Batched 3DModel (b3dm), STL, JSONL (JSON Lines, for streaming). Currently textures are not supported, sorry.
     """
     def exporter(cm):
         output = utils.verify_filename(filename)
@@ -177,7 +177,14 @@ def export_cmd(filename, format):
                     bo.write(b3dm.getvalue())
             except IOError as e:
                 raise click.ClickException('Invalid output file: "%s".\n%s' % (binfile, e))
-
+        elif format.lower() == 'jsonl':
+            utils.print_cmd_status("Exporting CityJSON to JSON Lines (%s)" % (output['path']))
+            try:
+                with click.open_file(output['path'], mode='w') as fo:
+                    re = cm.export2jsonl()
+                    fo.write(re.getvalue())
+            except IOError as e:
+                raise click.ClickException('Invalid output file: "%s".\n%s' % (output['path'], e))
 
     def processor(cm):
         #-- mapbox_earcut available?

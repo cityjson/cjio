@@ -1601,6 +1601,21 @@ class CityJSON:
         glb = convert.to_glb(self.j)
         return glb
 
+    def export2jsonl(self):
+        out = StringIO()
+        j2 = {}
+        j2["type"] = "CityJSON"
+        j2["version"] = CITYJSON_VERSIONS_SUPPORTED[-1]
+        j2["CityObjects"] = {}
+        j2["vertices"] = []
+        if "metadata" in self.j:
+            j2["metadata"] = self.j["metadata"]
+        if "extensions" in self.j:
+            j2["extensions"] = self.j["extensions"]
+        json_str = json.dumps(j2, separators=(',',':'))
+        out.write(json_str + '\n')
+        out.write(json_str + '\n')
+        return out
 
     def export2obj(self):
         self.decompress()
