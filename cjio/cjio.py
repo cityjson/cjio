@@ -27,7 +27,7 @@ class PerCommandArgWantSubCmdHelp(click.Argument):
 
 
 @click.group(chain=True)
-@click.version_option(version=cjio.__version__)
+@click.version_option(version=cjio.__version__, prog_name=cityjson.CITYJSON_VERSIONS_SUPPORTED[-1], message="cjio v%(version)s; supports CityJSON v%(prog)s")
 @click.argument('input', cls=PerCommandArgWantSubCmdHelp)
 @click.option('--ignore_duplicate_keys', is_flag=True, help='Load a CityJSON file even if some City Objects have the same IDs (technically invalid file)')
 @click.pass_context
