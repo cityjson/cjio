@@ -1747,12 +1747,13 @@ class CityJSON:
     def extract_lod(self, thelod):
         for co in self.j["CityObjects"]:
             re = []
-            for i, g in enumerate(self.j['CityObjects'][co]['geometry']):
-                if int(g['lod']) != thelod:
-                    re.append(g)  
-                    # print (g)      
-            for each in re:
-                self.j['CityObjects'][co]['geometry'].remove(each)
+            if 'geometry' in self.j['CityObjects'][co]:
+                for i, g in enumerate(self.j['CityObjects'][co]['geometry']):
+                    if g['lod'] != thelod:
+                        re.append(g)  
+                        # print (g)      
+                for each in re:
+                    self.j['CityObjects'][co]['geometry'].remove(each)
         self.remove_duplicate_vertices()
         self.remove_orphan_vertices()
         #-- metadata

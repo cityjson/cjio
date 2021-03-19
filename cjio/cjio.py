@@ -541,16 +541,20 @@ def update_textures_cmd(newlocation, relative):
 
 
 @cli.command('extract_lod')
-@click.argument('lod', type=int)
+@click.argument('lod', type=str)
 def extract_lod_cmd(lod):
     """
     Extract only one LoD for a dataset.
     To use on datasets having more than one LoD for the city objects.
-    For each city object, it keeps only the LoD passed as parameter,
-    if a city object doesn't have this LoD then it is deleted.
+    For each city object, it keeps only the geometries having the LoD
+    passed as parameter; if a city object doesn't have this LoD then 
+    it ends up with an empty geometry.
+
+        $ cjio myfile.city.json extract_lod 2.2 save myfile_lod2.city.json
+    
     """
     def processor(cm):
-        utils.print_cmd_status('Extract LoD:%s' % lod)
+        utils.print_cmd_status('Extract LoD: "%s"' % lod)
         cm.extract_lod(lod)
         return cm
     return processor
