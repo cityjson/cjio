@@ -46,8 +46,8 @@ def cli(context, input, ignore_duplicate_keys):
 
     \b
         cjio example.json info validate
-        cjio example.json assign_epsg 7145 remove_textures export output.obj
         cjio example.json subset --id house12 save out.json
+        cjio example.json assign_epsg 7145 remove_textures export --format obj output.obj
     """
     context.obj = {"argument": input}
 
@@ -94,7 +94,6 @@ def process_pipeline(processors, input, ignore_duplicate_keys):
                 str1 = "v%s is not the latest version, and not everything will work.\n" % cm.get_version()
                 str1 += "Upgrade the file with 'upgrade_version' command: 'cjio input.json upgrade_version save out.json'" 
                 click.echo(click.style(str1, fg='red'))
-            
     except ValueError as e:
         raise click.ClickException('%s: "%s".' % (e, input))
     except IOError as e:
