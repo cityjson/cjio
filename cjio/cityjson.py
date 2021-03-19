@@ -1742,6 +1742,13 @@ class CityJSON:
         self.update_bbox()
         self.compress()
 
+    def rename_attribute(self, oldattr, newattr):
+        for co in self.j["CityObjects"]:
+            if "attributes" in self.j["CityObjects"][co]:
+                if oldattr in self.j["CityObjects"][co]["attributes"]:
+                    tmp = self.j["CityObjects"][co]["attributes"][oldattr] 
+                    self.j["CityObjects"][co]["attributes"][newattr] = tmp
+                    del self.j["CityObjects"][co]["attributes"][oldattr]
 
     def extract_lod(self, thelod):
         for co in self.j["CityObjects"]:

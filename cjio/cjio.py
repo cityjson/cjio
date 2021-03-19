@@ -560,6 +560,23 @@ def extract_lod_cmd(lod):
     return processor
 
 
+@cli.command('rename_attribute')
+@click.argument('oldattr', type=str, nargs=1)
+@click.argument('newattr', type=str, nargs=1)
+def rename_attribute(oldattr, newattr):
+    """
+    Rename an attribute. 
+    If it's not present nothing is done, and its value is kept.
+    That's it.    
+
+        $ cjio myfile.city.json rename_attribute oldAttr newAttr info
+    """
+    def processor(cm):
+        utils.print_cmd_status('Rename attribute: "%s" => "%s"' % (oldattr, newattr))
+        cm.rename_attribute(oldattr, newattr)
+        return cm
+    return processor
+
 @cli.command('translate')
 @click.option('--values', nargs=3, type=float, help='(x, y, z)')
 def translate_cmd(values):
