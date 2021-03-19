@@ -1773,10 +1773,11 @@ class CityJSON:
             person that conducted the processing
         """
 
+        nu = datetime.now()
         new_item = {
             "processStep": {
                 "description": description,
-                "stepDateTime": str(date.today())
+                "stepDateTime": str(nu.isoformat()) + "Z"
             }
         }
 
