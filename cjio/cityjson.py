@@ -1740,8 +1740,7 @@ class CityJSON:
                 v[2] = z
         self.set_epsg(epsg)
         self.update_bbox()
-        if wascompressed == True:
-            self.compress()
+        self.compress()
 
 
     def extract_lod(self, thelod):
