@@ -1608,13 +1608,34 @@ class CityJSON:
         j2["version"] = CITYJSON_VERSIONS_SUPPORTED[-1]
         j2["CityObjects"] = {}
         j2["vertices"] = []
+        j2["transform"] = self.j["transform"]
         if "metadata" in self.j:
             j2["metadata"] = self.j["metadata"]
         if "extensions" in self.j:
             j2["extensions"] = self.j["extensions"]
         json_str = json.dumps(j2, separators=(',',':'))
         out.write(json_str + '\n')
-        out.write(json_str + '\n')
+        #-- take each IDs and create on CityJSONFeature
+        idsdone = set()
+        for theid in self.j["CityObjects"]:
+            if ("parents" not in self.j["CityObjects"][theid]) and (theid not in idsdone):
+                cm2 = self.get_subset_ids([theid])
+                cm2.j["type"] = "CityJSONFeature"
+                cm2.j["id"] = theid
+                del cm2.j["transform"]
+                del cm2.j["version"]
+                if "metadata" in cm2.j:
+                    del cm2.j["metadata"]
+                if "extensions" in cm2.j:
+                    del cm2.j["extensions"]
+                #-- TODO: remove and deal with geometry-templates here
+                #--       they need to be deferenced
+                if "geometry-templates" in cm2.j:
+                    print_cmd_warning("PANIC! geometry-templates cannot be processed yet")
+                json_str = json.dumps(cm2.j, separators=(',',':'))
+                out.write(json_str + '\n')
+                for theid2 in cm2.j["CityObjects"]:
+                    idsdone.add(theid)
         return out
 
     def export2obj(self):

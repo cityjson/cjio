@@ -188,7 +188,7 @@ def export_cmd(filename, format):
 
     def processor(cm):
         #-- mapbox_earcut available?
-        if (cityjson.MODULE_EARCUT_AVAILABLE == False):
+        if (format != 'jsonl') and (cityjson.MODULE_EARCUT_AVAILABLE == False):
             str = "OBJ|glTF|b3dm export skipped: Python module 'mapbox_earcut' missing (to triangulate faces)"
             click.echo(click.style(str, fg='red'))
             str = "Install it: https://pypi.org/project/mapbox-earcut/"
