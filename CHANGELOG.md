@@ -2,6 +2,11 @@
 
 
 
+## [0.6.8] - 2021-03-19
+### Changed
+- fix bug about datetime in schema but not put in metadata
+
+
 ## [0.6.7] - 2021-03-12
 ### Changed
 - fix bug: crash when validating files containing Extensions under Windows
