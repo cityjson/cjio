@@ -45,9 +45,9 @@ def cli(context, input, ignore_duplicate_keys):
     Usage examples:
 
     \b
-        cjio example.json info validate
-        cjio example.json subset --id house12 save out.json
-        cjio example.json assign_epsg 7145 remove_textures export --format obj output.obj
+        cjio example.city.json info validate
+        cjio example.city.json subset --id house12 save out.city.json
+        cjio example.city.json assign_epsg 7145 remove_textures export --format obj output.obj
     """
     context.obj = {"argument": input}
 
@@ -267,11 +267,11 @@ def validate_cmd(hide_errors, skip_schema, folder_schemas, long):
     If the file is too large (and thus validation is slow),
     an option is to crop a subset and just validate it:
 
-        $ cjio myfile.json subset --random 2 validate
+        $ cjio myfile.city.json subset --random 2 validate
     
     Get all the details of the validation and output to a text report:
     
-        $ cjio myfile.json validate --long > ~/temp/report.txt
+        $ cjio myfile.city.json validate --long > ~/temp/report.txt
     """
     def processor(cm):
         if folder_schemas is not None:
@@ -315,7 +315,7 @@ def merge_cmd(filepattern):
     
     Possible to give a wildcard but put it between quotes:
 
-        $ cjio myfile.json merge '/home/elvis/temp/*.json' info
+        $ cjio myfile.city.json merge '/home/elvis/temp/*.json' info
     """
     def processor(cm):
         utils.print_cmd_status('Merging files')
@@ -403,7 +403,7 @@ def remove_duplicate_vertices_cmd(precision):
     The precision is the number of digits to preserve, so
     millimeter precision that would be '3'.
 
-        $ cjio myfile.json remove_duplicate_vertices 3 info
+        $ cjio myfile.city.json remove_duplicate_vertices 3 info
     """
     def processor(cm):
         utils.print_cmd_status('Remove duplicate vertices')
@@ -495,12 +495,12 @@ def upgrade_version_cmd(digit):
     Upgrade the CityJSON to the latest version.
     It takes care of *everything* (touch wood).
 
-        $ cjio myfile.json upgrade_version
+        $ cjio myfile.city.json upgrade_version
     
     For v1.1+, the file needs to be compressed, and you can 
     speficy the number of digits to keep (default=3)
 
-        $ cjio myfile.json upgrade_version --digit 2
+        $ cjio myfile.city.json upgrade_version --digit 2
     """
     def processor(cm):
         vlatest = cityjson.CITYJSON_VERSIONS_SUPPORTED[-1]
