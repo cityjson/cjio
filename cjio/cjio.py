@@ -559,6 +559,22 @@ def extract_lod_cmd(lod):
         return cm
     return processor
 
+@cli.command('remove_attribute')
+@click.argument('attr', type=str, nargs=1)
+def remove_attribute(attr):
+    """
+    Remove an attribute. 
+    If it's not present nothing is done.
+    That's it.    
+
+        $ cjio myfile.city.json remove_attribute roofType info
+    """
+    def processor(cm):
+        utils.print_cmd_status('Remove attribute: "%s"' % attr)
+        cm.remove_attribute(attr)
+        return cm
+    return processor
+
 
 @cli.command('rename_attribute')
 @click.argument('oldattr', type=str, nargs=1)
