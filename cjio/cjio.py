@@ -315,7 +315,7 @@ def merge_cmd(filepattern):
     
     Possible to give a wildcard but put it between quotes:
 
-        $ cjio myfile.city.json merge '/home/elvis/temp/*.json' info
+        $ cjio myfile.city.json merge '/home/elvis/temp/*.json' save merged.city.json
     """
     def processor(cm):
         utils.print_cmd_status('Merging files')
@@ -495,12 +495,12 @@ def upgrade_version_cmd(digit):
     Upgrade the CityJSON to the latest version.
     It takes care of *everything* (touch wood).
 
-        $ cjio myfile.city.json upgrade_version
+        $ cjio myfile.city.json upgrade_version save upgraded.city.json
     
     For v1.1+, the file needs to be compressed, and you can 
     speficy the number of digits to keep (default=3)
 
-        $ cjio myfile.city.json upgrade_version --digit 2
+        $ cjio myfile.city.json upgrade_version --digit 2 save upgraded.city.json
     """
     def processor(cm):
         vlatest = cityjson.CITYJSON_VERSIONS_SUPPORTED[-1]
