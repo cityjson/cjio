@@ -1522,7 +1522,18 @@ class CityJSON:
                 del self.j['CityObjects'][theid]['geometry']
         #-- metadata calculate
         self.update_metadata(overwrite=True, new_uuid=True)
-        return (True, "")
+        #-- GenericCityObject are no longer
+        gco = False
+        for theid in self.j["CityObjects"]:
+            if self.j["CityObjects"][theid]['type'] == 'GenericCityObject':
+                self.j["CityObjects"][theid]['type'] = '+GenericCityObject'
+                gco = True
+        if gco == True:
+            reasons = '"GenericCityObject" is no longer in v1.1, you need to define an Extension.'
+            reasons += 'Your "GenericCityObject" have been changed to "+GenericCityObject"'
+            return (False, reasons)
+        else:
+            return (True, "")
 
 
     def upgrade_version(self, newversion, digit):
