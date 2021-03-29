@@ -352,33 +352,33 @@ class CityJSON:
 
             
     def fetch_schema(self, folder_schemas=None):
-        v = "-1"
-        if folder_schemas is None:
-            #-- fetch latest from x.y version (x.y.z)
+        if folder_schemas is not None:
+            schemahead = os.path.join(folder_schemas, 'cityjson.schema.json')  
+            #-- open the schema
+            try:
+                fins = open(schemahead)
+            except: 
+                return (False, None, '')
+            abs_path = os.path.abspath(os.path.dirname(schemahead))
+            #-- because Windows uses \ and not /        
+            if platform == "darwin" or platform == "linux" or platform == "linux2":
+                base_uri = 'file://{}/'.format(abs_path)
+            else:
+                base_uri = 'file:///{}/'.format(abs_path.replace('\\', '/'))
+            jstmp = jsonref.loads(fins.read(), jsonschema=True, base_uri=base_uri)
+            js_str = jsonref.dumps(jstmp, separators=(',',':'))
+            js = json.loads(js_str)
+            return (True, js, schemahead)
+        else: #-- fetch latest from x.y version (x.y.z)
             tmp = resource_listdir(__name__, '/schemas/')
             tmp.sort()
             v = tmp[-1]
             try:
-                schema = resource_filename(__name__, '/schemas/%s/cityjson.schema.json' % (v))
+                schemamin = resource_filename(__name__, '/schemas/%s/cityjson.min.schema.json' % (v))
             except:
                 return (False, None, '')
-        else:
-            schema = os.path.join(folder_schemas, 'cityjson.schema.json')  
-        #-- open the schema
-        try:
-            fins = open(schema)
-        except: 
-            return (False, None, '')
-        abs_path = os.path.abspath(os.path.dirname(schema))
-        #-- because Windows uses \ and not /        
-        if platform == "darwin" or platform == "linux" or platform == "linux2":
-            base_uri = 'file://{}/'.format(abs_path)
-        else:
-            base_uri = 'file:///{}/'.format(abs_path.replace('\\', '/'))
-        js = jsonref.loads(fins.read(), jsonschema=True, base_uri=base_uri)
-        if v == "-1":
-            v = schema
-        return (True, js, v)
+            js = json.loads(open(schemamin).read())
+            return (True, js, v)    
 
 
     def fetch_schema_cityobjects(self, folder_schemas=None):
@@ -504,7 +504,9 @@ class CityJSON:
         #-- only latest version, otherwise a mess with versions and different schemas
         #-- this is it, sorry people
         if (self.j["version"] != CITYJSON_VERSIONS_SUPPORTED[-1]):
-            return (False, True, ["Only files with version v%s can be validated." % (CITYJSON_VERSIONS_SUPPORTED[-1])], "")
+            s = "Only files with version v%s can be validated. " % (CITYJSON_VERSIONS_SUPPORTED[-1])
+            s += "However, you can validate it by saving the schemas locally and use the option '--folder_schemas'"
+            return (False, True, [s], "")
         es = []
         ws = []
         #-- 1. schema
@@ -514,12 +516,12 @@ class CityJSON:
             if b == False:
                 return (False, True, ["Can't find the schema."], [])
             else:
-                print ('\t(using the schemas %s)' % (v))
+                print ('\t(using the builtin schemas v%s)' % (v))
                 isValid, errs = validation.validate_against_schema(self.j, js, longerr)
                 if (isValid == False):
                     es += errs
                     return (False, True, es, [])
-
+        return (isValid, [], es, [])
         #-- 2. schema for Extensions
         if "extensions" in self.j:
             b, es = self.validate_extensions(folder_schemas)

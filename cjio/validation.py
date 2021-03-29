@@ -2,6 +2,7 @@
 import os
 import json
 import jsonschema
+import jsonschema_rs
 import jsonref
 
 #-- ERRORS
@@ -325,34 +326,25 @@ def unused_vertices(j):
     return (isValid, ws)
 
 
-def validate_against_schema(j, js, longerr):
-    isValid = True
-    es = []
-    #-- lazy validation to catch as many as possible
-    myvalidator = jsonschema.Draft7Validator(js, format_checker=jsonschema.FormatChecker())
-    for err in sorted(myvalidator.iter_errors(j), key=str):
-        isValid = False
-        if (longerr == False) and (len(err.relative_path) > 0) and (err.relative_path[0] == 'CityObjects'):
-            a = "CityObject is not schema-valid: " + err.relative_path[1]
-            es.append(a)
-        else:
-            es.append(err.message)
-    return (isValid, es)
+# def validate_against_schema(j, js, longerr):
+#     isValid = True
+#     es = []
+#     #-- lazy validation to catch as many as possible
+#     myvalidator = jsonschema.Draft7Validator(js, format_checker=jsonschema.FormatChecker())
+#     for err in sorted(myvalidator.iter_errors(j), key=str):
+#         isValid = False
+#         if (longerr == False) and (len(err.relative_path) > 0) and (err.relative_path[0] == 'CityObjects'):
+#             a = "CityObject is not schema-valid: " + err.relative_path[1]
+#             es.append(a)
+#         else:
+#             es.append(err.message)
+#     return (isValid, es)
 
-    # try:
-    #     jsonschema.Draft4Validator(js, format_checker=jsonschema.FormatChecker()).validate(j)
-    # except jsonschema.ValidationError as e:
-    #     raise Exception(e.message)
-    #     return False
-    # except jsonschema.SchemaError as e:
-    #     raise Exception(e.message)
-    #     return False
-    
-    # try:
-    #     jsonschema.validate(j, js, format_checker=jsonschema.FormatChecker())
-    # except jsonschema.ValidationError as e:
-    #     raise Exception(e.message)
-    #     return False
-    # except jsonschema.SchemaError as e:
-    #     raise Exception(e.message)
-    #     return False
+def validate_against_schema(j, js, longerr):
+    validator = jsonschema_rs.JSONSchema(js)
+    try:
+        validator.validate(j)
+        return (True, [])  
+    except jsonschema_rs.ValidationError as e:
+        return (False, [str(e)])  
+
