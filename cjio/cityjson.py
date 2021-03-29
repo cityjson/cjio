@@ -337,7 +337,7 @@ class CityJSON:
 
     def read(self, file, ignore_duplicate_keys=False):
         if ignore_duplicate_keys == True:
-            self.j = json.loads(file.read())
+            self.j = json.loads(file.read()) # TODO: fix with a try/except for json.decoder.JSONDecodeError
         else:
             try:
                 self.j = json.loads(file.read(), object_pairs_hook=validation.dict_raise_on_duplicates)
