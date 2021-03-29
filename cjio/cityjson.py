@@ -6,6 +6,9 @@ import shutil
 import json
 import collections
 import jsonref
+import urllib.request
+import tempfile
+import shutil
 from pkg_resources import resource_filename
 from pkg_resources import resource_listdir
 import copy
@@ -410,21 +413,36 @@ class CityJSON:
         if "extensions" not in self.j:
             print ("--- No extensions in the file.")
             return (True, [])
-        if folder_schemas is None:
-            #-- fetch proper schema from the stored ones 
-            tmp = resource_listdir(__name__, '/schemas/')
-            tmp.sort()
-            v = tmp[-1]
-            try:
-                schema = resource_filename(__name__, '/schemas/%s/cityjson.schema.json' % (v))
-                folder_schemas = os.path.abspath(os.path.dirname(schema))
-            except:
-                return (False, None)
-        isValid = True
         es = []
+        the_ext = {}
+        if folder_schemas is None:
+            #-- fetch extensions from the URLs given
+            for ext in self.j["extensions"]:
+                # s = self.j["extensions"][ext]["url"]
+                try:
+                    with urllib.request.urlopen(self.j["extensions"][ext]["url"]) as f:
+                        js = json.loads(f.read())
+                        the_ext[ext] = js
+                except:
+                    s = "Extension file '%s' doesn't exist." % self.j["extensions"][ext]["url"]
+                    return (False, [s])
+
+            # tmp = resource_listdir(__name__, '/schemas/')
+            # tmp.sort()
+            # v = tmp[-1]
+            # try:
+            #     schema = resource_filename(__name__, '/schemas/%s/cityjson.schema.json' % (v))
+            #     folder_schemas = os.path.abspath(os.path.dirname(schema))
+            # except:
+            #     return (False, None)
+
+        return (True, [])
+
+        isValid = True
         base_uri = os.path.join(folder_schemas, "extensions")
         base_uri = os.path.abspath(base_uri)
         allnewco = set()
+        
         #-- iterate over each Extensions, and verify each of the properties
         #-- in the file. Other way around is more cumbersome
         for ext in self.j["extensions"]:
@@ -521,7 +539,7 @@ class CityJSON:
                 if (isValid == False):
                     es += errs
                     return (False, True, es, [])
-        return (isValid, [], es, [])
+        # return (isValid, [], es, [])
         #-- 2. schema for Extensions
         if "extensions" in self.j:
             b, es = self.validate_extensions(folder_schemas)
@@ -558,7 +576,6 @@ class CityJSON:
             if b == False:
                 isValid = False
                 es += errs
-
         print("\t--Vertex indices coherent")
         b, errs = validation.wrong_vertex_index(self.j)
         if b == False:
@@ -587,9 +604,9 @@ class CityJSON:
             woWarnings = False
             ws += errs
         #-- fetch schema cityobjects.json
-        print("\t--CityGML attributes")
-        b, jsco = self.fetch_schema_cityobjects(folder_schemas)
-        b, errs = validation.citygml_attributes(self.j, jsco)
+        # print("\t--CityGML attributes")
+        # b, jsco = self.fetch_schema_cityobjects(folder_schemas)
+        # b, errs = validation.citygml_attributes(self.j, jsco)
         if b == False:
             woWarnings = False
             ws += errs
