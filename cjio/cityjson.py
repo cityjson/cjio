@@ -414,42 +414,52 @@ class CityJSON:
             print ("--- No extensions in the file.")
             return (True, [])
         es = []
-        the_ext = {}
-        tmp = resource_listdir(__name__, '/schemas/')
-        tmp.sort()
-        latestversion = tmp[-1]
+
+        tmpdirname = tempfile.TemporaryDirectory()
         if folder_schemas is None:
-            with tempfile.TemporaryDirectory() as tmpdirname:
-                # print('created temporary directory', tmpdirname)
-                os.chdir(tmpdirname)
-                os.mkdir("extensions")
-                os.chdir("./extensions")
-                #-- fetch extensions from the URLs given
-                for ext in self.j["extensions"]:
-                    theurl = self.j["extensions"][ext]["url"]
-                    try:
-                        with urllib.request.urlopen(self.j["extensions"][ext]["url"]) as f:
-                            s = theurl[theurl.rfind('/') + 1:]
-                            s = os.path.join(os.getcwd(), s)
-                            f2 = open(s, 'w')
-                            f2.write(f.read().decode('utf-8'))
-                    except:
-                        s = "Extension file '%s' doesn't exist." % self.j["extensions"][ext]["url"]
-                        return (False, [s])
-                #-- copy all the schemas to this tmp folder
-                allschemas = ["appearance.schema.json", 
-                              "cityjson.schema.json", 
-                              "cityobjects.schema.json", 
-                              "geomprimitives.schema.json", 
-                              "geomtemplates.schema.json", 
-                              "metadata.schema.json"]
-                for each in allschemas: 
-                    schema = resource_filename(__name__, '/schemas/%s/%s' % (latestversion, each))
-                    shutil.copy(schema, tmpdirname)
-                # print(os.listdir())
-                # print(os.listdir(tmpdirname))
+            tmp = resource_listdir(__name__, '/schemas/')
+            tmp.sort()
+            latestversion = tmp[-1]
+            os.chdir(tmpdirname.name)
+            os.mkdir("extensions")
+            os.chdir("./extensions")
+            #-- fetch extensions from the URLs given
+            for ext in self.j["extensions"]:
+                theurl = self.j["extensions"][ext]["url"]
+                print("\tDownloading '%s'..." % self.j["extensions"][ext]["url"])
+                try:
+                    with urllib.request.urlopen(self.j["extensions"][ext]["url"]) as f:
+                        s = theurl[theurl.rfind('/') + 1:]
+                        s = os.path.join(os.getcwd(), s)
+                        f2 = open(s, 'w')
+                        # f2.write(f.read().decode('utf-8'))
+                        tmp = json.loads(f.read().decode('utf-8'))
+                        tmp2 = json.dumps(tmp)
+                        f2.write(tmp2)
+                        f2.close()
+                except:
+                    s = "Extension file '%s' cannot be downloaded." % self.j["extensions"][ext]["url"]
+                    return (False, [s])
+            #-- copy all the schemas to this tmp folder
+            allschemas = ["appearance.schema.json", 
+                          "cityjson.schema.json", 
+                          "cityobjects.schema.json", 
+                          "geomprimitives.schema.json", 
+                          "geomtemplates.schema.json", 
+                          "metadata.schema.json"]
+            for each in allschemas: 
+                schema = resource_filename(__name__, '/schemas/%s/%s' % (latestversion, each))
+                shutil.copy(schema, tmpdirname.name)
+                # shutil.copy(schema, "/Users/hugo/temp/hhh/")
+            # print(os.listdir())
+            # print(os.listdir(tmpdirname.name))
+            folder_schemas = tmpdirname.name
 
 
+        # print(folder_schemas)
+        # print(os.listdir(folder_schemas))
+        # print(os.listdir(folder_schemas + "/extensions/"))
+        # return (True, [])
 
         isValid = True
         base_uri = os.path.join(folder_schemas, "extensions")
@@ -479,7 +489,7 @@ class CityJSON:
                     for theid in self.j["CityObjects"]:
                         if self.j["CityObjects"][theid]["type"] == nco:
                             nco1 = self.j["CityObjects"][theid]
-                            v, errs = validation.validate_against_schema(nco1, jsotf, longerr)
+                            v, errs = validation.validate_against_schema_old_slow_one(nco1, jsotf, longerr)
                             if (v == False):
                                 isValid = False
                                 es += errs
@@ -495,7 +505,7 @@ class CityJSON:
                     for p in self.j:
                         if p == nrp:
                             thep = self.j[p]
-                            v, errs = validation.validate_against_schema(thep, jsotf, longerr)
+                            v, errs = validation.validate_against_schema_old_slow_one(thep, jsotf, longerr)
                             if (v == False):
                                 isValid = False
                                 es += errs
@@ -514,7 +524,7 @@ class CityJSON:
                                  ("attributes" in self.j["CityObjects"][theid])    and
                                  (ea in self.j["CityObjects"][theid]["attributes"]) ):
                                 a = self.j["CityObjects"][theid]["attributes"][ea]
-                                v, errs = validation.validate_against_schema(a, jsotf, longerr)
+                                v, errs = validation.validate_against_schema_old_slow_one(a, jsotf, longerr)
                                 if (v == False):
                                     isValid = False
                                     es += errs
@@ -552,6 +562,7 @@ class CityJSON:
                 if (isValid == False):
                     es += errs
                     return (False, True, es, [])
+            print('\tSchema valid!')
         # return (isValid, [], es, [])
         #-- 2. schema for Extensions
         if "extensions" in self.j:
