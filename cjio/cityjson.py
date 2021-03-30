@@ -416,16 +416,25 @@ class CityJSON:
         es = []
         the_ext = {}
         if folder_schemas is None:
-            #-- fetch extensions from the URLs given
-            for ext in self.j["extensions"]:
-                # s = self.j["extensions"][ext]["url"]
-                try:
-                    with urllib.request.urlopen(self.j["extensions"][ext]["url"]) as f:
-                        js = json.loads(f.read())
-                        the_ext[ext] = js
-                except:
-                    s = "Extension file '%s' doesn't exist." % self.j["extensions"][ext]["url"]
-                    return (False, [s])
+            with tempfile.TemporaryDirectory() as tmpdirname:
+                print('created temporary directory', tmpdirname)
+                os.chdir(tmpdirname)
+                os.mkdir("extensions")
+                os.chdir("./extensions")
+                #-- fetch extensions from the URLs given
+                for ext in self.j["extensions"]:
+                    theurl = self.j["extensions"][ext]["url"]
+                    try:
+                        with urllib.request.urlopen(self.j["extensions"][ext]["url"]) as f:
+                            # s = f.read()
+                            s = theurl[theurl.rfind('/') + 1:]
+                            s = os.path.join(os.getcwd(), s)
+                            f2 = open(s, 'w')
+                            f2.write(f.read().decode('utf-8'))
+                    except:
+                        s = "Extension file '%s' doesn't exist." % self.j["extensions"][ext]["url"]
+                        return (False, [s])
+                print(os.listdir(tmpdirname))
 
             # tmp = resource_listdir(__name__, '/schemas/')
             # tmp.sort()
