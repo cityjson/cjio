@@ -415,9 +415,12 @@ class CityJSON:
             return (True, [])
         es = []
         the_ext = {}
+        tmp = resource_listdir(__name__, '/schemas/')
+        tmp.sort()
+        latestversion = tmp[-1]
         if folder_schemas is None:
             with tempfile.TemporaryDirectory() as tmpdirname:
-                print('created temporary directory', tmpdirname)
+                # print('created temporary directory', tmpdirname)
                 os.chdir(tmpdirname)
                 os.mkdir("extensions")
                 os.chdir("./extensions")
@@ -426,7 +429,6 @@ class CityJSON:
                     theurl = self.j["extensions"][ext]["url"]
                     try:
                         with urllib.request.urlopen(self.j["extensions"][ext]["url"]) as f:
-                            # s = f.read()
                             s = theurl[theurl.rfind('/') + 1:]
                             s = os.path.join(os.getcwd(), s)
                             f2 = open(s, 'w')
@@ -434,18 +436,20 @@ class CityJSON:
                     except:
                         s = "Extension file '%s' doesn't exist." % self.j["extensions"][ext]["url"]
                         return (False, [s])
-                print(os.listdir(tmpdirname))
+                #-- copy all the schemas to this tmp folder
+                allschemas = ["appearance.schema.json", 
+                              "cityjson.schema.json", 
+                              "cityobjects.schema.json", 
+                              "geomprimitives.schema.json", 
+                              "geomtemplates.schema.json", 
+                              "metadata.schema.json"]
+                for each in allschemas: 
+                    schema = resource_filename(__name__, '/schemas/%s/%s' % (latestversion, each))
+                    shutil.copy(schema, tmpdirname)
+                # print(os.listdir())
+                # print(os.listdir(tmpdirname))
 
-            # tmp = resource_listdir(__name__, '/schemas/')
-            # tmp.sort()
-            # v = tmp[-1]
-            # try:
-            #     schema = resource_filename(__name__, '/schemas/%s/cityjson.schema.json' % (v))
-            #     folder_schemas = os.path.abspath(os.path.dirname(schema))
-            # except:
-            #     return (False, None)
 
-        return (True, [])
 
         isValid = True
         base_uri = os.path.join(folder_schemas, "extensions")
