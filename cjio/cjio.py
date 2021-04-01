@@ -259,19 +259,18 @@ def save_cmd(filename, indent, textures):
               help='More gory details about the validation errors.')
 def validate_cmd(hide_errors, folder_schemas, turbo, long):
     """
-    Validate the CityJSON file: (1) against its schemas; (2) extra validations.
+    Validate the CityJSON file: (1) against its schemas;
+    (2) against the (potential) Extensions schemas;
+    (3) extra validations.
 
     The schemas are fetched automatically, based on the version of the file.
-    It's possible to specify schemas with the '--folder_schemas' option.
-    This is used when there are Extensions used.
-    
-    If the file is too large (and thus validation is slow),
-    an option is to crop a subset and just validate it:
+    It also tries to fetch the Extension schemas automatically.
+    It's possible to specify local schemas with the '--folder_schemas' option.
 
-        $ cjio myfile.city.json subset --random 2 validate
-    
-    Get all the details of the validation and output to a text report:
-    
+    \b
+        $ cjio myfile.city.json validate
+        $ cjio myfile.city.json validate --turbo
+        $ cjio myfile.city.json validate --folder_schemas /home/elvis/myschemas/
         $ cjio myfile.city.json validate --long > ~/temp/report.txt
     """
     def processor(cm):
@@ -280,20 +279,11 @@ def validate_cmd(hide_errors, folder_schemas, turbo, long):
                 click.echo(click.style("Folder for schemas unknown. Validation aborted.", fg='red'))
                 return cm
             else:
-                utils.print_cmd_status('===== Validation (with provided schemas) =====')
+                utils.print_cmd_status('Validation (with provided schemas)')
         else:
-            utils.print_cmd_status('===== Validation (with official CityJSON schemas) =====')
+            utils.print_cmd_status('Validation (with official CityJSON schemas)')
         #-- validate    
         bValid, woWarnings, errors, warnings = cm.validate(folder_schemas=folder_schemas, turbo=turbo, longerr=long)
-        click.echo('=====')
-        if bValid == True:
-            click.echo(click.style('File is valid', fg='green'))
-        else:    
-            click.echo(click.style('File is invalid', fg='red'))
-        if woWarnings == True:
-            click.echo(click.style('File has no warnings', fg='green'))
-        else:
-            click.echo(click.style('File has warnings', fg='red'))
         if not hide_errors and bValid is False:
             click.echo("--- ERRORS (total = %d) ---" % len(errors))
             for i, e in enumerate(errors):
@@ -302,7 +292,15 @@ def validate_cmd(hide_errors, folder_schemas, turbo, long):
             click.echo("--- WARNINGS ---")
             for e in warnings:
                 click.echo(e)
-        click.echo('=====================================')
+        click.echo('============================')
+        if bValid == True:
+            if woWarnings == True:
+                click.echo('🟢 File is valid')
+            else:
+                click.echo('🟡 File is valid but has warnings')
+        else:    
+            click.echo('🔴 File is invalid')
+        click.echo('============================')
         return cm
     return processor
 
