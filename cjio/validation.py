@@ -3,6 +3,7 @@ import os
 import json
 import jsonschema
 import jsonschema_rs
+import fastjsonschema
 import jsonref
 
 #-- ERRORS
@@ -340,7 +341,7 @@ def validate_against_schema_old_slow_one(j, js, longerr):
             es.append(err.message)
     return (isValid, es)
 
-def validate_against_schema(j, js, longerr):
+def validate_against_schema_turbo(j, js, longerr):
     validator = jsonschema_rs.JSONSchema(js)
     try:
         validator.validate(j)
@@ -348,3 +349,15 @@ def validate_against_schema(j, js, longerr):
     except jsonschema_rs.ValidationError as e:
         return (False, [str(e)])  
 
+def validate_against_schema(j, js, longerr):
+    validate = fastjsonschema.compile(js)
+    try:
+        validate(j)
+        return (True, [])  
+    except fastjsonschema.JsonSchemaException as e:
+        # print(e.value)
+        # print(e.name)
+        # print(e.definition)
+        # print(e.rule)
+        return (False, [str(e.message)])  
+        # return (False, [str(e.message) + " " + str(e.value)])  

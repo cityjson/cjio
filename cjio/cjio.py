@@ -251,12 +251,13 @@ def save_cmd(filename, indent, textures):
 
 @cli.command('validate')
 @click.option('--hide_errors', is_flag=True, help='Do not print all the errors.')
-@click.option('--skip_schema', is_flag=True, help='Skip the schema validation (since it can be painfully slow).')
 @click.option('--folder_schemas', 
               help='Specify a folder where the schemas are (cityjson.json needs to be the master file).')
+@click.option('--turbo', is_flag=True,
+              help='Use a super fast validator (but the errors returned are cryptic)')
 @click.option('--long', is_flag=True,
               help='More gory details about the validation errors.')
-def validate_cmd(hide_errors, skip_schema, folder_schemas, long):
+def validate_cmd(hide_errors, folder_schemas, turbo, long):
     """
     Validate the CityJSON file: (1) against its schemas; (2) extra validations.
 
@@ -283,7 +284,7 @@ def validate_cmd(hide_errors, skip_schema, folder_schemas, long):
         else:
             utils.print_cmd_status('===== Validation (with official CityJSON schemas) =====')
         #-- validate    
-        bValid, woWarnings, errors, warnings = cm.validate(skip_schema=skip_schema, folder_schemas=folder_schemas, longerr=long)
+        bValid, woWarnings, errors, warnings = cm.validate(folder_schemas=folder_schemas, turbo=turbo, longerr=long)
         click.echo('=====')
         if bValid == True:
             click.echo(click.style('File is valid', fg='green'))

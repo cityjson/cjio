@@ -450,7 +450,6 @@ class CityJSON:
             for each in allschemas: 
                 schema = resource_filename(__name__, '/schemas/%s/%s' % (latestversion, each))
                 shutil.copy(schema, tmpdirname.name)
-                # shutil.copy(schema, "/Users/hugo/temp/hhh/")
             # print(os.listdir())
             # print(os.listdir(tmpdirname.name))
             folder_schemas = tmpdirname.name
@@ -524,7 +523,8 @@ class CityJSON:
                                  ("attributes" in self.j["CityObjects"][theid])    and
                                  (ea in self.j["CityObjects"][theid]["attributes"]) ):
                                 a = self.j["CityObjects"][theid]["attributes"][ea]
-                                v, errs = validation.validate_against_schema_old_slow_one(a, jsotf, longerr)
+                                v, errs = validation.validate_against_schema(a, jsotf, longerr)
+                                # v, errs = validation.validate_against_schema_old_slow_one(a, jsotf, longerr)
                                 if (v == False):
                                     isValid = False
                                     es += errs
@@ -541,7 +541,7 @@ class CityJSON:
         return (isValid, es)
 
 
-    def validate(self, skip_schema=False, folder_schemas=None, longerr=False):
+    def validate(self, folder_schemas=None, turbo=False, longerr=False):
         #-- only latest version, otherwise a mess with versions and different schemas
         #-- this is it, sorry people
         if (self.j["version"] != CITYJSON_VERSIONS_SUPPORTED[-1]):
@@ -551,19 +551,20 @@ class CityJSON:
         es = []
         ws = []
         #-- 1. schema
-        if skip_schema == False:
-            print ('-- Validating the syntax of the file')
-            b, js, v = self.fetch_schema(folder_schemas)
-            if b == False:
-                return (False, True, ["Can't find the schema."], [])
+        print ('-- Validating the syntax of the file')
+        b, js, v = self.fetch_schema(folder_schemas)
+        if b == False:
+            return (False, True, ["Can't find the schema."], [])
+        else:
+            print ('\t(using the builtin schemas v%s)' % (v))
+            if turbo == True:
+                isValid, errs = validation.validate_against_schema_turbo(self.j, js, longerr)
             else:
-                print ('\t(using the builtin schemas v%s)' % (v))
                 isValid, errs = validation.validate_against_schema(self.j, js, longerr)
-                if (isValid == False):
-                    es += errs
-                    return (False, True, es, [])
-            print('\tSchema valid!')
-        # return (isValid, [], es, [])
+            if (isValid == False):
+                es += errs
+                return (False, True, es, [])
+        print('\tSchema valid!')
         #-- 2. schema for Extensions
         if "extensions" in self.j:
             b, es = self.validate_extensions(folder_schemas)
@@ -579,27 +580,12 @@ class CityJSON:
                     return (False, True, es, [])
 
         #-- 3. Internal consistency validation 
-        print ('-- Validating the internal consistency of the file (see docs for list)')
+        print('-- Validating the internal consistency of the file (see docs for list)')
         isValid = True
-        if float(self.j["version"]) == 0.6:
-            b, errs = validation.building_parts(self.j) 
-            if b == False:
-                isValid = False
-                es += errs
-            b, errs = validation.building_installations(self.j)
-            if b == False:
-                isValid = False
-                es += errs
-            b, errs = validation.building_pi_parent(self.j)
-            if b == False:
-                isValid = False
-                es += errs
-        #-- for v0.7+ (where the parent-child concept was introduced)                
-        else:
-            b, errs = validation.parent_children_consistency(self.j)
-            if b == False:
-                isValid = False
-                es += errs
+        b, errs = validation.parent_children_consistency(self.j)
+        if b == False:
+            isValid = False
+            es += errs
         print("\t--Vertex indices coherent")
         b, errs = validation.wrong_vertex_index(self.j)
         if b == False:
@@ -631,9 +617,9 @@ class CityJSON:
         # print("\t--CityGML attributes")
         # b, jsco = self.fetch_schema_cityobjects(folder_schemas)
         # b, errs = validation.citygml_attributes(self.j, jsco)
-        if b == False:
-            woWarnings = False
-            ws += errs
+        # if b == False:
+        #     woWarnings = False
+        #     ws += errs
         # TODO: validate address attributes?
         return (isValid, woWarnings, es, ws)
 
