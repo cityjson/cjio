@@ -344,9 +344,12 @@ def validate_against_schema(j, js, longerr):
         validate(j)
         return (True, [])  
     except fastjsonschema.JsonSchemaException as e:
+        # return (False, [str(e.message) + " " + str(e.value)])  
         # print(e.value)
         # print(e.name)
         # print(e.definition)
         # print(e.rule)
-        return (False, [str(e.message)])  
-        # return (False, [str(e.message) + " " + str(e.value)])  
+        if longerr == True:
+            return (False, [str(e.message) + " " + str(e.value)])  
+        else:
+            return (False, [str(e.message)])  

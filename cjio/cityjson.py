@@ -488,7 +488,8 @@ class CityJSON:
                     for theid in self.j["CityObjects"]:
                         if self.j["CityObjects"][theid]["type"] == nco:
                             nco1 = self.j["CityObjects"][theid]
-                            v, errs = validation.validate_against_schema_old_slow_one(nco1, jsotf, longerr)
+                            v, errs = validation.validate_against_schema(nco1, jsotf, longerr=True)
+                            # v, errs = validation.validate_against_schema_old_slow_one(nco1, jsotf, longerr=True)
                             if (v == False):
                                 isValid = False
                                 es += errs
@@ -504,7 +505,8 @@ class CityJSON:
                     for p in self.j:
                         if p == nrp:
                             thep = self.j[p]
-                            v, errs = validation.validate_against_schema_old_slow_one(thep, jsotf, longerr)
+                            v, errs = validation.validate_against_schema(thep, jsotf, longerr=True)
+                            # v, errs = validation.validate_against_schema_old_slow_one(thep, jsotf, longerr=True)
                             if (v == False):
                                 isValid = False
                                 es += errs
@@ -523,7 +525,7 @@ class CityJSON:
                                  ("attributes" in self.j["CityObjects"][theid])    and
                                  (ea in self.j["CityObjects"][theid]["attributes"]) ):
                                 a = self.j["CityObjects"][theid]["attributes"][ea]
-                                v, errs = validation.validate_against_schema(a, jsotf, longerr)
+                                v, errs = validation.validate_against_schema(a, jsotf, longerr=True)
                                 # v, errs = validation.validate_against_schema_old_slow_one(a, jsotf, longerr)
                                 if (v == False):
                                     isValid = False
@@ -564,7 +566,6 @@ class CityJSON:
             if (isValid == False):
                 es += errs
                 return (False, True, es, [])
-        print('\tSchema valid!')
         #-- 2. schema for Extensions
         if "extensions" in self.j:
             b, es = self.validate_extensions(folder_schemas)
@@ -614,12 +615,12 @@ class CityJSON:
             woWarnings = False
             ws += errs
         #-- fetch schema cityobjects.json
-        # print("\t--CityGML attributes")
-        # b, jsco = self.fetch_schema_cityobjects(folder_schemas)
-        # b, errs = validation.citygml_attributes(self.j, jsco)
-        # if b == False:
-        #     woWarnings = False
-        #     ws += errs
+        print("\t--CityGML attributes")
+        b, jsco = self.fetch_schema_cityobjects(folder_schemas)
+        b, errs = validation.citygml_attributes(self.j, jsco)
+        if b == False:
+            woWarnings = False
+            ws += errs
         # TODO: validate address attributes?
         return (isValid, woWarnings, es, ws)
 
