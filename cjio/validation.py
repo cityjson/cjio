@@ -188,26 +188,15 @@ def get_list_attributes_from_schema(n, ls):
             if ( (type(each) is dict) or (type(each) is jsonref.JsonRef) or (type(each) is list) ):
                 get_list_attributes_from_schema(each, ls)
 
-
-    # if 'address' in j['CityObjects'][id]:
-    #     tmp = js[str(cotype)]["properties"]["address"]["properties"]                        
-    #     for a in j['CityObjects'][id]['address']:
-    #         if a not in tmp:
-    #             isValid = False;
-    #             s = "WARNING: address attributes '" + a + "' not in CityGML schema"
-    #             if s not in thewarnings:
-    #                 thewarnings[s] = [id]
-    #             else:
-    #                 thewarnings[s].append(id)                        
+                      
 
 def citygml_attributes(j, js):
     isValid = True
     thewarnings = {}
     for id in j["CityObjects"]:
         cotype = j['CityObjects'][id]['type']
-        if cotype[0] == "+":
+        if cotype[0] == "+": #-- those are validated with the extension validation
             continue
-            # TODO : implement for attributes of Extensions?
         ls = []
         get_list_attributes_from_schema(js[cotype], ls)
         if 'attributes' in j['CityObjects'][id]:
