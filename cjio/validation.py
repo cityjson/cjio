@@ -63,66 +63,6 @@ def parent_children_consistency(j):
     return (isValid, es)
 
 
-def building_parts(j):
-    isValid = True
-    es = []
-    for id in j["CityObjects"]:
-        if (j['CityObjects'][id]['type'] == 'Building') and ('Parts' in j['CityObjects'][id]):
-            for each in j['CityObjects'][id]['Parts']:
-                if (each in j['CityObjects']) and (j['CityObjects'][each]['type'] == 'BuildingPart'):
-                    pass
-                else:
-                    s = "BuildingPart #" + each + " doesn't exist."
-                    s += " (Building #" + id + " references it)"   
-                    es.append(s)
-                    isValid = False
-    return (isValid, es)
-
-
-def building_installations(j):
-    isValid = True
-    es = []
-    for id in j["CityObjects"]:
-        if (j['CityObjects'][id]['type'] == 'Building') and ('Installations' in j['CityObjects'][id]):
-            for each in j['CityObjects'][id]['Installations']:
-                if (each in j['CityObjects']) and (j['CityObjects'][each]['type'] == 'BuildingInstallation'):
-                    pass
-                else:
-                    s = "BuildingInstallation #" + each + " doesn't exist."
-                    s += " (Building #" + id + " references it)"
-                    es.append(s)
-                    isValid = False
-    return (isValid, es)
-
-
-def building_pi_parent(j):
-    isValid = True
-    es = []
-    pis = set()
-    for id in j["CityObjects"]:
-        if j['CityObjects'][id]['type'] == 'BuildingPart' or j['CityObjects'][id]['type'] == 'BuildingInstallation':
-            pis.add(id)
-    for id in j["CityObjects"]:
-        if j['CityObjects'][id]['type'] == 'Building':
-            if 'Parts' in j['CityObjects'][id]:
-                for pid in j['CityObjects'][id]['Parts']:
-                    if pid in pis:
-                        pis.remove(pid)
-        if j['CityObjects'][id]['type'] == 'Building':
-            if 'Installations' in j['CityObjects'][id]:
-                for pid in j['CityObjects'][id]['Installations']:
-                    if pid in pis:
-                        pis.remove(pid)
-    if len(pis) > 0:
-        isValid = False
-        s = "BuildingParts and/or BuildingInstallations don't have a parent: "
-        es.append(s)
-        for each in pis:
-            s += " #" + each
-            es.append(s)
-    return (isValid, es)
-
-
 def semantics_array(j):
     isValid = True
     es = []
