@@ -93,7 +93,7 @@ def process_pipeline(processors, input, ignore_duplicate_keys):
             elif (cm.get_version() != cityjson.CITYJSON_VERSIONS_SUPPORTED[-1]):
                 str1 = "v%s is not the latest version, and not everything will work.\n" % cm.get_version()
                 str1 += "Upgrade the file with 'upgrade_version' command: 'cjio input.json upgrade_version save out.json'" 
-                click.echo(click.style(str1, fg='red'))
+                utils.print_cmd_alert(str1)
     except ValueError as e:
         raise click.ClickException('%s: "%s".' % (e, input))
     except IOError as e:
@@ -189,7 +189,7 @@ def export_cmd(filename, format):
         #-- mapbox_earcut available?
         if (format != 'jsonl') and (cityjson.MODULE_EARCUT_AVAILABLE == False):
             str = "OBJ|glTF|b3dm export skipped: Python module 'mapbox_earcut' missing (to triangulate faces)"
-            click.echo(click.style(str, fg='red'))
+            utils.print_cmd_warning(str)
             str = "Install it: https://pypi.org/project/mapbox-earcut/"
             click.echo(str)
             return cm
@@ -272,7 +272,7 @@ def validate_cmd(folder_schemas, moredetails):
     def processor(cm):
         if folder_schemas is not None:
             if os.path.exists(folder_schemas) == False:
-                click.echo(click.style("Folder for schemas unknown. Validation aborted.", fg='red'))
+                utils.print_cmd_warning("Folder for schemas unknown. Validation aborted.")
                 return cm
             else:
                 utils.print_cmd_status('Validation (with provided schemas)')
@@ -470,7 +470,7 @@ def update_crs_cmd(epsg):
     def processor(cm):
         if (cityjson.MODULE_PYPROJ_AVAILABLE == False):
             str = "Reprojection skipped: Python module 'pyproj' missing (to reproject coordinates)"
-            click.echo(click.style(str, fg='red'))
+            utils.print_cmd_warning(str)
             str = "Install it: https://pypi.org/project/pyproj/"
             click.echo(str)
             return cm
@@ -502,7 +502,7 @@ def upgrade_version_cmd(digit):
         utils.print_cmd_status('Upgrade CityJSON file to v%s' % vlatest)
         re, reasons = cm.upgrade_version(vlatest, digit)
         if (re == False):
-            click.echo(click.style("WARNING: %s" % (reasons), fg='red'))
+            utils.print_cmd_warning("WARNING: %s" % (reasons))
         return cm
     return processor
 
