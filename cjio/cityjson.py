@@ -411,10 +411,9 @@ class CityJSON:
     def validate_extensions(self, folder_schemas=None, longerr=False):
         print ('-- Validating the Extensions')
         if "extensions" not in self.j:
-            print ("--- No extensions in the file.")
+            print ("\tno extensions found in the file")
             return (True, [])
         es = []
-
         tmpdirname = tempfile.TemporaryDirectory()
         if folder_schemas is None:
             tmp = resource_listdir(__name__, '/schemas/')
@@ -543,13 +542,13 @@ class CityJSON:
         return (isValid, es)
 
 
-    def validate(self, folder_schemas=None, turbo=False, longerr=False):
+    def validate(self, folder_schemas=None, longerr=False):
         #-- only latest version, otherwise a mess with versions and different schemas
         #-- this is it, sorry people
         if (self.j["version"] != CITYJSON_VERSIONS_SUPPORTED[-1]):
             s = "Only files with version v%s can be validated. " % (CITYJSON_VERSIONS_SUPPORTED[-1])
             s += "However, you can validate it by saving the schemas locally and use the option '--folder_schemas'"
-            return (False, True, [s], "")
+            return (False, True, [s], [])
         es = []
         ws = []
         #-- 1. schema
@@ -559,69 +558,90 @@ class CityJSON:
             return (False, True, ["Can't find the schema."], [])
         else:
             print ('\t(using the builtin schemas v%s)' % (v))
-            if turbo == True:
-                isValid, errs = validation.validate_against_schema_turbo(self.j, js, longerr)
-            else:
+            if longerr == True:
                 isValid, errs = validation.validate_against_schema(self.j, js, longerr)
+            else:
+                isValid, errs = validation.validate_against_schema_turbo(self.j, js, longerr)
             if (isValid == False):
                 es += errs
                 return (False, True, es, [])
+            else: 
+                print('\tfile is schema-valid')
         #-- 2. schema for Extensions
-        if "extensions" in self.j:
-            b, es = self.validate_extensions(folder_schemas)
-            if b == False:
-                return (b, True, es, [])
-        else:
-            #-- check that there are no +CityObject that do not have a schema
-            #-- (used if the file has no "extensions" property while there are +Pand for instance)
-            for theid in self.j["CityObjects"]:
-                if ( (self.j["CityObjects"][theid]["type"][0] == "+") ):
-                    s = "ERROR:   CityObject " + self.j["CityObjects"][theid]["type"] + " doesn't have a schema."
-                    es.append(s)
-                    return (False, True, es, [])
+        b, es = self.validate_extensions(folder_schemas)
+        if b == False:
+            return (b, True, es, [])
+        #-- check that there are no +CityObject that do not have a schema
+        #-- (used if the file has no "extensions" property while there are +Pand for instance)
+        for theid in self.j["CityObjects"]:
+            if ( (self.j["CityObjects"][theid]["type"][0] == "+") ):
+                s = "ERROR:   CityObject " + self.j["CityObjects"][theid]["type"] + " doesn't have a schema."
+                es.append(s)
+                return (False, True, es, [])
 
         #-- 3. Internal consistency validation 
         print('-- Validating the internal consistency of the file (see docs for list)')
         isValid = True
+        #--
         b, errs = validation.parent_children_consistency(self.j)
         if b == False:
             isValid = False
             es += errs
-        print("\t--Vertex indices coherent")
+            print("\t--Parents-children consistency... oupsie")
+        else:
+            print("\t--Parents-children consistency... ok")
+        #--
         b, errs = validation.wrong_vertex_index(self.j)
         if b == False:
             isValid = False
             es += errs
-        print("\t--Semantic arrays coherent with geometry")
+            print("\t--Vertex indices coherent... oupsie")
+        else:
+            print("\t--Vertex indices coherent... ok")
+        #--
         b, errs = validation.semantics_array(self.j)
         if b == False:
             isValid = False
             es += errs
+            print("\t--Semantic arrays coherent with geometry... oupsie")
+        else:
+            print("\t--Semantic arrays coherent with geometry... ok")
         #-- 4. WARNINGS
         woWarnings = True
-        print("\t--Root properties")
+        #--
         b, errs = validation.cityjson_properties(self.j, js)
         if b == False:
             woWarnings = False
             ws += errs
-        print("\t--Duplicate vertices")
+            print("\t--Root properties... oupsie")
+        else:
+            print("\t--Root properties... ok")
+        #--
         b, errs = validation.duplicate_vertices(self.j)
         if b == False:
             woWarnings = False
             ws += errs
-        print("\t--Unused vertices")
+            print("\t--Duplicate vertices... oupsie")
+        else:
+            print("\t--Duplicate vertices... ok")
+        #--
         b, errs = validation.unused_vertices(self.j)
         if b == False:
             woWarnings = False
             ws += errs
+            print("\t--Unused vertices... oupsie")
+        else:
+            print("\t--Unused vertices... ok")
+        #-- 
         #-- fetch schema cityobjects.json
-        print("\t--CityGML attributes")
         b, jsco = self.fetch_schema_cityobjects(folder_schemas)
         b, errs = validation.citygml_attributes(self.j, jsco)
         if b == False:
             woWarnings = False
             ws += errs
-        # TODO: validate address attributes?
+            print("\t--CityGML attributes... oupsie")
+        else:
+            print("\t--CityGML attributes... ok")
         return (isValid, woWarnings, es, ws)
 
 

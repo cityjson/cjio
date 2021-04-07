@@ -250,14 +250,11 @@ def save_cmd(filename, indent, textures):
     return processor
 
 @cli.command('validate')
-@click.option('--hide_errors', is_flag=True, help='Do not print all the errors.')
 @click.option('--folder_schemas', 
               help='Specify a folder where the schemas are (cityjson.json needs to be the master file).')
-@click.option('--turbo', is_flag=True,
-              help='Use a super fast validator (but the errors returned are cryptic)')
-@click.option('--long', is_flag=True,
-              help='More gory details about the validation errors.')
-def validate_cmd(hide_errors, folder_schemas, turbo, long):
+@click.option('--moredetails', is_flag=True,
+              help='Use a slower validation that *could* print out better errors.')
+def validate_cmd(folder_schemas, moredetails):
     """
     Validate the CityJSON file: (1) against its schemas;
     (2) against the (potential) Extensions schemas;
@@ -269,9 +266,8 @@ def validate_cmd(hide_errors, folder_schemas, turbo, long):
 
     \b
         $ cjio myfile.city.json validate
-        $ cjio myfile.city.json validate --turbo
+        $ cjio myfile.city.json validate --moredetails
         $ cjio myfile.city.json validate --folder_schemas /home/elvis/myschemas/
-        $ cjio myfile.city.json validate --long > ~/temp/report.txt
     """
     def processor(cm):
         if folder_schemas is not None:
@@ -283,24 +279,24 @@ def validate_cmd(hide_errors, folder_schemas, turbo, long):
         else:
             utils.print_cmd_status('Validation (with official CityJSON schemas)')
         #-- validate    
-        bValid, woWarnings, errors, warnings = cm.validate(folder_schemas=folder_schemas, turbo=turbo, longerr=long)
-        if not hide_errors and bValid is False:
+        bValid, woWarnings, errors, warnings = cm.validate(folder_schemas=folder_schemas, longerr=moredetails)
+        if bValid is False:
             click.echo("--- ERRORS (total = %d) ---" % len(errors))
             for i, e in enumerate(errors):
                 click.echo(str(i + 1) + " ==> " + e + "\n")
-        if not hide_errors and woWarnings is False:
-            click.echo("--- WARNINGS ---")
-            for e in warnings:
-                click.echo(e)
-        click.echo('============================')
+        if woWarnings is False:
+            click.echo("--- WARNINGS (total = %d) ---" % len(warnings))
+            for i, e in enumerate(warnings):
+                click.echo(str(i + 1) + " ==> " + e + "\n")
+        click.echo('=====================================')
         if bValid == True:
             if woWarnings == True:
                 click.echo('🟢 File is valid')
             else:
-                click.echo('🟡 File is valid but has warnings')
+                click.echo('🟡 File is valid but has %d warnings' % len(warnings))
         else:    
             click.echo('🔴 File is invalid')
-        click.echo('============================')
+        click.echo('=====================================')
         return cm
     return processor
 

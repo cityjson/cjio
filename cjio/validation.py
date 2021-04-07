@@ -143,23 +143,22 @@ def citygml_attributes(j, js):
             for a in j['CityObjects'][id]['attributes']:
                 if ( (a[0] != "+") and (a not in ls) ):
                     isValid = False;
-                    s = "WARNING: attributes '" + a + "' not in CityGML schema"
+                    s = "attributes '" + a + "' not in CityGML schema"
                     if s not in thewarnings:
                         thewarnings[s] = [id]
                     else:
                         thewarnings[s].append(id)
     ws = []
     for each in thewarnings:
-        ws.append(each)
-        s = ""
+        # s = ""
         if len(thewarnings[each]) < 3:
-            s += "\t("
+            each += " ("
             for coid in thewarnings[each]:
-                s += " #" + coid + " "
-            s += ")"
+                each += " #" + coid + " "
+            each += ")"
         else:
-            s += "\t(" + str(len(thewarnings[each])) + " CityObjects have this warning)"
-        ws.append(s)
+            each += " (" + str(len(thewarnings[each])) + " CityObjects have this warning)"
+        ws.append(each)
     return (isValid, ws)
 
 
@@ -172,8 +171,7 @@ def wrong_vertex_index(j):
             if (each >= len(j['vertices'])):
                 es = []
                 s = "ERROR:   CityObject #" + co + " has geometry with wrong vertex."
-                es.append(s)
-                s = "\t(vertex #" + str(each) + " doesn't exist)"   
+                s += " (vertex #" + str(each) + " doesn't exist)"   
                 es.append(s)
                 errs.append(es)
     errs = []
@@ -197,7 +195,7 @@ def cityjson_properties(j, js):
     for property in j:
         if ( ((property[0] != "+") and (property[0] != "@")) and (property not in js["properties"]) ):
             isValid = False
-            s = "WARNING: root property '" + property + "' not in CityJSON schema, might be ignored by some parsers"
+            s = "root property '" + property + "' not in CityJSON schema, might be ignored by some parsers"
             ws.append(s)
     return (isValid, ws)
 
@@ -214,13 +212,14 @@ def duplicate_vertices(j):
         else:
             thev.add(s)
     if len(duplicates) > 0:
-        s = 'WARNING: there are ' + str(len(duplicates)) + ' duplicate vertices in j["vertices"]'
-        ws.append(s)
         isValid = False
-    if len(duplicates) < 10:
-        for v in duplicates:
-            s = '\t(' + v + ')'
-            ws.append(s)
+        s = 'there are ' + str(len(duplicates)) + ' duplicate vertices in j["vertices"]'
+        if len(duplicates) <= 5:
+            s += " ("
+            for v in duplicates:
+                s += '[' + v + ']'
+            s += ")"
+        ws.append(s)
     return (isValid, ws)
 
 
@@ -240,19 +239,21 @@ def unused_vertices(j):
                 recusionvisit(g["boundaries"], ids)
     noorphans = len(j["vertices"]) - len(ids)
     if noorphans > 0:
-        s = 'WARNING: there are ' + str(noorphans) + ' unused vertices in j["vertices"]'
-        ws.append(s)
         isValid = False
-    if noorphans < 5:
-        all = set()
-        for i in range(len(j["vertices"])):
-            all.add(i)
-        symdiff = all.symmetric_difference(ids)
-        s = '\t['
-        for each in symdiff:
-            s += str(each) + ', '
-        s += ']'
-        ws.append(s)
+        if noorphans > 5:
+            s = 'there are ' + str(noorphans) + ' unused vertices in j["vertices"]'
+            ws.append(s)
+        else:
+            s = 'there are ' + str(noorphans) + ' unused vertices in j["vertices"]'
+            all = set()
+            for i in range(len(j["vertices"])):
+                all.add(i)
+            symdiff = all.symmetric_difference(ids)
+            s += ' ( '
+            for each in symdiff:
+                s += '#' + str(each) + ' '
+            s += ')'
+            ws.append(s)
     return (isValid, ws)
 
 
