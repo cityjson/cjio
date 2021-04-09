@@ -6,6 +6,9 @@ import shutil
 import json
 import collections
 import jsonref
+import urllib.request
+import tempfile
+import shutil
 from pkg_resources import resource_filename
 from pkg_resources import resource_listdir
 import copy
@@ -337,7 +340,10 @@ class CityJSON:
 
     def read(self, file, ignore_duplicate_keys=False):
         if ignore_duplicate_keys == True:
-            self.j = json.loads(file.read()) # TODO: fix with a try/except for json.decoder.JSONDecodeError
+            try:
+                self.j = json.loads(file.read()) 
+            except json.decoder.JSONDecodeError as err:
+                raise err
         else:
             try:
                 self.j = json.loads(file.read(), object_pairs_hook=validation.dict_raise_on_duplicates)
@@ -352,33 +358,33 @@ class CityJSON:
 
             
     def fetch_schema(self, folder_schemas=None):
-        v = "-1"
-        if folder_schemas is None:
-            #-- fetch latest from x.y version (x.y.z)
+        if folder_schemas is not None:
+            schemahead = os.path.join(folder_schemas, 'cityjson.schema.json')  
+            #-- open the schema
+            try:
+                fins = open(schemahead)
+            except: 
+                return (False, None, '')
+            abs_path = os.path.abspath(os.path.dirname(schemahead))
+            #-- because Windows uses \ and not /        
+            if platform == "darwin" or platform == "linux" or platform == "linux2":
+                base_uri = 'file://{}/'.format(abs_path)
+            else:
+                base_uri = 'file:///{}/'.format(abs_path.replace('\\', '/'))
+            jstmp = jsonref.loads(fins.read(), jsonschema=True, base_uri=base_uri)
+            js_str = jsonref.dumps(jstmp, separators=(',',':'))
+            js = json.loads(js_str)
+            return (True, js, schemahead)
+        else: #-- fetch latest from x.y version (x.y.z)
             tmp = resource_listdir(__name__, '/schemas/')
             tmp.sort()
             v = tmp[-1]
             try:
-                schema = resource_filename(__name__, '/schemas/%s/cityjson.schema.json' % (v))
+                schemamin = resource_filename(__name__, '/schemas/%s/cityjson.min.schema.json' % (v))
             except:
                 return (False, None, '')
-        else:
-            schema = os.path.join(folder_schemas, 'cityjson.schema.json')  
-        #-- open the schema
-        try:
-            fins = open(schema)
-        except: 
-            return (False, None, '')
-        abs_path = os.path.abspath(os.path.dirname(schema))
-        #-- because Windows uses \ and not /        
-        if platform == "darwin" or platform == "linux" or platform == "linux2":
-            base_uri = 'file://{}/'.format(abs_path)
-        else:
-            base_uri = 'file:///{}/'.format(abs_path.replace('\\', '/'))
-        js = jsonref.loads(fins.read(), jsonschema=True, base_uri=base_uri)
-        if v == "-1":
-            v = schema
-        return (True, js, v)
+            js = json.loads(open(schemamin).read())
+            return (True, js, v)    
 
 
     def fetch_schema_cityobjects(self, folder_schemas=None):
@@ -408,23 +414,59 @@ class CityJSON:
     def validate_extensions(self, folder_schemas=None, longerr=False):
         print ('-- Validating the Extensions')
         if "extensions" not in self.j:
-            print ("--- No extensions in the file.")
+            print ("\tno extensions found in the file")
             return (True, [])
+        es = []
+        tmpdirname = tempfile.TemporaryDirectory()
         if folder_schemas is None:
-            #-- fetch proper schema from the stored ones 
             tmp = resource_listdir(__name__, '/schemas/')
             tmp.sort()
-            v = tmp[-1]
-            try:
-                schema = resource_filename(__name__, '/schemas/%s/cityjson.schema.json' % (v))
-                folder_schemas = os.path.abspath(os.path.dirname(schema))
-            except:
-                return (False, None)
+            latestversion = tmp[-1]
+            os.chdir(tmpdirname.name)
+            os.mkdir("extensions")
+            os.chdir("./extensions")
+            #-- fetch extensions from the URLs given
+            for ext in self.j["extensions"]:
+                theurl = self.j["extensions"][ext]["url"]
+                print("\tDownloading '%s'..." % self.j["extensions"][ext]["url"])
+                try:
+                    with urllib.request.urlopen(self.j["extensions"][ext]["url"]) as f:
+                        s = theurl[theurl.rfind('/') + 1:]
+                        s = os.path.join(os.getcwd(), s)
+                        f2 = open(s, 'w')
+                        # f2.write(f.read().decode('utf-8'))
+                        tmp = json.loads(f.read().decode('utf-8'))
+                        tmp2 = json.dumps(tmp)
+                        f2.write(tmp2)
+                        f2.close()
+                except:
+                    s = "Extension file '%s' cannot be downloaded." % self.j["extensions"][ext]["url"]
+                    return (False, [s])
+            #-- copy all the schemas to this tmp folder
+            allschemas = ["appearance.schema.json", 
+                          "cityjson.schema.json", 
+                          "cityobjects.schema.json", 
+                          "geomprimitives.schema.json", 
+                          "geomtemplates.schema.json", 
+                          "metadata.schema.json"]
+            for each in allschemas: 
+                schema = resource_filename(__name__, '/schemas/%s/%s' % (latestversion, each))
+                shutil.copy(schema, tmpdirname.name)
+            # print(os.listdir())
+            # print(os.listdir(tmpdirname.name))
+            folder_schemas = tmpdirname.name
+
+
+        # print(folder_schemas)
+        # print(os.listdir(folder_schemas))
+        # print(os.listdir(folder_schemas + "/extensions/"))
+        # return (True, [])
+
         isValid = True
-        es = []
         base_uri = os.path.join(folder_schemas, "extensions")
         base_uri = os.path.abspath(base_uri)
         allnewco = set()
+        
         #-- iterate over each Extensions, and verify each of the properties
         #-- in the file. Other way around is more cumbersome
         for ext in self.j["extensions"]:
@@ -448,7 +490,8 @@ class CityJSON:
                     for theid in self.j["CityObjects"]:
                         if self.j["CityObjects"][theid]["type"] == nco:
                             nco1 = self.j["CityObjects"][theid]
-                            v, errs = validation.validate_against_schema(nco1, jsotf, longerr)
+                            v, errs = validation.validate_against_schema(nco1, jsotf, longerr=True)
+                            # v, errs = validation.validate_against_schema_old_slow_one(nco1, jsotf, longerr=True)
                             if (v == False):
                                 isValid = False
                                 es += errs
@@ -464,7 +507,8 @@ class CityJSON:
                     for p in self.j:
                         if p == nrp:
                             thep = self.j[p]
-                            v, errs = validation.validate_against_schema(thep, jsotf, longerr)
+                            v, errs = validation.validate_against_schema(thep, jsotf, longerr=True)
+                            # v, errs = validation.validate_against_schema_old_slow_one(thep, jsotf, longerr=True)
                             if (v == False):
                                 isValid = False
                                 es += errs
@@ -483,7 +527,8 @@ class CityJSON:
                                  ("attributes" in self.j["CityObjects"][theid])    and
                                  (ea in self.j["CityObjects"][theid]["attributes"]) ):
                                 a = self.j["CityObjects"][theid]["attributes"][ea]
-                                v, errs = validation.validate_against_schema(a, jsotf, longerr)
+                                v, errs = validation.validate_against_schema(a, jsotf, longerr=True)
+                                # v, errs = validation.validate_against_schema_old_slow_one(a, jsotf, longerr)
                                 if (v == False):
                                     isValid = False
                                     es += errs
@@ -500,98 +545,106 @@ class CityJSON:
         return (isValid, es)
 
 
-    def validate(self, skip_schema=False, folder_schemas=None, longerr=False):
+    def validate(self, folder_schemas=None, longerr=False):
         #-- only latest version, otherwise a mess with versions and different schemas
         #-- this is it, sorry people
         if (self.j["version"] != CITYJSON_VERSIONS_SUPPORTED[-1]):
-            return (False, True, ["Only files with version v%s can be validated." % (CITYJSON_VERSIONS_SUPPORTED[-1])], "")
+            s = "Only files with version v%s can be validated. " % (CITYJSON_VERSIONS_SUPPORTED[-1])
+            s += "However, you can validate it by saving the schemas locally and use the option '--folder_schemas'"
+            return (False, True, [s], [])
         es = []
         ws = []
         #-- 1. schema
-        if skip_schema == False:
-            print ('-- Validating the syntax of the file')
-            b, js, v = self.fetch_schema(folder_schemas)
-            if b == False:
-                return (False, True, ["Can't find the schema."], [])
-            else:
-                print ('\t(using the schemas %s)' % (v))
-                isValid, errs = validation.validate_against_schema(self.j, js, longerr)
-                if (isValid == False):
-                    es += errs
-                    return (False, True, es, [])
-
-        #-- 2. schema for Extensions
-        if "extensions" in self.j:
-            b, es = self.validate_extensions(folder_schemas)
-            if b == False:
-                return (b, True, es, [])
+        print ('-- Validating the syntax of the file')
+        b, js, v = self.fetch_schema(folder_schemas)
+        if b == False:
+            return (False, True, ["Can't find the schema."], [])
         else:
-            #-- check that there are no +CityObject that do not have a schema
-            #-- (used if the file has no "extensions" property while there are +Pand for instance)
-            for theid in self.j["CityObjects"]:
-                if ( (self.j["CityObjects"][theid]["type"][0] == "+") ):
-                    s = "ERROR:   CityObject " + self.j["CityObjects"][theid]["type"] + " doesn't have a schema."
-                    es.append(s)
-                    return (False, True, es, [])
+            print ('\t(using the builtin schemas v%s)' % (v))
+            if longerr == True:
+                isValid, errs = validation.validate_against_schema(self.j, js, longerr)
+            else:
+                isValid, errs = validation.validate_against_schema_turbo(self.j, js, longerr)
+            if (isValid == False):
+                es += errs
+                return (False, True, es, [])
+            else: 
+                print('\tfile is schema-valid')
+        #-- 2. schema for Extensions
+        b, es = self.validate_extensions(folder_schemas)
+        if b == False:
+            return (b, True, es, [])
+        #-- check that there are no +CityObject that do not have a schema
+        #-- (used if the file has no "extensions" property while there are +Pand for instance)
+        for theid in self.j["CityObjects"]:
+            if ( (self.j["CityObjects"][theid]["type"][0] == "+") ):
+                s = "ERROR:   CityObject " + self.j["CityObjects"][theid]["type"] + " doesn't have a schema."
+                es.append(s)
+                return (False, True, es, [])
 
         #-- 3. Internal consistency validation 
-        print ('-- Validating the internal consistency of the file (see docs for list)')
+        print('-- Validating the internal consistency of the file (see docs for list)')
         isValid = True
-        if float(self.j["version"]) == 0.6:
-            b, errs = validation.building_parts(self.j) 
-            if b == False:
-                isValid = False
-                es += errs
-            b, errs = validation.building_installations(self.j)
-            if b == False:
-                isValid = False
-                es += errs
-            b, errs = validation.building_pi_parent(self.j)
-            if b == False:
-                isValid = False
-                es += errs
-        #-- for v0.7+ (where the parent-child concept was introduced)                
+        #--
+        b, errs = validation.parent_children_consistency(self.j)
+        if b == False:
+            isValid = False
+            es += errs
+            print("\t--Parents-children consistency... oupsie")
         else:
-            b, errs = validation.parent_children_consistency(self.j)
-            if b == False:
-                isValid = False
-                es += errs
-
-        print("\t--Vertex indices coherent")
+            print("\t--Parents-children consistency... ok")
+        #--
         b, errs = validation.wrong_vertex_index(self.j)
         if b == False:
             isValid = False
             es += errs
-        print("\t--Semantic arrays coherent with geometry")
+            print("\t--Vertex indices coherent... oupsie")
+        else:
+            print("\t--Vertex indices coherent... ok")
+        #--
         b, errs = validation.semantics_array(self.j)
         if b == False:
             isValid = False
             es += errs
+            print("\t--Semantic arrays coherent with geometry... oupsie")
+        else:
+            print("\t--Semantic arrays coherent with geometry... ok")
         #-- 4. WARNINGS
         woWarnings = True
-        print("\t--Root properties")
+        #--
         b, errs = validation.cityjson_properties(self.j, js)
         if b == False:
             woWarnings = False
             ws += errs
-        print("\t--Duplicate vertices")
+            print("\t--Root properties... oupsie")
+        else:
+            print("\t--Root properties... ok")
+        #--
         b, errs = validation.duplicate_vertices(self.j)
         if b == False:
             woWarnings = False
             ws += errs
-        print("\t--Unused vertices")
+            print("\t--Duplicate vertices... oupsie")
+        else:
+            print("\t--Duplicate vertices... ok")
+        #--
         b, errs = validation.unused_vertices(self.j)
         if b == False:
             woWarnings = False
             ws += errs
+            print("\t--Unused vertices... oupsie")
+        else:
+            print("\t--Unused vertices... ok")
+        #-- 
         #-- fetch schema cityobjects.json
-        print("\t--CityGML attributes")
         b, jsco = self.fetch_schema_cityobjects(folder_schemas)
         b, errs = validation.citygml_attributes(self.j, jsco)
         if b == False:
             woWarnings = False
             ws += errs
-        # TODO: validate address attributes?
+            print("\t--CityGML attributes... oupsie")
+        else:
+            print("\t--CityGML attributes... ok")
         return (isValid, woWarnings, es, ws)
 
 
@@ -1768,7 +1821,7 @@ class CityJSON:
                     self.j["CityObjects"][co]["attributes"][newattr] = tmp
                     del self.j["CityObjects"][co]["attributes"][oldattr]
 
-    def extract_lod(self, thelod):
+    def filter_lod(self, thelod):
         for co in self.j["CityObjects"]:
             re = []
             if 'geometry' in self.j['CityObjects'][co]:

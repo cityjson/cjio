@@ -45,9 +45,10 @@ def cli(context, input, ignore_duplicate_keys):
     Usage examples:
 
     \b
-        cjio example.city.json info validate
-        cjio example.city.json subset --id house12 save out.city.json
-        cjio example.city.json assign_epsg 7145 remove_textures export --format obj output.obj
+        cjio myfile.city.json info 
+        cjio myfile.city.json validate
+        cjio myfile.city.json subset --id house12 save out.city.json
+        cjio myfile.city.json assign_epsg 7145 remove_textures export --format obj output.obj
     """
     context.obj = {"argument": input}
 
@@ -93,7 +94,7 @@ def process_pipeline(processors, input, ignore_duplicate_keys):
             elif (cm.get_version() != cityjson.CITYJSON_VERSIONS_SUPPORTED[-1]):
                 str1 = "v%s is not the latest version, and not everything will work.\n" % cm.get_version()
                 str1 += "Upgrade the file with 'upgrade_version' command: 'cjio input.json upgrade_version save out.json'" 
-                click.echo(click.style(str1, fg='red'))
+                utils.print_cmd_alert(str1)
     except ValueError as e:
         raise click.ClickException('%s: "%s".' % (e, input))
     except IOError as e:
@@ -189,7 +190,7 @@ def export_cmd(filename, format):
         #-- mapbox_earcut available?
         if (format != 'jsonl') and (cityjson.MODULE_EARCUT_AVAILABLE == False):
             str = "OBJ|glTF|b3dm export skipped: Python module 'mapbox_earcut' missing (to triangulate faces)"
-            click.echo(click.style(str, fg='red'))
+            utils.print_cmd_warning(str)
             str = "Install it: https://pypi.org/project/mapbox-earcut/"
             click.echo(str)
             return cm
@@ -250,57 +251,52 @@ def save_cmd(filename, indent, textures):
     return processor
 
 @cli.command('validate')
-@click.option('--hide_errors', is_flag=True, help='Do not print all the errors.')
-@click.option('--skip_schema', is_flag=True, help='Skip the schema validation (since it can be painfully slow).')
 @click.option('--folder_schemas', 
               help='Specify a folder where the schemas are (cityjson.json needs to be the master file).')
-@click.option('--long', is_flag=True,
-              help='More gory details about the validation errors.')
-def validate_cmd(hide_errors, skip_schema, folder_schemas, long):
+@click.option('--moredetails', is_flag=True,
+              help='Use a slower validation that *could* print out better errors.')
+def validate_cmd(folder_schemas, moredetails):
     """
-    Validate the CityJSON file: (1) against its schemas; (2) extra validations.
+    Validate the CityJSON file: (1) against its schemas;
+    (2) against the (potential) Extensions schemas;
+    (3) extra validations.
 
     The schemas are fetched automatically, based on the version of the file.
-    It's possible to specify schemas with the '--folder_schemas' option.
-    This is used when there are Extensions used.
-    
-    If the file is too large (and thus validation is slow),
-    an option is to crop a subset and just validate it:
+    It also tries to fetch the Extension schemas automatically.
+    It's possible to specify local schemas with the '--folder_schemas' option.
 
-        $ cjio myfile.city.json subset --random 2 validate
-    
-    Get all the details of the validation and output to a text report:
-    
-        $ cjio myfile.city.json validate --long > ~/temp/report.txt
+    \b
+        $ cjio myfile.city.json validate
+        $ cjio myfile.city.json validate --moredetails
+        $ cjio myfile.city.json validate --folder_schemas /home/elvis/myschemas/
     """
     def processor(cm):
         if folder_schemas is not None:
             if os.path.exists(folder_schemas) == False:
-                click.echo(click.style("Folder for schemas unknown. Validation aborted.", fg='red'))
+                utils.print_cmd_warning("Folder for schemas unknown. Validation aborted.")
                 return cm
             else:
-                utils.print_cmd_status('===== Validation (with provided schemas) =====')
+                utils.print_cmd_status('Validation (with provided schemas)')
         else:
-            utils.print_cmd_status('===== Validation (with official CityJSON schemas) =====')
+            utils.print_cmd_status('Validation (with official CityJSON schemas)')
         #-- validate    
-        bValid, woWarnings, errors, warnings = cm.validate(skip_schema=skip_schema, folder_schemas=folder_schemas, longerr=long)
-        click.echo('=====')
-        if bValid == True:
-            click.echo(click.style('File is valid', fg='green'))
-        else:    
-            click.echo(click.style('File is invalid', fg='red'))
-        if woWarnings == True:
-            click.echo(click.style('File has no warnings', fg='green'))
-        else:
-            click.echo(click.style('File has warnings', fg='red'))
-        if not hide_errors and bValid is False:
+        bValid, woWarnings, errors, warnings = cm.validate(folder_schemas=folder_schemas, longerr=moredetails)
+        if bValid is False:
             click.echo("--- ERRORS (total = %d) ---" % len(errors))
             for i, e in enumerate(errors):
                 click.echo(str(i + 1) + " ==> " + e + "\n")
-        if not hide_errors and woWarnings is False:
-            click.echo("--- WARNINGS ---")
-            for e in warnings:
-                click.echo(e)
+        if woWarnings is False:
+            click.echo("--- WARNINGS (total = %d) ---" % len(warnings))
+            for i, e in enumerate(warnings):
+                click.echo(str(i + 1) + " ==> " + e + "\n")
+        click.echo('=====================================')
+        if bValid == True:
+            if woWarnings == True:
+                click.echo('🟢 File is valid')
+            else:
+                click.echo('🟡 File is valid but has %d warnings' % len(warnings))
+        else:    
+            click.echo('🔴 File is invalid')
         click.echo('=====================================')
         return cm
     return processor
@@ -475,7 +471,7 @@ def update_crs_cmd(epsg):
     def processor(cm):
         if (cityjson.MODULE_PYPROJ_AVAILABLE == False):
             str = "Reprojection skipped: Python module 'pyproj' missing (to reproject coordinates)"
-            click.echo(click.style(str, fg='red'))
+            utils.print_cmd_warning(str)
             str = "Install it: https://pypi.org/project/pyproj/"
             click.echo(str)
             return cm
@@ -507,7 +503,7 @@ def upgrade_version_cmd(digit):
         utils.print_cmd_status('Upgrade CityJSON file to v%s' % vlatest)
         re, reasons = cm.upgrade_version(vlatest, digit)
         if (re == False):
-            click.echo(click.style("WARNING: %s" % (reasons), fg='red'))
+            utils.print_cmd_warning("WARNING: %s" % (reasons))
         return cm
     return processor
 
@@ -540,22 +536,22 @@ def update_textures_cmd(newlocation, relative):
     return processor
 
 
-@cli.command('extract_lod')
+@cli.command('filter_lod')
 @click.argument('lod', type=str)
-def extract_lod_cmd(lod):
+def filter_lod_cmd(lod):
     """
-    Extract only one LoD for a dataset.
+    Filter only one LoD for a dataset.
     To use on datasets having more than one LoD for the city objects.
     For each city object, it keeps only the geometries having the LoD
     passed as parameter; if a city object doesn't have this LoD then 
     it ends up with an empty geometry.
 
-        $ cjio myfile.city.json extract_lod 2.2 save myfile_lod2.city.json
+        $ cjio myfile.city.json filter_lod 2.2 save myfile_lod2.city.json
     
     """
     def processor(cm):
-        utils.print_cmd_status('Extract LoD: "%s"' % lod)
-        cm.extract_lod(lod)
+        utils.print_cmd_status('Filter LoD: "%s"' % lod)
+        cm.filter_lod(lod)
         return cm
     return processor
 

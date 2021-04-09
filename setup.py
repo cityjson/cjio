@@ -35,6 +35,8 @@ setup(
     install_requires=[
         'Click',
         'jsonschema',
+        'fastjsonschema',
+        'jsonschema_rs',
         'jsonref'
     ],
     entry_points='''
