@@ -1821,7 +1821,7 @@ class CityJSON:
                     self.j["CityObjects"][co]["attributes"][newattr] = tmp
                     del self.j["CityObjects"][co]["attributes"][oldattr]
 
-    def extract_lod(self, thelod):
+    def filter_lod(self, thelod):
         for co in self.j["CityObjects"]:
             re = []
             if 'geometry' in self.j['CityObjects'][co]:
