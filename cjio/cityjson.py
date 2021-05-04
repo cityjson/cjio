@@ -92,21 +92,23 @@ def load(path, transform:bool=False):
         parents = co['parents'] if 'parents' in co else None
         attributes = co['attributes'] if 'attributes' in co else None
         geometry = []
-        for geom in co['geometry']:
-            semantics = geom['semantics'] if 'semantics' in geom else None
-            texture = geom['texture'] if 'texture' in geom else None
-            geometry.append(
-                models.Geometry(
-                    type=geom['type'],
-                    lod=geom['lod'],
-                    boundaries=geom['boundaries'],
-                    semantics_obj=semantics,
-                    texture_obj=texture,
-                    appearance=appearance,
-                    vertices=cm.j['vertices'],
-                    transform=do_transform
+        
+        if 'geometry' in co:
+            for geom in co['geometry']:
+                semantics = geom['semantics'] if 'semantics' in geom else None
+                texture = geom['texture'] if 'texture' in geom else None
+                geometry.append(
+                    models.Geometry(
+                        type=geom['type'],
+                        lod=geom['lod'],
+                        boundaries=geom['boundaries'],
+                        semantics_obj=semantics,
+                        texture_obj=texture,
+                        appearance=appearance,
+                        vertices=cm.j['vertices'],
+                        transform=do_transform
+                    )
                 )
-            )
         cm.cityobjects[co_id] = models.CityObject(
             id=co_id,
             type=co['type'],
@@ -1556,7 +1558,8 @@ class CityJSON:
         for theid in self.j["CityObjects"]:
             if "geometry" in self.j['CityObjects'][theid]:
                 for each, geom in enumerate(self.j['CityObjects'][theid]['geometry']):
-                    self.j['CityObjects'][theid]['geometry'][each]['lod'] = str(self.j['CityObjects'][theid]['geometry'][each]['lod'])
+                    if self.j['CityObjects'][theid]['geometry'][each]["type"] != "GeometryInstance":
+                        self.j['CityObjects'][theid]['geometry'][each]['lod'] = str(self.j['CityObjects'][theid]['geometry'][each]['lod'])
         #-- CityObjectGroup
             # members -> children
             # add parents to children
