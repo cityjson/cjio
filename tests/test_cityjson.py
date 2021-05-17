@@ -138,6 +138,7 @@ class TestCityJSON:
 
     def test_de_compression_2(self, cube):
         cubec = copy.deepcopy(cube)
+        cubec.compress()
         assert cubec.compress(2) == True
         assert len(cube.j["vertices"]) == len(cubec.j["vertices"])
         cubec.decompress()
@@ -146,7 +147,7 @@ class TestCityJSON:
     def test_reproject(self, delft_1b):
         cm = copy.deepcopy(delft_1b)
         cm.reproject(4937) #-- z values should stay the same
-        assert isclose(cm.j["vertices"][0][0], 4.36772776578513, abs_tol=0.00001)
+        assert isclose(cm.j["vertices"][0][0] * cm.j["transform"]["scale"][0] + cm.j["transform"]["translate"][0], 4.36772776578513, abs_tol=0.00001)
         assert (cm.j["metadata"]["geographicalExtent"][5] - cm.j["metadata"]["geographicalExtent"][2]) == 6.1
 
     def test_convert_to_stl(self, delft):
