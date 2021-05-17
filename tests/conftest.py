@@ -1,5 +1,6 @@
 import os.path
 import pickle
+import glob
 
 import pytest
 
@@ -97,6 +98,14 @@ def rectangle(data_dir):
     p = os.path.join(data_dir, 'dummy', 'rectangle.json')
     with open(p, 'r') as f:
         yield cityjson.CityJSON(file=f)
+        
+@pytest.fixture(scope='session')
+def all_cms(data_dir):
+    cms = {}
+    for p in glob.glob("/home/jordi/GitHub/cjio_fork/cjio/tests/data/**/*.json", recursive = True):
+        with open(p, 'r') as f:
+            cms[os.path.basename(p)] = cityjson.CityJSON(file=f)
+    yield cms
 
 @pytest.fixture(scope='session')
 def vertices():
