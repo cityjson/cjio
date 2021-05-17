@@ -152,9 +152,9 @@ def citygml_attributes(j, js):
     for each in thewarnings:
         # s = ""
         if len(thewarnings[each]) < 3:
-            each += " ("
             for coid in thewarnings[each]:
-                each += " #" + coid + " "
+                each += " #" + coid
+            each = " (" + each
             each += ")"
         else:
             each += " (" + str(len(thewarnings[each])) + " CityObjects have this warning)"
