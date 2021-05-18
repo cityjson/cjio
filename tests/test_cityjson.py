@@ -203,7 +203,7 @@ class TestCityJSON:
          cm = copy.deepcopy(delft)
          jsonl = cm.export2jsonl()
          
-    def test_export_stl_cmd(self, data_dir, data_output_dir):
+    def test_export_jsonl_cmd(self, data_dir, data_output_dir):
         """Debugging"""
         p = os.path.join(data_dir, 'delft.json')
         runner = CliRunner()
@@ -220,3 +220,4 @@ class TestCityJSON:
             if 'geometry' in cm.j['CityObjects']:
                 for geom in cm.j['CityObjects'][coid]['geometry']:
                     assert geom["lod"] == "2.2"
+        assert (len(cm.j['metadata']['presentLoDs']) == 1 and cm.j['metadata']['presentLoDs']['2.2'] == 10)
