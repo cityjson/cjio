@@ -755,7 +755,7 @@ class CityJSON:
         #-- find the 3D centroid
         centroid = [0, 0, 0]
         total = 0
-        if 'geometry' in self.j['CityObjects'][co]:
+        if 'geometry' in self.j['CityObjects'][coid]:
             for g in self.j['CityObjects'][coid]['geometry']:
                 vs = []
                 recusionvisit(g["boundaries"], vs)
