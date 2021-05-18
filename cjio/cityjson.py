@@ -1576,14 +1576,14 @@ class CityJSON:
         for theid in self.j["CityObjects"]:
             if ("geometry" in self.j['CityObjects'][theid]) and (len(self.j['CityObjects'][theid]['geometry']) == 0):
                 del self.j['CityObjects'][theid]['geometry']
-        #-- metadata calculate
-        self.update_metadata(overwrite=True, new_uuid=True)
         #-- GenericCityObject are no longer
         gco = False
         for theid in self.j["CityObjects"]:
             if self.j["CityObjects"][theid]['type'] == 'GenericCityObject':
                 self.j["CityObjects"][theid]['type'] = '+GenericCityObject'
                 gco = True
+        #-- metadata calculate
+        self.update_metadata(overwrite=True, new_uuid=True)
         if gco == True:
             reasons = '"GenericCityObject" is no longer in v1.1, you need to define an Extension.'
             reasons += 'Your "GenericCityObject" have been changed to "+GenericCityObject"'
