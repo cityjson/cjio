@@ -182,8 +182,8 @@ class TestCityJSON:
         cm = copy.deepcopy(delft_1b)
         cm.reproject(4937) #-- z values should stay the same
         v = cm.j["vertices"][0][0] * cm.j["transform"]["scale"][0] + cm.j["transform"]["translate"][0]
-        assert isclose(v, 4.36772776578513, abs_tol=0.00001)
-        assert (cm.j["metadata"]["geographicalExtent"][5] - cm.j["metadata"]["geographicalExtent"][2]) == 6.1
+        assert isclose(v, 4.36772776578513, abs_tol=0.001)
+        assert isclose(cm.j["metadata"]["geographicalExtent"][5] - cm.j["metadata"]["geographicalExtent"][2], 6.1, abs_tol=0.001)
 
     def test_convert_to_stl(self, delft):
          cm = copy.deepcopy(delft)
@@ -202,16 +202,6 @@ class TestCityJSON:
     def test_convert_to_jsonl(self, delft):
          cm = copy.deepcopy(delft)
          jsonl = cm.export2jsonl()
-         
-    def test_export_jsonl_cmd(self, data_dir, data_output_dir):
-        """Debugging"""
-        p = os.path.join(data_dir, 'delft.json')
-        runner = CliRunner()
-        result = runner.invoke(cjio.cli,
-                               args=[p,
-                                     'export',
-                                     '--format', 'jsonl',
-                                     data_output_dir])
         
     def test_filter_lod(self, multi_lod):
         cm = multi_lod

@@ -3,7 +3,6 @@
 """
 import pytest
 import copy
-from cjio import cityjson
 
 
 
