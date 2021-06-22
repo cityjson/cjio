@@ -576,13 +576,6 @@ class CityJSON:
         b, es = self.validate_extensions(folder_schemas)
         if b == False:
             return (b, True, es, [])
-        #-- check that there are no +CityObject that do not have a schema
-        #-- (used if the file has no "extensions" property while there are +Pand for instance)
-        for theid in self.j["CityObjects"]:
-            if ( (self.j["CityObjects"][theid]["type"][0] == "+") ):
-                s = "ERROR:   CityObject " + self.j["CityObjects"][theid]["type"] + " doesn't have a schema."
-                es.append(s)
-                return (False, True, es, [])
 
         #-- 3. Internal consistency validation 
         print('-- Validating the internal consistency of the file (see docs for list)')
