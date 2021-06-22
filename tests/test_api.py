@@ -43,7 +43,7 @@ class TestAPI:
         roof_geoms = []
         for co in cm.cityobjects.values():
             for geom in co.geometry:
-                if geom.lod >= 2.0:
+                if float(geom.lod) >= 2.0:
                     for i, rsrf in geom.get_surfaces('roofsurface').items():
                         roof_geoms.append(
                             list(geom.get_surface_boundaries(rsrf))
@@ -59,7 +59,7 @@ class TestAPI:
         for co_id, co in cm.cityobjects.items():
             new_geoms = []
             for geom in co.geometry:
-                if geom.lod >= 2.0:
+                if float(geom.lod) >= 2.0:
                     for i, rsrf in geom.get_surfaces('roofsurface').items():
                         if 'attributes' in rsrf.keys():
                             rsrf['attributes']['colour'] = 'red'
@@ -79,7 +79,7 @@ class TestAPI:
         for co_id, co in cm.cityobjects.items():
             new_geoms = []
             for geom in co.geometry:
-                if geom.lod >= 2.0:
+                if float(geom.lod) >= 2.0:
                     for i, rsrf in geom.get_surfaces('roofsurface').items():
                         assert rsrf['attributes']['colour'] == 'red'
 
@@ -90,7 +90,7 @@ class TestAPI:
         for co_id, co in cm.cityobjects.items():
             new_geoms = []
             for geom in co.geometry:
-                if geom.lod >= 2.0:
+                if float(geom.lod) >= 2.0:
                     max_id = max(geom.surfaces.keys())
                     old_ids = []
                     for w_i, wsrf in geom.get_surfaces('wallsurface').items():
@@ -138,7 +138,7 @@ class TestAPI:
         # Verify results
         for co_id, co in cm.cityobjects.items():
             for geom in co.geometry:
-                if geom.lod >= 2.0:
+                if float(geom.lod) >= 2.0:
                     for w_i, wsrf in geom.get_surfaces('wallsurface').items():
                         if wsrf['type'] == 'WallSurface':
                             assert 'orientation' in wsrf['attributes']

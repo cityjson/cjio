@@ -1,5 +1,6 @@
 import os.path
 import pickle
+import glob
 
 import pytest
 
@@ -35,6 +36,11 @@ def delft(data_dir):
     p = os.path.join(data_dir, 'delft.json')
     with open(p, 'r') as f:
         yield cityjson.CityJSON(file=f)
+        
+@pytest.fixture(scope='session')
+def delft_path(data_dir):
+    p = os.path.join(data_dir, 'delft.json')
+    yield p
 
 @pytest.fixture(scope='session')
 def delft_1b(data_dir):
@@ -47,12 +53,22 @@ def rotterdam_subset(data_dir):
     p = os.path.join(data_dir, 'rotterdam', 'rotterdam_subset.json')
     with open(p, 'r') as f:
         yield cityjson.CityJSON(file=f)
+        
+@pytest.fixture(scope='session')
+def rotterdam_subset_path(data_dir):
+    p = os.path.join(data_dir, 'rotterdam', 'rotterdam_subset.json')
+    yield p
 
 @pytest.fixture(scope='session')
 def zurich_subset(data_dir):
     p = os.path.join(data_dir, 'zurich', 'zurich_subset_lod2.json')
     with open(p, 'r') as f:
         yield cityjson.CityJSON(file=f)
+        
+@pytest.fixture(scope='session')
+def zurich_subset_path(data_dir):
+    p = os.path.join(data_dir, 'zurich', 'zurich_subset_lod2.json')
+    yield p
 
 @pytest.mark.balazs
 @pytest.fixture(scope='function')
@@ -97,6 +113,25 @@ def rectangle(data_dir):
     p = os.path.join(data_dir, 'dummy', 'rectangle.json')
     with open(p, 'r') as f:
         yield cityjson.CityJSON(file=f)
+        
+@pytest.fixture(scope='session')
+def multi_lod(data_dir):
+    p = os.path.join(data_dir, 'multi_lod.json')
+    with open(p, 'r') as f:
+        yield cityjson.CityJSON(file=f)
+        
+@pytest.fixture(scope='session')
+def multi_lod_path(data_dir):
+    p = os.path.join(data_dir, 'multi_lod.json')
+    yield p
+        
+@pytest.fixture(scope='session')
+def all_cms(data_dir):
+    cms = {}
+    for p in glob.glob("/home/jordi/GitHub/cjio_fork/cjio/tests/data/**/*.json", recursive = True):
+        with open(p, 'r') as f:
+            cms[os.path.basename(p)] = cityjson.CityJSON(file=f)
+    yield cms
 
 @pytest.fixture(scope='session')
 def vertices():
