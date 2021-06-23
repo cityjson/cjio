@@ -161,6 +161,11 @@ def off2cj(file):
     cm = {}
     cm["type"] = "CityJSON"
     cm["version"] = CITYJSON_VERSIONS_SUPPORTED[-1]
+    cm["extensions"] = {}
+    cm["extensions"]["Generic"]= {}
+    #-- TODO: change URL for Generic Extension
+    cm["extensions"]["Generic"]["url"] = "https://homepage.tudelft.nl/23t4p/generic.ext.json"
+    cm["extensions"]["Generic"]["version"] = "1.0"
     cm["CityObjects"] = {}
     cm["vertices"] = []
     for v in lstVertices:
@@ -198,6 +203,11 @@ def poly2cj(file):
     cm = {}
     cm["type"] = "CityJSON"
     cm["version"] = CITYJSON_VERSIONS_SUPPORTED[-1]
+    cm["extensions"] = {}
+    cm["extensions"]["Generic"]= {}
+    #-- TODO: change URL for Generic Extension
+    cm["extensions"]["Generic"]["url"] = "https://homepage.tudelft.nl/23t4p/generic.ext.json"
+    cm["extensions"]["Generic"]["version"] = "1.0"
     cm["CityObjects"] = {}
     cm["vertices"] = []
     for v in lstVertices:
@@ -1574,7 +1584,7 @@ class CityJSON:
         for theid in self.j["CityObjects"]:
             if ("geometry" in self.j['CityObjects'][theid]) and (len(self.j['CityObjects'][theid]['geometry']) == 0):
                 del self.j['CityObjects'][theid]['geometry']
-        #-- GenericCityObject are no longer
+        #-- GenericCityObject is no longer
         gco = False
         for theid in self.j["CityObjects"]:
             if self.j["CityObjects"][theid]['type'] == 'GenericCityObject':
@@ -1583,8 +1593,15 @@ class CityJSON:
         #-- metadata calculate
         self.update_metadata(overwrite=True, new_uuid=True)
         if gco == True:
-            reasons = '"GenericCityObject" is no longer in v1.1, you need to define an Extension.'
-            reasons += 'Your "GenericCityObject" have been changed to "+GenericCityObject"'
+            reasons = '"GenericCityObject" is no longer in v1.1, instead Extensions are used.'
+            reasons += ' Your "GenericCityObject" have been changed to "+GenericCityObject"'
+            reasons += ' and the simple Extension "Generic" is used.'
+            if "extensions" not in self.j:
+                self.j["extensions"] = {}
+            self.j["extensions"]["Generic"]= {}
+            #-- TODO: change URL for Generic Extension
+            self.j["extensions"]["Generic"]["url"] = "https://homepage.tudelft.nl/23t4p/generic.ext.json"
+            self.j["extensions"]["Generic"]["version"] = "1.0"
             return (False, reasons)
         else:
             return (True, "")
