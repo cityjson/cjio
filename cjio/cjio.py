@@ -613,10 +613,8 @@ def update_metadata_cmd(overwrite):
     def processor(cm):
         utils.print_cmd_status('Update the metadata')
         _, errors = cm.update_metadata(overwrite)
-
         for e in errors:
             utils.print_cmd_warning(e)
-        
         return cm
     return processor
 

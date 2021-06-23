@@ -695,7 +695,7 @@ class CityJSON:
 
     def update_bbox(self):
         """
-        Update the bbox (["metadata"]["bbox"]) of the CityJSON.
+        Update the bbox (["metadata"]["geographicalExtent"]) of the CityJSON.
         If there is none then it is added.
         """
         if "metadata" not in self.j:
@@ -1496,6 +1496,7 @@ class CityJSON:
                 pass
         # self.remove_duplicate_vertices()
         # self.remove_orphan_vertices()
+        #-- TODO: compress with how many digits?
         return True
 
 
@@ -1599,7 +1600,7 @@ class CityJSON:
                 self.j["CityObjects"][theid]['type'] = '+GenericCityObject'
                 gco = True
         #-- metadata calculate
-        self.update_metadata(overwrite=True, new_uuid=True)
+        # self.update_metadata(overwrite=True, new_uuid=True)
         if gco == True:
             reasons = '"GenericCityObject" is no longer in v1.1, instead Extensions are used.'
             reasons += ' Your "GenericCityObject" have been changed to "+GenericCityObject"'
@@ -1905,6 +1906,7 @@ class CityJSON:
         if not "metadata" in self.j:
             raise KeyError("Metadata is missing")
         return self.j["metadata"]
+
     
     def compute_metadata(self, overwrite=False, new_uuid=False):
         """
@@ -1916,17 +1918,16 @@ class CityJSON:
                                  overwrite_values=overwrite,
                                  recompute_uuid=new_uuid)
 
+
     def update_metadata(self, overwrite=False, new_uuid=False):
         """
         Computes and updates the "metadata" property of this CityJSON file
         """
         self.update_bbox()
-
         metadata, errors = self.compute_metadata(overwrite, new_uuid)
-
         self.j["metadata"] = metadata
-
         return (True, errors)
+
     
     def add_lineage_item(self, description: str, features: list = None, source: list = None, processor: dict = None):
         """Adds a lineage item in metadata.
@@ -1946,21 +1947,15 @@ class CityJSON:
                 "stepDateTime": str(nu.isoformat()) + "Z"
             }
         }
-
         if isinstance(features, list):
             new_item["featureIDs"] = features
-        
         if isinstance(source, list):
             new_item["source"] = source
-        
         if isinstance(processor, dict):
             new_item["processStep"]["processor"] = processor
-
         if not self.has_metadata():
             self.j["metadata"] = {}
-
         if not "lineage" in self.j["metadata"]:
             self.j["metadata"]["lineage"] = []
-
         self.j["metadata"]["lineage"].append(new_item)
         
