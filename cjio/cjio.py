@@ -371,8 +371,7 @@ def subset_cmd(id, bbox, random, cotype, exclude):
 
 
 @cli.command('clean')
-@click.option('--digit', default=3, type=click.IntRange(1, 10), help='Number of digit to use to compare vertices (default=3).')
-def clean_cmd(digit):
+def clean_cmd():
     """
     Clean 
     =
@@ -382,28 +381,25 @@ def clean_cmd(digit):
     """
     def processor(cm):
         utils.print_cmd_status('Clean the file')
-        cm.remove_duplicate_vertices(digit)
+        cm.remove_duplicate_vertices()
         cm.remove_orphan_vertices()
         return cm
     return processor
 
 
 @cli.command('remove_duplicate_vertices')
-@click.argument('precision', type=click.IntRange(1, 12))
-def remove_duplicate_vertices_cmd(precision):
+def remove_duplicate_vertices_cmd():
     """
     Remove duplicate vertices a CityJSON file.
     Only the geometry vertices are processed,
     and not those of the textures/templates.
 
-    The precision is the number of digits to preserve, so
-    millimeter precision that would be '3'.
 
-        $ cjio myfile.city.json remove_duplicate_vertices 3 info
+        $ cjio myfile.city.json remove_duplicate_vertices info
     """
     def processor(cm):
         utils.print_cmd_status('Remove duplicate vertices')
-        cm.remove_duplicate_vertices(precision)
+        cm.remove_duplicate_vertices()
         return cm
     return processor
 

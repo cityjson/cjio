@@ -1264,10 +1264,7 @@ class CityJSON:
         return (totalinput - len(self.j["vertices"]))
 
 
-    def remove_duplicate_vertices(self, precision=3):
-        if "transform" in self.j:
-            precision = 0
-
+    def remove_duplicate_vertices(self):
         def update_geom_indices(a, newids):
           for i, each in enumerate(a):
             if isinstance(each, list):
@@ -1279,10 +1276,8 @@ class CityJSON:
         h = {}
         newids = [-1] * len(self.j["vertices"])
         newvertices = []
-        if self.is_transform() == True:
-            precision = 0
         for i, v in enumerate(self.j["vertices"]):
-            s = "{{x:.{p}f}} {{y:.{p}f}} {{z:.{p}f}}".format(p=precision).format(x=v[0], y=v[1], z=v[2])
+            s = "{x} {y} {z}".format(x=v[0], y=v[1], z=v[2])
             if s not in h:
                 newid = len(h)
                 newids[i] = newid
@@ -1333,7 +1328,7 @@ class CityJSON:
         self.j["transform"]["scale"] = [ss, ss, ss]
         self.j["transform"]["translate"] = [bbox[0], bbox[1], bbox[2]]
         #-- clean the file
-        re = self.remove_duplicate_vertices(0)
+        re = self.remove_duplicate_vertices()
         # print ("Remove duplicates:", re)
         re = self.remove_orphan_vertices()
         # print ("Remove orphans:", re)
