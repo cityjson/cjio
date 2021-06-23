@@ -414,7 +414,7 @@ class CityJSON:
 
 
     def validate_extensions(self, folder_schemas=None, longerr=False):
-        print ('-- Validating the Extensions')
+        print ('-- Validating the Extension(s)')
         if "extensions" not in self.j:
             print ("\tno extensions found in the file")
             return (True, [])
@@ -428,21 +428,21 @@ class CityJSON:
             os.mkdir("extensions")
             os.chdir("./extensions")
             #-- fetch extensions from the URLs given
+            print("\tdownloading the JSON schema file(s)")
             for ext in self.j["extensions"]:
                 theurl = self.j["extensions"][ext]["url"]
-                print("\tDownloading '%s'..." % self.j["extensions"][ext]["url"])
                 try:
                     with urllib.request.urlopen(self.j["extensions"][ext]["url"]) as f:
+                        print("\t\t%s" % self.j["extensions"][ext]["url"])
                         s = theurl[theurl.rfind('/') + 1:]
                         s = os.path.join(os.getcwd(), s)
                         f2 = open(s, 'w')
-                        # f2.write(f.read().decode('utf-8'))
                         tmp = json.loads(f.read().decode('utf-8'))
                         tmp2 = json.dumps(tmp)
                         f2.write(tmp2)
                         f2.close()
                 except:
-                    s = "Extension file '%s' cannot be downloaded." % self.j["extensions"][ext]["url"]
+                    s = "file '%s' cannot be downloaded. Abort." % self.j["extensions"][ext]["url"]
                     return (False, [s])
             #-- copy all the schemas to this tmp folder
             allschemas = ["appearance.schema.json", 
@@ -482,7 +482,9 @@ class CityJSON:
 
             #-- 1. extraCityObjects
             if "extraCityObjects" in js:
+                print ('\t\textraCityObjects')
                 for nco in js["extraCityObjects"]:
+                    # print("=>", nco)
                     allnewco.add(nco)
                     jtmp = {}
                     jtmp["$schema"] = "http://json-schema.org/draft-07/schema#"
@@ -491,6 +493,7 @@ class CityJSON:
                     jsotf = jsonref.loads(json.dumps(jtmp), jsonschema=True, base_uri=base_uri)
                     for theid in self.j["CityObjects"]:
                         if self.j["CityObjects"][theid]["type"] == nco:
+                            # print(jsotf)
                             nco1 = self.j["CityObjects"][theid]
                             v, errs = validation.validate_against_schema(nco1, jsotf, longerr=True)
                             # v, errs = validation.validate_against_schema_old_slow_one(nco1, jsotf, longerr=True)
@@ -557,12 +560,12 @@ class CityJSON:
         es = []
         ws = []
         #-- 1. schema
-        print ('-- Validating the syntax of the file')
+        print ('-- Validating the syntax of the file (schema validation)')
         b, js, v = self.fetch_schema(folder_schemas)
         if b == False:
             return (False, True, ["Can't find the schema."], [])
         else:
-            print ('\t(using the builtin schemas v%s)' % (v))
+            print ('\t(using the built-in schemas v%s)' % (v))
             if longerr == True:
                 isValid, errs = validation.validate_against_schema(self.j, js, longerr)
             else:
@@ -571,10 +574,12 @@ class CityJSON:
                 es += errs
                 return (False, True, es, [])
             else: 
-                print('\tfile is schema-valid')
+                print('\tschema-valid... ok')
         #-- 2. schema for Extensions
         b, es = self.validate_extensions(folder_schemas)
-        if b == False:
+        if b == True:
+            print('\tExtension(s)... ok')
+        else:
             return (b, True, es, [])
 
         #-- 3. Internal consistency validation 
@@ -857,7 +862,6 @@ class CityJSON:
             cm2.add_lineage_item("Subset of {} by bounding box {}".format(self.get_identifier(), bbox), features=fids)
         except:
             pass
-        
         return cm2
 
 
@@ -880,7 +884,6 @@ class CityJSON:
                 re.append(k)
         return re[offset:(offset+limit)]
 
-               
 
     def get_subset_random(self, number=1, exclude=False):
         random.seed()
