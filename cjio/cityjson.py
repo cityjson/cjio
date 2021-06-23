@@ -8,6 +8,7 @@ import collections
 import jsonref
 import urllib.request
 import tempfile
+import math
 import shutil
 from pkg_resources import resource_filename
 from pkg_resources import resource_listdir
@@ -735,7 +736,7 @@ class CityJSON:
             return True
 
 
-    def add_bbox_each_cityobjects(self):
+    def update_bbox_each_cityobjects(self, addifmissing=False):
         def recusionvisit(a, vs):
           for each in a:
             if isinstance(each, list):
@@ -743,25 +744,26 @@ class CityJSON:
             else:
                 vs.append(each)
         for co in self.j["CityObjects"]:
-            vs = []
-            bbox = [9e9, 9e9, 9e9, -9e9, -9e9, -9e9]    
-            if 'geometry' in self.j['CityObjects'][co]:
-                for g in self.j['CityObjects'][co]['geometry']:
-                    recusionvisit(g["boundaries"], vs)
-                    for each in vs:
-                        v = self.j["vertices"][each]
-                        for i in range(3):
-                            if v[i] < bbox[i]:
-                                bbox[i] = v[i]
-                        for i in range(3):
-                            if v[i] > bbox[i+3]:
-                                bbox[i+3] = v[i]
-                    if "transform" in self.j:
-                        for i in range(3):
-                            bbox[i] = (bbox[i] * self.j["transform"]["scale"][i]) + self.j["transform"]["translate"][i]
-                        for i in range(3):
-                            bbox[i+3] = (bbox[i+3] * self.j["transform"]["scale"][i]) + self.j["transform"]["translate"][i]
-                    self.j["CityObjects"][co]["geographicalExtent"] = bbox
+            if addifmissing == True or "geographicalExtent" in self.j["CityObjects"][co]:
+                vs = []
+                bbox = [9e9, 9e9, 9e9, -9e9, -9e9, -9e9]    
+                if 'geometry' in self.j['CityObjects'][co]:
+                    for g in self.j['CityObjects'][co]['geometry']:
+                        recusionvisit(g["boundaries"], vs)
+                        for each in vs:
+                            v = self.j["vertices"][each]
+                            for i in range(3):
+                                if v[i] < bbox[i]:
+                                    bbox[i] = v[i]
+                            for i in range(3):
+                                if v[i] > bbox[i+3]:
+                                    bbox[i+3] = v[i]
+                        if "transform" in self.j:
+                            for i in range(3):
+                                bbox[i] = (bbox[i] * self.j["transform"]["scale"][i]) + self.j["transform"]["translate"][i]
+                            for i in range(3):
+                                bbox[i+3] = (bbox[i+3] * self.j["transform"]["scale"][i]) + self.j["transform"]["translate"][i]
+                        self.j["CityObjects"][co]["geographicalExtent"] = bbox
 
 
     def get_centroid(self, coid):
@@ -1814,10 +1816,8 @@ class CityJSON:
     def reproject(self, epsg):
         if not MODULE_PYPROJ_AVAILABLE:
             raise ModuleNotFoundError("Modul 'pyproj' is not available, please install it from https://pypi.org/project/pyproj/")
-        wascompressed = False
-        if "transform" in self.j:
-            self.decompress()
-            wascompressed = True
+        imp_digits = math.ceil(abs(math.log(self.j["transform"]["scale"][0], 10)))
+        self.decompress()
         p1 = pyproj.Proj(init='epsg:%d' % (self.get_epsg()))
         p2 = pyproj.Proj(init='epsg:%d' % (epsg))
         with progressbar(self.j['vertices']) as vertices:
@@ -1828,7 +1828,9 @@ class CityJSON:
                 v[2] = z
         self.set_epsg(epsg)
         self.update_bbox()
-        self.compress()
+        self.update_bbox_each_cityobjects(False)
+        #-- recompress by using the number of digits we had in original file
+        self.compress(imp_digits)
 
     def remove_attribute(self, attr):
         for co in self.j["CityObjects"]:
@@ -1892,6 +1894,7 @@ class CityJSON:
         Returns whether metadata exist in this CityJSON file or not
         """
         return "metadata" in self.j
+
 
     def get_metadata(self):
         """

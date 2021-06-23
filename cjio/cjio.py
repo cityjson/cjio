@@ -443,7 +443,7 @@ def remove_textures_cmd():
 
 @cli.command('assign_epsg')
 @click.argument('newepsg', type=int)
-def update_crs_cmd(newepsg):
+def assign_epsg_cmd(newepsg):
     """
     Assign a (new) EPSG.
     Can be used to assign one to a file that doesn't have any, or update one.
@@ -459,7 +459,7 @@ def update_crs_cmd(newepsg):
 
 @cli.command('reproject')
 @click.argument('epsg', type=int)
-def update_crs_cmd(epsg):
+def reproject_cmd(epsg):
     """
     Reproject the CityJSON to a new EPSG.
     The current file must have an EPSG defined (do it with function assign_epsg).
