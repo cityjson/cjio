@@ -1118,8 +1118,9 @@ class CityJSON:
             if "default-theme-texture" in self.j["appearance"]:
                 del self.j["appearance"]["default-theme-texture"]
         # print (len(self.j["appearance"]))
-        if self.j["appearance"] is None or len(self.j["appearance"]) == 0:
-            del self.j["appearance"]
+        if "appearance" in self.j: 
+            if self.j["appearance"] is None or len(self.j["appearance"]) == 0:
+                del self.j["appearance"]
         return True
 
 
@@ -1132,8 +1133,9 @@ class CityJSON:
                 del self.j["appearance"]["materials"]
             if "default-theme-material" in self.j["appearance"]:
                 del self.j["appearance"]["default-theme-material"]
-        if self.j["appearance"] is None or len(self.j["appearance"]) == 0:
-            del self.j["appearance"]
+        if "appearance" in self.j: 
+            if self.j["appearance"] is None or len(self.j["appearance"]) == 0:
+                del self.j["appearance"]
         return True
 
 
