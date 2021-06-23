@@ -175,11 +175,13 @@ def off2cj(file):
     for f in lstFaces:
         shell.append([f])
     g['boundaries'] = [shell]
-    g['lod'] = 1
-    o = {'type': 'GenericCityObject'}
+    g['lod'] = "1"
+    o = {'type': '+GenericCityObject'}
     o['geometry'] = [g]
     cm["CityObjects"]["id-1"] = o
-    return CityJSON(j=cm)
+    j = CityJSON(j=cm)
+    j.compress()
+    return j
 
 
 def poly2cj(file):
@@ -217,11 +219,13 @@ def poly2cj(file):
     for f in lstFaces:
         shell.append(f)
     g['boundaries'] = [shell]
-    g['lod'] = 1
+    g['lod'] = "1"
     o = {'type': 'GenericCityObject'}
     o['geometry'] = [g]
     cm["CityObjects"]["id-1"] = o
-    return CityJSON(j=cm)
+    j = CityJSON(j=cm)
+    j.compress()
+    return j
 
 
 class CityJSON:
