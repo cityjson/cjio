@@ -425,10 +425,17 @@ class CityJSON:
 
     def validate_extensions(self, folder_schemas=None, longerr=False):
         print ('-- Validating the Extension(s)')
+        es = []
         if "extensions" not in self.j:
             print ("\tno extensions found in the file")
-            return (True, [])
-        es = []
+            #-- check if there are CityObjects that do not have a schema
+            isValid = True
+            for theid in self.j["CityObjects"]:
+                if  (self.j["CityObjects"][theid]["type"][0] == "+"):
+                    s = "ERROR:   CityObject " + self.j["CityObjects"][theid]["type"] + " doesn't have a schema."
+                    es.append(s)
+                    isValid = False
+            return (isValid, es)
         tmpdirname = tempfile.TemporaryDirectory()
         if folder_schemas is None:
             tmp = resource_listdir(__name__, '/schemas/')
