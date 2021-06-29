@@ -25,6 +25,14 @@ To install the latest release:
 
     pip install cjio
 
+.. note:: The commands ``export``, ``reproject`` require extra packages
+    that are not install by default. You can install these packages by specifying the
+    commands for pip.
+
+    .. code:: console
+
+        pip install cjio[export,reproject]
+
 To install the development branch, and still develop with it:
 
 .. code:: console
@@ -32,10 +40,7 @@ To install the development branch, and still develop with it:
     git checkout develop
     virtualenv venv
     . venv/bin/activate
-    pip install --editable .
-
-Alternatively, you can use the included Pipfile to manage the virtual
-environment with `pipenv <https://pipenv.readthedocs.io/en/latest/>`_.
+    pip install --editable .[develop]
 
 **Note for Windows users**
 

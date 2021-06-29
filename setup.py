@@ -39,6 +39,19 @@ setup(
         'jsonschema_rs',
         'jsonref'
     ],
+    extras_require={
+        'develop': [
+            'pytest'
+        ],
+        'export': [
+            'numpy',
+            'pandas',
+            'mapbox-earcut'
+        ],
+        'reproject': [
+            'pyproj'
+        ]
+    },
     entry_points='''
         [console_scripts]
         cjio=cjio.cjio:cli
