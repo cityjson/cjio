@@ -467,10 +467,10 @@ def reproject_cmd(epsg):
     def processor(cm):
         if (cityjson.MODULE_PYPROJ_AVAILABLE == False):
             str = "Reprojection skipped: Python module 'pyproj' missing (to reproject coordinates)"
-            utils.print_cmd_warning(str)
+            utils.print_cmd_alert(str)
             str = "Install it: https://pypi.org/project/pyproj/"
-            click.echo(str)
-            return cm
+            utils.print_cmd_warning(str)
+            raise click.ClickException('Abort.')
         utils.print_cmd_status('Reproject to EPSG:%d' % epsg)
         if (cm.get_epsg() == None):
             click.echo("WARNING: CityJSON has no EPSG defined, can't be reprojected.")
