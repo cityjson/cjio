@@ -373,36 +373,36 @@ class CityJSON:
             self.j = {}
             raise ValueError("Not a CityJSON file")
 
-            
-    def fetch_schema(self, folder_schemas=None):
-        if folder_schemas is not None:
-            schemahead = os.path.join(folder_schemas, 'cityjson.schema.json')  
-            #-- open the schema
-            try:
-                fins = open(schemahead)
-            except: 
-                return (False, None, '')
-            abs_path = os.path.abspath(os.path.dirname(schemahead))
-            #-- because Windows uses \ and not /        
-            if platform == "darwin" or platform == "linux" or platform == "linux2":
-                base_uri = 'file://{}/'.format(abs_path)
-            else:
-                base_uri = 'file:///{}/'.format(abs_path.replace('\\', '/'))
-            jstmp = jsonref.loads(fins.read(), jsonschema=True, base_uri=base_uri)
-            js_str = jsonref.dumps(jstmp, separators=(',',':'))
-            js = json.loads(js_str)
-            return (True, js, schemahead)
-        else: #-- fetch latest from x.y version (x.y.z)
-            tmp = resource_listdir(__name__, '/schemas/')
-            tmp.sort()
-            v = tmp[-1]
-            try:
-                schemamin = resource_filename(__name__, '/schemas/%s/cityjson.min.schema.json' % (v))
-            except:
-                return (False, None, '')
-            js = json.loads(open(schemamin).read())
-            return (True, js, v)    
+    def fetch_schema_builtin(self):
+        tmp = resource_listdir(__name__, '/schemas/')
+        tmp.sort()
+        v = tmp[-1]
+        try:
+            schemamin = resource_filename(__name__, '/schemas/%s/cityjson.min.schema.json' % (v))
+        except:
+            return (False, None, '')
+        js = json.loads(open(schemamin).read())
+        return (True, js, v)
 
+
+    def fetch_schema_local_files(self, folder_schemas=None):
+        schemahead = os.path.join(folder_schemas, 'cityjson.schema.json')  
+        #-- open the schema
+        try:
+            fins = open(schemahead)
+        except: 
+            return (False, None)
+        abs_path = os.path.abspath(os.path.dirname(schemahead))
+        #-- because Windows uses \ and not /        
+        if platform == "darwin" or platform == "linux" or platform == "linux2":
+            base_uri = 'file://{}/'.format(abs_path)
+        else:
+            base_uri = 'file:///{}/'.format(abs_path.replace('\\', '/'))
+        jstmp = jsonref.loads(fins.read(), jsonschema=True, base_uri=base_uri)
+        # js_str = jsonref.dumps(jstmp, separators=(',',':'))
+        # js = json.loads(js_str)
+        return (True, jstmp)
+            
 
     def fetch_schema_cityobjects(self, folder_schemas=None):
         if folder_schemas is None:
@@ -476,10 +476,9 @@ class CityJSON:
             for each in allschemas: 
                 schema = resource_filename(__name__, '/schemas/%s/%s' % (latestversion, each))
                 shutil.copy(schema, tmpdirname.name)
-            # print(os.listdir())
-            # print(os.listdir(tmpdirname.name))
             folder_schemas = tmpdirname.name
-
+        else:
+            print("\tusing local file(s) in %s/extensions/" % folder_schemas)
 
         # print(folder_schemas)
         # print(os.listdir(folder_schemas))
@@ -583,20 +582,34 @@ class CityJSON:
         ws = []
         #-- 1. schema
         print ('-- Validating the syntax of the file (schema validation)')
-        b, js, v = self.fetch_schema(folder_schemas)
-        if b == False:
-            return (False, True, ["Can't find the schema."], [])
-        else:
-            print ('\t(using the built-in schemas v%s)' % (v))
-            if longerr == True:
-                isValid, errs = validation.validate_against_schema(self.j, js, longerr)
+        # b, js, v = self.fetch_schema(folder_schemas)
+        if folder_schemas is None:
+            b, js, v = self.fetch_schema_builtin()
+            if b == False:
+                return (False, True, ["Can't find the schema."], [])
             else:
-                isValid, errs = validation.validate_against_schema_turbo(self.j, js, longerr)
-            if (isValid == False):
-                es += errs
-                return (False, True, es, [])
-            else: 
-                print('\tschema-valid... ok')
+                print ('\t(using the built-in schemas v%s)' % (v))
+                if longerr == True:
+                    isValid, errs = validation.validate_against_schema(self.j, js, longerr)
+                else:
+                    isValid, errs = validation.validate_against_schema_turbo(self.j, js, longerr)
+                if (isValid == False):
+                    es += errs
+                    return (False, True, es, [])
+                else: 
+                    print('\tschema-valid... ok')
+        else: #-- folder_schemas is present
+            b, js = self.fetch_schema_local_files(folder_schemas)
+            if b == False:
+                return (False, True, ["Can't find the schema."], [])
+            else:
+                print ('\t(using local files in %s)' % (folder_schemas))
+                isValid, errs = validation.validate_against_schema(self.j, js, longerr)
+                if (isValid == False):
+                    es += errs
+                    return (False, True, es, [])
+                else: 
+                    print('\tschema-valid... ok')
         #-- 2. schema for Extensions
         b, es = self.validate_extensions(folder_schemas)
         if b == True:
