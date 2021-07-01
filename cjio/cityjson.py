@@ -337,11 +337,14 @@ class CityJSON:
             return self.j["metadata"]["crs"]["epsg"]
         elif "referenceSystem" in self.j["metadata"]:
             s = self.j["metadata"]["referenceSystem"]
-            if "epsg" in s.lower():
-                return int(s[s.find("::")+2:])
-            else:
-                print_cmd_warning("Only EPSG codes are supported in the URN. CRS is set to undefined.")
-                return None
+            if "urn" in s.lower():
+                if "epsg" in s.lower():
+                    return int(s[s.find("::")+2:])
+                else:
+                    print_cmd_warning("Only EPSG codes are supported in the URN. CRS is set to undefined.")
+                    return None
+            elif "://www.opengis.net/def/crs/" in s.lower():
+                return int(s[s.rfind("/")+1:])
         else:
             return None
 
@@ -1612,8 +1615,13 @@ class CityJSON:
             if self.j["CityObjects"][theid]['type'] == 'GenericCityObject':
                 self.j["CityObjects"][theid]['type'] = '+GenericCityObject'
                 gco = True
+        #-- CRS
+        if "metadata" in self.j and "referenceSystem" in self.j["metadata"]:
+            s = self.j["metadata"]["referenceSystem"]
+            if "epsg" in s.lower():
+                self.j["metadata"]["referenceSystem"] = "https://www.opengis.net/def/crs/EPSG/0/%d" % int(s[s.find("::")+2:])
         #-- metadata calculate
-        # self.update_metadata(overwrite=True, new_uuid=True)
+        # self.update_metadata(overwrite=True, new_uuid=True) # TODO: put this line back when metadata are fixed
         if gco == True:
             reasons = '"GenericCityObject" is no longer in v1.1, instead Extensions are used.'
             reasons += ' Your "GenericCityObject" have been changed to "+GenericCityObject"'
