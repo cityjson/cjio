@@ -190,10 +190,10 @@ def export_cmd(filename, format):
         #-- mapbox_earcut available?
         if (format != 'jsonl') and (cityjson.MODULE_EARCUT_AVAILABLE == False):
             str = "OBJ|glTF|b3dm export skipped: Python module 'mapbox_earcut' missing (to triangulate faces)"
-            utils.print_cmd_warning(str)
+            utils.print_cmd_alert(str)
             str = "Install it: https://pypi.org/project/mapbox-earcut/"
-            click.echo(str)
-            return cm
+            utils.print_cmd_warning(str)
+            raise click.ClickException('Abort.')
         # NOTE BD: export_cmd can take a list of citymodels, which is the output of the partitioner
         if format.lower() == '3dtiles' or not isinstance(cm, list):
             exporter(cm)
