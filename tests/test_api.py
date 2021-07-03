@@ -2,7 +2,7 @@
 
 """
 import pytest
-from cjio import cityjson, models
+from cjio import models
 
 
 @pytest.fixture(scope='module')

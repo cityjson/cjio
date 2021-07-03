@@ -1,7 +1,6 @@
 """Test metadata
 
 """
-import pytest
 import copy
 
 

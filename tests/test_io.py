@@ -3,7 +3,6 @@
 """
 import os
 from cjio import cityjson
-from cjio.models import CityObject, Geometry
 
 class TestLoading:
     def test_from_path(self, data_dir):

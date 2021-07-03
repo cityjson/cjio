@@ -1,10 +1,8 @@
-import pytest
 import os
 import os.path
 from click.testing import CliRunner
-import copy
 import json
-from cjio import cjio, cityjson
+from cjio import cjio
 
 
 class TestCLI:

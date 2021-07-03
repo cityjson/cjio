@@ -2,7 +2,6 @@ import os.path
 from copy import deepcopy
 
 import pytest
-from tests.conftest import rotterdam_subset
 
 from cjio import errors
 
