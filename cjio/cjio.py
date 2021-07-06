@@ -604,9 +604,10 @@ def update_metadata_cmd(overwrite):
     def processor(cm):
         utils.print_cmd_status('Update the metadata')
         re, errors = cm.update_metadata(overwrite)
-
         for e in errors:
             utils.print_cmd_warning(e)
+        return cm
+    return processor
 
 
 @cli.command('get_metadata')
@@ -624,6 +625,7 @@ def get_metadata_cmd():
             click.echo_via_pager(json.dumps(cm.get_metadata(), indent=2))
         else:
             utils.print_cmd_warning("You are missing metadata! Quickly! Run 'update_metadata' before it's too late!")
+        return cm
     return processor
 
 
