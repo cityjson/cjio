@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.9] - 2021-07-06
+### Changed
+- version with schemas 1.0.3 (where metadata schema is fixed)
+- fix bugs with operators `update_metadata_cmd()` and `get_metadata_cmd()` crashing
 
 
 ## [0.6.8] - 2021-03-19
@@ -22,12 +26,10 @@
 - Docker image and Travis build for it ([#25](https://github.com/cityjson/cjio/pull/25))
 - Generate metadata ([#56](https://github.com/cityjson/cjio/pull/56))
 - STL export format ([#66](https://github.com/cityjson/cjio/pull/66))
-
 ### Changed
 - click messages, warnings got their functions and placed into the `utils` module
 - only EPSG codes are supported for the CRS's URN
 - When `--indent` is passed to `save`, tabs are used instead of spaces. Results in smaller files.
-
 ### Fixes
 - Fix precision when removing duplicates ([#50](https://github.com/cityjson/cjio/pull/60))
 
