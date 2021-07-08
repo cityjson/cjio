@@ -492,6 +492,7 @@ class CityJSON:
         base_uri = os.path.join(folder_schemas, "extensions")
         base_uri = os.path.abspath(base_uri)
         allnewco = set()
+        allnew_rootproperties = set()
         
         #-- iterate over each Extensions, and verify each of the properties
         #-- in the file. Other way around is more cumbersome
@@ -528,6 +529,7 @@ class CityJSON:
             #-- 2. extraRootProperties
             if "extraRootProperties" in js:
                 for nrp in js["extraRootProperties"]:
+                    allnew_rootproperties.add(nrp)
                     jtmp = {}
                     jtmp["$schema"] = "http://json-schema.org/draft-07/schema#"
                     jtmp["type"] = "object"
@@ -571,6 +573,13 @@ class CityJSON:
                 es.append(s)
                 isValid = False
 
+        #-- 5. check if there are extraRootProperties that do not have a schema
+        for p in self.j:
+            if ( (p[0] == "+") and
+                 (p not in allnew_rootproperties) ):
+                s = "ERROR:   extra root properties " + p + " doesn't have a schema."
+                es.append(s)
+                isValid = False
         return (isValid, es)
 
 
