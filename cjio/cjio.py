@@ -634,6 +634,7 @@ def get_metadata_cmd():
             click.echo(json.dumps(cm.get_metadata(), indent=2))
         else:
             utils.print_cmd_warning("You are missing metadata! Quickly! Run 'update_metadata' before it's too late!")
+        return cm
     return processor
 
 
