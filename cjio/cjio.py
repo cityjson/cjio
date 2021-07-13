@@ -223,11 +223,11 @@ def save_cmd(filename, indent, textures):
         else:
             os.makedirs(os.path.dirname(output['path']), exist_ok=True)
         
-        try:
-            if "metadata" in cm.j:
-                cm.j["metadata"]["fileIdentifier"] = os.path.basename(output['path'])
-        except:
-            pass
+        # try:
+        #     if "metadata" in cm.j:
+        #         cm.j["metadata"]["fileIdentifier"] = os.path.basename(output['path'])
+        # except:
+        #     pass
 
         print(cm)
 
