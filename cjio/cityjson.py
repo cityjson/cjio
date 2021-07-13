@@ -1944,6 +1944,23 @@ class CityJSON:
         """
         return "metadata" in self.j
 
+    def has_metadata_extended(self):
+        """
+        Returns whether +metadata-extended exist in this CityJSON file or not
+        """
+        return "+metadata-extended" in self.j
+
+    def add_metadata_extended_property(self):
+        """
+        Adds the +metadata-extended + the link to Extension
+        """
+        if "+metadata-extended" not in self.j:
+            self.j["+metadata-extended"] = {}
+            if "extensions" not in self.j:
+                self.j["extensions"] = {}
+            self.j["extensions"]["MetadataExtended"]= {}
+            self.j["extensions"]["MetadataExtended"]["url"] = "https://raw.githubusercontent.com/cityjson/metadata-extended/main/metadata-extended.ext.json"
+            self.j["extensions"]["MetadataExtended"]["version"] = "1.0"
 
     def get_metadata(self):
         """
@@ -1955,10 +1972,20 @@ class CityJSON:
             raise KeyError("Metadata is missing")
         return self.j["metadata"]
 
-    
-    def compute_metadata(self, overwrite=False, new_uuid=False):
+    def get_metadata_extended(self):
         """
-        Returns the metadata of this CityJSON file
+        Returns the "+metadata-extended" property of this CityJSON file
+
+        Raises a KeyError exception if metadata is missing
+        """
+        if not "+metadata-extended" in self.j:
+            raise KeyError("MetadataExtended is missing")
+        return self.j["+metadata-extended"]
+
+    
+    def compute_metadata_extended(self, overwrite=False, new_uuid=False):
+        """
+        Returns the +metadata-extended of this CityJSON file
         """
         return generate_metadata(citymodel=self.j,
                                  filename=self.path,
@@ -1967,13 +1994,14 @@ class CityJSON:
                                  recompute_uuid=new_uuid)
 
 
-    def update_metadata(self, overwrite=False, new_uuid=False):
+    def update_metadata_extended(self, overwrite=False, new_uuid=False):
         """
         Computes and updates the "metadata" property of this CityJSON file
         """
         self.update_bbox()
-        metadata, errors = self.compute_metadata(overwrite, new_uuid)
-        self.j["metadata"] = metadata
+        self.add_metadata_extended_property()
+        metadata, errors = self.compute_metadata_extended(overwrite, new_uuid)
+        self.j["+metadata-extended"] = metadata
         return (True, errors)
 
     

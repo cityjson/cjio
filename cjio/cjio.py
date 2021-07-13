@@ -611,8 +611,8 @@ def update_metadata_cmd(overwrite):
     computed. Updates the dataset.
     """
     def processor(cm):
-        utils.print_cmd_status('Update the metadata')
-        _, errors = cm.update_metadata(overwrite)
+        utils.print_cmd_status('Update the +metadata-extended')
+        _, errors = cm.update_metadata_extended(overwrite)
         for e in errors:
             utils.print_cmd_warning(e)
         return cm
@@ -620,9 +620,10 @@ def update_metadata_cmd(overwrite):
 
 
 @cli.command('get_metadata')
-def get_metadata_cmd():
+@click.option('--extended', is_flag=True, help='Return also the +metatada-extended.')
+def get_metadata_cmd(extended):
     """
-    Shows the metadata of this dataset.
+    Shows the metadata(-extended) of this dataset.
 
     The difference between 'info' and this command is that this
     command lists the "pure" metadata as stored in the file.
@@ -630,10 +631,13 @@ def get_metadata_cmd():
     file is needed.
     """
     def processor(cm):
+        j = {}
         if cm.has_metadata():
-            click.echo(json.dumps(cm.get_metadata(), indent=2))
-        else:
-            utils.print_cmd_warning("You are missing metadata! Quickly! Run 'update_metadata' before it's too late!")
+            j.update(cm.get_metadata())
+        if extended:
+            if cm.has_metadata_extended():
+                j.update(cm.get_metadata_extended())
+        click.echo(json.dumps(j, indent=2))
         return cm
     return processor
 
