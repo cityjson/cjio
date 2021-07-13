@@ -1594,7 +1594,7 @@ class CityJSON:
     def upgrade_version_v10_v11(self, reasons, digit):
         #-- version 
         self.j["version"] = "1.1"
-        #-- compress to for "transform"
+        #-- compress for "transform"
         self.compress(digit)
         #-- lod=string
         for theid in self.j["CityObjects"]:
@@ -1618,19 +1618,37 @@ class CityJSON:
         for theid in self.j["CityObjects"]:
             if ("geometry" in self.j['CityObjects'][theid]) and (len(self.j['CityObjects'][theid]['geometry']) == 0):
                 del self.j['CityObjects'][theid]['geometry']
-        #-- GenericCityObject is no longer
+        #-- CRS: use the new OGC scheme
+        if "metadata" in self.j and "referenceSystem" in self.j["metadata"]:
+            s = self.j["metadata"]["referenceSystem"]
+            if "epsg" in s.lower():
+                self.j["metadata"]["referenceSystem"] = "https://www.opengis.net/def/crs/EPSG/0/%d" % int(s[s.find("::")+2:])
+
+        #-- metadata calculate
+        # self.update_metadata(overwrite=True, new_uuid=True) # TODO: put this line back when metadata are fixed
+        if "metadata" in self.j:
+            v11_properties = ["citymodelIdentifier", "datasetTitle", "datasetReferenceDate", "geographicalExtent", "geographicLocation", "referenceSystem"]
+            to_delete = []
+            for each in self.j["metadata"]:
+                if each not in v11_properties:
+                    if "+metadata-extended" not in self.j:
+                        self.j["+metadata-extended"] = {}
+                        if "extensions" not in self.j:
+                            self.j["extensions"] = {}
+                        self.j["extensions"]["MetadataExtended"]= {}
+                        self.j["extensions"]["MetadataExtended"]["url"] = "https://raw.githubusercontent.com/cityjson/metadata-extended/main/metadata-extended.ext.json"
+                        self.j["extensions"]["MetadataExtended"]["version"] = "1.0"
+                    self.j["+metadata-extended"][each] = self.j["metadata"][each]
+                    to_delete.append(each)
+            for each in to_delete:
+                del self.j["metadata"][each]
+
+        #-- GenericCityObject is no longer, add the Extension GenericCityObject
         gco = False
         for theid in self.j["CityObjects"]:
             if self.j["CityObjects"][theid]['type'] == 'GenericCityObject':
                 self.j["CityObjects"][theid]['type'] = '+GenericCityObject'
                 gco = True
-        #-- CRS
-        if "metadata" in self.j and "referenceSystem" in self.j["metadata"]:
-            s = self.j["metadata"]["referenceSystem"]
-            if "epsg" in s.lower():
-                self.j["metadata"]["referenceSystem"] = "https://www.opengis.net/def/crs/EPSG/0/%d" % int(s[s.find("::")+2:])
-        #-- metadata calculate
-        # self.update_metadata(overwrite=True, new_uuid=True) # TODO: put this line back when metadata are fixed
         if gco == True:
             reasons = '"GenericCityObject" is no longer in v1.1, instead Extensions are used.'
             reasons += ' Your "GenericCityObject" have been changed to "+GenericCityObject"'
