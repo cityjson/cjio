@@ -1631,13 +1631,7 @@ class CityJSON:
             to_delete = []
             for each in self.j["metadata"]:
                 if each not in v11_properties:
-                    if "+metadata-extended" not in self.j:
-                        self.j["+metadata-extended"] = {}
-                        if "extensions" not in self.j:
-                            self.j["extensions"] = {}
-                        self.j["extensions"]["MetadataExtended"]= {}
-                        self.j["extensions"]["MetadataExtended"]["url"] = "https://raw.githubusercontent.com/cityjson/metadata-extended/main/metadata-extended.ext.json"
-                        self.j["extensions"]["MetadataExtended"]["version"] = "1.0"
+                    self.add_metadata_extended_property()
                     self.j["+metadata-extended"][each] = self.j["metadata"][each]
                     to_delete.append(each)
             for each in to_delete:
