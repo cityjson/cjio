@@ -607,8 +607,8 @@ def translate_cmd(values):
 @click.option('--overwrite', is_flag=True, help='Overwrite existing values.')
 def update_metadata_cmd(overwrite):
     """
-    Update the metadata for properties/values that can be
-    computed. Modify/update the dataset.
+    Update, and add if missing, the +metadata-extended for properties 
+    that can be computed. Modify/update the dataset.
     """
     def processor(cm):
         utils.print_cmd_status('Update the +metadata-extended')
@@ -620,10 +620,10 @@ def update_metadata_cmd(overwrite):
 
 
 @cli.command('get_metadata')
-@click.option('--extended', is_flag=True, help='Return also the +metatada-extended.')
-def get_metadata_cmd(extended):
+def get_metadata_cmd():
     """
-    Shows the metadata(-extended) of this dataset.
+    Shows the metadata and +metadata-extended of this dataset
+    (they are merged in one JSON object)
 
     The difference between 'info' and this command is that this
     command lists the "pure" metadata as stored in the file.
@@ -634,9 +634,8 @@ def get_metadata_cmd(extended):
         j = {}
         if cm.has_metadata():
             j.update(cm.get_metadata())
-        if extended:
-            if cm.has_metadata_extended():
-                j.update(cm.get_metadata_extended())
+        if cm.has_metadata_extended():
+            j.update(cm.get_metadata_extended())
         click.echo(json.dumps(j, indent=2))
         return cm
     return processor
