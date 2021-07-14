@@ -49,20 +49,6 @@ from cjio.metadata import generate_metadata
 
 CITYJSON_VERSIONS_SUPPORTED = ['0.6', '0.8', '0.9', '1.0', '1.1']
 
-TOPLEVEL = ('Building',
-            'Bridge',
-            'CityObjectGroup',
-            'CityFurniture',
-            'GenericCityObject',
-            'LandUse',
-            'PlantCover',
-            'Railway',
-            'Road',
-            'SolitaryVegetationObject',
-            'TINRelief',
-            'TransportSquare',
-            'Tunnel',
-            'WaterBody')
 
 def load(path, transform:bool=False):
     """Load a CityJSON file for working with it though the API
