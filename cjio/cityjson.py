@@ -1625,7 +1625,6 @@ class CityJSON:
                 self.j["metadata"]["referenceSystem"] = "https://www.opengis.net/def/crs/EPSG/0/%d" % int(s[s.find("::")+2:])
 
         #-- metadata calculate
-        # self.update_metadata(overwrite=True, new_uuid=True) # TODO: put this line back when metadata are fixed
         if "metadata" in self.j:
             v11_properties = ["citymodelIdentifier", "datasetTitle", "datasetReferenceDate", "geographicalExtent", "geographicLocation", "referenceSystem"]
             to_delete = []
