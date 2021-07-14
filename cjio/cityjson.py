@@ -848,7 +848,7 @@ class CityJSON:
         
         return self.get_identifier()
 
-    def get_subset_bbox(self, bbox, exclude=False):
+    def get_subset_bbox(self, bbox, exclude=False, lineage=False):
         # print ('get_subset_bbox')
         #-- new sliced CityJSON object
         cm2 = CityJSON()
@@ -891,9 +891,10 @@ class CityJSON:
         #-- metadata
         try:
             cm2.j["metadata"] = copy.deepcopy(self.j["metadata"])
-            cm2.update_metadata(overwrite=True, new_uuid=True)
+            cm2.update_metadata_extended(overwrite=True, new_uuid=True)
             fids = [fid for fid in cm2.j["CityObjects"]]
-            cm2.add_lineage_item("Subset of {} by bounding box {}".format(self.get_identifier(), bbox), features=fids)
+            if lineage == True:
+                cm2.add_lineage_item("Subset of {} by bounding box {}".format(self.get_identifier(), bbox), features=fids)
         except:
             pass
         return cm2
@@ -919,7 +920,7 @@ class CityJSON:
         return re[offset:(offset+limit)]
 
 
-    def get_subset_random(self, number=1, exclude=False):
+    def get_subset_random(self, number=1, exclude=False, lineage=False):
         random.seed()
         total = len(self.j["CityObjects"])
         if number > total:
@@ -937,10 +938,12 @@ class CityJSON:
             re = sallkeys ^ re
         re = list(re)
         cm = self.get_subset_ids(re)
-        try:
-            cm.j["metadata"]["lineage"][-1]["processStep"]["description"] = "Random subset of {}".format(self.get_identifier())
-        except:
-            pass
+        if lineage == True:
+            try:
+                cm.add_metadata_extended_property()
+                cm.j["+metadata-extended"]["lineage"][-1]["processStep"]["description"] = "Random subset of {}".format(self.get_identifier())
+            except:
+                pass
         return cm
 
 
@@ -971,7 +974,7 @@ class CityJSON:
         #-- metadata
         try:
             cm2.j["metadata"] = copy.deepcopy(self.j["metadata"])
-            cm2.update_metadata(overwrite=True, new_uuid=True)
+            cm2.update_metadata_extended(overwrite=True, new_uuid=True)
             fids = [fid for fid in cm2.j["CityObjects"]]
             cm2.add_lineage_item("Subset of {} based on user specified IDs".format(self.get_identifier()), features=fids)
         except:
@@ -1017,7 +1020,7 @@ class CityJSON:
         #-- metadata
         try:
             cm2.j["metadata"] = copy.deepcopy(self.j["metadata"])
-            cm2.update_metadata(overwrite=True, new_uuid=True)
+            cm2.update_metadata_extended(overwrite=True, new_uuid=True)
             cm2.add_lineage_item("Subset of {} by object type {}".format(self.get_identifier(), cotype))
         except:
             pass
@@ -1390,7 +1393,7 @@ class CityJSON:
 
         #-- metadata
         try:
-            self.update_metadata(overwrite=True)
+            self.update_metadata_extended(overwrite=True)
         except:
             pass
         for cm in lsCMs:
@@ -1875,7 +1878,7 @@ class CityJSON:
                     self.j["CityObjects"][co]["attributes"][newattr] = tmp
                     del self.j["CityObjects"][co]["attributes"][oldattr]
 
-    def filter_lod(self, thelod):
+    def filter_lod(self, thelod, lineage=False):
         for co in self.j["CityObjects"]:
             re = []
             if 'geometry' in self.j['CityObjects'][co]:
@@ -1889,9 +1892,10 @@ class CityJSON:
         self.remove_orphan_vertices()
         #-- metadata
         try:
-            self.update_metadata(overwrite=True)
+            self.update_metadata_extended(overwrite=True)
             fids = [fid for fid in self.j["CityObjects"]]
-            self.add_lineage_item("Extract LoD{} from {}".format(thelod, self.get_identifier()), features=fids)
+            if lineage == True:
+                self.add_lineage_item("Extract LoD{} from {}".format(thelod, self.get_identifier()), features=fids)
         except:
             pass
 

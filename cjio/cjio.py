@@ -371,14 +371,14 @@ def subset_cmd(id, bbox, random, cotype, exclude):
         utils.print_cmd_status('Subset of CityJSON')
         s = copy.deepcopy(cm)
         if random is not None:
-            s = s.get_subset_random(random, exclude=exclude)
+            s = s.get_subset_random(random, exclude=exclude, lineage=default_params["lineage"])
             return s
         if len(id) > 0:
-            s = s.get_subset_ids(id, exclude=exclude)
+            s = s.get_subset_ids(id, exclude=exclude, lineage=default_params["lineage"])
         if len(bbox) > 0:
-            s = s.get_subset_bbox(bbox, exclude=exclude)
+            s = s.get_subset_bbox(bbox, exclude=exclude, lineage=default_params["lineage"])
         if cotype is not None:
-            s = s.get_subset_cotype(cotype, exclude=exclude)
+            s = s.get_subset_cotype(cotype, exclude=exclude, lineage=default_params["lineage"])
         return s 
     return processor
 
