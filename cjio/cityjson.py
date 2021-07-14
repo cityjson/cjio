@@ -1996,12 +1996,12 @@ class CityJSON:
 
     def update_metadata_extended(self, overwrite=False, new_uuid=False):
         """
-        Computes and updates the "metadata" property of this CityJSON file
+        Computes and updates the "metadata" property of this CityJSON dataset
         """
-        self.update_bbox()
         self.add_metadata_extended_property()
         metadata, errors = self.compute_metadata_extended(overwrite, new_uuid)
         self.j["+metadata-extended"] = metadata
+        self.update_bbox()
         return (True, errors)
 
     

@@ -608,7 +608,7 @@ def translate_cmd(values):
 def update_metadata_cmd(overwrite):
     """
     Update the metadata for properties/values that can be
-    computed. Updates the dataset.
+    computed. Modify/update the dataset.
     """
     def processor(cm):
         utils.print_cmd_status('Update the +metadata-extended')
