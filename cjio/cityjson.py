@@ -888,15 +888,16 @@ class CityJSON:
         if ("appearance" in self.j):
             cm2.j["appearance"] = {}
             subset.process_appearance(self.j, cm2.j)
+        cm2.update_bbox()
         #-- metadata
-        try:
-            cm2.j["metadata"] = copy.deepcopy(self.j["metadata"])
-            cm2.update_metadata_extended(overwrite=True, new_uuid=True)
-            fids = [fid for fid in cm2.j["CityObjects"]]
-            if lineage == True:
+        if self.has_metadata_extended():    
+            try:
+                cm2.j["+metadata-extended"] = copy.deepcopy(self.j["+metadata-extended"])
+                cm2.update_metadata_extended(overwrite=True, new_uuid=True)
+                fids = [fid for fid in cm2.j["CityObjects"]]
                 cm2.add_lineage_item("Subset of {} by bounding box {}".format(self.get_identifier(), bbox), features=fids)
-        except:
-            pass
+            except:
+                pass
         return cm2
 
 
@@ -920,7 +921,7 @@ class CityJSON:
         return re[offset:(offset+limit)]
 
 
-    def get_subset_random(self, number=1, exclude=False, lineage=False):
+    def get_subset_random(self, number=1, exclude=False):
         random.seed()
         total = len(self.j["CityObjects"])
         if number > total:
@@ -937,17 +938,19 @@ class CityJSON:
             sallkeys = set(self.j["CityObjects"].keys())
             re = sallkeys ^ re
         re = list(re)
-        cm = self.get_subset_ids(re)
-        if lineage == True:
+        cm = self.get_subset_ids(re, update_metadata=False) #-- do not overwrite the metadata there, only here
+        cm.update_bbox()
+        if self.has_metadata_extended():
             try:
-                cm.add_metadata_extended_property()
-                cm.j["+metadata-extended"]["lineage"][-1]["processStep"]["description"] = "Random subset of {}".format(self.get_identifier())
+                cm.update_metadata_extended(overwrite=True)
+                fids = [fid for fid in cm.j["CityObjects"]]
+                cm.add_lineage_item("Random subset of {}".format(self.get_identifier()), features=fids)
             except:
                 pass
         return cm
 
 
-    def get_subset_ids(self, lsIDs, exclude=False):
+    def get_subset_ids(self, lsIDs, exclude=False, update_metadata=True):
         #-- new sliced CityJSON object
         cm2 = CityJSON()
         cm2.j["version"] = self.j["version"]
@@ -971,14 +974,17 @@ class CityJSON:
         if ("appearance" in self.j):
             cm2.j["appearance"] = {}
             subset.process_appearance(self.j, cm2.j)
+        cm2.update_bbox()
         #-- metadata
-        try:
-            cm2.j["metadata"] = copy.deepcopy(self.j["metadata"])
-            cm2.update_metadata_extended(overwrite=True, new_uuid=True)
-            fids = [fid for fid in cm2.j["CityObjects"]]
-            cm2.add_lineage_item("Subset of {} based on user specified IDs".format(self.get_identifier()), features=fids)
-        except:
-            pass
+        print(update_metadata)
+        if (update_metadata) and self.has_metadata_extended():
+            try:
+                cm2.j["+metadata-extended"] = copy.deepcopy(self.j["+metadata-extended"])
+                cm2.update_metadata_extended(overwrite=True, new_uuid=True)
+                fids = [fid for fid in cm2.j["CityObjects"]]
+                cm2.add_lineage_item("Subset of {} based on user specified IDs".format(self.get_identifier()), features=fids)
+            except:
+                pass
         return cm2
 
 
@@ -1017,13 +1023,15 @@ class CityJSON:
         if ("appearance" in self.j):
             cm2.j["appearance"] = {}
             subset.process_appearance(self.j, cm2.j)
+        cm2.update_bbox()
         #-- metadata
-        try:
-            cm2.j["metadata"] = copy.deepcopy(self.j["metadata"])
-            cm2.update_metadata_extended(overwrite=True, new_uuid=True)
-            cm2.add_lineage_item("Subset of {} by object type {}".format(self.get_identifier(), cotype))
-        except:
-            pass
+        if self.has_metadata_extended():    
+            try:
+                cm2.j["metadata"] = copy.deepcopy(self.j["metadata"])
+                cm2.update_metadata_extended(overwrite=True, new_uuid=True)
+                cm2.add_lineage_item("Subset of {} by object type {}".format(self.get_identifier(), cotype))
+            except:
+                pass
         return cm2
         
 
@@ -1878,7 +1886,7 @@ class CityJSON:
                     self.j["CityObjects"][co]["attributes"][newattr] = tmp
                     del self.j["CityObjects"][co]["attributes"][oldattr]
 
-    def filter_lod(self, thelod, lineage=False):
+    def filter_lod(self, thelod):
         for co in self.j["CityObjects"]:
             re = []
             if 'geometry' in self.j['CityObjects'][co]:
@@ -1890,14 +1898,15 @@ class CityJSON:
                     self.j['CityObjects'][co]['geometry'].remove(each)
         self.remove_duplicate_vertices()
         self.remove_orphan_vertices()
+        self.update_bbox()
         #-- metadata
-        try:
-            self.update_metadata_extended(overwrite=True)
-            fids = [fid for fid in self.j["CityObjects"]]
-            if lineage == True:
+        if self.has_metadata_extended():
+            try:
+                self.update_metadata_extended(overwrite=True)
+                fids = [fid for fid in self.j["CityObjects"]]
                 self.add_lineage_item("Extract LoD{} from {}".format(thelod, self.get_identifier()), features=fids)
-        except:
-            pass
+            except:
+                pass
 
 
     def translate(self, values, minimum_xyz):
@@ -1932,6 +1941,15 @@ class CityJSON:
         Returns whether +metadata-extended exist in this CityJSON file or not
         """
         return "+metadata-extended" in self.j
+
+    def metadata_extended_remove(self):
+        """
+        Remove the +metadata-extended in this CityJSON file (if present)
+        """
+        if "+metadata-extended" in self.j:
+            del self.j["+metadata-extended"]
+        if "extensions" in self.j and "MetadataExtended" in self.j["extensions"]:
+            del self.j["extensions"]["MetadataExtended"]
 
     def add_metadata_extended_property(self):
         """
