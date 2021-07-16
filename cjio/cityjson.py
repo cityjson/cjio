@@ -2036,7 +2036,7 @@ class CityJSON:
             new_item["processStep"]["processor"] = processor
         if not self.has_metadata():
             self.j["metadata"] = {}
-        if not "lineage" in self.j["metadata"]:
-            self.j["metadata"]["lineage"] = []
-        self.j["metadata"]["lineage"].append(new_item)
+        if not "lineage" in self.j["+metadata-extended"]:
+            self.j["+metadata-extended"]["lineage"] = []
+        self.j["+metadata-extended"]["lineage"].append(new_item)
         
