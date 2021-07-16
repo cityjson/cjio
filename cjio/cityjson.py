@@ -1397,6 +1397,7 @@ class CityJSON:
                     else:
                         a[i] = each + voffset
         #-- decompress current CM                        
+        imp_digits = math.ceil(abs(math.log(self.j["transform"]["scale"][0], 10)))
         self.decompress()
 
         #-- metadata
@@ -1406,6 +1407,8 @@ class CityJSON:
             pass
         for cm in lsCMs:
             #-- decompress 
+            if math.ceil(abs(math.log(cm.j["transform"]["scale"][0], 10))) > imp_digits:
+                imp_digits = math.ceil(abs(math.log(cm.j["transform"]["scale"][0], 10)))
             cm.decompress()
             offset = len(self.j["vertices"])
             self.j["vertices"] += cm.j["vertices"]
@@ -1519,6 +1522,7 @@ class CityJSON:
         # self.remove_duplicate_vertices()
         # self.remove_orphan_vertices()
         #-- TODO: compress with how many digits?
+        self.compress(imp_digits)
         return True
 
 
