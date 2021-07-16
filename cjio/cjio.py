@@ -9,9 +9,7 @@ import re
 import cjio
 from cjio import cityjson, utils
 
-default_params = {
-    "lineage": False
-}
+
 
 #-- https://stackoverflow.com/questions/47437472/in-python-click-how-do-i-see-help-for-subcommands-whose-parents-have-required
 class PerCommandArgWantSubCmdHelp(click.Argument):
@@ -104,16 +102,6 @@ def process_pipeline(processors, input, ignore_duplicate_keys):
         raise click.ClickException('Invalid file: "%s".\n%s' % (input, e))
     for processor in processors:
         cm = processor(cm)
-
-@cli.command('lineage_activate')
-def lineage_activate_cmd():
-    """Activate the storage of the +metadata-extend lineage for all subsequent operations
-    (merge, subset)
-    """
-    def processor(cm):
-        default_params["lineage"] = True
-        return cm
-    return processor
 
 
 @cli.command('info')
@@ -371,14 +359,14 @@ def subset_cmd(id, bbox, random, cotype, exclude):
         utils.print_cmd_status('Subset of CityJSON')
         s = copy.deepcopy(cm)
         if random is not None:
-            s = s.get_subset_random(random, exclude=exclude, lineage=default_params["lineage"])
+            s = s.get_subset_random(random, exclude=exclude)
             return s
         if len(id) > 0:
-            s = s.get_subset_ids(id, exclude=exclude, lineage=default_params["lineage"])
+            s = s.get_subset_ids(id, exclude=exclude)
         if len(bbox) > 0:
-            s = s.get_subset_bbox(bbox, exclude=exclude, lineage=default_params["lineage"])
+            s = s.get_subset_bbox(bbox, exclude=exclude)
         if cotype is not None:
-            s = s.get_subset_cotype(cotype, exclude=exclude, lineage=default_params["lineage"])
+            s = s.get_subset_cotype(cotype, exclude=exclude)
         return s 
     return processor
 
@@ -560,7 +548,7 @@ def filter_lod_cmd(lod):
     """
     def processor(cm):
         utils.print_cmd_status('Filter LoD: "%s"' % lod)
-        cm.filter_lod(lod, lineage=default_params["lineage"])
+        cm.filter_lod(lod)
         return cm
     return processor
 

@@ -848,7 +848,7 @@ class CityJSON:
         
         return self.get_identifier()
 
-    def get_subset_bbox(self, bbox, exclude=False, lineage=False):
+    def get_subset_bbox(self, bbox, exclude=False):
         # print ('get_subset_bbox')
         #-- new sliced CityJSON object
         cm2 = CityJSON()
