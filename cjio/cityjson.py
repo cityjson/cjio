@@ -1396,15 +1396,11 @@ class CityJSON:
                         a[i] = each + toffset
                     else:
                         a[i] = each + voffset
+        
         #-- decompress current CM                        
         imp_digits = math.ceil(abs(math.log(self.j["transform"]["scale"][0], 10)))
         self.decompress()
 
-        #-- metadata
-        try:
-            self.update_metadata_extended(overwrite=True)
-        except:
-            pass
         for cm in lsCMs:
             #-- decompress 
             if math.ceil(abs(math.log(cm.j["transform"]["scale"][0], 10))) > imp_digits:
@@ -1510,18 +1506,19 @@ class CityJSON:
                                 for m in g['texture']:
                                     update_texture_indices(g['texture'][m]['values'], toffset, voffset)
             #-- metadata
-            try:
-                fids = [fid for fid in cm.j["CityObjects"]]
-                src = {
-                    "description": cm.get_title(),
-                    "sourceReferenceSystem": "urn:ogc:def:crs:EPSG::{}".format(cm.get_epsg()) if cm.get_epsg() else None
-                }
-                self.add_lineage_item("Merge {} into {}".format(cm.get_identifier(), self.get_identifier()), features=fids, source=[src])
-            except:
-                pass
-        # self.remove_duplicate_vertices()
-        # self.remove_orphan_vertices()
-        #-- TODO: compress with how many digits?
+            if self.has_metadata_extended() or cm.has_metadata_extended():
+                try:
+                    fids = [fid for fid in cm.j["CityObjects"]]
+                    src = {
+                        "description": cm.get_title(),
+                        "sourceReferenceSystem": "urn:ogc:def:crs:EPSG::{}".format(cm.get_epsg()) if cm.get_epsg() else None
+                    }
+                    self.add_lineage_item("Merge {} into {}".format(cm.get_identifier(), self.get_identifier()), features=fids, source=[src])
+                except:
+                    pass
+        self.remove_duplicate_vertices()
+        self.remove_orphan_vertices()
+        self.update_bbox()
         self.compress(imp_digits)
         return True
 
