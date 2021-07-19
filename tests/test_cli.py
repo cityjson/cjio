@@ -203,7 +203,7 @@ class TestCLI:
         runner = CliRunner()
         result = runner.invoke(cjio.cli,
                                args=[delft_path,
-                                     'remove_duplicate_vertices', '3',
+                                     'remove_duplicate_vertices',
                                      'save',
                                      p_out])
         

@@ -124,14 +124,6 @@ def multi_lod(data_dir):
 def multi_lod_path(data_dir):
     p = os.path.join(data_dir, 'multi_lod.json')
     yield p
-        
-@pytest.fixture(scope='session')
-def all_cms(data_dir):
-    cms = {}
-    for p in glob.glob("/home/jordi/GitHub/cjio_fork/cjio/tests/data/**/*.json", recursive = True):
-        with open(p, 'r') as f:
-            cms[os.path.basename(p)] = cityjson.CityJSON(file=f)
-    yield cms
 
 @pytest.fixture(scope='session')
 def vertices():
