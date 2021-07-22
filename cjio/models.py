@@ -301,18 +301,24 @@ class Geometry(object):
             srf_idx = self._index_surface_boundaries(semantics_obj['values'])
             for i,srf in enumerate(semantics_obj['surfaces']):
                 attributes = dict()
-                semantic_surfaces[i] = {'surface_idx': srf_idx[i]}
-                for key,value in srf.items():
-                    if key == 'type':
-                        semantic_surfaces[i]['type'] = value
-                    elif key == 'children':
-                        semantic_surfaces[i]['children'] = value
-                    elif key == 'parent':
-                        semantic_surfaces[i]['parent'] = value
-                    else:
-                        attributes[key] = value
-                if len(attributes) > 0:
-                    semantic_surfaces[i]['attributes'] = attributes
+                if i in srf_idx:
+                    semantic_surfaces[i] = {'surface_idx': srf_idx[i]}
+                    for key,value in srf.items():
+                        if key == 'type':
+                            semantic_surfaces[i]['type'] = value
+                        elif key == 'children':
+                            semantic_surfaces[i]['children'] = value
+                        elif key == 'parent':
+                            semantic_surfaces[i]['parent'] = value
+                        else:
+                            attributes[key] = value
+                    if len(attributes) > 0:
+                        semantic_surfaces[i]['attributes'] = attributes
+                else:
+                    # TODO: log warning here, because each surface type should be
+                    #  assigned to at least one surface (have its surface-type-index
+                    #  listed in the semantics:values array)
+                    pass
             return semantic_surfaces
 
     def _dereference_textures(self, texture_obj, appearance):
