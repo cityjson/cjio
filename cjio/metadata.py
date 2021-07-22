@@ -166,7 +166,10 @@ def generate_metadata(citymodel: dict,
             if overwrite_values or k not in metadata:
                 compute_item(k, v)
 
-    metadata = citymodel["metadata"]
+    if "+metadata-extended" in citymodel:
+        metadata = citymodel["+metadata-extended"].copy()
+    else:
+        metadata = {}
     if ("citymodelIdentifier" not in metadata) or recompute_uuid:
         metadata["citymodelIdentifier"] = citymodelIdentifier_func()
     if "datasetReferenceDate" not in metadata:

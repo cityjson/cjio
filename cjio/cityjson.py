@@ -49,20 +49,6 @@ from cjio.metadata import generate_metadata
 
 CITYJSON_VERSIONS_SUPPORTED = ['0.6', '0.8', '0.9', '1.0', '1.1']
 
-TOPLEVEL = ('Building',
-            'Bridge',
-            'CityObjectGroup',
-            'CityFurniture',
-            'GenericCityObject',
-            'LandUse',
-            'PlantCover',
-            'Railway',
-            'Road',
-            'SolitaryVegetationObject',
-            'TINRelief',
-            'TransportSquare',
-            'Tunnel',
-            'WaterBody')
 
 def load(path, transform:bool=False):
     """Load a CityJSON file for working with it though the API
@@ -492,6 +478,7 @@ class CityJSON:
         base_uri = os.path.join(folder_schemas, "extensions")
         base_uri = os.path.abspath(base_uri)
         allnewco = set()
+        allnew_rootproperties = set()
         
         #-- iterate over each Extensions, and verify each of the properties
         #-- in the file. Other way around is more cumbersome
@@ -528,6 +515,7 @@ class CityJSON:
             #-- 2. extraRootProperties
             if "extraRootProperties" in js:
                 for nrp in js["extraRootProperties"]:
+                    allnew_rootproperties.add(nrp)
                     jtmp = {}
                     jtmp["$schema"] = "http://json-schema.org/draft-07/schema#"
                     jtmp["type"] = "object"
@@ -571,6 +559,13 @@ class CityJSON:
                 es.append(s)
                 isValid = False
 
+        #-- 5. check if there are extraRootProperties that do not have a schema
+        for p in self.j:
+            if ( (p[0] == "+") and
+                 (p not in allnew_rootproperties) ):
+                s = "ERROR:   extra root properties " + p + " doesn't have a schema."
+                es.append(s)
+                isValid = False
         return (isValid, es)
 
 
@@ -893,14 +888,16 @@ class CityJSON:
         if ("appearance" in self.j):
             cm2.j["appearance"] = {}
             subset.process_appearance(self.j, cm2.j)
+        cm2.update_bbox()
         #-- metadata
-        try:
-            cm2.j["metadata"] = copy.deepcopy(self.j["metadata"])
-            cm2.update_metadata(overwrite=True, new_uuid=True)
-            fids = [fid for fid in cm2.j["CityObjects"]]
-            cm2.add_lineage_item("Subset of {} by bounding box {}".format(self.get_identifier(), bbox), features=fids)
-        except:
-            pass
+        if self.has_metadata_extended():    
+            try:
+                cm2.j["+metadata-extended"] = copy.deepcopy(self.j["+metadata-extended"])
+                cm2.update_metadata_extended(overwrite=True, new_uuid=True)
+                fids = [fid for fid in cm2.j["CityObjects"]]
+                cm2.add_lineage_item("Subset of {} by bounding box {}".format(self.get_identifier(), bbox), features=fids)
+            except:
+                pass
         return cm2
 
 
@@ -941,15 +938,19 @@ class CityJSON:
             sallkeys = set(self.j["CityObjects"].keys())
             re = sallkeys ^ re
         re = list(re)
-        cm = self.get_subset_ids(re)
-        try:
-            cm.j["metadata"]["lineage"][-1]["processStep"]["description"] = "Random subset of {}".format(self.get_identifier())
-        except:
-            pass
+        cm = self.get_subset_ids(re, update_metadata=False) #-- do not overwrite the metadata there, only here
+        cm.update_bbox()
+        if self.has_metadata_extended():
+            try:
+                cm.update_metadata_extended(overwrite=True)
+                fids = [fid for fid in cm.j["CityObjects"]]
+                cm.add_lineage_item("Random subset of {}".format(self.get_identifier()), features=fids)
+            except:
+                pass
         return cm
 
 
-    def get_subset_ids(self, lsIDs, exclude=False):
+    def get_subset_ids(self, lsIDs, exclude=False, update_metadata=True):
         #-- new sliced CityJSON object
         cm2 = CityJSON()
         cm2.j["version"] = self.j["version"]
@@ -973,14 +974,17 @@ class CityJSON:
         if ("appearance" in self.j):
             cm2.j["appearance"] = {}
             subset.process_appearance(self.j, cm2.j)
+        cm2.update_bbox()
         #-- metadata
-        try:
-            cm2.j["metadata"] = copy.deepcopy(self.j["metadata"])
-            cm2.update_metadata(overwrite=True, new_uuid=True)
-            fids = [fid for fid in cm2.j["CityObjects"]]
-            cm2.add_lineage_item("Subset of {} based on user specified IDs".format(self.get_identifier()), features=fids)
-        except:
-            pass
+        print(update_metadata)
+        if (update_metadata) and self.has_metadata_extended():
+            try:
+                cm2.j["+metadata-extended"] = copy.deepcopy(self.j["+metadata-extended"])
+                cm2.update_metadata_extended(overwrite=True, new_uuid=True)
+                fids = [fid for fid in cm2.j["CityObjects"]]
+                cm2.add_lineage_item("Subset of {} based on user specified IDs".format(self.get_identifier()), features=fids)
+            except:
+                pass
         return cm2
 
 
@@ -1019,13 +1023,15 @@ class CityJSON:
         if ("appearance" in self.j):
             cm2.j["appearance"] = {}
             subset.process_appearance(self.j, cm2.j)
+        cm2.update_bbox()
         #-- metadata
-        try:
-            cm2.j["metadata"] = copy.deepcopy(self.j["metadata"])
-            cm2.update_metadata(overwrite=True, new_uuid=True)
-            cm2.add_lineage_item("Subset of {} by object type {}".format(self.get_identifier(), cotype))
-        except:
-            pass
+        if self.has_metadata_extended():    
+            try:
+                cm2.j["metadata"] = copy.deepcopy(self.j["metadata"])
+                cm2.update_metadata_extended(overwrite=True, new_uuid=True)
+                cm2.add_lineage_item("Subset of {} by object type {}".format(self.get_identifier(), cotype))
+            except:
+                pass
         return cm2
         
 
@@ -1390,16 +1396,15 @@ class CityJSON:
                         a[i] = each + toffset
                     else:
                         a[i] = each + voffset
+        
         #-- decompress current CM                        
+        imp_digits = math.ceil(abs(math.log(self.j["transform"]["scale"][0], 10)))
         self.decompress()
 
-        #-- metadata
-        try:
-            self.update_metadata(overwrite=True)
-        except:
-            pass
         for cm in lsCMs:
             #-- decompress 
+            if math.ceil(abs(math.log(cm.j["transform"]["scale"][0], 10))) > imp_digits:
+                imp_digits = math.ceil(abs(math.log(cm.j["transform"]["scale"][0], 10)))
             cm.decompress()
             offset = len(self.j["vertices"])
             self.j["vertices"] += cm.j["vertices"]
@@ -1501,18 +1506,20 @@ class CityJSON:
                                 for m in g['texture']:
                                     update_texture_indices(g['texture'][m]['values'], toffset, voffset)
             #-- metadata
-            try:
-                fids = [fid for fid in cm.j["CityObjects"]]
-                src = {
-                    "description": cm.get_title(),
-                    "sourceReferenceSystem": "urn:ogc:def:crs:EPSG::{}".format(cm.get_epsg()) if cm.get_epsg() else None
-                }
-                self.add_lineage_item("Merge {} into {}".format(cm.get_identifier(), self.get_identifier()), features=fids, source=[src])
-            except:
-                pass
-        # self.remove_duplicate_vertices()
-        # self.remove_orphan_vertices()
-        #-- TODO: compress with how many digits?
+            if self.has_metadata_extended() or cm.has_metadata_extended():
+                try:
+                    fids = [fid for fid in cm.j["CityObjects"]]
+                    src = {
+                        "description": cm.get_title(),
+                        "sourceReferenceSystem": "urn:ogc:def:crs:EPSG::{}".format(cm.get_epsg()) if cm.get_epsg() else None
+                    }
+                    self.add_lineage_item("Merge {} into {}".format(cm.get_identifier(), self.get_identifier()), features=fids, source=[src])
+                except:
+                    pass
+        self.remove_duplicate_vertices()
+        self.remove_orphan_vertices()
+        self.update_bbox()
+        self.compress(imp_digits)
         return True
 
 
@@ -1585,7 +1592,7 @@ class CityJSON:
     def upgrade_version_v10_v11(self, reasons, digit):
         #-- version 
         self.j["version"] = "1.1"
-        #-- compress to for "transform"
+        #-- compress for "transform"
         self.compress(digit)
         #-- lod=string
         for theid in self.j["CityObjects"]:
@@ -1609,19 +1616,30 @@ class CityJSON:
         for theid in self.j["CityObjects"]:
             if ("geometry" in self.j['CityObjects'][theid]) and (len(self.j['CityObjects'][theid]['geometry']) == 0):
                 del self.j['CityObjects'][theid]['geometry']
-        #-- GenericCityObject is no longer
+        #-- CRS: use the new OGC scheme
+        if "metadata" in self.j and "referenceSystem" in self.j["metadata"]:
+            s = self.j["metadata"]["referenceSystem"]
+            if "epsg" in s.lower():
+                self.j["metadata"]["referenceSystem"] = "https://www.opengis.net/def/crs/EPSG/0/%d" % int(s[s.find("::")+2:])
+
+        #-- metadata calculate
+        if "metadata" in self.j:
+            v11_properties = ["citymodelIdentifier", "datasetTitle", "datasetReferenceDate", "geographicalExtent", "geographicLocation", "referenceSystem"]
+            to_delete = []
+            for each in self.j["metadata"]:
+                if each not in v11_properties:
+                    self.add_metadata_extended_property()
+                    self.j["+metadata-extended"][each] = self.j["metadata"][each]
+                    to_delete.append(each)
+            for each in to_delete:
+                del self.j["metadata"][each]
+
+        #-- GenericCityObject is no longer, add the Extension GenericCityObject
         gco = False
         for theid in self.j["CityObjects"]:
             if self.j["CityObjects"][theid]['type'] == 'GenericCityObject':
                 self.j["CityObjects"][theid]['type'] = '+GenericCityObject'
                 gco = True
-        #-- CRS
-        if "metadata" in self.j and "referenceSystem" in self.j["metadata"]:
-            s = self.j["metadata"]["referenceSystem"]
-            if "epsg" in s.lower():
-                self.j["metadata"]["referenceSystem"] = "https://www.opengis.net/def/crs/EPSG/0/%d" % int(s[s.find("::")+2:])
-        #-- metadata calculate
-        # self.update_metadata(overwrite=True, new_uuid=True) # TODO: put this line back when metadata are fixed
         if gco == True:
             reasons = '"GenericCityObject" is no longer in v1.1, instead Extensions are used.'
             reasons += ' Your "GenericCityObject" have been changed to "+GenericCityObject"'
@@ -1881,13 +1899,15 @@ class CityJSON:
                     self.j['CityObjects'][co]['geometry'].remove(each)
         self.remove_duplicate_vertices()
         self.remove_orphan_vertices()
+        self.update_bbox()
         #-- metadata
-        try:
-            self.update_metadata(overwrite=True)
-            fids = [fid for fid in self.j["CityObjects"]]
-            self.add_lineage_item("Extract LoD{} from {}".format(thelod, self.get_identifier()), features=fids)
-        except:
-            pass
+        if self.has_metadata_extended():
+            try:
+                self.update_metadata_extended(overwrite=True)
+                fids = [fid for fid in self.j["CityObjects"]]
+                self.add_lineage_item("Extract LoD{} from {}".format(thelod, self.get_identifier()), features=fids)
+            except:
+                pass
 
 
     def translate(self, values, minimum_xyz):
@@ -1917,6 +1937,32 @@ class CityJSON:
         """
         return "metadata" in self.j
 
+    def has_metadata_extended(self):
+        """
+        Returns whether +metadata-extended exist in this CityJSON file or not
+        """
+        return "+metadata-extended" in self.j
+
+    def metadata_extended_remove(self):
+        """
+        Remove the +metadata-extended in this CityJSON file (if present)
+        """
+        if "+metadata-extended" in self.j:
+            del self.j["+metadata-extended"]
+        if "extensions" in self.j and "MetadataExtended" in self.j["extensions"]:
+            del self.j["extensions"]["MetadataExtended"]
+
+    def add_metadata_extended_property(self):
+        """
+        Adds the +metadata-extended + the link to Extension
+        """
+        if "+metadata-extended" not in self.j:
+            self.j["+metadata-extended"] = {}
+            if "extensions" not in self.j:
+                self.j["extensions"] = {}
+            self.j["extensions"]["MetadataExtended"]= {}
+            self.j["extensions"]["MetadataExtended"]["url"] = "https://raw.githubusercontent.com/cityjson/metadata-extended/main/metadata-extended.ext.json"
+            self.j["extensions"]["MetadataExtended"]["version"] = "1.0"
 
     def get_metadata(self):
         """
@@ -1928,10 +1974,20 @@ class CityJSON:
             raise KeyError("Metadata is missing")
         return self.j["metadata"]
 
-    
-    def compute_metadata(self, overwrite=False, new_uuid=False):
+    def get_metadata_extended(self):
         """
-        Returns the metadata of this CityJSON file
+        Returns the "+metadata-extended" property of this CityJSON file
+
+        Raises a KeyError exception if metadata is missing
+        """
+        if not "+metadata-extended" in self.j:
+            raise KeyError("MetadataExtended is missing")
+        return self.j["+metadata-extended"]
+
+    
+    def compute_metadata_extended(self, overwrite=False, new_uuid=False):
+        """
+        Returns the +metadata-extended of this CityJSON file
         """
         return generate_metadata(citymodel=self.j,
                                  filename=self.path,
@@ -1940,13 +1996,14 @@ class CityJSON:
                                  recompute_uuid=new_uuid)
 
 
-    def update_metadata(self, overwrite=False, new_uuid=False):
+    def update_metadata_extended(self, overwrite=False, new_uuid=False):
         """
-        Computes and updates the "metadata" property of this CityJSON file
+        Computes and updates the "metadata" property of this CityJSON dataset
         """
+        self.add_metadata_extended_property()
+        metadata, errors = self.compute_metadata_extended(overwrite, new_uuid)
+        self.j["+metadata-extended"] = metadata
         self.update_bbox()
-        metadata, errors = self.compute_metadata(overwrite, new_uuid)
-        self.j["metadata"] = metadata
         return (True, errors)
 
     
@@ -1976,7 +2033,7 @@ class CityJSON:
             new_item["processStep"]["processor"] = processor
         if not self.has_metadata():
             self.j["metadata"] = {}
-        if not "lineage" in self.j["metadata"]:
-            self.j["metadata"]["lineage"] = []
-        self.j["metadata"]["lineage"].append(new_item)
+        if not "lineage" in self.j["+metadata-extended"]:
+            self.j["+metadata-extended"]["lineage"] = []
+        self.j["+metadata-extended"]["lineage"].append(new_item)
         

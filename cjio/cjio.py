@@ -10,6 +10,7 @@ import cjio
 from cjio import cityjson, utils
 
 
+
 #-- https://stackoverflow.com/questions/47437472/in-python-click-how-do-i-see-help-for-subcommands-whose-parents-have-required
 class PerCommandArgWantSubCmdHelp(click.Argument):
     def handle_parse_result(self, ctx, opts, args):
@@ -223,11 +224,11 @@ def save_cmd(filename, indent, textures):
         else:
             os.makedirs(os.path.dirname(output['path']), exist_ok=True)
         
-        try:
-            if "metadata" in cm.j:
-                cm.j["metadata"]["fileIdentifier"] = os.path.basename(output['path'])
-        except:
-            pass
+        # try:
+        #     if "metadata" in cm.j:
+        #         cm.j["metadata"]["fileIdentifier"] = os.path.basename(output['path'])
+        # except:
+        #     pass
 
         print(cm)
 
@@ -603,26 +604,42 @@ def translate_cmd(values):
     return processor
 
 
-@cli.command('update_metadata')
-@click.option('--overwrite', is_flag=True, help='Overwrite existing values.')
-def update_metadata_cmd(overwrite):
+@cli.command('metadata_create')
+def metadata_create_cmd():
     """
-    Update the metadata for properties/values that can be
-    computed. Updates the dataset.
+    Add the +metadata-extended properties 
+    Modify/update the dataset.
     """
     def processor(cm):
-        utils.print_cmd_status('Update the metadata')
-        _, errors = cm.update_metadata(overwrite)
+        utils.print_cmd_status('Create the +metadata-extended and populate it')
+        _, errors = cm.update_metadata_extended(overwrite=True)
         for e in errors:
             utils.print_cmd_warning(e)
         return cm
     return processor
 
 
-@cli.command('get_metadata')
-def get_metadata_cmd():
+@cli.command('metadata_update')
+@click.option('--overwrite', is_flag=True, help='Overwrite existing values.')
+def metadata_update_cmd(overwrite):
     """
-    Shows the metadata of this dataset.
+    Update the +metadata-extended for properties 
+    that can be computed. Modify/update the dataset.
+    """
+    def processor(cm):
+        utils.print_cmd_status('Update the +metadata-extended')
+        _, errors = cm.update_metadata_extended(overwrite)
+        for e in errors:
+            utils.print_cmd_warning(e)
+        return cm
+    return processor
+
+
+@cli.command('metadata_get')
+def metadata_get_cmd():
+    """
+    Shows the metadata and +metadata-extended of this dataset
+    (they are merged in one JSON object)
 
     The difference between 'info' and this command is that this
     command lists the "pure" metadata as stored in the file.
@@ -630,10 +647,26 @@ def get_metadata_cmd():
     file is needed.
     """
     def processor(cm):
+        j = {}
         if cm.has_metadata():
-            click.echo(json.dumps(cm.get_metadata(), indent=2))
-        else:
-            utils.print_cmd_warning("You are missing metadata! Quickly! Run 'update_metadata' before it's too late!")
+            j.update(cm.get_metadata())
+        if cm.has_metadata_extended():
+            j.update(cm.get_metadata_extended())
+        click.echo(json.dumps(j, indent=2))
+        return cm
+    return processor
+
+
+@cli.command('metadata_remove')
+def metadata_remove_cmd():
+    """
+    Remove the +metadata-extended properties.
+    Modify/update the dataset.
+    """
+    def processor(cm):
+        utils.print_cmd_status('Remove the +metadata-extended property')
+        cm.metadata_extended_remove()
+        return cm
     return processor
 
 
