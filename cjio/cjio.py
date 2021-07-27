@@ -256,9 +256,12 @@ def save_cmd(filename, indent, textures):
               help='Specify a folder where the schemas are (cityjson.json needs to be the master file).')
 @click.option('--moredetails', is_flag=True,
               help='Use a slower validation that *could* print out better errors.')
-def validate_cmd(folder_schemas, moredetails):
+@click.option('--ignore_warnings', is_flag=True,
+              help='Ignore the warnings')
+def validate_cmd(folder_schemas, moredetails, ignore_warnings):
     """
-    Validate the CityJSON file: (1) against its schemas;
+    Validate the CityJSON file: 
+    (1) against its schemas;
     (2) against the (potential) Extensions schemas;
     (3) extra validations.
 
@@ -286,13 +289,13 @@ def validate_cmd(folder_schemas, moredetails):
             click.echo("--- ERRORS (total = %d) ---" % len(errors))
             for i, e in enumerate(errors):
                 click.echo(str(i + 1) + " ==> " + e + "\n")
-        if woWarnings is False:
+        if ignore_warnings is False and woWarnings is False:
             click.echo("--- WARNINGS (total = %d) ---" % len(warnings))
             for i, e in enumerate(warnings):
                 click.echo(str(i + 1) + " ==> " + e + "\n")
         click.echo('=====================================')
         if bValid == True:
-            if woWarnings == True:
+            if ignore_warnings is True or woWarnings == True:
                 click.echo('🟢 File is valid')
             else:
                 click.echo('🟡 File is valid but has %d warnings' % len(warnings))
