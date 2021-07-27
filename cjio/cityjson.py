@@ -1798,9 +1798,9 @@ class CityJSON:
         self.j["metadata"]["lineage"].append(new_item)
         
     def triangulate(self):
-        # -- write vertices
-        # for v in self.j['vertices']:
-        #     out.write('v ' + str(v[0]) + ' ' + str(v[1]) + ' ' + str(v[2]) + '\n')
+        """
+        Triangulate the CityJSON file face by face.
+        """
         vnp = np.array(self.j["vertices"])
 
         # -- translate to minx,miny
