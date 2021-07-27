@@ -14,7 +14,6 @@ from io import StringIO
 from sys import platform
 from click import progressbar
 from datetime import datetime, date
-
 MODULE_NUMPY_AVAILABLE = True
 MODULE_PYPROJ_AVAILABLE = True
 MODULE_EARCUT_AVAILABLE = True
@@ -1540,7 +1539,7 @@ class CityJSON:
 
         #-- if already a triangle then return it
         if ( (len(face) == 1) and (len(face[0]) == 3) ):
-            return (face, True, n)
+            return (np.array(face), True, n)
         if b == False:
             return (n, False, n)
         # print ("Newell:", n)
@@ -1798,3 +1797,60 @@ class CityJSON:
 
         self.j["metadata"]["lineage"].append(new_item)
         
+    def triangulate(self):
+        # -- write vertices
+        # for v in self.j['vertices']:
+        #     out.write('v ' + str(v[0]) + ' ' + str(v[1]) + ' ' + str(v[2]) + '\n')
+        vnp = np.array(self.j["vertices"])
+
+        # -- translate to minx,miny
+        # minx = 9e9
+        # miny = 9e9
+        # for each in vnp:
+        #     if each[0] < minx:
+        #         minx = each[0]
+        #     if each[1] < miny:
+        #         miny = each[1]
+        # for each in vnp:
+        #     each[0] -= minx
+        #     each[1] -= miny
+
+        # print ("min", minx, miny)
+        # print(vnp)
+        # -- start with the CO
+        for theid in self.j['CityObjects']:
+            for geom in self.j['CityObjects'][theid]['geometry']:
+                # out.write('o ' + str(theid) + '\n')
+                if ((geom['type'] == 'MultiSurface') or (geom['type'] == 'CompositeSurface')):
+                    tlist1 = []
+                    for face in geom['boundaries']:
+                        # print(face)
+                        re, b, n = self.triangulate_face(face, vnp)
+                        if b == True:
+                            for t in re:
+                                print(t)
+                                tlist2 = []
+                                tlist2.append(t.tolist())
+                                tlist1.append(tlist2)
+                    print(tlist1)
+                    geom['boundaries'] = tlist1
+                    print('-------------')
+
+                elif (geom['type'] == 'Solid'):
+                    tlist1 = []
+                    for shell in geom['boundaries']:
+                        tlist2 = []
+                        for i, face in enumerate(shell):
+                            # print(face)
+                            re, b, n = self.triangulate_face(face, vnp)
+                            if b == True:
+                                for t in re:
+                                    tlist3 = []
+                                    tlist3.append(t.tolist())
+                                    tlist2.append(tlist3)
+                        tlist1.append(tlist2)
+                    print(tlist1)
+                    geom['boundaries'] = tlist1
+                    print('-------------')
+
+        return True

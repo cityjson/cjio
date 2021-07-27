@@ -628,6 +628,19 @@ def get_metadata_cmd():
         return cm
     return processor
 
+@cli.command('triangulate')
+def triangulate_cmd():
+    """
+    Triangulate a given CityJSON file.
+    """
+
+    def processor(cm):
+        utils.print_cmd_status('Triangulate the CityJSON file')
+        cm.triangulate()
+        return cm
+
+    return processor
+
 
 # Needed for the executable created by PyInstaller
 if getattr(sys, 'frozen', False):
