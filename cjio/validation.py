@@ -271,12 +271,9 @@ def wrong_vertex_index(j):
             recusionvisit(each, co, errs)
         else:
             if (each >= len(j['vertices'])):
-                es = []
                 s = "ERROR:   CityObject #" + co + " has geometry with wrong vertex."
-                es.append(s)
-                s = "\t(vertex #" + str(each) + " doesn't exist)"   
-                es.append(s)
-                errs.append(es)
+                s += " (vertex #" + str(each) + " doesn't exist)"   
+                errs.append(s)
     errs = []
     for co in j["CityObjects"]:
         for g in j['CityObjects'][co]['geometry']:
