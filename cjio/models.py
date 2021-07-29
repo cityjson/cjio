@@ -470,7 +470,7 @@ class Geometry(object):
                 for j in range(len(self.boundaries[i])):
                     self.semantics['values'][i].append(None)
         else:
-            raise ValueError(f"{self.type} is not supported at the moment for semantic surfaces")
+            raise ValueError("{} is not supported at the moment for semantic surfaces".format(self.type))
         for i,srf in self.surfaces.items():
             _surface = dict()
             _surface['type'] = srf['type']
