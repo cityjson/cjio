@@ -1639,6 +1639,8 @@ class CityJSON:
                 if each not in v11_properties:
                     self.add_metadata_extended_property()
                     self.j["+metadata-extended"][each] = self.j["metadata"][each]
+                    if each == "spatialRepresentationType":
+                        self.j["+metadata-extended"][each] = [self.j["metadata"][each]]
                     to_delete.append(each)
             for each in to_delete:
                 del self.j["metadata"][each]
