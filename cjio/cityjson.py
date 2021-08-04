@@ -1633,7 +1633,7 @@ class CityJSON:
 
         #-- metadata calculate
         if "metadata" in self.j:
-            v11_properties = ["citymodelIdentifier", "datasetTitle", "datasetReferenceDate", "geographicalExtent", "geographicLocation", "referenceSystem"]
+            v11_properties = ["citymodelIdentifier", "datasetPointOfContact", "datasetTitle", "datasetReferenceDate", "geographicalExtent", "referenceSystem"]
             to_delete = []
             for each in self.j["metadata"]:
                 if each not in v11_properties:
