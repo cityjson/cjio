@@ -1802,6 +1802,9 @@ class CityJSON:
         """
         Triangulate the CityJSON file face by face together with the texture information.
         """
+        if not MODULE_EARCUT_AVAILABLE:
+            raise ModuleNotFoundError("mapbox-earcut is not installed")
+
         vnp = np.array(self.j["vertices"])
 
         for theid in self.j['CityObjects']:
@@ -1854,9 +1857,15 @@ class CityJSON:
                                         tposition = texture[key]['values'][i][ii][0]
                                         tmap[ff] = texture[key]['values'][i][ii][iii+1]
                             tmaplist.append(tmap)
+                        print(face)
+                        if ((len(face) == 1) and (len(face[0]) == 3)):
+                            re = np.array(face)
+                            b = True
+                        else:
+                            re, b, n = self.triangulate_face(face, vnp)
 
-                        re, b, n = self.triangulate_face(face, vnp)
                         if b == True:
+                            print(re)
                             for t in re:
                                 tlist2 = []
                                 tlist2.append(t.tolist())
@@ -1926,9 +1935,14 @@ class CityJSON:
                                             tposition = texture[key]['values'][sidx][i][ii][0]
                                             tmap[ff] = texture[key]['values'][sidx][i][ii][iii + 1]
                                 tmaplist.append(tmap)
-                            # print(face)
-                            re, b, n = self.triangulate_face(face, vnp)
+                            print(face)
+                            if ((len(face) == 1) and (len(face[0]) == 3)):
+                                re = np.array(face)
+                                b = True
+                            else:
+                                re, b, n = self.triangulate_face(face, vnp)
                             if b == True:
+
                                 for t in re:
                                     tlist3 = []
                                     tlist3.append(t.tolist())
