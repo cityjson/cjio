@@ -1521,7 +1521,7 @@ class CityJSON:
 
     def triangulate_face(self, face, vnp):
 
-        sf = np.array([], dtype=np.int32)
+        sf = np.array([], dtype=np.int64)
         for ring in face:
             sf = np.hstack( (sf, np.array(ring)) )
         sfv = vnp[sf]
@@ -1797,50 +1797,135 @@ class CityJSON:
 
         self.j["metadata"]["lineage"].append(new_item)
         
+
     def triangulate(self):
         """
-        Triangulate the CityJSON file face by face.
+        Triangulate the CityJSON file face by face together with the texture information.
         """
         vnp = np.array(self.j["vertices"])
 
-        # -- translate to minx,miny
-        # minx = 9e9
-        # miny = 9e9
-        # for each in vnp:
-        #     if each[0] < minx:
-        #         minx = each[0]
-        #     if each[1] < miny:
-        #         miny = each[1]
-        # for each in vnp:
-        #     each[0] -= minx
-        #     each[1] -= miny
-
-        # print ("min", minx, miny)
-        # print(vnp)
-        # -- start with the CO
         for theid in self.j['CityObjects']:
             for geom in self.j['CityObjects'][theid]['geometry']:
-                # out.write('o ' + str(theid) + '\n')
+                sflag = False
+                mflag = False
+                tflag = False
+                slist = []
+                mlist = []
+                texlist = []
+                material = {}
+                texture = {}
+                # 1.semantics
+                if 'semantics' in geom:
+                    sflag = True
+                # 2. materials
+                if 'material' in geom:
+                    material = geom['material']
+                    for item in material.items():
+                        if list(item[1].keys())[0] == 'value':
+                            mlist.append(item[1]['value'])
+                        elif list(item[1].keys())[0] == 'values':
+                            mlist.append([])
+                    mflag = True
+                # 3. texture
+                if 'texture' in geom:
+                    texture = geom['texture']
+                    tkeys = []
+                    for item in texture.items():
+                        texlist.append([])
+                    for key in texture.keys():
+                        tkeys.append(key)
+                    tflag = True
+                # triangulate the geometry type MultiSurface and CompositeSurface
                 if ((geom['type'] == 'MultiSurface') or (geom['type'] == 'CompositeSurface')):
                     tlist1 = []
-                    for face in geom['boundaries']:
-                        # print(face)
+
+                    for i, face in enumerate(geom['boundaries']):
+                        tposition = 0
+                        tmaplist = []
+                        for key in tkeys:
+                            tmap = {}
+                            for ii,f in enumerate(face):
+                                for iii,ff in enumerate(f):
+
+
+                                    if texture[key]['values'][i][ii][0] is None:
+                                        break
+                                    else:
+                                        tposition = texture[key]['values'][i][ii][0]
+                                        tmap[ff] = texture[key]['values'][i][ii][iii+1]
+                            tmaplist.append(tmap)
+
                         re, b, n = self.triangulate_face(face, vnp)
                         if b == True:
                             for t in re:
-                                print(t)
                                 tlist2 = []
                                 tlist2.append(t.tolist())
                                 tlist1.append(tlist2)
-                    print(tlist1)
-                    geom['boundaries'] = tlist1
-                    print('-------------')
 
+                                if sflag:
+                                    slist.append(geom['semantics']['values'][i])
+
+                                if mflag:
+                                    for j,l in enumerate(mlist):
+                                        if type(l).__name__ == 'list':
+                                            l.append(material[list(material.keys())[j]]['values'][i])
+                                        else:
+                                            continue
+
+                                if tflag:
+
+                                    for jj in range(len(tmaplist)):
+                                        texlist1 = []
+                                        texlist2 = [tposition]
+
+                                        if bool(tmaplist[jj]):
+
+                                            for vindex in t:
+                                                texlist2.append(tmaplist[jj][vindex])
+                                        else:
+                                            texlist2[0] = None
+                                        texlist1.append(texlist2)
+                                        texlist[jj].append(texlist1)
+
+
+                    geom['boundaries'] = tlist1
+                    if sflag:
+                        geom['semantics']['values'] = slist
+
+                    if mflag:
+                        for j, item in enumerate(material.items()):
+                            item[1][list(item[1].keys())[0]] = mlist[j]
+                        geom['material'] = material
+
+                    if tflag:
+                        for j,item in enumerate(texture.items()):
+                            item[1][list(item[1].keys())[0]] = texlist[j]
+                        geom['texture'] = texture
+                    print(texture)
+                # triangulate the geometry type Solid
                 elif (geom['type'] == 'Solid'):
                     tlist1 = []
-                    for shell in geom['boundaries']:
+                    minit = copy.deepcopy(mlist)
+                    for sidx, shell in enumerate(geom['boundaries']):
+                        slist1 = []
                         tlist2 = []
+                        # print(minit)
+                        texlist0 = copy.deepcopy(texlist)
+                        mlist1 = copy.deepcopy(minit)
                         for i, face in enumerate(shell):
+                            tposition = 0
+                            tmaplist = []
+                            for key in tkeys:
+                                tmap = {}
+                                for ii, f in enumerate(face):
+                                    for iii, ff in enumerate(f):
+
+                                        if texture[key]['values'][sidx][i][ii][0] is None:
+                                            break
+                                        else:
+                                            tposition = texture[key]['values'][sidx][i][ii][0]
+                                            tmap[ff] = texture[key]['values'][sidx][i][ii][iii + 1]
+                                tmaplist.append(tmap)
                             # print(face)
                             re, b, n = self.triangulate_face(face, vnp)
                             if b == True:
@@ -1848,9 +1933,73 @@ class CityJSON:
                                     tlist3 = []
                                     tlist3.append(t.tolist())
                                     tlist2.append(tlist3)
-                        tlist1.append(tlist2)
-                    print(tlist1)
-                    geom['boundaries'] = tlist1
-                    print('-------------')
+                                    if sflag:
+                                        slist1.append(geom['semantics']['values'][i])
+                                    if mflag:
 
+                                        for j, l in enumerate(mlist1):
+                                            if type(l).__name__ == 'list':
+                                                l.append(material[list(material.keys())[j]]['values'][0][i])
+                                            else:
+                                                continue
+
+                                    if tflag:
+
+                                        for jj in range(len(tmaplist)):
+                                            texlist1 = []
+                                            texlist2 = [tposition]
+
+                                            if bool(tmaplist[jj]):
+
+                                                for vindex in t:
+                                                    texlist2.append(tmaplist[jj][vindex])
+                                            else:
+                                                texlist2[0] = None
+                                            texlist1.append(texlist2)
+                                            texlist0[jj].append(texlist1)
+
+                        tlist1.append(tlist2)
+                        slist.append(slist1)
+                        for j,l in enumerate(mlist):
+                            if type(l).__name__ == 'list' and len(mlist1[j])!=0:
+                                l.append(mlist1[j])
+                            else:
+                                continue
+                        for j,l in enumerate(texlist):
+                            l.append(texlist0[j])
+
+                    geom['boundaries'] = tlist1
+                    if sflag:
+                        geom['semantics'] = slist
+
+                    if mflag:
+                        for j, item in enumerate(material.items()):
+                            item[1][list(item[1].keys())[0]] = mlist[j]
+                        geom['material'] = material
+
+                    if tflag:
+                        for j,item in enumerate(texture.items()):
+                            item[1][list(item[1].keys())[0]] = texlist[j]
+                        geom['texture'] = texture
+                    print(texture)
         return True
+
+    def check_triangle(self):
+        """
+        Check if the CityJSON file is triangulated. Return true if it's triangulated, return false if it's not.
+        """
+        for theid in self.j['CityObjects']:
+            for geom in self.j['CityObjects'][theid]['geometry']:
+                if ((geom['type'] == 'MultiSurface') or (geom['type'] == 'CompositeSurface')):
+                    for face in geom['boundaries']:
+                        for f in face:
+                            if len(f) != 3:
+                                return False
+                elif (geom['type'] == 'Solid'):
+                    for shell in geom['boundaries']:
+                        for face in shell:
+                            for f in face:
+                                if len(f) != 3:
+                                    return False
+        return True
+

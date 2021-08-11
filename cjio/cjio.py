@@ -358,7 +358,7 @@ def subset_cmd(id, bbox, random, cotype, exclude):
             return s
         if len(id) > 0:
             s = s.get_subset_ids(id, exclude=exclude)
-        if len(bbox) > 0:
+        if bbox is not None:
             s = s.get_subset_bbox(bbox, exclude=exclude)
         if cotype is not None:
             s = s.get_subset_cotype(cotype, exclude=exclude)
@@ -635,8 +635,12 @@ def triangulate_cmd():
     """
 
     def processor(cm):
-        utils.print_cmd_status('Triangulate the CityJSON file')
-        cm.triangulate()
+
+        if not(cm.check_triangle()):
+            utils.print_cmd_status('Triangulate the CityJSON file')
+            cm.triangulate()
+        else:
+            utils.print_cmd_status('This file is already triangulated!')
         return cm
 
     return processor

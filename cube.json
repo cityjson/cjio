@@ -56,7 +56,24 @@
             ]
           ],
           "type": "Solid",
-          "lod": 1
+          "lod": 1,
+          "semantics": {
+            "surfaces" : [
+      {
+        "type": "WallSurface",
+        "colour": "red"
+      },
+      {
+        "type": "WallSurface",
+        "colour": "green"
+      },
+      {
+        "type": "WallSurface",
+        "colour": "blue"
+      }
+    ],
+    "values": [0, 0, 1, 1, 2, 2]
+          }
         }
       ],
       "type": "GenericCityObject"
