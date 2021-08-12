@@ -633,16 +633,20 @@ def triangulate_cmd():
     """
     Triangulate a given CityJSON file.
     """
-
+    #-- mapbox_earcut available?
     def processor(cm):
-
-        if not(cm.check_triangle()):
-            utils.print_cmd_status('Triangulate the CityJSON file')
+        utils.print_cmd_status('Triangulate the CityJSON file')
+        if (cityjson.MODULE_EARCUT_AVAILABLE == False):
+            str = "Cannot triangulate: Python module 'mapbox_earcut' missing. Stopping here."
+            utils.print_cmd_error(str)
+            str = "Install it: https://pypi.org/project/mapbox-earcut/"
+            utils.print_cmd_error(str)
+            return cm
+        if not(cm.is_triangulated()):
             cm.triangulate()
         else:
             utils.print_cmd_status('This file is already triangulated!')
         return cm
-
     return processor
 
 

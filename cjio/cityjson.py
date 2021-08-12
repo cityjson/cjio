@@ -1520,8 +1520,9 @@ class CityJSON:
 
 
     def triangulate_face(self, face, vnp):
-
         sf = np.array([], dtype=np.int64)
+        if ( (len(face) == 1) and (len(face[0]) == 3) ):
+            return (np.array(face), True, n)
         for ring in face:
             sf = np.hstack( (sf, np.array(ring)) )
         sfv = vnp[sf]
@@ -1538,8 +1539,6 @@ class CityJSON:
         n, b = geom_help.get_normal_newell(sfv)
 
         #-- if already a triangle then return it
-        if ( (len(face) == 1) and (len(face[0]) == 3) ):
-            return (np.array(face), True, n)
         if b == False:
             return (n, False, n)
         # print ("Newell:", n)
@@ -1802,9 +1801,6 @@ class CityJSON:
         """
         Triangulate the CityJSON file face by face together with the texture information.
         """
-        if not MODULE_EARCUT_AVAILABLE:
-            raise ModuleNotFoundError("mapbox-earcut is not installed")
-
         vnp = np.array(self.j["vertices"])
 
         for theid in self.j['CityObjects']:

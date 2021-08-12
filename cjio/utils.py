@@ -44,3 +44,6 @@ def print_cmd_substatus(s):
 
 def print_cmd_warning(s):
     echo(style(s, fg='bright_yellow'))
+
+def print_cmd_error(s):
+    echo(style(s, fg='red'))    
