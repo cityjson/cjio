@@ -1994,10 +1994,11 @@ class CityJSON:
                     print(texture)
         return True
 
-    def check_triangle(self):
+    def is_triangulated(self):
         """
-        Check if the CityJSON file is triangulated. Return true if it's triangulated, return false if it's not.
+        Check if the CityJSON file is *fully* triangulated. Return true if it's triangulated, return false if it's not.
         """
+        # TODO: all MultiSolid and CompositeSolid
         for theid in self.j['CityObjects']:
             for geom in self.j['CityObjects'][theid]['geometry']:
                 if ((geom['type'] == 'MultiSurface') or (geom['type'] == 'CompositeSurface')):
