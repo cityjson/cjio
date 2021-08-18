@@ -975,7 +975,7 @@ class CityJSON:
             if "textures" in self.j["appearance"]:
                 p = self.j["appearance"]["textures"][0]["image"]
                 cj_dir = os.path.dirname(self.path)
-                url = re.match('http[s]?://|www\.', p)
+                url = re.match(r'http[s]?://|www\.', p)
                 if url:
                     return url
                 else:
@@ -1017,7 +1017,7 @@ class CityJSON:
         """
         curr_loc = self.get_textures_location()
         if curr_loc:
-            if re.match('http[s]?://|www\.', new_loc):
+            if re.match(r'http[s]?://|www\.', new_loc):
                 apath = new_loc
                 for t in self.j["appearance"]["textures"]:
                     f = os.path.basename(t["image"])
