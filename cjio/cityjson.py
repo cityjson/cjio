@@ -1096,7 +1096,6 @@ class CityJSON:
             del self.j["appearance"]
         return True
 
-
     def remove_materials(self):
         for i in self.j["CityObjects"]:
             if "material" in self.j["CityObjects"][i]:
