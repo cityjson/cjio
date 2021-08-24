@@ -1395,7 +1395,11 @@ class CityJSON:
                     for g in self.j['CityObjects'][theid]['geometry']:
                         if 'material' in g:
                             for m in g['material']:
-                                update_geom_indices(g['material'][m]['values'], offset)
+                                if 'values' in g['material'][m]:
+                                    update_geom_indices(g['material'][m]['values'], offset)
+                                else:
+                                    # TODO: How to handle 'value' case?
+                                    pass
             #-- textures
             if ("appearance" in cm.j) and ("textures" in cm.j["appearance"]):
                 if ("appearance" in self.j) and ("textures" in self.j["appearance"]):
@@ -1420,7 +1424,11 @@ class CityJSON:
                     for g in self.j['CityObjects'][theid]['geometry']:
                         if 'texture' in g:
                             for m in g['texture']:
-                                update_texture_indices(g['texture'][m]['values'], toffset, voffset)
+                                if 'values' in g['texture'][m]:
+                                    update_texture_indices(g['texture'][m]['values'], toffset, voffset)
+                                else:
+                                    # TODO: How to handle 'value' case?
+                                    pass
             #-- metadata
             try:
                 fids = [fid for fid in cm.j["CityObjects"]]
