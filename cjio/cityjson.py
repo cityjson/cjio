@@ -1385,7 +1385,7 @@ class CityJSON:
                     if "appearance" not in self.j:
                         self.j["appearance"] = {}
                     if "materials" not in self.j["appearance"]:
-                        self.j["appearance"]["materials"] = {}
+                        self.j["appearance"]["materials"] = []
                     offset = 0
                 #-- copy materials
                 for m in cm.j["appearance"]["materials"]:
