@@ -364,12 +364,14 @@ def subset_cmd(id, bbox, random, cotype, exclude):
         if random is not None:
             s = s.get_subset_random(random, exclude=exclude)
             return s
-        if len(id) > 0:
+        elif id is not None and len(id) > 0:
             s = s.get_subset_ids(id, exclude=exclude)
-        if len(bbox) > 0:
+        elif bbox is not None and len(bbox) > 0:
             s = s.get_subset_bbox(bbox, exclude=exclude)
-        if cotype is not None:
+        elif cotype is not None:
             s = s.get_subset_cotype(cotype, exclude=exclude)
+        else:
+            click.BadArgumentUsage('You must provide one of the options for subset; --id, --bbox, --random, --cotype')
         return s 
     return processor
 
