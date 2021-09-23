@@ -1860,7 +1860,6 @@ class CityJSON:
                             re, b, n = self.triangulate_face(face, vnp)
 
                         if b == True:
-                            print(re)
                             for t in re:
                                 tlist2 = []
                                 tlist2.append(t.tolist())
@@ -1904,7 +1903,6 @@ class CityJSON:
                         for j,item in enumerate(texture.items()):
                             item[1][list(item[1].keys())[0]] = texlist[j]
                         geom['texture'] = texture
-                    print(texture)
 
 
 
@@ -1916,7 +1914,6 @@ class CityJSON:
                     for sidx, shell in enumerate(geom['boundaries']):
                         slist1 = []
                         tlist2 = []
-                        # print(minit)
                         texlist0 = copy.deepcopy(texinit)
                         mlist1 = copy.deepcopy(minit)
                         for i, face in enumerate(shell):
@@ -1933,7 +1930,6 @@ class CityJSON:
                                                 tposition = texture[key]['values'][sidx][i][ii][0]
                                                 tmap[ff] = texture[key]['values'][sidx][i][ii][iii + 1]
                                     tmaplist.append(tmap)
-                            print(face)
                             if ((len(face) == 1) and (len(face[0]) == 3)):
                                 re = np.array(face)
                                 b = True
@@ -1991,7 +1987,6 @@ class CityJSON:
                         for j,item in enumerate(texture.items()):
                             item[1][list(item[1].keys())[0]] = texlist[j]
                         geom['texture'] = texture
-                    print(texture)
 
 
                 # triangulate the geometry type MultiSolid and CompositeSolid
