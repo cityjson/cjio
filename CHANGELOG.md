@@ -1,5 +1,9 @@
 # Changelog
 
+## [unreleased]
+### Changed
+- Minimum required Python is 3.6
+
 ## [0.6.9] - 2021-07-06
 ### Changed
 - version with schemas 1.0.3 (where metadata schema is fixed)
