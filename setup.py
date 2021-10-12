@@ -1,6 +1,5 @@
 from setuptools import setup
 from pathlib import Path
-import cjio
 
 CURRENT_DIR = Path(__file__).parent
 
@@ -9,7 +8,7 @@ with open("README.rst", "r") as fh:
 
 setup(
     name='cjio',
-    version=cjio.__version__,
+    version='0.6.9',
     description='CLI to process and manipulate CityJSON files',
     long_description=long_description,
     long_description_content_type="text/x-rst",
@@ -35,8 +34,24 @@ setup(
     install_requires=[
         'Click',
         'jsonschema',
+        'fastjsonschema',
+        'jsonschema_rs',
         'jsonref'
     ],
+    extras_require={
+        'develop': [
+            'pytest',
+            'bump2version'
+        ],
+        'export': [
+            'numpy',
+            'pandas',
+            'mapbox-earcut'
+        ],
+        'reproject': [
+            'pyproj'
+        ]
+    },
     entry_points='''
         [console_scripts]
         cjio=cjio.cjio:cli
