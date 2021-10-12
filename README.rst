@@ -17,7 +17,7 @@ Documentation
 Installation
 ------------
 
-It uses Python 3.5+ only.
+It uses Python 3.6+ only.
 
 To install the latest release:
 
@@ -55,6 +55,12 @@ You can then continue with:
 
     pip install cjio
 
+
+Supported CityJSON versions
+---------------------------
+
+The operators (``cjio --help``) expect that your file is using the latest version `CityJSON schema <https://www.cityjson.org/specs/overview/>`_.
+If your file uses an earlier version, you can upgrade it with the ``upgrade_version`` operator.
 
 Usage of the CLI
 ----------------
