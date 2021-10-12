@@ -1,14 +1,10 @@
-
-import os
-import json
 import jsonschema
-import jsonschema_rs
-import fastjsonschema
 import jsonref
 
 #-- ERRORS
  # validate_against_schema
  # parent_children_consistency
+ # city_object_groups
  # semantics_array
  # wrong_vertex_index
  # building_parts
@@ -19,6 +15,7 @@ import jsonref
  # metadata
  # cityjson_properties
  # citygml_attributes
+ # geometry_empty
  # duplicate_vertices
  # orphan_vertices
 
@@ -34,6 +31,21 @@ def dict_raise_on_duplicates(ordered_pairs):
     return d
 
 
+def city_object_groups(j):
+    isValid = True
+    es = []
+    for id in j["CityObjects"]:
+        if j['CityObjects'][id]['type'] == 'CityObjectGroup':
+            for each in j['CityObjects'][id]['members']:
+                if each in j['CityObjects']:
+                    pass
+                else:
+                    s = "ERROR:   CityObjectGroup (#" + id + ") contains member #" + each + ", but it doesn't exist." 
+                    es.append(s)
+                    isValid = False
+    return (isValid, es)
+
+
 def parent_children_consistency(j):
     isValid = True
     es = []
@@ -42,14 +54,16 @@ def parent_children_consistency(j):
         if "children" in j['CityObjects'][theid]:
             for child in j['CityObjects'][theid]['children']:
                 if (child not in j['CityObjects']):
-                    s = "CityObject #" + child + " doesn't exist."
-                    s += " (CityObject #" + theid + " references it as children)"   
+                    s = "ERROR:   CityObject #" + child + " doesn't exist."
+                    es.append(s)
+                    s = "\t(CityObject #" + theid + " references it as children)"   
                     es.append(s)
                     isValid = False
                 else:
-                    if ("parents" not in j['CityObjects'][child]) or (theid not in j['CityObjects'][child]['parents']):    
-                        s = "CityObject #" + child + " doesn't reference correct parent"
-                        s += " (#" + theid + ")"   
+                    if theid not in j['CityObjects'][child]['parents']:    
+                        s = "ERROR:   CityObject #" + child + " doesn't reference correct parent."
+                        es.append(s)
+                        s = "\t(Parent should be CityObject #" + theid + ")"   
                         es.append(s)
                         isValid = False
     #-- are there orphans?
@@ -57,9 +71,71 @@ def parent_children_consistency(j):
         if "parents" in j['CityObjects'][theid]:
             for parent in j['CityObjects'][theid]['parents']:
                 if (parent not in j['CityObjects']):
-                    s = "CityObject #" + theid + " is an orphan (parent #" + parent + " doesn't exist)"
+                    s = "ERROR:   CityObject #" + theid + " is an orphan (parent #" + parent + " doesn't exist)."
                     es.append(s)
                     isValid = False
+    return (isValid, es)
+
+
+def building_parts(j):
+    isValid = True
+    es = []
+    for id in j["CityObjects"]:
+        if (j['CityObjects'][id]['type'] == 'Building') and ('Parts' in j['CityObjects'][id]):
+            for each in j['CityObjects'][id]['Parts']:
+                if (each in j['CityObjects']) and (j['CityObjects'][each]['type'] == 'BuildingPart'):
+                    pass
+                else:
+                    s = "ERROR:   BuildingPart #" + each + " doesn't exist."
+                    es.append(s)
+                    s = "\t(Building #" + id + " references it)"   
+                    es.append(s)
+                    isValid = False
+    return (isValid, es)
+
+
+def building_installations(j):
+    isValid = True
+    es = []
+    for id in j["CityObjects"]:
+        if (j['CityObjects'][id]['type'] == 'Building') and ('Installations' in j['CityObjects'][id]):
+            for each in j['CityObjects'][id]['Installations']:
+                if (each in j['CityObjects']) and (j['CityObjects'][each]['type'] == 'BuildingInstallation'):
+                    pass
+                else:
+                    s = "ERROR:   BuildingInstallation #" + each + " doesn't exist."
+                    es.append(s)
+                    s = "\t(Building #" + id + " references it)"
+                    es.append(s)
+                    isValid = False
+    return (isValid, es)
+
+
+def building_pi_parent(j):
+    isValid = True
+    es = []
+    pis = set()
+    for id in j["CityObjects"]:
+        if j['CityObjects'][id]['type'] == 'BuildingPart' or j['CityObjects'][id]['type'] == 'BuildingInstallation':
+            pis.add(id)
+    for id in j["CityObjects"]:
+        if j['CityObjects'][id]['type'] == 'Building':
+            if 'Parts' in j['CityObjects'][id]:
+                for pid in j['CityObjects'][id]['Parts']:
+                    if pid in pis:
+                        pis.remove(pid)
+        if j['CityObjects'][id]['type'] == 'Building':
+            if 'Installations' in j['CityObjects'][id]:
+                for pid in j['CityObjects'][id]['Installations']:
+                    if pid in pis:
+                        pis.remove(pid)
+    if len(pis) > 0:
+        isValid = False
+        s = "ERROR:   BuildingParts and/or BuildingInstallations don't have a parent:"
+        es.append(s)
+        for each in pis:
+            s = "\t#" + each
+            es.append(s)
     return (isValid, es)
 
 
@@ -69,8 +145,6 @@ def semantics_array(j):
     for id in j["CityObjects"]:
         # print("--", id)
         geomid = 0
-        if "geometry" not in j['CityObjects'][id]:
-            continue
         for g in j['CityObjects'][id]['geometry']:
             if 'semantics' not in g:
                 continue
@@ -88,8 +162,9 @@ def semantics_array(j):
                                     i = sem['values'][shellid][surfaceid]
                             if i is not None:
                                 if ( (type(i) is not int) or (i > (len(sem['surfaces']) - 1)) ):
-                                    s = "semantics arrays problems ( #" + id
-                                    s += "; geom=" + str(geomid) + ",shell=" + str(shellid) + ",surface=" + str(surfaceid) + " )"
+                                    s = "ERROR:   semantics arrays problems ( #" + id
+                                    es.append(s)
+                                    s = "; geom=" + str(geomid) + ",shell=" + str(shellid) + ",surface=" + str(surfaceid) + " )"
                                     es.append(s)
                                     isValid = False;
                                     break
@@ -105,8 +180,9 @@ def semantics_array(j):
                                 i = sem['values'][surfaceid]
                         if i is not None:
                             if ( (type(i) is not int) or (i > (len(sem['surfaces']) - 1)) ):
-                                s = "semantics arrays problems ( #" + id
-                                s += "; geom=" + str(geomid) + ",surface=" + str(surfaceid) + " )"
+                                s = "ERROR:   semantics arrays problems ( #" + id
+                                es.append(s)
+                                s = "; geom=" + str(geomid) + ",surface=" + str(surfaceid) + " )"
                                 es.append(s)
                                 isValid = False;
                                 break
@@ -128,37 +204,60 @@ def get_list_attributes_from_schema(n, ls):
             if ( (type(each) is dict) or (type(each) is jsonref.JsonRef) or (type(each) is list) ):
                 get_list_attributes_from_schema(each, ls)
 
-                      
+
+    # if 'address' in j['CityObjects'][id]:
+    #     tmp = js[str(cotype)]["properties"]["address"]["properties"]                        
+    #     for a in j['CityObjects'][id]['address']:
+    #         if a not in tmp:
+    #             isValid = False;
+    #             s = "WARNING: address attributes '" + a + "' not in CityGML schema"
+    #             if s not in thewarnings:
+    #                 thewarnings[s] = [id]
+    #             else:
+    #                 thewarnings[s].append(id)                        
 
 def citygml_attributes(j, js):
     isValid = True
     thewarnings = {}
     for id in j["CityObjects"]:
         cotype = j['CityObjects'][id]['type']
-        if cotype[0] == "+": #-- those are validated with the extension validation
+        if cotype[0] == "+":
             continue
+            # TODO : implement for attributes of Extensions?
         ls = []
         get_list_attributes_from_schema(js[cotype], ls)
         if 'attributes' in j['CityObjects'][id]:
             for a in j['CityObjects'][id]['attributes']:
                 if ( (a[0] != "+") and (a not in ls) ):
                     isValid = False;
-                    s = "attributes '" + a + "' not in CityGML schema"
+                    s = "WARNING: attributes '" + a + "' not in CityGML schema"
                     if s not in thewarnings:
                         thewarnings[s] = [id]
                     else:
                         thewarnings[s].append(id)
     ws = []
     for each in thewarnings:
-        # s = ""
-        if len(thewarnings[each]) < 3:
-            for coid in thewarnings[each]:
-                each += " #" + coid
-            each = " (" + each
-            each += ")"
-        else:
-            each += " (" + str(len(thewarnings[each])) + " CityObjects have this warning)"
         ws.append(each)
+        s = ""
+        if len(thewarnings[each]) < 3:
+            s += "\t("
+            for coid in thewarnings[each]:
+                s += " #" + coid + " "
+            s += ")"
+        else:
+            s += "\t(" + str(len(thewarnings[each])) + " CityObjects have this warning)"
+        ws.append(s)
+    return (isValid, ws)
+
+
+def geometry_empty(j):
+    isValid = True
+    ws = []
+    for id in j["CityObjects"]:
+        if (j['CityObjects'][id]['type'] != 'CityObjectGroup') and (len(j['CityObjects'][id]['geometry']) == 0):
+            isValid = False
+            s = "WARNING: " + j['CityObjects'][id]['type'] + " #" + id + " has no geometry."
+            ws.append(s)
     return (isValid, ws)
 
 
@@ -169,16 +268,15 @@ def wrong_vertex_index(j):
             recusionvisit(each, co, errs)
         else:
             if (each >= len(j['vertices'])):
-                es = []
                 s = "ERROR:   CityObject #" + co + " has geometry with wrong vertex."
-                s += " (vertex #" + str(each) + " doesn't exist)"   
+                es.append(s)
+                s = "\t(vertex #" + str(each) + " doesn't exist)"   
                 es.append(s)
                 errs.append(es)
     errs = []
     for co in j["CityObjects"]:
-        if "geometry" in j['CityObjects'][co]:
-            for g in j['CityObjects'][co]['geometry']:
-                recusionvisit(g["boundaries"], co, errs)    
+        for g in j['CityObjects'][co]['geometry']:
+            recusionvisit(g["boundaries"], co, errs)    
     es = []
     if (len(errs) > 0):
         isValid = False
@@ -195,7 +293,7 @@ def cityjson_properties(j, js):
     for property in j:
         if ( ((property[0] != "+") and (property[0] != "@")) and (property not in js["properties"]) ):
             isValid = False
-            s = "root property '" + property + "' not in CityJSON schema, might be ignored by some parsers"
+            s = "WARNING: root property '" + property + "' not in CityJSON schema, might be ignored by some parsers"
             ws.append(s)
     return (isValid, ws)
 
@@ -212,18 +310,17 @@ def duplicate_vertices(j):
         else:
             thev.add(s)
     if len(duplicates) > 0:
-        isValid = False
-        s = 'there are ' + str(len(duplicates)) + ' duplicate vertices in j["vertices"]'
-        if len(duplicates) <= 5:
-            s += " ("
-            for v in duplicates:
-                s += '[' + v + ']'
-            s += ")"
+        s = 'WARNING: there are ' + str(len(duplicates)) + ' duplicate vertices in j["vertices"]'
         ws.append(s)
+        isValid = False
+    if len(duplicates) < 10:
+        for v in duplicates:
+            s = '\t(' + v + ')'
+            ws.append(s)
     return (isValid, ws)
 
 
-def unused_vertices(j):
+def orphan_vertices(j):
     def recusionvisit(a, ids):
       for each in a:
         if isinstance(each, list):
@@ -234,30 +331,27 @@ def unused_vertices(j):
     ws = []
     ids = set()
     for co in j["CityObjects"]:
-        if "geometry" in j['CityObjects'][co]:
-            for g in j['CityObjects'][co]['geometry']:
-                recusionvisit(g["boundaries"], ids)
+        for g in j['CityObjects'][co]['geometry']:
+            recusionvisit(g["boundaries"], ids)
     noorphans = len(j["vertices"]) - len(ids)
     if noorphans > 0:
+        s = 'WARNING: there are ' + str(noorphans) + ' orphan vertices in j["vertices"]'
+        ws.append(s)
         isValid = False
-        if noorphans > 5:
-            s = 'there are ' + str(noorphans) + ' unused vertices in j["vertices"]'
-            ws.append(s)
-        else:
-            s = 'there are ' + str(noorphans) + ' unused vertices in j["vertices"]'
-            all = set()
-            for i in range(len(j["vertices"])):
-                all.add(i)
-            symdiff = all.symmetric_difference(ids)
-            s += ' ( '
-            for each in symdiff:
-                s += '#' + str(each) + ' '
-            s += ')'
-            ws.append(s)
+    if noorphans < 5:
+        all = set()
+        for i in range(len(j["vertices"])):
+            all.add(i)
+        symdiff = all.symmetric_difference(ids)
+        s = '\t['
+        for each in symdiff:
+            s += str(each) + ', '
+        s += ']'
+        ws.append(s)
     return (isValid, ws)
 
 
-def validate_against_schema_old_slow_one(j, js, longerr):
+def validate_against_schema(j, js, longerr):
     isValid = True
     es = []
     #-- lazy validation to catch as many as possible
@@ -271,26 +365,20 @@ def validate_against_schema_old_slow_one(j, js, longerr):
             es.append(err.message)
     return (isValid, es)
 
-def validate_against_schema_turbo(j, js, longerr):
-    validator = jsonschema_rs.JSONSchema(js)
-    try:
-        validator.validate(j)
-        return (True, [])  
-    except jsonschema_rs.ValidationError as e:
-        return (False, [str(e)])  
-
-def validate_against_schema(j, js, longerr):
-    validate = fastjsonschema.compile(js)
-    try:
-        validate(j)
-        return (True, [])  
-    except fastjsonschema.JsonSchemaException as e:
-        # return (False, [str(e.message) + " " + str(e.value)])  
-        # print(e.value)
-        # print(e.name)
-        # print(e.definition)
-        # print(e.rule)
-        if longerr == True:
-            return (False, [str(e.message) + " " + str(e.value)])  
-        else:
-            return (False, [str(e.message)])  
+    # try:
+    #     jsonschema.Draft4Validator(js, format_checker=jsonschema.FormatChecker()).validate(j)
+    # except jsonschema.ValidationError as e:
+    #     raise Exception(e.message)
+    #     return False
+    # except jsonschema.SchemaError as e:
+    #     raise Exception(e.message)
+    #     return False
+    
+    # try:
+    #     jsonschema.validate(j, js, format_checker=jsonschema.FormatChecker())
+    # except jsonschema.ValidationError as e:
+    #     raise Exception(e.message)
+    #     return False
+    # except jsonschema.SchemaError as e:
+    #     raise Exception(e.message)
+    #     return False
