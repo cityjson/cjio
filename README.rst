@@ -71,7 +71,7 @@ Usage of the CLI
 ----------------
 
 After installation, you have a small program called ``cjio``, to see its
-possibities:
+possibilities:
 
 .. code:: console
 
@@ -80,22 +80,25 @@ possibities:
     Commands:
       assign_epsg                Assign a (new) EPSG.
       clean                      Clean = remove_duplicate_vertices +...
-      compress                   Compress a CityJSON file, ie stores its...
-      decompress                 Decompress a CityJSON file, ie remove the...
       export                     Export the CityJSON to another format.
-      extract_lod                Extract only one LoD for a dataset.
+      filter_lod                 Filter only one LoD for a dataset.
       info                       Output info in simple JSON.
       locate_textures            Output the location of the texture files.
       merge                      Merge the current CityJSON with others.
+      metadata_create            Add the +metadata-extended properties...
+      metadata_get               Shows the metadata and +metadata-extended of...
+      metadata_remove            Remove the +metadata-extended properties.
+      metadata_update            Update the +metadata-extended for properties...
+      remove_attribute           Remove an attribute.
       remove_duplicate_vertices  Remove duplicate vertices a CityJSON file.
       remove_materials           Remove all materials from a CityJSON file.
       remove_orphan_vertices     Remove orphan vertices a CityJSON file.
       remove_textures            Remove all textures from a CityJSON file.
+      rename_attribute           Rename an attribute.
       reproject                  Reproject the CityJSON to a new EPSG.
       save                       Save the city model to a CityJSON file.
       subset                     Create a subset of a CityJSON file.
       translate                  Translate the file by its (-minx, -miny,...
-      update_metadata            Update the metadata for properties/values that...
       update_textures            Update the location of the texture files.
       upgrade_version            Upgrade the CityJSON to the latest version.
       validate                   Validate the CityJSON file: (1) against its...
