@@ -22,7 +22,7 @@ copyright = '2021, Hugo Ledoux'
 author = 'Hugo Ledoux, Balázs Dukai'
 
 # The full version, including alpha/beta/rc tags
-release = '0.6.8'
+release = '0.6.9'
 
 
 # -- General configuration ---------------------------------------------------
