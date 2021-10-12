@@ -15,7 +15,7 @@ setup(
     url='https://github.com/cityjson/cjio',
     author='Hugo Ledoux, Balázs Dukai',
     author_email='h.ledoux@tudelft.nl, b.dukai@tudelft.nl',
-    python_requires='~=3.5',
+    python_requires='>=3.6',
     packages=['cjio'],
     package_data={'cjio': ['schemas/0.9/*', 'schemas/1.0.0/*', 'schemas/1.0.1/*']},
     # include_package_data=True,
