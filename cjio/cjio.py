@@ -561,7 +561,7 @@ def update_textures_cmd(newlocation, relative):
 
 
 @cli.command('extract_lod')
-@click.argument('lod', type=int)
+@click.argument('lod', type=str)
 def extract_lod_cmd(lod):
     """
     Extract only one LoD for a dataset.
