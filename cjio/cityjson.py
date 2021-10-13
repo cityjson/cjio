@@ -975,7 +975,7 @@ class CityJSON:
             if "textures" in self.j["appearance"]:
                 p = self.j["appearance"]["textures"][0]["image"]
                 cj_dir = os.path.dirname(self.path)
-                url = re.match('http[s]?://|www\.', p)
+                url = re.match(r'http[s]?://|www\.', p)
                 if url:
                     return url
                 else:
@@ -1017,7 +1017,7 @@ class CityJSON:
         """
         curr_loc = self.get_textures_location()
         if curr_loc:
-            if re.match('http[s]?://|www\.', new_loc):
+            if re.match(r'http[s]?://|www\.', new_loc):
                 apath = new_loc
                 for t in self.j["appearance"]["textures"]:
                     f = os.path.basename(t["image"])
@@ -1095,7 +1095,6 @@ class CityJSON:
         if self.j["appearance"] is None or len(self.j["appearance"]) == 0:
             del self.j["appearance"]
         return True
-
 
     def remove_materials(self):
         for i in self.j["CityObjects"]:
@@ -1386,7 +1385,7 @@ class CityJSON:
                     if "appearance" not in self.j:
                         self.j["appearance"] = {}
                     if "materials" not in self.j["appearance"]:
-                        self.j["appearance"]["materials"] = {}
+                        self.j["appearance"]["materials"] = []
                     offset = 0
                 #-- copy materials
                 for m in cm.j["appearance"]["materials"]:
@@ -1396,7 +1395,10 @@ class CityJSON:
                     for g in self.j['CityObjects'][theid]['geometry']:
                         if 'material' in g:
                             for m in g['material']:
-                                update_geom_indices(g['material'][m]['values'], offset)
+                                if 'values' in g['material'][m]:
+                                    update_geom_indices(g['material'][m]['values'], offset)
+                                else:
+                                    g['material'][m]['value'] = g['material'][m]['value'] + offset
             #-- textures
             if ("appearance" in cm.j) and ("textures" in cm.j["appearance"]):
                 if ("appearance" in self.j) and ("textures" in self.j["appearance"]):
@@ -1421,7 +1423,10 @@ class CityJSON:
                     for g in self.j['CityObjects'][theid]['geometry']:
                         if 'texture' in g:
                             for m in g['texture']:
-                                update_texture_indices(g['texture'][m]['values'], toffset, voffset)
+                                if 'values' in g['texture'][m]:
+                                    update_texture_indices(g['texture'][m]['values'], toffset, voffset)
+                                else:
+                                    raise KeyError(f"The member 'values' is missing from the texture '{m}' in CityObject {theid}")
             #-- metadata
             try:
                 fids = [fid for fid in cm.j["CityObjects"]]
