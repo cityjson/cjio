@@ -100,7 +100,7 @@ def rectangle(data_dir):
 
 @pytest.fixture(scope='session')
 def vertices():
-    yield  [
+    yield [
         (0.0,1.0,0.0),
         (1.0,1.0,0.0),
         (2.0,1.0,0.0),
@@ -108,3 +108,14 @@ def vertices():
         (4.0,1.0,0.0),
         (5.0,1.0,0.0)
     ]
+
+
+@pytest.fixture(scope='session')
+def materials(data_dir):
+    p1 = os.path.join(data_dir, 'material', 'mt-1.json')
+    p2 = os.path.join(data_dir, 'material', 'mt-2.json')
+    cj = []
+    for p in (p1, p2):
+        with open(p, 'r') as f:
+            cj.append(cityjson.CityJSON(file=f))
+    return cj

@@ -1398,8 +1398,7 @@ class CityJSON:
                                 if 'values' in g['material'][m]:
                                     update_geom_indices(g['material'][m]['values'], offset)
                                 else:
-                                    # TODO: How to handle 'value' case?
-                                    pass
+                                    g['material'][m]['value'] = g['material'][m]['value'] + offset
             #-- textures
             if ("appearance" in cm.j) and ("textures" in cm.j["appearance"]):
                 if ("appearance" in self.j) and ("textures" in self.j["appearance"]):
