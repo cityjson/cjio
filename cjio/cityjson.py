@@ -1426,8 +1426,7 @@ class CityJSON:
                                 if 'values' in g['texture'][m]:
                                     update_texture_indices(g['texture'][m]['values'], toffset, voffset)
                                 else:
-                                    # TODO: How to handle 'value' case?
-                                    pass
+                                    raise KeyError(f"The member 'values' is missing from the texture '{m}' in CityObject {theid}")
             #-- metadata
             try:
                 fids = [fid for fid in cm.j["CityObjects"]]
