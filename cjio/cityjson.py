@@ -1689,10 +1689,21 @@ class CityJSON:
 
 
     def extract_lod(self, thelod):
+        def lod_to_string(lod):
+            if lod is None:
+                return None
+            elif isinstance(lod, float):
+                return str(round(lod, 1))
+            elif isinstance(lod, int):
+                return str(lod)
+            elif isinstance(lod, str):
+                return lod
+            else:
+                raise ValueError(f"Type {type(lod)} is not allowed as input")
         for co in self.j["CityObjects"]:
             re = []
             for i, g in enumerate(self.j['CityObjects'][co]['geometry']):
-                if int(g['lod']) != thelod:
+                if lod_to_string(g['lod']) != thelod:
                     re.append(g)  
                     # print (g)      
             for each in re:
