@@ -119,3 +119,8 @@ def materials(data_dir):
         with open(p, 'r') as f:
             cj.append(cityjson.CityJSON(file=f))
     return cj
+
+
+@pytest.fixture(scope='session')
+def mt_1_path(data_dir):
+    return os.path.join(data_dir, 'material', 'mt-1.json')

@@ -301,7 +301,7 @@ class Geometry(object):
             srf_idx = self._index_surface_boundaries(semantics_obj['values'])
             for i,srf in enumerate(semantics_obj['surfaces']):
                 attributes = dict()
-                semantic_surfaces[i] = {'surface_idx': srf_idx[i]}
+                semantic_surfaces[i] = {'surface_idx': srf_idx.get(i)}
                 for key,value in srf.items():
                     if key == 'type':
                         semantic_surfaces[i]['type'] = value
