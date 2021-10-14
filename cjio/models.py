@@ -67,11 +67,7 @@ class CityObject(object):
             geom_idx, vtx_lookup, vtx_idx = geom.build_index(vtx_lookup, vtx_idx)
             j = geom.to_json()
             j['boundaries'] = geom_idx
-            if isinstance(geom.lod, int) or isinstance(geom.lod, float):
-                if geom.lod >=2.0:
-                    geom.build_semantic_surface_index()
-                    j['semantics'] = geom.semantics
-            elif geom.lod >= '2':
+            if len(geom.surfaces) > 0:
                 geom.build_semantic_surface_index()
                 j['semantics'] = geom.semantics
             geometry.append(j)
@@ -471,21 +467,26 @@ class Geometry(object):
                     self.semantics['values'][i].append(None)
         else:
             raise ValueError(f"{self.type} is not supported at the moment for semantic surfaces")
-        for i,srf in self.surfaces.items():
-            _surface = dict()
-            _surface['type'] = srf['type']
-            if 'attributes' in srf:
-                for attr, value in srf['attributes'].items():
-                    _surface[attr] = value
-                    # TODO: make it work with null-s in semantic surfaces
-            self.semantics['surfaces'].append(_surface)
-            # TODO: optimize for loop by switching it with the conditional
-            for bdry in srf['surface_idx']:
-                if len(bdry) == 1:
-                    self.semantics['values'][bdry[0]] = i
-                elif len(bdry) == 2:
-                    self.semantics['values'][bdry[0]][bdry[1]] = i
-
+        for i, srf in self.surfaces.items():
+            if srf['surface_idx']:
+                _surface = dict()
+                _surface['type'] = srf['type']
+                if 'attributes' in srf:
+                    for attr, value in srf['attributes'].items():
+                        _surface[attr] = value
+                        # TODO: make it work with null-s in semantic surfaces
+                self.semantics['surfaces'].append(_surface)
+                # TODO: optimize for loop by switching it with the conditional
+                for bdry in srf['surface_idx']:
+                    if len(bdry) == 1:
+                        self.semantics['values'][bdry[0]] = i
+                    elif len(bdry) == 2:
+                        self.semantics['values'][bdry[0]][bdry[1]] = i
+            else:
+                # There is an unused Semantic Object on the geometry. The Semantic
+                # Object was imported from the cityjson.
+                # TODO: log("Removing unused Semantic Object {srf['type']} from the Geometry")
+                pass
 
     def get_surfaces(self, type: str=None, lod: str=None):
         """Get the semantic surfaces of the given type
