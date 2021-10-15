@@ -4,6 +4,11 @@
 ### Changed
 - Minimum required Python is 3.6
 
+### Fixed
+- Click option is set to None when empty (#99)
+- Loading breaks on inconsistent semantics (#102)
+- extract_lod doesn't work with the improved LoD (#80)
+
 ## [0.6.9] - 2021-07-06
 ### Changed
 - version with schemas 1.0.3 (where metadata schema is fixed)
