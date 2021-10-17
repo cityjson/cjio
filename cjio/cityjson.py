@@ -60,7 +60,8 @@ TOPLEVEL = ('Building',
             'Tunnel',
             'WaterBody')
 
-def load(path, transform:bool=False):
+
+def load(path, transform: bool = True):
     """Load a CityJSON file for working with it though the API
 
     :param path: Absolute path to a CityJSON file
@@ -73,46 +74,9 @@ def load(path, transform:bool=False):
         except OSError as e:
             raise FileNotFoundError
     cm.cityobjects = dict()
-    if 'transform' in cm.j:
-        cm.transform = cm.j['transform']
-    else:
-        cm.transform = None
-    if transform:
-        do_transform = cm.transform
-        del cm.j['transform']
-    else:
-        do_transform = None
-    appearance = cm.j['appearance'] if 'appearance' in cm.j else None
-    for co_id, co in cm.j['CityObjects'].items():
-        # TODO BD: do some verification here
-        children = co['children'] if 'children' in co else None
-        parents = co['parents'] if 'parents' in co else None
-        attributes = co['attributes'] if 'attributes' in co else None
-        geometry = []
-        for geom in co['geometry']:
-            semantics = geom['semantics'] if 'semantics' in geom else None
-            texture = geom['texture'] if 'texture' in geom else None
-            geometry.append(
-                models.Geometry(
-                    type=geom['type'],
-                    lod=geom['lod'],
-                    boundaries=geom['boundaries'],
-                    semantics_obj=semantics,
-                    texture_obj=texture,
-                    appearance=appearance,
-                    vertices=cm.j['vertices'],
-                    transform=do_transform
-                )
-            )
-        cm.cityobjects[co_id] = models.CityObject(
-            id=co_id,
-            type=co['type'],
-            attributes=attributes,
-            children=children,
-            parents=parents,
-            geometry=geometry
-        )
+    cm.load_from_j(transform=transform)
     return cm
+
 
 def save(citymodel, path: str, indent: bool = False):
     """Save a city model to a CityJSON file
@@ -239,6 +203,55 @@ class CityJSON:
 
     ##-- API functions
     # TODO BD: refactor this whole CityJSON class
+
+    def load_from_j(self, transform: bool = True):
+        """Populates the CityJSON API members from the json schema member 'j'.
+
+        If the CityJSON API members have values, they are removed and updated.
+        """
+        # Delete everything first
+        self.cityobjects.clear()
+        # Then do update
+        if 'transform' in self.j:
+            self.transform = self.j['transform']
+        else:
+            self.transform = None
+        if transform:
+            do_transform = self.transform
+            del self.j['transform']
+        else:
+            do_transform = None
+        appearance = self.j['appearance'] if 'appearance' in self.j else None
+        for co_id, co in self.j['CityObjects'].items():
+            # TODO BD: do some verification here
+            children = co['children'] if 'children' in co else None
+            parents = co['parents'] if 'parents' in co else None
+            attributes = co['attributes'] if 'attributes' in co else None
+            geometry = []
+            for geom in co['geometry']:
+                semantics = geom['semantics'] if 'semantics' in geom else None
+                texture = geom['texture'] if 'texture' in geom else None
+                geometry.append(
+                    models.Geometry(
+                        type=geom['type'],
+                        lod=geom['lod'],
+                        boundaries=geom['boundaries'],
+                        semantics_obj=semantics,
+                        texture_obj=texture,
+                        appearance=appearance,
+                        vertices=self.j['vertices'],
+                        transform=do_transform
+                    )
+                )
+            self.cityobjects[co_id] = models.CityObject(
+                id=co_id,
+                type=co['type'],
+                attributes=attributes,
+                children=children,
+                parents=parents,
+                geometry=geometry
+            )
+
     def get_cityobjects(self, type=None, id=None):
         """Return a subset of CityObjects
 
