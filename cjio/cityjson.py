@@ -218,7 +218,6 @@ class CityJSON:
             self.transform = None
         if transform:
             do_transform = self.transform
-            del self.j['transform']
         else:
             do_transform = None
         appearance = self.j['appearance'] if 'appearance' in self.j else None
