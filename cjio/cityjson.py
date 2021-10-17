@@ -127,10 +127,10 @@ def save(citymodel, path: str, indent: bool = False):
     citymodel.remove_orphan_vertices()
     try:
         with open(path, 'w') as fout:
-            if indent is None:
-                json_str = json.dumps(citymodel.j, separators=(',',':'))
+            if indent:
+                json_str = json.dumps(citymodel.j, indent="\t")
             else:
-                json_str = json.dumps(citymodel.j, indent=indent)
+                json_str = json.dumps(citymodel.j, separators=(',',':'))
             fout.write(json_str)
     except IOError as e:
         raise IOError('Invalid output file: %s \n%s' % (path, e))
