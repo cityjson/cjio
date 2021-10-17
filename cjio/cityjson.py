@@ -84,8 +84,7 @@ def save(citymodel, path: str, indent: bool = False):
     :param citymodel: A CityJSON object
     :param path: Absolute path to a CityJSON file
     """
-    cityobjects, vertex_lookup = citymodel.reference_geometry()
-    citymodel.add_to_j(cityobjects, vertex_lookup)
+    citymodel.add_to_j()
     # FIXME: here should be compression, however the current compression does not work with immutable tuples, but requires mutable lists for the points
     citymodel.remove_duplicate_vertices()
     citymodel.remove_orphan_vertices()
@@ -312,7 +311,8 @@ class CityJSON:
         return cityobjects, vertex_lookup
 
 
-    def add_to_j(self, cityobjects, vertex_lookup):
+    def add_to_j(self):
+        cityobjects, vertex_lookup = self.reference_geometry()
         self.j['vertices'] = [[vtx[0], vtx[1], vtx[2]] for vtx in vertex_lookup.keys()]
         self.j['CityObjects'] = cityobjects
 
