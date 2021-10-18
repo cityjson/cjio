@@ -211,3 +211,18 @@ class TestCityJSON:
                 for geom in cm.j['CityObjects'][coid]['geometry']:
                     assert geom["lod"] == "2.2"
         assert (len(cm.j['metadata']['presentLoDs']) == 1 and cm.j['metadata']['presentLoDs']['2.2'] == 10)
+
+def test_merge_materials(materials):
+    """Testing #100
+    Merging two files with materials. One has the member 'values', the other has the
+    member 'value' on their CityObjects.
+    """
+    cm1, cm2 = materials
+    # cm1 contains the CityObject with 'value'. During the merge, the Material Object
+    # from cm1 is appended to the list of Materials in cm2
+    assert cm2.merge([cm1, ])
+    assert len(cm2.j['CityObjects']) == 4
+    # The value of 'value' in the CityObject from cm1 must be updated to point to the
+    # correct Material Object in the materials list
+    assert cm2.j['CityObjects']['NL.IMBAG.Pand.0518100001755018-0']['geometry'][0]['material']['default']['value'] == 1
+

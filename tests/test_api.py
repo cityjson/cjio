@@ -142,3 +142,11 @@ class TestAPI:
                     for w_i, wsrf in geom.get_surfaces('wallsurface').items():
                         if wsrf['type'] == 'WallSurface':
                             assert 'orientation' in wsrf['attributes']
+
+    def test_load_unused_semantics(self, mt_1_path):
+        """Test #102
+        If unused Semantics Objects are stored on the geometry, it shouldn't break the
+        API.
+        """
+        cm = cityjson.load(mt_1_path)
+        assert len(cm.cityobjects) == 2
