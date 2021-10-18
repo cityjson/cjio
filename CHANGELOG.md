@@ -1,6 +1,6 @@
 # Changelog
 
-## [unreleased]
+## [0.6.10] - 2021-10-18
 ### Changed
 - Minimum required Python is 3.6
 
@@ -8,6 +8,11 @@
 - Click option is set to None when empty (#99)
 - Loading breaks on inconsistent semantics (#102)
 - extract_lod doesn't work with the improved LoD (#80)
+
+### API changes
+- Added `CityJSON.load_from_j`
+- Make transformation the default on loading a cityjson
+- `CityJSON.add_to_j` includes `reference_geometry`, no need to call it separately
 
 ## [0.6.9] - 2021-07-06
 ### Changed
