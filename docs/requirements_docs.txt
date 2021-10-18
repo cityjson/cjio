@@ -3,3 +3,4 @@ pydata-sphinx-theme
 Pygments >= 2.7.4
 nbsphinx >= 0.7.1
 jsonref
+click
