@@ -1,0 +1,353 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>cjio.metadata &#8212; cjio 0.6.9 documentation</title>
+    
+  <link href="../../_static/css/theme.css" rel="stylesheet">
+  <link href="../../_static/css/index.ff1ffe594081f20da1ef19478df9384b.css" rel="stylesheet">
+
+    
+  <link rel="stylesheet"
+    href="../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+
+    
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/css/blank.css" />
+    
+  <link rel="preload" as="script" href="../../_static/js/index.be7d3bbb2ef33a8344ce.js">
+
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="None">
+    
+
+    <!-- Google Analytics -->
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+
+  <div id="navbar-start">
+    
+    
+<a class="navbar-brand" href="../../index.html">
+<p class="title">cjio</p>
+</a>
+
+    
+  </div>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-collapsible" aria-controls="navbar-collapsible" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  
+  <div id="navbar-collapsible" class="col-lg-9 collapse navbar-collapse">
+    <div id="navbar-center" class="mr-auto">
+      
+      <div class="navbar-center-item">
+        <ul id="navbar-main-elements" class="navbar-nav">
+    <li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../includeme.html">
+  cjio, or CityJSON/io
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../tutorials.html">
+  Tutorials
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../modules.html">
+  cjio
+ </a>
+</li>
+
+    
+</ul>
+      </div>
+      
+    </div>
+
+    <div id="navbar-end">
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+      </ul>
+      </div>
+      
+    </div>
+  </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar"><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <div class="bd-toc-item active">
+    
+  </div>
+</nav>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+            
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <h1>Source code for cjio.metadata</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Module containing metadata related functions&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">collections</span><span class="o">,</span> <span class="nn">functools</span><span class="o">,</span> <span class="nn">operator</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">date</span><span class="p">,</span> <span class="n">datetime</span>
+<span class="kn">import</span> <span class="nn">platform</span>
+
+<div class="viewcode-block" id="generate_metadata"><a class="viewcode-back" href="../../cjio.html#cjio.metadata.generate_metadata">[docs]</a><span class="k">def</span> <span class="nf">generate_metadata</span><span class="p">(</span><span class="n">citymodel</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+                      <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                      <span class="n">reference_date</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                      <span class="n">overwrite_values</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                      <span class="n">recompute_uuid</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns a tuple containing a dictionary of the metadata and a list of errors.</span>
+
+<span class="sd">    Keyword arguments:</span>
+<span class="sd">    citymodel -- Dictionary containing the city model</span>
+<span class="sd">    filename  -- String with the name of the original file</span>
+<span class="sd">    overwrite_values -- Boolean that forces to overwrite existing values if True (default: False)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">citymodelIdentifier_func</span><span class="p">():</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">datasetReferenceDate_func</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Try to get the date that a file was created, falling back to when it was</span>
+<span class="sd">        last modified if that isn&#39;t possible.</span>
+<span class="sd">        See http://stackoverflow.com/a/39501288/1709587 for explanation.</span>
+
+<span class="sd">        If the CityModel is newly created then the file doesn&#39;t exist yet. In this case</span>
+<span class="sd">        we fall back to the &#39;reference_date&#39; argument.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">reference_date</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Need to provide either a filename or reference_date in order to compute the datasetReferenceDate&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">filename</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;Windows&#39;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">date</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getctime</span><span class="p">(</span><span class="n">filename</span><span class="p">)))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">stat</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">stat</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">date</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">stat</span><span class="o">.</span><span class="n">st_birthtime</span><span class="p">))</span>
+                <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                    <span class="c1"># We&#39;re probably on Linux. No easy way to get creation dates here,</span>
+                    <span class="c1"># so we&#39;ll settle for when its content was last modified.</span>
+                    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">date</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">stat</span><span class="o">.</span><span class="n">st_mtime</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">reference_date</span>
+
+
+    <span class="k">def</span> <span class="nf">distributionFormatVersion_func</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">citymodel</span><span class="p">[</span><span class="s2">&quot;version&quot;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">fileIdentifier_func</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">metadataDateStamp_func</span><span class="p">():</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">is_present_in_appearance</span><span class="p">(</span><span class="n">k</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s2">&quot;appearance&quot;</span> <span class="ow">in</span> <span class="n">citymodel</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">citymodel</span><span class="p">[</span><span class="s2">&quot;appearance&quot;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">citymodel</span><span class="p">[</span><span class="s2">&quot;appearance&quot;</span><span class="p">][</span><span class="n">k</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">citymodel</span><span class="p">[</span><span class="s2">&quot;appearance&quot;</span><span class="p">][</span><span class="n">k</span><span class="p">]):</span>
+                        <span class="k">return</span> <span class="s2">&quot;present&quot;</span>
+        
+        <span class="k">return</span> <span class="s2">&quot;absent&quot;</span>
+
+    <span class="k">def</span> <span class="nf">textures_func</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">is_present_in_appearance</span><span class="p">(</span><span class="s2">&quot;textures&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">materials_func</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">is_present_in_appearance</span><span class="p">(</span><span class="s2">&quot;materials&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">cityfeatureMetadata_func</span><span class="p">():</span>
+        <span class="n">children</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;Part&quot;</span><span class="p">,</span> <span class="s2">&quot;Installation&quot;</span><span class="p">,</span> <span class="s2">&quot;ConstructionElement&quot;</span><span class="p">)</span>
+        <span class="n">parent</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">:[</span><span class="n">match</span><span class="o">.</span><span class="n">start</span><span class="p">()</span> <span class="k">for</span> <span class="n">match</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">finditer</span> <span class="p">(</span><span class="s2">&quot;[A-Z]&quot;</span><span class="p">,</span> <span class="n">x</span><span class="p">)][</span><span class="mi">1</span><span class="p">]]</span>
+
+        <span class="k">def</span> <span class="nf">LoD_func</span><span class="p">():</span>
+            <span class="n">presentLoDs</span> <span class="o">=</span> <span class="n">CityObjects_md</span><span class="p">[</span><span class="n">cm_type</span><span class="p">][</span><span class="s2">&quot;presentLoDs&quot;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">CityObjects</span><span class="p">[</span><span class="n">c_o</span><span class="p">][</span><span class="s2">&quot;geometry&quot;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="s2">&quot;template&quot;</span> <span class="ow">in</span> <span class="n">g</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="n">LoD</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">citymodel</span><span class="p">[</span><span class="s2">&quot;geometry-templates&quot;</span><span class="p">][</span><span class="s2">&quot;templates&quot;</span><span class="p">][</span><span class="n">g</span><span class="p">[</span><span class="s2">&quot;template&quot;</span><span class="p">]][</span><span class="s2">&quot;lod&quot;</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">LoD</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="s2">&quot;lod&quot;</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">LoD</span> <span class="ow">in</span> <span class="n">presentLoDs</span><span class="p">:</span>
+                    <span class="n">presentLoDs</span><span class="p">[</span><span class="n">LoD</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">presentLoDs</span><span class="p">[</span><span class="n">LoD</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="n">CityObjects</span> <span class="o">=</span> <span class="n">citymodel</span><span class="p">[</span><span class="s2">&quot;CityObjects&quot;</span><span class="p">]</span>
+        <span class="n">CityObjects_md</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="n">c_o_p</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">v</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">CityObjects</span><span class="o">.</span><span class="n">items</span><span class="p">()]))</span>
+        <span class="n">c_o_c</span> <span class="o">=</span> <span class="p">[</span><span class="n">c_o_p</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">c_o_p</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">x</span><span class="p">))</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">c_o_p</span><span class="p">[:]</span> <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">child</span> <span class="ow">in</span> <span class="n">x</span> <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">children</span><span class="p">)]</span>
+
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">c_o_p</span><span class="p">:</span>
+            <span class="n">CityObjects_md</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">&quot;uniqueFeatureCount&quot;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span>
+                    <span class="s2">&quot;aggregateFeatureCount&quot;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span>
+                    <span class="s2">&quot;presentLoDs&quot;</span><span class="p">:{}</span>
+            <span class="p">}</span>
+            <span class="k">if</span> <span class="n">c</span> <span class="o">==</span> <span class="s2">&quot;TINRelief&quot;</span><span class="p">:</span>
+                <span class="n">CityObjects_md</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="s2">&quot;triangleCount&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">elif</span> <span class="n">c</span> <span class="o">==</span> <span class="s2">&quot;CityObjectGroup&quot;</span><span class="p">:</span>
+                <span class="k">del</span> <span class="n">CityObjects_md</span><span class="p">[</span><span class="n">c</span><span class="p">][</span><span class="s2">&quot;aggregateFeatureCount&quot;</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">c_o_c</span><span class="p">:</span> <span class="n">CityObjects_md</span><span class="p">[</span><span class="n">parent</span><span class="p">(</span><span class="n">c</span><span class="p">)][</span><span class="n">c</span><span class="o">+</span><span class="s2">&quot;s&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">for</span> <span class="n">c_o</span> <span class="ow">in</span> <span class="n">CityObjects</span><span class="p">:</span>
+            <span class="n">cm_type</span> <span class="o">=</span> <span class="n">CityObjects</span><span class="p">[</span><span class="n">c_o</span><span class="p">][</span><span class="s2">&quot;type&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">cm_type</span> <span class="o">==</span> <span class="s2">&quot;CityObjectGroup&quot;</span><span class="p">:</span>
+                <span class="n">CityObjects_md</span><span class="p">[</span><span class="n">cm_type</span><span class="p">][</span><span class="s2">&quot;uniqueFeatureCount&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">LoD_func</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="nb">any</span><span class="p">(</span><span class="n">child</span> <span class="ow">in</span> <span class="n">cm_type</span> <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">children</span><span class="p">):</span>
+                <span class="n">CityObjects_md</span><span class="p">[</span><span class="n">parent</span><span class="p">(</span><span class="n">cm_type</span><span class="p">)][</span><span class="n">cm_type</span><span class="o">+</span><span class="s2">&quot;s&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">CityObjects_md</span><span class="p">[</span><span class="n">cm_type</span><span class="p">][</span><span class="s2">&quot;uniqueFeatureCount&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">CityObjects_md</span><span class="p">[</span><span class="n">cm_type</span><span class="p">][</span><span class="s2">&quot;aggregateFeatureCount&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">CityObjects</span><span class="p">[</span><span class="n">c_o</span><span class="p">][</span><span class="s2">&quot;geometry&quot;</span><span class="p">])</span>
+                <span class="n">LoD_func</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">cm_type</span> <span class="o">==</span> <span class="s2">&quot;TINRelief&quot;</span><span class="p">:</span>
+                    <span class="n">CityObjects_md</span><span class="p">[</span><span class="n">cm_type</span><span class="p">][</span><span class="s2">&quot;triangleCount&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="nb">sum</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">b</span><span class="p">)</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">CityObjects</span><span class="p">[</span><span class="n">c_o</span><span class="p">][</span><span class="s2">&quot;geometry&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">g</span><span class="p">[</span><span class="s2">&quot;boundaries&quot;</span><span class="p">]])</span>
+        <span class="k">return</span> <span class="n">CityObjects_md</span>
+
+    <span class="k">def</span> <span class="nf">thematicModels_func</span><span class="p">():</span>
+        <span class="k">return</span> <span class="p">[</span><span class="o">*</span><span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;cityfeatureMetadata&quot;</span><span class="p">]]</span>
+
+    <span class="k">def</span> <span class="nf">presentLoDs_func</span><span class="p">():</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">functools</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">add</span><span class="p">,</span> 
+                <span class="nb">map</span><span class="p">(</span><span class="n">collections</span><span class="o">.</span><span class="n">Counter</span><span class="p">,</span> 
+                <span class="p">[</span><span class="n">v</span><span class="p">[</span><span class="s2">&quot;presentLoDs&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;cityfeatureMetadata&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="s2">&quot;CityObjectGroup&quot;</span><span class="p">])))</span>
+
+    <span class="n">md_dictionary</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;datasetCharacterSet&quot;</span><span class="p">:</span> <span class="s2">&quot;UTF-8&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;datasetTopicCategory&quot;</span><span class="p">:</span> <span class="s2">&quot;geoscientificInformation&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;distributionFormatVersion&quot;</span><span class="p">:</span> <span class="n">distributionFormatVersion_func</span><span class="p">,</span>
+        <span class="s2">&quot;spatialRepresentationType&quot;</span><span class="p">:</span> <span class="s2">&quot;vector&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;fileIdentifier&quot;</span><span class="p">:</span> <span class="n">fileIdentifier_func</span><span class="p">,</span>
+        <span class="s2">&quot;metadataStandard&quot;</span><span class="p">:</span> <span class="s2">&quot;ISO 19115 - Geographic Information - Metadata&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;metadataStandardVersion&quot;</span><span class="p">:</span> <span class="s2">&quot;ISO 19115:2014(E)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;metadataCharacterSet&quot;</span><span class="p">:</span> <span class="s2">&quot;UTF-8&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;metadataDateStamp&quot;</span><span class="p">:</span> <span class="n">metadataDateStamp_func</span><span class="p">,</span>
+        <span class="s2">&quot;textures&quot;</span><span class="p">:</span> <span class="n">textures_func</span><span class="p">,</span>
+        <span class="s2">&quot;materials&quot;</span><span class="p">:</span> <span class="n">materials_func</span><span class="p">,</span>
+        <span class="s2">&quot;cityfeatureMetadata&quot;</span><span class="p">:</span> <span class="n">cityfeatureMetadata_func</span>
+        <span class="p">}</span>
+
+    <span class="n">md_dependent_dictionary</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;presentLoDs&quot;</span><span class="p">:</span><span class="n">presentLoDs_func</span><span class="p">,</span>
+        <span class="s2">&quot;thematicModels&quot;</span><span class="p">:</span><span class="n">thematicModels_func</span>
+        <span class="p">}</span>
+
+    <span class="n">error</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">bad_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="s2">&quot; = &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">populate_metadata_dict</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">compute_item</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">metadata</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">value</span><span class="p">()</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">error</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+                <span class="k">pass</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">overwrite_values</span> <span class="ow">or</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">:</span>
+                <span class="n">compute_item</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">citymodel</span><span class="p">[</span><span class="s2">&quot;metadata&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;citymodelIdentifier&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">)</span> <span class="ow">or</span> <span class="n">recompute_uuid</span><span class="p">:</span>
+        <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;citymodelIdentifier&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">citymodelIdentifier_func</span><span class="p">()</span>
+    <span class="k">if</span> <span class="s2">&quot;datasetReferenceDate&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">metadata</span><span class="p">:</span>
+        <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;datasetReferenceDate&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">datasetReferenceDate_func</span><span class="p">()</span>
+
+    <span class="n">bad_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">populate_metadata_dict</span><span class="p">(</span><span class="n">md_dictionary</span><span class="p">)</span>
+    <span class="n">populate_metadata_dict</span><span class="p">(</span><span class="n">md_dependent_dictionary</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">metadata</span><span class="p">,</span> <span class="n">bad_list</span></div>
+</pre></div>
+
+              </div>
+              
+              
+              <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+</div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+  
+  <script src="../../_static/js/index.be7d3bbb2ef33a8344ce.js"></script>
+<footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    
+    <div class="footer-item">
+      <p class="copyright">
+    &copy; Copyright 2021, Hugo Ledoux.<br>
+</p>
+    </div>
+    
+    <div class="footer-item">
+      <p class="sphinx-version">
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.2.0.<br>
+</p>
+    </div>
+    
+  </div>
+</footer>
+  </body>
+</html>
