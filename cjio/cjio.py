@@ -49,7 +49,7 @@ def cli(context, input, ignore_duplicate_keys):
         cjio myfile.city.json info 
         cjio myfile.city.json validate
         cjio myfile.city.json subset --id house12 save out.city.json
-        cjio myfile.city.json assign_epsg 7145 remove_textures export --format obj output.obj
+        cjio myfile.city.json crs_assign 7145 textures_remove export --format obj output.obj
     """
     context.obj = {"argument": input}
 
@@ -376,10 +376,10 @@ def subset_cmd(id, bbox, random, cotype, exclude):
     return processor
 
 
-@cli.command('clean')
-def clean_cmd():
+@cli.command('vertices_clean')
+def vertices_clean_cmd():
     """
-    Clean = remove_duplicate_vertices + remove_orphan_vertices    
+    Remove duplicate vertices + orphan vertices    
     """
     def processor(cm):
         utils.print_cmd_status('Clean the file')
@@ -388,39 +388,8 @@ def clean_cmd():
         return cm
     return processor
 
-
-@cli.command('remove_duplicate_vertices')
-def remove_duplicate_vertices_cmd():
-    """
-    Remove duplicate vertices.
-    Only the geometry vertices are processed, 
-    and not those of the textures/templates.
-
-        $ cjio myfile.city.json remove_duplicate_vertices info
-    """
-    def processor(cm):
-        utils.print_cmd_status('Remove duplicate vertices')
-        cm.remove_duplicate_vertices()
-        return cm
-    return processor
-
-
-@cli.command('remove_orphan_vertices')
-def remove_orphan_vertices_cmd():
-    """
-    Remove orphan vertices.
-    Only the geometry vertices are processed,
-    and not those of the textures/templates.
-    """
-    def processor(cm):
-        utils.print_cmd_status('Remove orphan vertices')
-        cm.remove_orphan_vertices()
-        return cm
-    return processor
-
-
-@cli.command('remove_materials')
-def remove_materials_cmd():
+@cli.command('materials_remove')
+def materials_remove_cmd():
     """
     Remove all materials.
     """
@@ -430,8 +399,8 @@ def remove_materials_cmd():
         return cm
     return processor
 
-@cli.command('remove_textures')
-def remove_textures_cmd():
+@cli.command('textures_remove')
+def textures_remove_cmd():
     """
     Remove all textures.
     """
@@ -442,11 +411,11 @@ def remove_textures_cmd():
     return processor
 
 
-@cli.command('assign_epsg')
+@cli.command('crs_assign')
 @click.argument('newepsg', type=int)
-def assign_epsg_cmd(newepsg):
+def crs_assign_cmd(newepsg):
     """
-    Assign a (new) EPSG.
+    Assign a (new) CRS (an EPSG).
     Can be used to assign one to a file that doesn't have any, or update one.
 
     To reproject (and thus modify all the values of the coordinates) use reproject().
@@ -458,13 +427,13 @@ def assign_epsg_cmd(newepsg):
     return processor
 
 
-@cli.command('reproject')
+@cli.command('crs_reproject')
 @click.argument('epsg', type=int)
-def reproject_cmd(epsg):
+def crs_reproject_cmd(epsg):
     """
     Reproject to a new EPSG.
     The current CityJSON must have an EPSG defined 
-    (which can be done with function assign_epsg).
+    (which can be done with function epsg_assign).
     """
     def processor(cm):
         if (cityjson.MODULE_PYPROJ_AVAILABLE == False):
@@ -482,19 +451,19 @@ def reproject_cmd(epsg):
     return processor
 
 
-@cli.command('upgrade_version')
+@cli.command('upgrade')
 @click.option('--digit', default=3, type=click.IntRange(1, 12), help='Number of digit to keep to compress.')
-def upgrade_version_cmd(digit):
+def upgrade_cmd(digit):
     """
     Upgrade the CityJSON to the latest version.
     It takes care of *everything* (touch wood).
 
-        $ cjio myfile.city.json upgrade_version save upgraded.city.json
+        $ cjio myfile.city.json upgrade save upgraded.city.json
     
     For v1.1+, the file needs to be compressed, and you can 
     speficy the number of digits to keep (default=3)
 
-        $ cjio myfile.city.json upgrade_version --digit 2 save upgraded.city.json
+        $ cjio myfile.city.json upgrade --digit 2 save upgraded.city.json
     """
     def processor(cm):
         vlatest = cityjson.CITYJSON_VERSIONS_SUPPORTED[-1]
@@ -506,8 +475,8 @@ def upgrade_version_cmd(digit):
     return processor
 
 
-@cli.command('locate_textures')
-def locate_textures_cmd():
+@cli.command('textures_locate')
+def textures_locate_cmd():
     """
     Output the location of the texture files.
     """
@@ -519,10 +488,10 @@ def locate_textures_cmd():
     return processor
 
 
-@cli.command('update_textures')
+@cli.command('textures_update')
 @click.argument('newlocation', type=str)
 @click.option('--relative', is_flag=True, help='Convert texture file paths to relative paths.')
-def update_textures_cmd(newlocation, relative):
+def textures_update_cmd(newlocation, relative):
     """
     Update the location of the texture files.
     Can be used if the texture files were moved to new directory.
@@ -534,9 +503,9 @@ def update_textures_cmd(newlocation, relative):
     return processor
 
 
-@cli.command('filter_lod')
+@cli.command('lod_filter')
 @click.argument('lod', type=str)
-def filter_lod_cmd(lod):
+def lod_filter_cmd(lod):
     """
     Filter only one LoD for a dataset.
     To use on datasets having more than one LoD for the city objects.
@@ -544,7 +513,7 @@ def filter_lod_cmd(lod):
     passed as parameter; if a city object doesn't have this LoD then 
     it ends up with an empty geometry.
 
-        $ cjio myfile.city.json filter_lod 2.2 save myfile_lod2.city.json
+        $ cjio myfile.city.json lod_filter 2.2 save myfile_lod2.city.json
     
     """
     def processor(cm):
@@ -553,15 +522,15 @@ def filter_lod_cmd(lod):
         return cm
     return processor
 
-@cli.command('remove_attribute')
+@cli.command('attribute_remove')
 @click.argument('attr', type=str, nargs=1)
-def remove_attribute(attr):
+def attribute_remove_cmd(attr):
     """
     Remove an attribute. 
     If it's not present nothing is done.
     That's it.    
 
-        $ cjio myfile.city.json remove_attribute roofType info
+        $ cjio myfile.city.json attribute_remove roofType info
     """
     def processor(cm):
         utils.print_cmd_status('Remove attribute: "%s"' % attr)
@@ -570,16 +539,16 @@ def remove_attribute(attr):
     return processor
 
 
-@cli.command('rename_attribute')
+@cli.command('attribute_rename')
 @click.argument('oldattr', type=str, nargs=1)
 @click.argument('newattr', type=str, nargs=1)
-def rename_attribute(oldattr, newattr):
+def attribute_rename_cmd(oldattr, newattr):
     """
     Rename an attribute. 
     If it's not present nothing is done, and its value is kept.
     That's it.    
 
-        $ cjio myfile.city.json rename_attribute oldAttr newAttr info
+        $ cjio myfile.city.json attribute_rename oldAttr newAttr info
     """
     def processor(cm):
         utils.print_cmd_status('Rename attribute: "%s" => "%s"' % (oldattr, newattr))
@@ -587,12 +556,15 @@ def rename_attribute(oldattr, newattr):
         return cm
     return processor
 
-@cli.command('translate')
+@cli.command('crs_translate')
 @click.option('--values', nargs=3, type=float, help='(x, y, z)')
-def translate_cmd(values):
+def crs_translate_cmd(values):
     """
-    Translate the file by its (-minx, -miny, -minz).
-    Three values can also be given, eg: 'translate --values -100 -25 -1'
+    Translate the coordinates. 
+    All are moved (-minx, -miny, -minz) of the model.
+    Three values can also be given, eg: 
+
+        $ cjio myfile.city.json crs_translate --values -100 -25 -1 save out.city.json
     """
     def processor(cm):
         if len(values) == 0:
@@ -625,8 +597,9 @@ def metadata_create_cmd():
 @click.option('--overwrite', is_flag=True, help='Overwrite existing values.')
 def metadata_update_cmd(overwrite):
     """
-    Update the +metadata-extended for properties 
-    that can be computed. Modify/update the dataset.
+    Update the +metadata-extended.
+    Properties that can be computed are updated. 
+    Modify/update the dataset.
     """
     def processor(cm):
         utils.print_cmd_status('Update the +metadata-extended')
