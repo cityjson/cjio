@@ -1644,6 +1644,9 @@ class CityJSON:
             if "epsg" in s.lower():
                 self.j["metadata"]["referenceSystem"] = "https://www.opengis.net/def/crs/EPSG/0/%d" % int(s[s.find("::")+2:])
         #-- addresses are now arrays TODO
+        for theid in self.j["CityObjects"]:
+            if "address" in self.j["CityObjects"][theid]:
+                self.j["CityObjects"][theid]["address"] = [self.j["CityObjects"][theid]["address"]]
         #-- metadata calculate
         if "metadata" in self.j:
             v11_properties = {
