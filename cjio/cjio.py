@@ -33,7 +33,7 @@ class PerCommandArgWantSubCmdHelp(click.Argument):
 @click.option('--ignore_duplicate_keys', is_flag=True, help='Load a CityJSON file even if some City Objects have the same IDs (technically invalid file)')
 @click.pass_context
 def cli(context, input, ignore_duplicate_keys):
-    """Process and manipulate a CityJSON file, and allow
+    """Process and manipulate a CityJSON model, and allow
     different outputs. The different operators can be chained
     to perform several processing in one step, the CityJSON model
     goes through the different operators.
@@ -106,8 +106,7 @@ def process_pipeline(processors, input, ignore_duplicate_keys):
 
 @cli.command('info')
 @click.pass_context
-@click.option('--long', is_flag=True,
-              help='More gory details about the file.')
+@click.option('--long', is_flag=True, help='More gory details about the file.')
 def info_cmd(context, long):
     """Output info in simple JSON."""
     def processor(cm):
@@ -123,9 +122,11 @@ def info_cmd(context, long):
               required=True,
               help="Export format")
 def export_cmd(filename, format):
-    """Export the CityJSON to another format.
+    """Export to another format.
 
-    OBJ, Binary glTF (glb), Batched 3DModel (b3dm), STL, JSONL (JSON Lines, for streaming). Currently textures are not supported, sorry.
+    OBJ, Binary glTF (glb), Batched 3DModel (b3dm), STL, JSONL (JSON Lines, for streaming). 
+    
+    Currently textures are not supported, sorry.
     """
     def exporter(cm):
         output = utils.verify_filename(filename)
@@ -213,7 +214,7 @@ def export_cmd(filename, format):
               type=str,
               help='Path to the new textures directory. This command copies the textures to a new location. Useful when creating an independent subset of a CityJSON file.')
 def save_cmd(filename, indent, textures):
-    """Save the city model to a CityJSON file."""
+    """Save to a CityJSON file."""
     def saver(cm):
         output = utils.verify_filename(filename)
         if output['dir']:
@@ -260,7 +261,7 @@ def save_cmd(filename, indent, textures):
               help='Ignore the warnings')
 def validate_cmd(folder_schemas, moredetails, ignore_warnings):
     """
-    Validate the CityJSON file: 
+    Validate the CityJSON: 
     (1) against its schemas;
     (2) against the (potential) Extensions schemas;
     (3) extra validations.
@@ -310,7 +311,7 @@ def validate_cmd(folder_schemas, moredetails, ignore_warnings):
 @click.argument('filepattern')
 def merge_cmd(filepattern):
     """
-    Merge the current CityJSON with others.
+    Merge the current CityJSON with other ones.
     All City Objects with their textures/materials/templates are handled.
     
     Possible to give a wildcard but put it between quotes:
@@ -347,8 +348,7 @@ def merge_cmd(filepattern):
 @click.option('--exclude', is_flag=True, help='Excludes the selection, thus delete the selected object(s).')
 def subset_cmd(id, bbox, random, cotype, exclude):
     """
-    Create a subset of a CityJSON file.
-    One can select City Objects by
+    Create a subset, City Objects can be selected by:
     (1) IDs of City Objects;
     (2) bbox;
     (3) City Object type;
@@ -379,11 +379,7 @@ def subset_cmd(id, bbox, random, cotype, exclude):
 @cli.command('clean')
 def clean_cmd():
     """
-    Clean 
-    =
-    remove_duplicate_vertices
-    +
-    remove_orphan_vertices    
+    Clean = remove_duplicate_vertices + remove_orphan_vertices    
     """
     def processor(cm):
         utils.print_cmd_status('Clean the file')
@@ -396,10 +392,9 @@ def clean_cmd():
 @cli.command('remove_duplicate_vertices')
 def remove_duplicate_vertices_cmd():
     """
-    Remove duplicate vertices a CityJSON file.
-    Only the geometry vertices are processed,
+    Remove duplicate vertices.
+    Only the geometry vertices are processed, 
     and not those of the textures/templates.
-
 
         $ cjio myfile.city.json remove_duplicate_vertices info
     """
@@ -413,7 +408,7 @@ def remove_duplicate_vertices_cmd():
 @cli.command('remove_orphan_vertices')
 def remove_orphan_vertices_cmd():
     """
-    Remove orphan vertices a CityJSON file.
+    Remove orphan vertices.
     Only the geometry vertices are processed,
     and not those of the textures/templates.
     """
@@ -427,7 +422,7 @@ def remove_orphan_vertices_cmd():
 @cli.command('remove_materials')
 def remove_materials_cmd():
     """
-    Remove all materials from a CityJSON file.
+    Remove all materials.
     """
     def processor(cm):
         utils.print_cmd_status('Remove all material')
@@ -438,7 +433,7 @@ def remove_materials_cmd():
 @cli.command('remove_textures')
 def remove_textures_cmd():
     """
-    Remove all textures from a CityJSON file.
+    Remove all textures.
     """
     def processor(cm):
         utils.print_cmd_status('Remove all textures')
@@ -467,8 +462,9 @@ def assign_epsg_cmd(newepsg):
 @click.argument('epsg', type=int)
 def reproject_cmd(epsg):
     """
-    Reproject the CityJSON to a new EPSG.
-    The current file must have an EPSG defined (do it with function assign_epsg).
+    Reproject to a new EPSG.
+    The current CityJSON must have an EPSG defined 
+    (which can be done with function assign_epsg).
     """
     def processor(cm):
         if (cityjson.MODULE_PYPROJ_AVAILABLE == False):
@@ -596,7 +592,6 @@ def rename_attribute(oldattr, newattr):
 def translate_cmd(values):
     """
     Translate the file by its (-minx, -miny, -minz).
-
     Three values can also be given, eg: 'translate --values -100 -25 -1'
     """
     def processor(cm):
@@ -612,7 +607,9 @@ def translate_cmd(values):
 @cli.command('metadata_create')
 def metadata_create_cmd():
     """
-    Add the +metadata-extended properties 
+    Add the +metadata-extended properties.
+    This is the MetadataExtended Extension 
+    (https://github.com/cityjson/metadata-extended).
     Modify/update the dataset.
     """
     def processor(cm):
