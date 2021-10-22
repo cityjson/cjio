@@ -94,7 +94,7 @@ def process_pipeline(processors, input, ignore_duplicate_keys):
                 raise click.ClickException(str1)
             elif (cm.get_version() != cityjson.CITYJSON_VERSIONS_SUPPORTED[-1]):
                 str1 = "v%s is not the latest version, and not everything will work.\n" % cm.get_version()
-                str1 += "Upgrade the file with 'upgrade_version' command: 'cjio input.json upgrade_version save out.json'" 
+                str1 += "Upgrade the file with 'upgrade' command: 'cjio input.json upgrade save out.json'" 
                 utils.print_cmd_alert(str1)
     except ValueError as e:
         raise click.ClickException('%s: "%s".' % (e, input))
