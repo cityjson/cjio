@@ -1643,10 +1643,17 @@ class CityJSON:
             s = self.j["metadata"]["referenceSystem"]
             if "epsg" in s.lower():
                 self.j["metadata"]["referenceSystem"] = "https://www.opengis.net/def/crs/EPSG/0/%d" % int(s[s.find("::")+2:])
-
+        #-- addresses are now arrays TODO
         #-- metadata calculate
         if "metadata" in self.j:
-            v11_properties = ["citymodelIdentifier", "datasetPointOfContact", "datasetTitle", "datasetReferenceDate", "geographicalExtent", "referenceSystem"]
+            v11_properties = {
+                "citymodelIdentifier": "identifier", 
+                "datasetPointOfContact": "pointOfContact", 
+                "datasetTitle": "title", 
+                "datasetReferenceDate": "referenceDate", 
+                "geographicalExtent": "geographicExtent", 
+                "referenceSystem": "referenceSystem"
+            }
             to_delete = []
             for each in self.j["metadata"]:
                 if each not in v11_properties:
@@ -1657,7 +1664,12 @@ class CityJSON:
                     to_delete.append(each)
             for each in to_delete:
                 del self.j["metadata"][each]
-
+            #-- rename to the names
+            for each in v11_properties:
+                if each in self.j["metadata"]:
+                    tmp = self.j["metadata"][each]
+                    self.j["metadata"].pop(each)
+                    self.j["metadata"][v11_properties[each]] = tmp
         #-- GenericCityObject is no longer, add the Extension GenericCityObject
         gco = False
         for theid in self.j["CityObjects"]:
