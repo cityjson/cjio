@@ -995,7 +995,7 @@ class CityJSON:
             subset.process_appearance(self.j, cm2.j)
         cm2.update_bbox()
         #-- metadata
-        print(update_metadata)
+        # print(update_metadata)
         if (update_metadata) and self.has_metadata_extended():
             try:
                 cm2.j["+metadata-extended"] = copy.deepcopy(self.j["+metadata-extended"])
