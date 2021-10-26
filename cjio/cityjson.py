@@ -1641,6 +1641,10 @@ class CityJSON:
         for theid in self.j["CityObjects"]:
             if ("geometry" in self.j['CityObjects'][theid]) and (len(self.j['CityObjects'][theid]['geometry']) == 0):
                 del self.j['CityObjects'][theid]['geometry']
+        #-- BridgeConstructionElement -> BridgeConstructiveElement
+        for theid in self.j["CityObjects"]:
+            if self.j["CityObjects"][theid]['type'] == 'BridgeConstructionElement':
+                self.j["CityObjects"][theid]['type'] = 'BridgeConstructiveElement'
         #-- CRS: use the new OGC scheme
         if "metadata" in self.j and "referenceSystem" in self.j["metadata"]:
             s = self.j["metadata"]["referenceSystem"]
