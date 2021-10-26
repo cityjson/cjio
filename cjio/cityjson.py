@@ -1622,6 +1622,9 @@ class CityJSON:
                 for each, geom in enumerate(self.j['CityObjects'][theid]['geometry']):
                     if self.j['CityObjects'][theid]['geometry'][each]["type"] != "GeometryInstance":
                         self.j['CityObjects'][theid]['geometry'][each]['lod'] = str(self.j['CityObjects'][theid]['geometry'][each]['lod'])
+        if "geometry-templates" in self.j:
+            for i, g in enumerate(self.j["geometry-templates"]["templates"]):
+                self.j["geometry-templates"]["templates"][i]["lod"] = str(self.j["geometry-templates"]["templates"][i]["lod"])
         #-- CityObjectGroup
             # members -> children
             # add parents to children
