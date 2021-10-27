@@ -703,9 +703,9 @@ class CityJSON:
     def get_bbox(self):
         if "metadata" not in self.j:
             return self.calculate_bbox()
-        if "geographicExtent" not in self.j["metadata"]:
+        if "geographicalExtent" not in self.j["metadata"]:
             return self.calculate_bbox()
-        return self.j["metadata"]["geographicExtent"]
+        return self.j["metadata"]["geographicalExtent"]
 
 
     def calculate_bbox(self):
@@ -725,17 +725,17 @@ class CityJSON:
 
     def update_bbox(self):
         """
-        Update the bbox (["metadata"]["geographicExtent"]) of the CityJSON.
+        Update the bbox (["metadata"]["geographicalExtent"]) of the CityJSON.
         If there is none then it is added.
         """
         if "metadata" not in self.j:
             self.j["metadata"] = {}
         if self.is_empty() == True:
             bbox = [0, 0, 0, 0, 0, 0]    
-            self.j["metadata"]["geographicExtent"] = bbox
+            self.j["metadata"]["geographicalExtent"] = bbox
             return bbox
         bbox = self.calculate_bbox()
-        self.j["metadata"]["geographicExtent"] = bbox
+        self.j["metadata"]["geographicalExtent"] = bbox
         return bbox        
 
 
@@ -774,7 +774,7 @@ class CityJSON:
             else:
                 vs.append(each)
         for co in self.j["CityObjects"]:
-            if addifmissing == True or "geographicExtent" in self.j["CityObjects"][co]:
+            if addifmissing == True or "geographicalExtent" in self.j["CityObjects"][co]:
                 vs = []
                 bbox = [9e9, 9e9, 9e9, -9e9, -9e9, -9e9]
                 if 'geometry' in self.j['CityObjects'][co]:
@@ -793,7 +793,7 @@ class CityJSON:
                                 bbox[i] = (bbox[i] * self.j["transform"]["scale"][i]) + self.j["transform"]["translate"][i]
                             for i in range(3):
                                 bbox[i+3] = (bbox[i+3] * self.j["transform"]["scale"][i]) + self.j["transform"]["translate"][i]
-                        self.j["CityObjects"][co]["geographicExtent"] = bbox
+                        self.j["CityObjects"][co]["geographicalExtent"] = bbox
 
 
     def get_centroid(self, coid):
@@ -1559,7 +1559,7 @@ class CityJSON:
         self.update_bbox()
         for id in self.j["CityObjects"]:
             if "bbox" in self.j['CityObjects'][id]:
-                self.j["CityObjects"][id]["geographicExtent"] = self.j["CityObjects"][id]["bbox"]
+                self.j["CityObjects"][id]["geographicalExtent"] = self.j["CityObjects"][id]["bbox"]
                 del self.j["CityObjects"][id]["bbox"]
         # #-- parent-children: do children have the parent too?
         subs = ['Parts', 'Installations', 'ConstructionElements']
