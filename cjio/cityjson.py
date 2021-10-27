@@ -1661,7 +1661,7 @@ class CityJSON:
                 "datasetPointOfContact": "pointOfContact", 
                 "datasetTitle": "title", 
                 "datasetReferenceDate": "referenceDate", 
-                "geographicalExtent": "geographicExtent", 
+                "geographicalExtent": "geographicalExtent", 
                 "referenceSystem": "referenceSystem"
             }
             to_delete = []
