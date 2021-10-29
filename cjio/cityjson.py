@@ -389,32 +389,33 @@ class CityJSON:
 
 
 
-
     def validate(self):
         #-- only latest version, otherwise a mess with versions and different schemas
         #-- this is it, sorry people
         if (self.j["version"] != CITYJSON_VERSIONS_SUPPORTED[-1]):
             s = "Only files with version v%s can be validated. " % (CITYJSON_VERSIONS_SUPPORTED[-1])
-            return s
+            raise Exception(s)
 
         #-- fetch extensions from the URLs given
-        print("Downloading the JSON schema file(s)")
         js = []
         js.append(json.dumps(self.j))
+        print("Downloading the Extension JSON schema file(s):")
         if "extensions" in self.j:
             for ext in self.j["extensions"]:
                 theurl = self.j["extensions"][ext]["url"]
                 try:
                     with urllib.request.urlopen(self.j["extensions"][ext]["url"]) as f:
-                        print("\t%s" % self.j["extensions"][ext]["url"])
+                        print("\t- %s" % self.j["extensions"][ext]["url"])
                         # s = theurl[theurl.rfind('/') + 1:]
                         # s = os.path.join(os.getcwd(), s)
                         # tmp = json.loads(f.read().decode('utf-8'))
                         sf = f.read().decode('utf-8')
                         js.append(sf)
                 except:
-                    s = "Extension file '%s' cannot be downloaded. Abort." % self.j["extensions"][ext]["url"]
-                    return (s)
+                    s = "'%s' cannot be downloaded\nAbort" % self.j["extensions"][ext]["url"]
+                    raise Exception(s)
+        else:
+            print("\t- None")
         val = cjvalpy.CJValidator(js)
         re = val.validate()
         return re

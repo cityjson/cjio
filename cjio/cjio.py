@@ -257,12 +257,13 @@ def save_cmd(filename, indent, textures):
 def validate_cmd():
     """
     Validate the CityJSON: 
-    (1) against its schemas;
-    (2) against the (potential) Extensions schemas;
-    (3) extra validations.
+    (1) against its schemas
+    (2) against the (potential) Extensions schemas
+    (3) extra validations
+    
+    (see https://github.com/cityjson/cjval#what-is-validated-exactly for details)
 
-    The schemas are fetched automatically, based on the version of the file.
-    It also tries to fetch the Extension schemas automatically.
+    The Extensions in the files are fetched automatically.
 
     \b
         $ cjio myfile.city.json validate
@@ -273,10 +274,15 @@ def validate_cmd():
             utils.print_cmd_alert(str)
             str = "To install it: https://www.github.com/cityjson/cjvalpy"
             utils.print_cmd_warning(str)
+            str = "Alternatively use the web-app: https://validator.cityjson.org"
+            utils.print_cmd_warning(str)
             raise click.ClickException('Abort.')
         utils.print_cmd_status('Validation (with official CityJSON schemas)')
-        re = cm.validate()
-        click.echo(re)
+        try:
+            re = cm.validate()
+            click.echo(re)
+        except Exception as e:
+            utils.print_cmd_alert("Error: {}".format(e))
         return cm
     return processor
 
