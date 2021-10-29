@@ -368,7 +368,7 @@ class CityJSON:
                 raise err
         else:
             try:
-                self.j = json.loads(file.read(), object_pairs_hook=validation.dict_raise_on_duplicates)
+                self.j = json.loads(file.read(), object_pairs_hook=self.dict_raise_on_duplicates)
             except ValueError as err:
                 raise ValueError(err)
         #-- a CityJSON file?
@@ -377,6 +377,15 @@ class CityJSON:
         else:
             self.j = {}
             raise ValueError("Not a CityJSON file")
+
+    def dict_raise_on_duplicates(self, ordered_pairs):
+        d = {}
+        for k, v in ordered_pairs:
+            if k in d:
+               raise ValueError("Invalid CityJSON file, duplicate key for City Object IDs: %r" % (k))
+            else:
+               d[k] = v
+        return d
 
     def fetch_schema_builtin(self):
         tmp = resource_listdir(__name__, '/schemas/')
