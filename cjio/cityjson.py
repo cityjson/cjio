@@ -387,59 +387,8 @@ class CityJSON:
                d[k] = v
         return d
 
-    def fetch_schema_builtin(self):
-        tmp = resource_listdir(__name__, '/schemas/')
-        tmp.sort()
-        v = tmp[-1]
-        try:
-            schemamin = resource_filename(__name__, '/schemas/%s/cityjson.min.schema.json' % (v))
-        except:
-            return (False, None, '')
-        js = json.loads(open(schemamin).read())
-        return (True, js, v)
 
 
-    def fetch_schema_local_files(self, folder_schemas=None):
-        schemahead = os.path.join(folder_schemas, 'cityjson.schema.json')
-        #-- open the schema
-        try:
-            fins = open(schemahead)
-        except: 
-            return (False, None)
-        abs_path = os.path.abspath(os.path.dirname(schemahead))
-        #-- because Windows uses \ and not /        
-        if platform == "darwin" or platform == "linux" or platform == "linux2":
-            base_uri = 'file://{}/'.format(abs_path)
-        else:
-            base_uri = 'file:///{}/'.format(abs_path.replace('\\', '/'))
-        jstmp = jsonref.loads(fins.read(), jsonschema=True, base_uri=base_uri)
-        # js_str = jsonref.dumps(jstmp, separators=(',',':'))
-        # js = json.loads(js_str)
-        return (True, jstmp)
-
-
-    def fetch_schema_cityobjects(self, folder_schemas=None):
-        if folder_schemas is None:
-            #-- fetch proper schema from the stored ones 
-            tmp = resource_listdir(__name__, '/schemas/')
-            tmp.sort()
-            v = tmp[-1]
-            try:
-                schema = resource_filename(__name__, '/schemas/%s/cityjson.schema.json' % (v))
-            except:
-                return (False, None)
-        else:
-            schema = os.path.join(folder_schemas, 'cityjson.schema.json')  
-        abs_path = os.path.abspath(os.path.dirname(schema))
-        sco_path = abs_path + '/cityobjects.schema.json'
-        #-- because Windows uses \ and not /        
-        if platform == "darwin" or platform == "linux" or platform == "linux2":
-            base_uri = 'file://{}/'.format(abs_path)
-        else:
-            base_uri = 'file:///{}/'.format(abs_path.replace('\\', '/'))
-        jsco = jsonref.loads(open(sco_path).read(), jsonschema=True, base_uri=base_uri)
-        # jsco = json.loads(open(sco_path).read())
-        return (True, jsco)
 
     def validate(self):
         #-- only latest version, otherwise a mess with versions and different schemas
