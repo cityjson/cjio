@@ -23,6 +23,7 @@ MODULE_NUMPY_AVAILABLE = True
 MODULE_PYPROJ_AVAILABLE = True
 MODULE_EARCUT_AVAILABLE = True
 MODULE_PANDAS_AVAILABLE = True
+MODULE_CJVAL_AVAILABLE = True
 
 try:
     import numpy as np
@@ -40,8 +41,13 @@ try:
     import pandas
 except ImportError as e:
     MODULE_PANDAS_AVAILABLE = False
+try:
+    import cjvalpy
+except ImportError as e:
+    MODULE_CJVAL_AVAILABLE = False
 
-from cjio import validation, subset, geom_help, convert, models
+
+from cjio import subset, geom_help, convert, models
 from cjio.errors import InvalidOperation
 from cjio.utils import print_cmd_warning
 from cjio.metadata import generate_metadata
@@ -362,7 +368,7 @@ class CityJSON:
                 raise err
         else:
             try:
-                self.j = json.loads(file.read(), object_pairs_hook=validation.dict_raise_on_duplicates)
+                self.j = json.loads(file.read(), object_pairs_hook=self.dict_raise_on_duplicates)
             except ValueError as err:
                 raise ValueError(err)
         #-- a CityJSON file?
@@ -372,332 +378,47 @@ class CityJSON:
             self.j = {}
             raise ValueError("Not a CityJSON file")
 
-    def fetch_schema_builtin(self):
-        tmp = resource_listdir(__name__, '/schemas/')
-        tmp.sort()
-        v = tmp[-1]
-        try:
-            schemamin = resource_filename(__name__, '/schemas/%s/cityjson.min.schema.json' % (v))
-        except:
-            return (False, None, '')
-        js = json.loads(open(schemamin).read())
-        return (True, js, v)
+    def dict_raise_on_duplicates(self, ordered_pairs):
+        d = {}
+        for k, v in ordered_pairs:
+            if k in d:
+               raise ValueError("Invalid CityJSON file, duplicate key for City Object IDs: %r" % (k))
+            else:
+               d[k] = v
+        return d
 
 
-    def fetch_schema_local_files(self, folder_schemas=None):
-        schemahead = os.path.join(folder_schemas, 'cityjson.schema.json')
-        #-- open the schema
-        try:
-            fins = open(schemahead)
-        except: 
-            return (False, None)
-        abs_path = os.path.abspath(os.path.dirname(schemahead))
-        #-- because Windows uses \ and not /        
-        if platform == "darwin" or platform == "linux" or platform == "linux2":
-            base_uri = 'file://{}/'.format(abs_path)
-        else:
-            base_uri = 'file:///{}/'.format(abs_path.replace('\\', '/'))
-        jstmp = jsonref.loads(fins.read(), jsonschema=True, base_uri=base_uri)
-        # js_str = jsonref.dumps(jstmp, separators=(',',':'))
-        # js = json.loads(js_str)
-        return (True, jstmp)
 
-
-    def fetch_schema_cityobjects(self, folder_schemas=None):
-        if folder_schemas is None:
-            #-- fetch proper schema from the stored ones 
-            tmp = resource_listdir(__name__, '/schemas/')
-            tmp.sort()
-            v = tmp[-1]
-            try:
-                schema = resource_filename(__name__, '/schemas/%s/cityjson.schema.json' % (v))
-            except:
-                return (False, None)
-        else:
-            schema = os.path.join(folder_schemas, 'cityjson.schema.json')  
-        abs_path = os.path.abspath(os.path.dirname(schema))
-        sco_path = abs_path + '/cityobjects.schema.json'
-        #-- because Windows uses \ and not /        
-        if platform == "darwin" or platform == "linux" or platform == "linux2":
-            base_uri = 'file://{}/'.format(abs_path)
-        else:
-            base_uri = 'file:///{}/'.format(abs_path.replace('\\', '/'))
-        jsco = jsonref.loads(open(sco_path).read(), jsonschema=True, base_uri=base_uri)
-        # jsco = json.loads(open(sco_path).read())
-        return (True, jsco)
-
-
-    def validate_extensions(self, folder_schemas=None, longerr=False):
-        print ('-- Validating the Extension(s)')
-        es = []
-        if "extensions" not in self.j:
-            print ("\tno extensions found in the file")
-            #-- check if there are CityObjects that do not have a schema
-            isValid = True
-            for theid in self.j["CityObjects"]:
-                if  (self.j["CityObjects"][theid]["type"][0] == "+"):
-                    s = "ERROR:   CityObject " + self.j["CityObjects"][theid]["type"] + " doesn't have a schema."
-                    es.append(s)
-                    isValid = False
-            return (isValid, es)
-        tmpdirname = tempfile.TemporaryDirectory()
-        if folder_schemas is None:
-            tmp = resource_listdir(__name__, '/schemas/')
-            tmp.sort()
-            latestversion = tmp[-1]
-            os.chdir(tmpdirname.name)
-            os.mkdir("extensions")
-            os.chdir("./extensions")
-            #-- fetch extensions from the URLs given
-            print("\tdownloading the JSON schema file(s)")
-            for ext in self.j["extensions"]:
-                theurl = self.j["extensions"][ext]["url"]
-                try:
-                    with urllib.request.urlopen(self.j["extensions"][ext]["url"]) as f:
-                        print("\t\t%s" % self.j["extensions"][ext]["url"])
-                        s = theurl[theurl.rfind('/') + 1:]
-                        s = os.path.join(os.getcwd(), s)
-                        f2 = open(s, 'w')
-                        tmp = json.loads(f.read().decode('utf-8'))
-                        tmp2 = json.dumps(tmp)
-                        f2.write(tmp2)
-                        f2.close()
-                except:
-                    s = "file '%s' cannot be downloaded. Abort." % self.j["extensions"][ext]["url"]
-                    return (False, [s])
-            #-- copy all the schemas to this tmp folder
-            allschemas = ["appearance.schema.json",
-                          "cityjson.schema.json",
-                          "cityobjects.schema.json",
-                          "geomprimitives.schema.json",
-                          "geomtemplates.schema.json",
-                          "metadata.schema.json"]
-            for each in allschemas:
-                schema = resource_filename(__name__, '/schemas/%s/%s' % (latestversion, each))
-                shutil.copy(schema, tmpdirname.name)
-            folder_schemas = tmpdirname.name
-        else:
-            print("\tusing local file(s) in %s/extensions/" % folder_schemas)
-
-        # print(folder_schemas)
-        # print(os.listdir(folder_schemas))
-        # print(os.listdir(folder_schemas + "/extensions/"))
-        # return (True, [])
-
-        isValid = True
-        base_uri = os.path.join(folder_schemas, "extensions")
-        base_uri = os.path.abspath(base_uri)
-        allnewco = set()
-        allnew_rootproperties = set()
-
-        #-- iterate over each Extensions, and verify each of the properties
-        #-- in the file. Other way around is more cumbersome
-        for ext in self.j["extensions"]:
-            s = self.j["extensions"][ext]["url"]
-            s = s[s.rfind('/') + 1:]
-            print ('\t%s [%s]' % (ext, s))
-            schemapath = os.path.join(base_uri, s)
-            if os.path.isfile(schemapath) == False:
-                return (False, ["Schema file '%s' can't be found" % s])
-            js = json.loads(open(schemapath).read())
-
-            #-- 1. extraCityObjects
-            if "extraCityObjects" in js:
-                print ('\t\textraCityObjects')
-                for nco in js["extraCityObjects"]:
-                    # print("=>", nco)
-                    allnewco.add(nco)
-                    jtmp = {}
-                    jtmp["$schema"] = "http://json-schema.org/draft-07/schema#"
-                    jtmp["type"] = "object"
-                    if platform == "darwin" or platform == "linux" or platform == "linux2":
-                        jtmp["$ref"] = "file://%s#/extraCityObjects/%s" % (schemapath, nco)
-                    else:
-                        jtmp["$ref"] = "file:\\%s#/extraCityObjects/%s" % (schemapath, nco)
-                    jsotf = jsonref.loads(json.dumps(jtmp), jsonschema=True, base_uri=base_uri)
-                    for theid in self.j["CityObjects"]:
-                        if self.j["CityObjects"][theid]["type"] == nco:
-                            # print(jsotf)
-                            nco1 = self.j["CityObjects"][theid]
-                            v, errs = validation.validate_against_schema(nco1, jsotf, longerr=True)
-                            # v, errs = validation.validate_against_schema_old_slow_one(nco1, jsotf, longerr=True)
-                            if (v == False):
-                                isValid = False
-                                es += errs
-
-            #-- 2. extraRootProperties
-            if "extraRootProperties" in js:
-                for nrp in js["extraRootProperties"]:
-                    allnew_rootproperties.add(nrp)
-                    jtmp = {}
-                    jtmp["$schema"] = "http://json-schema.org/draft-07/schema#"
-                    jtmp["type"] = "object"
-                    if platform == "darwin" or platform == "linux" or platform == "linux2":
-                        jtmp["$ref"] = "file://%s#/extraRootProperties/%s" % (schemapath, nrp)
-                    else:
-                        jtmp["$ref"] = "file:\\%s#/extraRootProperties/%s" % (schemapath, nrp)
-                    jsotf = jsonref.loads(json.dumps(jtmp), jsonschema=True, base_uri=base_uri)
-                    for p in self.j:
-                        if p == nrp:
-                            thep = self.j[p]
-                            v, errs = validation.validate_against_schema(thep, jsotf, longerr=True)
-                            # v, errs = validation.validate_against_schema_old_slow_one(thep, jsotf, longerr=True)
-                            if (v == False):
-                                isValid = False
-                                es += errs
-
-            #-- 3. extraAttributes
-            if "extraAttributes" in js:
-                for thetype in js["extraAttributes"]:
-                    for ea in js["extraAttributes"][thetype]:
-                        jtmp = {}
-                        jtmp["$schema"] = "http://json-schema.org/draft-07/schema#"
-                        jtmp["type"] = "object"
-                        if platform == "darwin" or platform == "linux" or platform == "linux2":
-                            jtmp["$ref"] = "file://%s#/extraAttributes/%s/%s" % (schemapath, thetype, ea)
-                        else:
-                            jtmp["$ref"] = "file:\\%s#/extraAttributes/%s/%s" % (schemapath, thetype, ea)
-                        jsotf = jsonref.loads(json.dumps(jtmp), jsonschema=True, base_uri=base_uri)
-                        for theid in self.j["CityObjects"]:
-                            if ( (self.j["CityObjects"][theid]["type"] == thetype) and 
-                                 ("attributes" in self.j["CityObjects"][theid])    and
-                                 (ea in self.j["CityObjects"][theid]["attributes"]) ):
-                                a = self.j["CityObjects"][theid]["attributes"][ea]
-                                v, errs = validation.validate_against_schema(a, jsotf, longerr=True)
-                                # v, errs = validation.validate_against_schema_old_slow_one(a, jsotf, longerr)
-                                if (v == False):
-                                    isValid = False
-                                    es += errs
-
-
-        #-- 4. check if there are CityObjects that do not have a schema
-        for theid in self.j["CityObjects"]:
-            if ( (self.j["CityObjects"][theid]["type"][0] == "+") and
-                 (self.j["CityObjects"][theid]["type"] not in allnewco) ):
-                s = "ERROR:   CityObject " + self.j["CityObjects"][theid]["type"] + " doesn't have a schema."
-                es.append(s)
-                isValid = False
-
-        #-- 5. check if there are extraRootProperties that do not have a schema
-        for p in self.j:
-            if ( (p[0] == "+") and
-                 (p not in allnew_rootproperties) ):
-                s = "ERROR:   extra root properties " + p + " doesn't have a schema."
-                es.append(s)
-                isValid = False
-        return (isValid, es)
-
-
-    def validate(self, folder_schemas=None, longerr=False):
+    def validate(self):
         #-- only latest version, otherwise a mess with versions and different schemas
         #-- this is it, sorry people
         if (self.j["version"] != CITYJSON_VERSIONS_SUPPORTED[-1]):
             s = "Only files with version v%s can be validated. " % (CITYJSON_VERSIONS_SUPPORTED[-1])
-            s += "However, you can validate it by saving the schemas locally and use the option '--folder_schemas'"
-            return (False, True, [s], [])
-        es = []
-        ws = []
-        #-- 1. schema
-        print ('-- Validating the syntax of the file (schema validation)')
-        # b, js, v = self.fetch_schema(folder_schemas)
-        if folder_schemas is None:
-            b, js, v = self.fetch_schema_builtin()
-            if b == False:
-                return (False, True, ["Can't find the schema."], [])
-            else:
-                print ('\t(using the built-in schemas v%s)' % (v))
-                if longerr == True:
-                    isValid, errs = validation.validate_against_schema(self.j, js, longerr)
-                else:
-                    isValid, errs = validation.validate_against_schema_turbo(self.j, js, longerr)
-                if (isValid == False):
-                    es += errs
-                    return (False, True, es, [])
-                else:
-                    print('\tschema-valid... ok')
-        else: #-- folder_schemas is present
-            b, js = self.fetch_schema_local_files(folder_schemas)
-            if b == False:
-                return (False, True, ["Can't find the schema."], [])
-            else:
-                print ('\t(using local files in %s)' % (folder_schemas))
-                isValid, errs = validation.validate_against_schema(self.j, js, longerr)
-                if (isValid == False):
-                    es += errs
-                    return (False, True, es, [])
-                else:
-                    print('\tschema-valid... ok')
-        #-- 2. schema for Extensions
-        b, es = self.validate_extensions(folder_schemas)
-        if b == True:
-            print('\tExtension(s)... ok')
-        else:
-            return (b, True, es, [])
+            raise Exception(s)
 
-        #-- 3. Internal consistency validation 
-        print('-- Validating the internal consistency of the file (see docs for list)')
-        isValid = True
-        #--
-        b, errs = validation.parent_children_consistency(self.j)
-        if b == False:
-            isValid = False
-            es += errs
-            print("\t--Parents-children consistency... oupsie")
+        #-- fetch extensions from the URLs given
+        js = []
+        js.append(json.dumps(self.j))
+        print("Downloading the Extension JSON schema file(s):")
+        if "extensions" in self.j:
+            for ext in self.j["extensions"]:
+                theurl = self.j["extensions"][ext]["url"]
+                try:
+                    with urllib.request.urlopen(self.j["extensions"][ext]["url"]) as f:
+                        print("\t- %s" % self.j["extensions"][ext]["url"])
+                        # s = theurl[theurl.rfind('/') + 1:]
+                        # s = os.path.join(os.getcwd(), s)
+                        # tmp = json.loads(f.read().decode('utf-8'))
+                        sf = f.read().decode('utf-8')
+                        js.append(sf)
+                except:
+                    s = "'%s' cannot be downloaded\nAbort" % self.j["extensions"][ext]["url"]
+                    raise Exception(s)
         else:
-            print("\t--Parents-children consistency... ok")
-        #--
-        b, errs = validation.wrong_vertex_index(self.j)
-        if b == False:
-            isValid = False
-            es += errs
-            print("\t--Vertex indices coherent... oupsie")
-        else:
-            print("\t--Vertex indices coherent... ok")
-        #--
-        b, errs = validation.semantics_array(self.j)
-        if b == False:
-            isValid = False
-            es += errs
-            print("\t--Semantic arrays coherent with geometry... oupsie")
-        else:
-            print("\t--Semantic arrays coherent with geometry... ok")
-        #-- 4. WARNINGS
-        woWarnings = True
-        #--
-        b, errs = validation.cityjson_properties(self.j, js)
-        if b == False:
-            woWarnings = False
-            ws += errs
-            print("\t--Root properties... oupsie")
-        else:
-            print("\t--Root properties... ok")
-        #--
-        b, errs = validation.duplicate_vertices(self.j)
-        if b == False:
-            woWarnings = False
-            ws += errs
-            print("\t--Duplicate vertices... oupsie")
-        else:
-            print("\t--Duplicate vertices... ok")
-        #--
-        b, errs = validation.unused_vertices(self.j)
-        if b == False:
-            woWarnings = False
-            ws += errs
-            print("\t--Unused vertices... oupsie")
-        else:
-            print("\t--Unused vertices... ok")
-        #--
-        #-- fetch schema cityobjects.json
-        b, jsco = self.fetch_schema_cityobjects(folder_schemas)
-        b, errs = validation.citygml_attributes(self.j, jsco)
-        if b == False:
-            woWarnings = False
-            ws += errs
-            print("\t--CityGML attributes... oupsie")
-        else:
-            print("\t--CityGML attributes... ok")
-        return (isValid, woWarnings, es, ws)
+            print("\t- None")
+        val = cjvalpy.CJValidator(js)
+        re = val.validate()
+        return re
 
 
     def get_bbox(self):
@@ -1170,6 +891,7 @@ class CityJSON:
 
     def validate_textures(self):
         """Check if the texture files exist"""
+        # TODO: implement validate_textures
         raise NotImplemented
 
 
@@ -1694,7 +1416,7 @@ class CityJSON:
                 self.j["extensions"] = {}
             self.j["extensions"]["Generic"]= {}
             #-- TODO: change URL for Generic Extension
-            self.j["extensions"]["Generic"]["url"] = "https://homepage.tudelft.nl/23t4p/generic.ext.json"
+            self.j["extensions"]["Generic"]["url"] = "https://cityjson.org/extensions/download/generic.ext.json"
             self.j["extensions"]["Generic"]["version"] = "1.0"
             return (False, reasons)
         else:

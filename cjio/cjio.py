@@ -252,57 +252,37 @@ def save_cmd(filename, indent, textures):
         return cm
     return processor
 
+
 @cli.command('validate')
-@click.option('--folder_schemas', 
-              help='Specify a folder where the schemas are (cityjson.json needs to be the master file).')
-@click.option('--moredetails', is_flag=True,
-              help='Use a slower validation that *could* print out better errors.')
-@click.option('--ignore_warnings', is_flag=True,
-              help='Ignore the warnings')
-def validate_cmd(folder_schemas, moredetails, ignore_warnings):
+def validate_cmd():
     """
     Validate the CityJSON: 
-    (1) against its schemas;
-    (2) against the (potential) Extensions schemas;
-    (3) extra validations.
+    (1) against its schemas
+    (2) against the (potential) Extensions schemas
+    (3) extra validations
+    
+    (see https://github.com/cityjson/cjval#what-is-validated-exactly for details)
 
-    The schemas are fetched automatically, based on the version of the file.
-    It also tries to fetch the Extension schemas automatically.
-    It's possible to specify local schemas with the '--folder_schemas' option.
+    The Extensions in the files are fetched automatically.
 
     \b
         $ cjio myfile.city.json validate
-        $ cjio myfile.city.json validate --moredetails
-        $ cjio myfile.city.json validate --folder_schemas /home/elvis/myschemas/
     """
     def processor(cm):
-        if folder_schemas is not None:
-            if os.path.exists(folder_schemas) == False:
-                utils.print_cmd_warning("Folder for schemas unknown. Validation aborted.")
-                return cm
-            else:
-                utils.print_cmd_status('Validation (with provided schemas)')
-        else:
-            utils.print_cmd_status('Validation (with official CityJSON schemas)')
-        #-- validate    
-        bValid, woWarnings, errors, warnings = cm.validate(folder_schemas=folder_schemas, longerr=moredetails)
-        if bValid is False:
-            click.echo("--- ERRORS (total = %d) ---" % len(errors))
-            for i, e in enumerate(errors):
-                click.echo(str(i + 1) + " ==> " + e + "\n")
-        if ignore_warnings is False and woWarnings is False:
-            click.echo("--- WARNINGS (total = %d) ---" % len(warnings))
-            for i, e in enumerate(warnings):
-                click.echo(str(i + 1) + " ==> " + e + "\n")
-        click.echo('=====================================')
-        if bValid == True:
-            if ignore_warnings is True or woWarnings == True:
-                click.echo('🟢 File is valid')
-            else:
-                click.echo('🟡 File is valid but has %d warnings' % len(warnings))
-        else:    
-            click.echo('🔴 File is invalid')
-        click.echo('=====================================')
+        if (cityjson.MODULE_CJVAL_AVAILABLE == False):
+            str = "Validation skipped: Python module 'cjvalpy' not installed"
+            utils.print_cmd_alert(str)
+            str = "To install it: https://www.github.com/cityjson/cjvalpy"
+            utils.print_cmd_warning(str)
+            str = "Alternatively use the web-app: https://validator.cityjson.org"
+            utils.print_cmd_warning(str)
+            raise click.ClickException('Abort.')
+        utils.print_cmd_status('Validation (with official CityJSON schemas)')
+        try:
+            re = cm.validate()
+            click.echo(re)
+        except Exception as e:
+            utils.print_cmd_alert("Error: {}".format(e))
         return cm
     return processor
 
