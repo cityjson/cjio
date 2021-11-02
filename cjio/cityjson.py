@@ -1416,7 +1416,7 @@ class CityJSON:
                 self.j["extensions"] = {}
             self.j["extensions"]["Generic"]= {}
             #-- TODO: change URL for Generic Extension
-            self.j["extensions"]["Generic"]["url"] = "https://homepage.tudelft.nl/23t4p/generic.ext.json"
+            self.j["extensions"]["Generic"]["url"] = "https://cityjson.org/extensions/download/generic.ext.json"
             self.j["extensions"]["Generic"]["version"] = "1.0"
             return (False, reasons)
         else:
