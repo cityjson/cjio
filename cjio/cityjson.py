@@ -1837,7 +1837,7 @@ class CityJSON:
 
 
                 # triangulate the geometry type MultiSurface and CompositeSurface
-                if ((geom['type'] == 'MultiSurface') or (geom['type'] == 'CompositeSurface')):
+                if (geom['type'] == 'MultiSurface') or (geom['type'] == 'CompositeSurface'):
                     tlist1 = []
                     for i, face in enumerate(geom['boundaries']):
                         tposition = 0
@@ -1866,7 +1866,11 @@ class CityJSON:
                                 tlist1.append(tlist2)
 
                                 if sflag:
-                                    slist.append(geom['semantics']['values'][i])
+                                    if geom['semantics']['values'] is None:
+                                        slist = None
+                                        break
+                                    else:
+                                        slist1.append(geom['semantics']['values'][i])
 
                                 if mflag:
                                     for j,l in enumerate(mlist):
@@ -1941,7 +1945,11 @@ class CityJSON:
                                     tlist3.append(t.tolist())
                                     tlist2.append(tlist3)
                                     if sflag:
-                                        slist1.append(geom['semantics']['values'][i])
+                                        if geom['semantics']['values'][sidx] is None:
+                                            slist1 = None
+                                            break
+                                        else:
+                                            slist1.append(geom['semantics']['values'][sidx][i])
                                     if mflag:
                                         for j, l in enumerate(mlist1):
                                             if type(l).__name__ == 'list':
@@ -2031,7 +2039,14 @@ class CityJSON:
 
 
                                         if sflag:
-                                            slist2.append(geom['semantics']['values'][i])
+                                            if geom['semantics']['values'][solididx] is None:
+                                                slist1 = None
+                                                break
+                                            elif geom['semantics']['values'][solididx][sidx] is None:
+                                                slist2 = None
+                                                break
+                                            else:
+                                                slist2.append(geom['semantics']['values'][solididx][sidx][i])
 
                                         if mflag:
                                             for j, l in enumerate(mlist2):
@@ -2055,7 +2070,8 @@ class CityJSON:
                                                 texlist1[jj].append(texlist2)
 
                             tlist2.append(tlist3)
-                            slist1.append(slist2)
+                            if slist1 is not None:
+                                slist1.append(slist2)
                             for j, l in enumerate(mlist1):
                                 if type(l).__name__ == 'list' and len(mlist2[j]) != 0:
                                     l.append(mlist2[j])
@@ -2065,6 +2081,7 @@ class CityJSON:
                                 l.append(texlist1[j])
 
                         tlist1.append(tlist2)
+                        slist.append(slist1)
                         for j, l in enumerate(mlist):
                             if type(l).__name__ == 'list' and len(mlist1[j]) != 0:
                                 l.append(mlist1[j])
@@ -2084,7 +2101,7 @@ class CityJSON:
                         for j,item in enumerate(texture.items()):
                             item[1][list(item[1].keys())[0]] = texlist[j]
                         geom['texture'] = texture
-        return True
+
 
     def is_triangulated(self):
         """

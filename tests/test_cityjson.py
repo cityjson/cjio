@@ -165,7 +165,12 @@ class TestCityJSON:
 
     def test_triangulate(self, materials):
         """Test #101"""
-        cm1, cm2 = materials
-        assert not cm1.is_triangulated()
-        cm1.triangulate()
-        assert cm1.is_triangulated()
+        cm = materials
+        for item in cm:
+            item.triangulate()
+
+
+    def test_is_triangulate(self,triangulated):
+        cm = triangulated
+        for item in cm:
+            assert item.is_triangulated()
