@@ -141,8 +141,22 @@ def vertices():
 def materials(data_dir):
     p1 = os.path.join(data_dir, 'material', 'mt-1.json')
     p2 = os.path.join(data_dir, 'material', 'mt-2.json')
+    p3 = os.path.join(data_dir, 'dummy', 'composite_solid_with_material.json')
+    p4 = os.path.join(data_dir, 'dummy', 'dummy.json')
+    p5 = os.path.join(data_dir, 'dummy', 'multisurface_with_material.json')
     cj = []
-    for p in (p1, p2):
+    for p in (p1, p2, p3, p4, p5):
+        with open(p, 'r') as f:
+            cj.append(cityjson.CityJSON(file=f))
+    return cj
+
+@pytest.fixture(scope='session')
+def triangulated(data_dir):
+    p1 = os.path.join(data_dir, 'material', 'mt-1-triangulated.json')
+    p2 = os.path.join(data_dir, 'material', 'mt-2-triangulated.json')
+    p3 = os.path.join(data_dir, 'dummy', 'dummy-triangulated.json')
+    cj = []
+    for p in (p1, p2, p3):
         with open(p, 'r') as f:
             cj.append(cityjson.CityJSON(file=f))
     return cj

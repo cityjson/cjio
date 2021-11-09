@@ -47,3 +47,4 @@ def print_cmd_warning(s):
 
 def print_cmd_alert(s):
     echo(style(s, reverse=True, fg='red'))
+

@@ -624,6 +624,27 @@ def metadata_remove_cmd():
         return cm
     return processor
 
+@cli.command('triangulate')
+def triangulate_cmd():
+    """
+    Triangulate a given CityJSON file.
+    """
+    #-- mapbox_earcut available?
+    def processor(cm):
+        utils.print_cmd_status('Triangulate the CityJSON file')
+        if (cityjson.MODULE_EARCUT_AVAILABLE == False):
+            str = "Cannot triangulate: Python module 'mapbox_earcut' missing. Stopping here."
+            utils.print_cmd_error(str)
+            str = "Install it: https://pypi.org/project/mapbox-earcut/"
+            utils.print_cmd_error(str)
+            return cm
+        if not(cm.is_triangulated()):
+            cm.triangulate()
+        else:
+            utils.print_cmd_status('This file is already triangulated!')
+        return cm
+    return processor
+
 
 # Needed for the executable created by PyInstaller
 if getattr(sys, 'frozen', False):

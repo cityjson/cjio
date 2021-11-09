@@ -199,6 +199,19 @@ class TestCityJSON:
                                      '--format', 'stl',
                                      data_output_dir])
 
+
+    def test_triangulate(self, materials):
+        """Test #101"""
+        cm = materials
+        for item in cm:
+            item.triangulate()
+
+
+    def test_is_triangulate(self,triangulated):
+        cm = triangulated
+        for item in cm:
+            assert item.is_triangulated()
+
     def test_convert_to_jsonl(self, delft):
          cm = copy.deepcopy(delft)
          jsonl = cm.export2jsonl()
@@ -225,4 +238,3 @@ def test_merge_materials(materials):
     # The value of 'value' in the CityObject from cm1 must be updated to point to the
     # correct Material Object in the materials list
     assert cm2.j['CityObjects']['NL.IMBAG.Pand.0518100001755018-0']['geometry'][0]['material']['default']['value'] == 1
-
