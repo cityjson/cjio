@@ -1458,7 +1458,7 @@ class CityJSON:
     def triangulate_face(self, face, vnp):
         sf = np.array([], dtype=np.int64)
         if ( (len(face) == 1) and (len(face[0]) == 3) ):
-            return (np.array(face), True, n)
+            return (np.array(face), True)
         for ring in face:
             sf = np.hstack( (sf, np.array(ring)) )
         sfv = vnp[sf]
@@ -1476,7 +1476,7 @@ class CityJSON:
 
         #-- if already a triangle then return it
         if b == False:
-            return (n, False, n)
+            return (n, False)
         # print ("Newell:", n)
 
         # 2. project to the plane to get xy
@@ -1495,7 +1495,7 @@ class CityJSON:
             result[i] = sf[each]
         
         # print (result.reshape(-1, 3))
-        return (result.reshape(-1, 3), True, n)
+        return (result.reshape(-1, 3), True)
 
 
     def export2b3dm(self):
@@ -1573,14 +1573,14 @@ class CityJSON:
                 out.write('o ' + str(theid) + '\n')
                 if ( (geom['type'] == 'MultiSurface') or (geom['type'] == 'CompositeSurface') ):
                     for face in geom['boundaries']:
-                        re, b, n = self.triangulate_face(face, vnp)
+                        re, b = self.triangulate_face(face, vnp)
                         if b == True:
                             for t in re:
                                 out.write("f %d %d %d\n" % (t[0] + 1, t[1] + 1, t[2] + 1))
                 elif (geom['type'] == 'Solid'):
                     for shell in geom['boundaries']:
                         for i, face in enumerate(shell):
-                            re, b, n = self.triangulate_face(face, vnp)
+                            re, b = self.triangulate_face(face, vnp)
                             if b == True:
                                 for t in re:
                                     out.write("f %d %d %d\n" % (t[0] + 1, t[1] + 1, t[2] + 1))
@@ -1610,7 +1610,7 @@ class CityJSON:
             for geom in self.j['CityObjects'][theid]['geometry']:
                 if ( (geom['type'] == 'MultiSurface') or (geom['type'] == 'CompositeSurface') ):
                     for face in geom['boundaries']:
-                        re, b, n = self.triangulate_face(face, vnp)
+                        re, b = self.triangulate_face(face, vnp)
                         if b == True:
                             for t in re:
                                 out.write("facet normal %f %f %f\nouter loop\n" % (n[0], n[1], n[2]))
@@ -1621,7 +1621,7 @@ class CityJSON:
                 elif (geom['type'] == 'Solid'):
                     for shell in geom['boundaries']:
                         for i, face in enumerate(shell):
-                            re, b, n = self.triangulate_face(face, vnp)
+                            re, b = self.triangulate_face(face, vnp)
                             if b == True:
                                 for t in re:
                                     out.write("facet normal %f %f %f\nouter loop\n" % (n[0], n[1], n[2]))
@@ -1889,7 +1889,7 @@ class CityJSON:
                             re = np.array(face)
                             b = True
                         else:
-                            re, b, n = self.triangulate_face(face, vnp)
+                            re, b = self.triangulate_face(face, vnp)
 
                         if b == True:
                             for t in re:
@@ -1970,7 +1970,7 @@ class CityJSON:
                                 re = np.array(face)
                                 b = True
                             else:
-                                re, b, n = self.triangulate_face(face, vnp)
+                                re, b = self.triangulate_face(face, vnp)
                             if b == True:
                                 for t in re:
                                     tlist3 = []
@@ -2066,7 +2066,7 @@ class CityJSON:
                                     re = np.array(face)
                                     b = True
                                 else:
-                                    re, b, n = self.triangulate_face(face, vnp)
+                                    re, b = self.triangulate_face(face, vnp)
                                 if b == True:
                                     for t in re:
                                         tlist4 = []

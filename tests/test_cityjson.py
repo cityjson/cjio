@@ -223,7 +223,6 @@ class TestCityJSON:
             if 'geometry' in cm.j['CityObjects']:
                 for geom in cm.j['CityObjects'][coid]['geometry']:
                     assert geom["lod"] == "2.2"
-        assert (len(cm.j['metadata']['presentLoDs']) == 1 and cm.j['metadata']['presentLoDs']['2.2'] == 10)
 
 def test_merge_materials(materials):
     """Testing #100
