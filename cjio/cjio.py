@@ -627,16 +627,21 @@ def metadata_remove_cmd():
 @cli.command('triangulate')
 def triangulate_cmd():
     """
-    Triangulate a given CityJSON file.
+    Triangulate every surface.
+
+    Takes care of updating: (1) semantics; (2) textures; (3) material.
+
+        $ cjio myfile.city.json triangulate save mytriangles.city.json 
     """
     #-- mapbox_earcut available?
     def processor(cm):
         utils.print_cmd_status('Triangulate the CityJSON file')
         if (cityjson.MODULE_EARCUT_AVAILABLE == False):
             str = "Cannot triangulate: Python module 'mapbox_earcut' missing. Stopping here."
-            utils.print_cmd_error(str)
+            utils.print_cmd_alert(str)
             str = "Install it: https://pypi.org/project/mapbox-earcut/"
-            utils.print_cmd_error(str)
+            utils.print_cmd_alert(str)
+            raise click.ClickException('Abort.')
             return cm
         if not(cm.is_triangulated()):
             cm.triangulate()
