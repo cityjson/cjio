@@ -1870,7 +1870,7 @@ class CityJSON:
                                         slist = None
                                         break
                                     else:
-                                        slist1.append(geom['semantics']['values'][i])
+                                        slist.append(geom['semantics']['values'][i])
 
                                 if mflag:
                                     for j,l in enumerate(mlist):
@@ -1945,7 +1945,10 @@ class CityJSON:
                                     tlist3.append(t.tolist())
                                     tlist2.append(tlist3)
                                     if sflag:
-                                        if geom['semantics']['values'][sidx] is None:
+                                        if geom['semantics']['values'] is None:
+                                            slist = None
+                                            break
+                                        elif geom['semantics']['values'][sidx] is None:
                                             slist1 = None
                                             break
                                         else:
@@ -1973,7 +1976,8 @@ class CityJSON:
                                             texlist0[jj].append(texlist1)
 
                         tlist1.append(tlist2)
-                        slist.append(slist1)
+                        if slist is not None:
+                            slist.append(slist1)
                         for j,l in enumerate(mlist):
                             if type(l).__name__ == 'list' and len(mlist1[j])!=0:
                                 l.append(mlist1[j])
@@ -1984,7 +1988,7 @@ class CityJSON:
 
                     geom['boundaries'] = tlist1
                     if sflag:
-                        geom['semantics'] = slist
+                        geom['semantics']['values'] = slist
 
                     if mflag:
                         for j, item in enumerate(material.items()):
@@ -2039,6 +2043,9 @@ class CityJSON:
 
 
                                         if sflag:
+                                            if geom['semantics']['values'] is None:
+                                                slist = None
+                                                break
                                             if geom['semantics']['values'][solididx] is None:
                                                 slist1 = None
                                                 break
@@ -2081,7 +2088,8 @@ class CityJSON:
                                 l.append(texlist1[j])
 
                         tlist1.append(tlist2)
-                        slist.append(slist1)
+                        if slist is not None:
+                            slist.append(slist1)
                         for j, l in enumerate(mlist):
                             if type(l).__name__ == 'list' and len(mlist1[j]) != 0:
                                 l.append(mlist1[j])
@@ -2092,7 +2100,7 @@ class CityJSON:
 
                     geom['boundaries'] = tlist1
                     if sflag:
-                        geom['semantics'] = slist
+                        geom['semantics']['values'] = slist
                     if mflag:
                         for j, item in enumerate(material.items()):
                             item[1][list(item[1].keys())[0]] = mlist[j]
