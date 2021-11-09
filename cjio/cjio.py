@@ -10,6 +10,7 @@ import cjio
 from cjio import cityjson, utils
 
 
+
 #-- https://stackoverflow.com/questions/47437472/in-python-click-how-do-i-see-help-for-subcommands-whose-parents-have-required
 class PerCommandArgWantSubCmdHelp(click.Argument):
     def handle_parse_result(self, ctx, opts, args):
@@ -27,12 +28,12 @@ class PerCommandArgWantSubCmdHelp(click.Argument):
 
 
 @click.group(chain=True)
-@click.version_option(version=cjio.__version__)
+@click.version_option(version=cjio.__version__, prog_name=cityjson.CITYJSON_VERSIONS_SUPPORTED[-1], message="cjio v%(version)s; supports CityJSON v%(prog)s")
 @click.argument('input', cls=PerCommandArgWantSubCmdHelp)
 @click.option('--ignore_duplicate_keys', is_flag=True, help='Load a CityJSON file even if some City Objects have the same IDs (technically invalid file)')
 @click.pass_context
 def cli(context, input, ignore_duplicate_keys):
-    """Process and manipulate a CityJSON file, and allow
+    """Process and manipulate a CityJSON model, and allow
     different outputs. The different operators can be chained
     to perform several processing in one step, the CityJSON model
     goes through the different operators.
@@ -45,9 +46,10 @@ def cli(context, input, ignore_duplicate_keys):
     Usage examples:
 
     \b
-        cjio example.json info validate
-        cjio example.json assign_epsg 7145 remove_textures export output.obj
-        cjio example.json subset --id house12 save out.json
+        cjio myfile.city.json info 
+        cjio myfile.city.json validate
+        cjio myfile.city.json subset --id house12 save out.city.json
+        cjio myfile.city.json crs_assign 7145 textures_remove export --format obj output.obj
     """
     context.obj = {"argument": input}
 
@@ -92,9 +94,8 @@ def process_pipeline(processors, input, ignore_duplicate_keys):
                 raise click.ClickException(str1)
             elif (cm.get_version() != cityjson.CITYJSON_VERSIONS_SUPPORTED[-1]):
                 str1 = "v%s is not the latest version, and not everything will work.\n" % cm.get_version()
-                str1 += "Upgrade the file with 'upgrade_version' command: 'cjio input.json upgrade_version save out.json'" 
-                click.echo(click.style(str1, fg='red'))
-            
+                str1 += "Upgrade the file with 'upgrade' command: 'cjio input.json upgrade save out.json'" 
+                utils.print_cmd_alert(str1)
     except ValueError as e:
         raise click.ClickException('%s: "%s".' % (e, input))
     except IOError as e:
@@ -105,8 +106,7 @@ def process_pipeline(processors, input, ignore_duplicate_keys):
 
 @cli.command('info')
 @click.pass_context
-@click.option('--long', is_flag=True,
-              help='More gory details about the file.')
+@click.option('--long', is_flag=True, help='More gory details about the file.')
 def info_cmd(context, long):
     """Output info in simple JSON."""
     def processor(cm):
@@ -118,13 +118,15 @@ def info_cmd(context, long):
 @cli.command('export')
 @click.argument('filename')
 @click.option('--format',
-              type=click.Choice(['obj', 'stl', 'glb', 'b3dm']),
+              type=click.Choice(['obj', 'jsonl', 'stl', 'glb', 'b3dm']),
               required=True,
               help="Export format")
 def export_cmd(filename, format):
-    """Export the CityJSON to another format.
+    """Export to another format.
 
-    OBJ, Binary glTF (glb), Batched 3DModel (b3dm), STL. Currently textures are not supported, sorry.
+    OBJ, Binary glTF (glb), Batched 3DModel (b3dm), STL, JSONL (JSON Lines, for streaming). 
+    
+    Currently textures are not supported, sorry.
     """
     def exporter(cm):
         output = utils.verify_filename(filename)
@@ -177,16 +179,23 @@ def export_cmd(filename, format):
                     bo.write(b3dm.getvalue())
             except IOError as e:
                 raise click.ClickException('Invalid output file: "%s".\n%s' % (binfile, e))
-
+        elif format.lower() == 'jsonl':
+            utils.print_cmd_status("Exporting CityJSON to JSON Lines (%s)" % (output['path']))
+            try:
+                with click.open_file(output['path'], mode='w') as fo:
+                    re = cm.export2jsonl()
+                    fo.write(re.getvalue())
+            except IOError as e:
+                raise click.ClickException('Invalid output file: "%s".\n%s' % (output['path'], e))
 
     def processor(cm):
         #-- mapbox_earcut available?
-        if (cityjson.MODULE_EARCUT_AVAILABLE == False):
+        if (format != 'jsonl') and (cityjson.MODULE_EARCUT_AVAILABLE == False):
             str = "OBJ|glTF|b3dm export skipped: Python module 'mapbox_earcut' missing (to triangulate faces)"
-            click.echo(click.style(str, fg='red'))
+            utils.print_cmd_alert(str)
             str = "Install it: https://pypi.org/project/mapbox-earcut/"
-            click.echo(str)
-            return cm
+            utils.print_cmd_warning(str)
+            raise click.ClickException('Abort.')
         # NOTE BD: export_cmd can take a list of citymodels, which is the output of the partitioner
         if format.lower() == '3dtiles' or not isinstance(cm, list):
             exporter(cm)
@@ -205,7 +214,7 @@ def export_cmd(filename, format):
               type=str,
               help='Path to the new textures directory. This command copies the textures to a new location. Useful when creating an independent subset of a CityJSON file.')
 def save_cmd(filename, indent, textures):
-    """Save the city model to a CityJSON file."""
+    """Save to a CityJSON file."""
     def saver(cm):
         output = utils.verify_filename(filename)
         if output['dir']:
@@ -216,11 +225,13 @@ def save_cmd(filename, indent, textures):
         else:
             os.makedirs(os.path.dirname(output['path']), exist_ok=True)
         
-        try:
-            if "metadata" in cm.j:
-                cm.j["metadata"]["fileIdentifier"] = os.path.basename(output['path'])
-        except:
-            pass
+        # try:
+        #     if "metadata" in cm.j:
+        #         cm.j["metadata"]["fileIdentifier"] = os.path.basename(output['path'])
+        # except:
+        #     pass
+
+        print(cm)
 
         utils.print_cmd_status("Saving CityJSON to a file %s" % output['path'])
         try:
@@ -241,59 +252,37 @@ def save_cmd(filename, indent, textures):
         return cm
     return processor
 
+
 @cli.command('validate')
-@click.option('--hide_errors', is_flag=True, help='Do not print all the errors.')
-@click.option('--skip_schema', is_flag=True, help='Skip the schema validation (since it can be painfully slow).')
-@click.option('--folder_schemas', 
-              help='Specify a folder where the schemas are (cityjson.json needs to be the master file).')
-@click.option('--long', is_flag=True,
-              help='More gory details about the validation errors.')
-def validate_cmd(hide_errors, skip_schema, folder_schemas, long):
+def validate_cmd():
     """
-    Validate the CityJSON file: (1) against its schemas; (2) extra validations.
+    Validate the CityJSON: 
+    (1) against its schemas
+    (2) against the (potential) Extensions schemas
+    (3) extra validations
+    
+    (see https://github.com/cityjson/cjval#what-is-validated-exactly for details)
 
-    The schemas are fetched automatically, based on the version of the file.
-    It's possible to specify schemas with the '--folder_schemas' option.
-    This is used when there are Extensions used.
-    
-    If the file is too large (and thus validation is slow),
-    an option is to crop a subset and just validate it:
+    The Extensions in the files are fetched automatically.
 
-        $ cjio myfile.json subset --random 2 validate
-    
-    Get all the details of the validation and output to a text report:
-    
-        $ cjio myfile.json validate --long > ~/temp/report.txt
+    \b
+        $ cjio myfile.city.json validate
     """
     def processor(cm):
-        if folder_schemas is not None:
-            if os.path.exists(folder_schemas) == False:
-                click.echo(click.style("Folder for schemas unknown. Validation aborted.", fg='red'))
-                return cm
-            else:
-                utils.print_cmd_status('===== Validation (with provided schemas) =====')
-        else:
-            utils.print_cmd_status('===== Validation (with official CityJSON schemas) =====')
-        #-- validate    
-        bValid, woWarnings, errors, warnings = cm.validate(skip_schema=skip_schema, folder_schemas=folder_schemas, longerr=long)
-        click.echo('=====')
-        if bValid == True:
-            click.echo(click.style('File is valid', fg='green'))
-        else:    
-            click.echo(click.style('File is invalid', fg='red'))
-        if woWarnings == True:
-            click.echo(click.style('File has no warnings', fg='green'))
-        else:
-            click.echo(click.style('File has warnings', fg='red'))
-        if not hide_errors and bValid is False:
-            click.echo("--- ERRORS (total = %d) ---" % len(errors))
-            for i, e in enumerate(errors):
-                click.echo(str(i + 1) + " ==> " + e + "\n")
-        if not hide_errors and woWarnings is False:
-            click.echo("--- WARNINGS ---")
-            for e in warnings:
-                click.echo(e)
-        click.echo('=====================================')
+        if (cityjson.MODULE_CJVAL_AVAILABLE == False):
+            str = "Validation skipped: Python module 'cjvalpy' not installed"
+            utils.print_cmd_alert(str)
+            str = "To install it: https://www.github.com/cityjson/cjvalpy"
+            utils.print_cmd_warning(str)
+            str = "Alternatively use the web-app: https://validator.cityjson.org"
+            utils.print_cmd_warning(str)
+            raise click.ClickException('Abort.')
+        utils.print_cmd_status('Validation (with official CityJSON schemas)')
+        try:
+            re = cm.validate()
+            click.echo(re)
+        except Exception as e:
+            utils.print_cmd_alert("Error: {}".format(e))
         return cm
     return processor
 
@@ -302,12 +291,12 @@ def validate_cmd(hide_errors, skip_schema, folder_schemas, long):
 @click.argument('filepattern')
 def merge_cmd(filepattern):
     """
-    Merge the current CityJSON with others.
+    Merge the current CityJSON with other ones.
     All City Objects with their textures/materials/templates are handled.
     
     Possible to give a wildcard but put it between quotes:
 
-        $ cjio myfile.json merge '/home/elvis/temp/*.json' info
+        $ cjio myfile.city.json merge '/home/elvis/temp/*.json' save merged.city.json
     """
     def processor(cm):
         utils.print_cmd_status('Merging files')
@@ -339,8 +328,7 @@ def merge_cmd(filepattern):
 @click.option('--exclude', is_flag=True, help='Excludes the selection, thus delete the selected object(s).')
 def subset_cmd(id, bbox, random, cotype, exclude):
     """
-    Create a subset of a CityJSON file.
-    One can select City Objects by
+    Create a subset, City Objects can be selected by:
     (1) IDs of City Objects;
     (2) bbox;
     (3) City Object type;
@@ -356,72 +344,34 @@ def subset_cmd(id, bbox, random, cotype, exclude):
         if random is not None:
             s = s.get_subset_random(random, exclude=exclude)
             return s
-        if len(id) > 0:
+        elif id is not None and len(id) > 0:
             s = s.get_subset_ids(id, exclude=exclude)
-        if bbox is not None:
+        elif bbox is not None and len(bbox) > 0:
             s = s.get_subset_bbox(bbox, exclude=exclude)
-        if cotype is not None:
+        elif cotype is not None:
             s = s.get_subset_cotype(cotype, exclude=exclude)
+        else:
+            click.BadArgumentUsage('You must provide one of the options for subset; --id, --bbox, --random, --cotype')
         return s 
     return processor
 
 
-@cli.command('clean')
-@click.option('--digit', default=3, type=click.IntRange(1, 10), help='Number of digit to use to compare vertices (default=3).')
-def clean_cmd(digit):
+@cli.command('vertices_clean')
+def vertices_clean_cmd():
     """
-    Clean 
-    =
-    remove_duplicate_vertices
-    +
-    remove_orphan_vertices    
+    Remove duplicate vertices + orphan vertices    
     """
     def processor(cm):
         utils.print_cmd_status('Clean the file')
-        cm.remove_duplicate_vertices(digit)
+        cm.remove_duplicate_vertices()
         cm.remove_orphan_vertices()
         return cm
     return processor
 
-
-@cli.command('remove_duplicate_vertices')
-@click.argument('precision', type=click.IntRange(1, 12))
-def remove_duplicate_vertices_cmd(precision):
+@cli.command('materials_remove')
+def materials_remove_cmd():
     """
-    Remove duplicate vertices a CityJSON file.
-    Only the geometry vertices are processed,
-    and not those of the textures/templates.
-
-    The precision is the number of digits to preserve, so
-    millimeter precision that would be '3'.
-
-        $ cjio myfile.json remove_duplicate_vertices 3 info
-    """
-    def processor(cm):
-        utils.print_cmd_status('Remove duplicate vertices')
-        cm.remove_duplicate_vertices(precision)
-        return cm
-    return processor
-
-
-@cli.command('remove_orphan_vertices')
-def remove_orphan_vertices_cmd():
-    """
-    Remove orphan vertices a CityJSON file.
-    Only the geometry vertices are processed,
-    and not those of the textures/templates.
-    """
-    def processor(cm):
-        utils.print_cmd_status('Remove orphan vertices')
-        cm.remove_orphan_vertices()
-        return cm
-    return processor
-
-
-@cli.command('remove_materials')
-def remove_materials_cmd():
-    """
-    Remove all materials from a CityJSON file.
+    Remove all materials.
     """
     def processor(cm):
         utils.print_cmd_status('Remove all material')
@@ -429,44 +379,10 @@ def remove_materials_cmd():
         return cm
     return processor
 
-
-@cli.command('compress')
-@click.option('--digit', default=3, type=click.IntRange(1, 12), help='Number of digit to keep.')
-def compress_cmd(digit):
+@cli.command('textures_remove')
+def textures_remove_cmd():
     """
-    Compress a CityJSON file, ie stores its vertices with integers.
-
-    The '--digit' parameter is the number of digits to preserve (default=3), so
-    millimeter precision that would be '3'.
-
-        $ cjio myfile.json compress --digit 3 info
-
-    """
-    def processor(cm):
-        utils.print_cmd_status('Compressing the CityJSON (with %d digit)' % digit)
-        if cm.compress(digit) == False:
-            click.echo("WARNING: CityJSON already compressed.")
-        return cm
-    return processor
-
-
-@cli.command('decompress')
-def decompress_cmd():
-    """
-    Decompress a CityJSON file, ie remove the "tranform".
-    """
-    def processor(cm):
-        utils.print_cmd_status('Decompressing the CityJSON')
-        if (cm.decompress() == False):
-            click.echo("File is not compressed, nothing done.")
-        return cm
-    return processor
-
-
-@cli.command('remove_textures')
-def remove_textures_cmd():
-    """
-    Remove all textures from a CityJSON file.
+    Remove all textures.
     """
     def processor(cm):
         utils.print_cmd_status('Remove all textures')
@@ -475,11 +391,11 @@ def remove_textures_cmd():
     return processor
 
 
-@cli.command('assign_epsg')
+@cli.command('crs_assign')
 @click.argument('newepsg', type=int)
-def update_crs_cmd(newepsg):
+def crs_assign_cmd(newepsg):
     """
-    Assign a (new) EPSG.
+    Assign a (new) CRS (an EPSG).
     Can be used to assign one to a file that doesn't have any, or update one.
 
     To reproject (and thus modify all the values of the coordinates) use reproject().
@@ -491,20 +407,21 @@ def update_crs_cmd(newepsg):
     return processor
 
 
-@cli.command('reproject')
+@cli.command('crs_reproject')
 @click.argument('epsg', type=int)
-def update_crs_cmd(epsg):
+def crs_reproject_cmd(epsg):
     """
-    Reproject the CityJSON to a new EPSG.
-    The current file must have an EPSG defined (do it with function assign_epsg).
+    Reproject to a new EPSG.
+    The current CityJSON must have an EPSG defined 
+    (which can be done with function epsg_assign).
     """
     def processor(cm):
         if (cityjson.MODULE_PYPROJ_AVAILABLE == False):
             str = "Reprojection skipped: Python module 'pyproj' missing (to reproject coordinates)"
-            click.echo(click.style(str, fg='red'))
+            utils.print_cmd_alert(str)
             str = "Install it: https://pypi.org/project/pyproj/"
-            click.echo(str)
-            return cm
+            utils.print_cmd_warning(str)
+            raise click.ClickException('Abort.')
         utils.print_cmd_status('Reproject to EPSG:%d' % epsg)
         if (cm.get_epsg() == None):
             click.echo("WARNING: CityJSON has no EPSG defined, can't be reprojected.")
@@ -514,26 +431,32 @@ def update_crs_cmd(epsg):
     return processor
 
 
-@cli.command('upgrade_version')
-def upgrade_version_cmd():
+@cli.command('upgrade')
+@click.option('--digit', default=3, type=click.IntRange(1, 12), help='Number of digit to keep to compress.')
+def upgrade_cmd(digit):
     """
     Upgrade the CityJSON to the latest version.
     It takes care of *everything* (touch wood).
 
-        $ cjio myfile.json upgrade_version
+        $ cjio myfile.city.json upgrade save upgraded.city.json
+    
+    For v1.1+, the file needs to be compressed, and you can 
+    speficy the number of digits to keep (default=3)
+
+        $ cjio myfile.city.json upgrade --digit 2 save upgraded.city.json
     """
     def processor(cm):
         vlatest = cityjson.CITYJSON_VERSIONS_SUPPORTED[-1]
         utils.print_cmd_status('Upgrade CityJSON file to v%s' % vlatest)
-        re, reasons = cm.upgrade_version(vlatest)
+        re, reasons = cm.upgrade_version(vlatest, digit)
         if (re == False):
-            click.echo(click.style("WARNING: %s" % (reasons), fg='red'))
+            utils.print_cmd_warning("WARNING: %s" % (reasons))
         return cm
     return processor
 
 
-@cli.command('locate_textures')
-def locate_textures_cmd():
+@cli.command('textures_locate')
+def textures_locate_cmd():
     """
     Output the location of the texture files.
     """
@@ -545,10 +468,10 @@ def locate_textures_cmd():
     return processor
 
 
-@cli.command('update_textures')
+@cli.command('textures_update')
 @click.argument('newlocation', type=str)
 @click.option('--relative', is_flag=True, help='Convert texture file paths to relative paths.')
-def update_textures_cmd(newlocation, relative):
+def textures_update_cmd(newlocation, relative):
     """
     Update the location of the texture files.
     Can be used if the texture files were moved to new directory.
@@ -560,29 +483,68 @@ def update_textures_cmd(newlocation, relative):
     return processor
 
 
-@cli.command('extract_lod')
-@click.argument('lod', type=int)
-def extract_lod_cmd(lod):
+@cli.command('lod_filter')
+@click.argument('lod', type=str)
+def lod_filter_cmd(lod):
     """
-    Extract only one LoD for a dataset.
+    Filter only one LoD for a dataset.
     To use on datasets having more than one LoD for the city objects.
-    For each city object, it keeps only the LoD passed as parameter,
-    if a city object doesn't have this LoD then it is deleted.
+    For each city object, it keeps only the geometries having the LoD
+    passed as parameter; if a city object doesn't have this LoD then 
+    it ends up with an empty geometry.
+
+        $ cjio myfile.city.json lod_filter 2.2 save myfile_lod2.city.json
+    
     """
     def processor(cm):
-        utils.print_cmd_status('Extract LoD:%s' % lod)
-        cm.extract_lod(lod)
+        utils.print_cmd_status('Filter LoD: "%s"' % lod)
+        cm.filter_lod(lod)
+        return cm
+    return processor
+
+@cli.command('attribute_remove')
+@click.argument('attr', type=str, nargs=1)
+def attribute_remove_cmd(attr):
+    """
+    Remove an attribute. 
+    If it's not present nothing is done.
+    That's it.    
+
+        $ cjio myfile.city.json attribute_remove roofType info
+    """
+    def processor(cm):
+        utils.print_cmd_status('Remove attribute: "%s"' % attr)
+        cm.remove_attribute(attr)
         return cm
     return processor
 
 
-@cli.command('translate')
-@click.option('--values', nargs=3, type=float, help='(x, y, z)')
-def translate_cmd(values):
+@cli.command('attribute_rename')
+@click.argument('oldattr', type=str, nargs=1)
+@click.argument('newattr', type=str, nargs=1)
+def attribute_rename_cmd(oldattr, newattr):
     """
-    Translate the file by its (-minx, -miny, -minz).
+    Rename an attribute. 
+    If it's not present nothing is done, and its value is kept.
+    That's it.    
 
-    Three values can also be given, eg: 'translate --values -100 -25 -1'
+        $ cjio myfile.city.json attribute_rename oldAttr newAttr info
+    """
+    def processor(cm):
+        utils.print_cmd_status('Rename attribute: "%s" => "%s"' % (oldattr, newattr))
+        cm.rename_attribute(oldattr, newattr)
+        return cm
+    return processor
+
+@cli.command('crs_translate')
+@click.option('--values', nargs=3, type=float, help='(x, y, z)')
+def crs_translate_cmd(values):
+    """
+    Translate the coordinates. 
+    All are moved (-minx, -miny, -minz) of the model.
+    Three values can also be given, eg: 
+
+        $ cjio myfile.city.json crs_translate --values -100 -25 -1 save out.city.json
     """
     def processor(cm):
         if len(values) == 0:
@@ -594,26 +556,45 @@ def translate_cmd(values):
     return processor
 
 
-@cli.command('update_metadata')
-@click.option('--overwrite', is_flag=True, help='Overwrite existing values.')
-def update_metadata_cmd(overwrite):
+@cli.command('metadata_create')
+def metadata_create_cmd():
     """
-    Update the metadata for properties/values that can be
-    computed. Updates the dataset.
+    Add the +metadata-extended properties.
+    This is the MetadataExtended Extension 
+    (https://github.com/cityjson/metadata-extended).
+    Modify/update the dataset.
     """
     def processor(cm):
-        utils.print_cmd_status('Update the metadata')
-        re, errors = cm.update_metadata(overwrite)
+        utils.print_cmd_status('Create the +metadata-extended and populate it')
+        _, errors = cm.update_metadata_extended(overwrite=True)
         for e in errors:
             utils.print_cmd_warning(e)
         return cm
     return processor
 
 
-@cli.command('get_metadata')
-def get_metadata_cmd():
+@cli.command('metadata_update')
+@click.option('--overwrite', is_flag=True, help='Overwrite existing values.')
+def metadata_update_cmd(overwrite):
     """
-    Shows the metadata of this dataset.
+    Update the +metadata-extended.
+    Properties that can be computed are updated. 
+    Modify/update the dataset.
+    """
+    def processor(cm):
+        utils.print_cmd_status('Update the +metadata-extended')
+        _, errors = cm.update_metadata_extended(overwrite)
+        for e in errors:
+            utils.print_cmd_warning(e)
+        return cm
+    return processor
+
+
+@cli.command('metadata_get')
+def metadata_get_cmd():
+    """
+    Shows the metadata and +metadata-extended of this dataset
+    (they are merged in one JSON object)
 
     The difference between 'info' and this command is that this
     command lists the "pure" metadata as stored in the file.
@@ -621,10 +602,25 @@ def get_metadata_cmd():
     file is needed.
     """
     def processor(cm):
+        j = {}
         if cm.has_metadata():
-            click.echo_via_pager(json.dumps(cm.get_metadata(), indent=2))
-        else:
-            utils.print_cmd_warning("You are missing metadata! Quickly! Run 'update_metadata' before it's too late!")
+            j.update(cm.get_metadata())
+        if cm.has_metadata_extended():
+            j.update(cm.get_metadata_extended())
+        click.echo(json.dumps(j, indent=2))
+        return cm
+    return processor
+
+
+@cli.command('metadata_remove')
+def metadata_remove_cmd():
+    """
+    Remove the +metadata-extended properties.
+    Modify/update the dataset.
+    """
+    def processor(cm):
+        utils.print_cmd_status('Remove the +metadata-extended property')
+        cm.metadata_extended_remove()
         return cm
     return processor
 

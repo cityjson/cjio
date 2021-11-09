@@ -27,12 +27,13 @@ def select_co_ids(j, IDs):
             if "children" in j['CityObjects'][id]:
                 for child in j['CityObjects'][id]['children']:
                     re.add(child)
-            if "parent" in j['CityObjects'][id]:
-                re.add(j['CityObjects'][id]['parent']) 
-                #-- add siblings
-                if "children" in j['CityObjects'][id]['parent']:
-                    for child in j['CityObjects'][id]['parent']:
-                        re.add(child)
+            if "parents" in j['CityObjects'][id]:
+                for p in j['CityObjects'][id]['parents']:
+                    re.add(p) 
+                    #-- add siblings
+                    if "children" in j['CityObjects'][p]:
+                        for child in j['CityObjects'][p]['children']:
+                            re.add(child)
     return re                
 
 
@@ -42,8 +43,9 @@ def process_geometry(j, j2):
     oldnewids = {}
     newvertices = []    
     for each in j2["CityObjects"]:
-        for geom in j2['CityObjects'][each]['geometry']:
-            update_array_indices(geom["boundaries"], oldnewids, j["vertices"], newvertices, -1)
+        if 'geometry' in j2['CityObjects'][each]: 
+            for geom in j2['CityObjects'][each]['geometry']:
+                update_array_indices(geom["boundaries"], oldnewids, j["vertices"], newvertices, -1)
     j2["vertices"] = newvertices
 
 
@@ -51,15 +53,16 @@ def process_templates(j, j2):
     dOldNewIDs = {}
     newones = []
     for each in j2["CityObjects"]:
-        for geom in j2['CityObjects'][each]['geometry']:
-            if geom["type"] == "GeometryInstance": 
-                t = geom["template"] 
-                if t in dOldNewIDs:
-                    geom["template"] = dOldNewIDs[t]
-                else:
-                    geom["template"] = len(newones)
-                    dOldNewIDs[t] = len(newones)
-                    newones.append(j["geometry-templates"]["templates"][t])      
+        if 'geometry' in j2['CityObjects'][each]: 
+            for geom in j2['CityObjects'][each]['geometry']:
+                if geom["type"] == "GeometryInstance": 
+                    t = geom["template"] 
+                    if t in dOldNewIDs:
+                        geom["template"] = dOldNewIDs[t]
+                    else:
+                        geom["template"] = len(newones)
+                        dOldNewIDs[t] = len(newones)
+                        newones.append(j["geometry-templates"]["templates"][t])      
     if len(newones) > 0:
         j2["geometry-templates"] = {}
         j2["geometry-templates"]["vertices-templates"] = j["geometry-templates"]["vertices-templates"]
@@ -71,19 +74,20 @@ def process_appearance(j, j2):
     dOldNewIDs = {}
     newmats = []
     for each in j2["CityObjects"]:
-        for geom in j2['CityObjects'][each]['geometry']:
-            if "material" in geom:
-                for each in geom["material"]:
-                    if 'value' in geom["material"][each]:
-                        v = geom["material"][each]["value"]
-                        if v in dOldNewIDs:
-                            geom["material"][each]["value"] = dOldNewIDs[v]
-                        else:
-                            geom["material"][each]["value"] = len(newmats)
-                            dOldNewIDs[v] = len(newmats)
-                            newmats.append(j["appearance"]["materials"][v])      
-                    if 'values' in geom["material"][each]:
-                        update_array_indices(geom["material"][each]['values'], dOldNewIDs, j["appearance"]["materials"], newmats, -1)
+        if 'geometry' in j2['CityObjects'][each]: 
+            for geom in j2['CityObjects'][each]['geometry']:
+                if "material" in geom:
+                    for each in geom["material"]:
+                        if 'value' in geom["material"][each]:
+                            v = geom["material"][each]["value"]
+                            if v in dOldNewIDs:
+                                geom["material"][each]["value"] = dOldNewIDs[v]
+                            else:
+                                geom["material"][each]["value"] = len(newmats)
+                                dOldNewIDs[v] = len(newmats)
+                                newmats.append(j["appearance"]["materials"][v])      
+                        if 'values' in geom["material"][each]:
+                            update_array_indices(geom["material"][each]['values'], dOldNewIDs, j["appearance"]["materials"], newmats, -1)
     if len(newmats) > 0:
         j2["appearance"]["materials"] = newmats
 
@@ -91,22 +95,24 @@ def process_appearance(j, j2):
     dOldNewIDs = {}
     newtextures = []
     for each in j2["CityObjects"]:
-        for geom in j2['CityObjects'][each]['geometry']:
-            if "texture" in geom:
-                for each in geom["texture"]:
-                    if 'values' in geom["texture"][each]:
-                        update_array_indices(geom["texture"][each]['values'], dOldNewIDs, j["appearance"]["textures"], newtextures, 0)
+        if 'geometry' in j2['CityObjects'][each]: 
+            for geom in j2['CityObjects'][each]['geometry']:
+                if "texture" in geom:
+                    for each in geom["texture"]:
+                        if 'values' in geom["texture"][each]:
+                            update_array_indices(geom["texture"][each]['values'], dOldNewIDs, j["appearance"]["textures"], newtextures, 0)
     if len(newtextures) > 0:
         j2["appearance"]["textures"] = newtextures
     #-- textures vertices references (1+ int in the arrays)
     dOldNewIDs = {}
     newtextures = []
     for each in j2["CityObjects"]:
-        for geom in j2['CityObjects'][each]['geometry']:
-            if "texture" in geom:
-                for each in geom["texture"]:
-                    if 'values' in geom["texture"][each]:
-                        update_array_indices(geom["texture"][each]['values'], dOldNewIDs, j["appearance"]["vertices-texture"], newtextures, 1)
+        if 'geometry' in j2['CityObjects'][each]: 
+            for geom in j2['CityObjects'][each]['geometry']:
+                if "texture" in geom:
+                    for each in geom["texture"]:
+                        if 'values' in geom["texture"][each]:
+                            update_array_indices(geom["texture"][each]['values'], dOldNewIDs, j["appearance"]["vertices-texture"], newtextures, 1)
     if len(newtextures) > 0:
         j2["appearance"]["vertices-texture"] = newtextures
 

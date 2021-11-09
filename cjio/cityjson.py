@@ -6,6 +6,10 @@ import shutil
 import json
 import collections
 import jsonref
+import urllib.request
+import tempfile
+import math
+import shutil
 from pkg_resources import resource_filename
 from pkg_resources import resource_listdir
 import copy
@@ -18,6 +22,7 @@ MODULE_NUMPY_AVAILABLE = True
 MODULE_PYPROJ_AVAILABLE = True
 MODULE_EARCUT_AVAILABLE = True
 MODULE_PANDAS_AVAILABLE = True
+MODULE_CJVAL_AVAILABLE = True
 
 try:
     import numpy as np
@@ -35,31 +40,23 @@ try:
     import pandas
 except ImportError as e:
     MODULE_PANDAS_AVAILABLE = False
+try:
+    import cjvalpy
+except ImportError as e:
+    MODULE_CJVAL_AVAILABLE = False
 
-from cjio import validation, subset, geom_help, convert, models
+
+from cjio import subset, geom_help, convert, models
 from cjio.errors import InvalidOperation
 from cjio.utils import print_cmd_warning
 from cjio.metadata import generate_metadata
 
 
-CITYJSON_VERSIONS_SUPPORTED = ['0.6', '0.8', '0.9', '1.0']
+CITYJSON_VERSIONS_SUPPORTED = ['0.6', '0.8', '0.9', '1.0', '1.1']
 
-TOPLEVEL = ('Building',
-            'Bridge',
-            'CityObjectGroup',
-            'CityFurniture',
-            'GenericCityObject',
-            'LandUse',
-            'PlantCover',
-            'Railway',
-            'Road',
-            'SolitaryVegetationObject',
-            'TINRelief',
-            'TransportSquare',
-            'Tunnel',
-            'WaterBody')
 
-def load(path, transform:bool=False):
+
+def load(path, transform: bool = True):
     """Load a CityJSON file for working with it though the API
 
     :param path: Absolute path to a CityJSON file
@@ -72,46 +69,9 @@ def load(path, transform:bool=False):
         except OSError as e:
             raise FileNotFoundError
     cm.cityobjects = dict()
-    if 'transform' in cm.j:
-        cm.transform = cm.j['transform']
-    else:
-        cm.transform = None
-    if transform:
-        do_transform = cm.transform
-        del cm.j['transform']
-    else:
-        do_transform = None
-    appearance = cm.j['appearance'] if 'appearance' in cm.j else None
-    for co_id, co in cm.j['CityObjects'].items():
-        # TODO BD: do some verification here
-        children = co['children'] if 'children' in co else None
-        parents = co['parents'] if 'parents' in co else None
-        attributes = co['attributes'] if 'attributes' in co else None
-        geometry = []
-        for geom in co['geometry']:
-            semantics = geom['semantics'] if 'semantics' in geom else None
-            texture = geom['texture'] if 'texture' in geom else None
-            geometry.append(
-                models.Geometry(
-                    type=geom['type'],
-                    lod=geom['lod'],
-                    boundaries=geom['boundaries'],
-                    semantics_obj=semantics,
-                    texture_obj=texture,
-                    appearance=appearance,
-                    vertices=cm.j['vertices'],
-                    transform=do_transform
-                )
-            )
-        cm.cityobjects[co_id] = models.CityObject(
-            id=co_id,
-            type=co['type'],
-            attributes=attributes,
-            children=children,
-            parents=parents,
-            geometry=geometry
-        )
+    cm.load_from_j(transform=transform)
     return cm
+
 
 def save(citymodel, path: str, indent: bool = False):
     """Save a city model to a CityJSON file
@@ -119,17 +79,16 @@ def save(citymodel, path: str, indent: bool = False):
     :param citymodel: A CityJSON object
     :param path: Absolute path to a CityJSON file
     """
-    cityobjects, vertex_lookup = citymodel.reference_geometry()
-    citymodel.add_to_j(cityobjects, vertex_lookup)
+    citymodel.add_to_j()
     # FIXME: here should be compression, however the current compression does not work with immutable tuples, but requires mutable lists for the points
     citymodel.remove_duplicate_vertices()
     citymodel.remove_orphan_vertices()
     try:
         with open(path, 'w') as fout:
-            if indent is None:
-                json_str = json.dumps(citymodel.j, separators=(',',':'))
+            if indent:
+                json_str = json.dumps(citymodel.j, indent="\t")
             else:
-                json_str = json.dumps(citymodel.j, indent=indent)
+                json_str = json.dumps(citymodel.j, separators=(',',':'))
             fout.write(json_str)
     except IOError as e:
         raise IOError('Invalid output file: %s \n%s' % (path, e))
@@ -155,6 +114,11 @@ def off2cj(file):
     cm = {}
     cm["type"] = "CityJSON"
     cm["version"] = CITYJSON_VERSIONS_SUPPORTED[-1]
+    cm["extensions"] = {}
+    cm["extensions"]["Generic"]= {}
+    #-- TODO: change URL for Generic Extension
+    cm["extensions"]["Generic"]["url"] = "https://homepage.tudelft.nl/23t4p/generic.ext.json"
+    cm["extensions"]["Generic"]["version"] = "1.0"
     cm["CityObjects"] = {}
     cm["vertices"] = []
     for v in lstVertices:
@@ -164,11 +128,13 @@ def off2cj(file):
     for f in lstFaces:
         shell.append([f])
     g['boundaries'] = [shell]
-    g['lod'] = 1
-    o = {'type': 'GenericCityObject'}
+    g['lod'] = "1"
+    o = {'type': '+GenericCityObject'}
     o['geometry'] = [g]
     cm["CityObjects"]["id-1"] = o
-    return CityJSON(j=cm)
+    j = CityJSON(j=cm)
+    j.compress()
+    return j
 
 
 def poly2cj(file):
@@ -192,6 +158,11 @@ def poly2cj(file):
     cm = {}
     cm["type"] = "CityJSON"
     cm["version"] = CITYJSON_VERSIONS_SUPPORTED[-1]
+    cm["extensions"] = {}
+    cm["extensions"]["Generic"]= {}
+    #-- TODO: change URL for Generic Extension
+    cm["extensions"]["Generic"]["url"] = "https://homepage.tudelft.nl/23t4p/generic.ext.json"
+    cm["extensions"]["Generic"]["version"] = "1.0"
     cm["CityObjects"] = {}
     cm["vertices"] = []
     for v in lstVertices:
@@ -201,11 +172,13 @@ def poly2cj(file):
     for f in lstFaces:
         shell.append(f)
     g['boundaries'] = [shell]
-    g['lod'] = 1
+    g['lod'] = "1"
     o = {'type': 'GenericCityObject'}
     o['geometry'] = [g]
     cm["CityObjects"]["id-1"] = o
-    return CityJSON(j=cm)
+    j = CityJSON(j=cm)
+    j.compress()
+    return j
 
 
 class CityJSON:
@@ -238,6 +211,54 @@ class CityJSON:
 
     ##-- API functions
     # TODO BD: refactor this whole CityJSON class
+
+    def load_from_j(self, transform: bool = True):
+        """Populates the CityJSON API members from the json schema member 'j'.
+
+        If the CityJSON API members have values, they are removed and updated.
+        """
+        # Delete everything first
+        self.cityobjects.clear()
+        # Then do update
+        if 'transform' in self.j:
+            self.transform = self.j['transform']
+        else:
+            self.transform = None
+        if transform:
+            do_transform = self.transform
+        else:
+            do_transform = None
+        appearance = self.j['appearance'] if 'appearance' in self.j else None
+        for co_id, co in self.j['CityObjects'].items():
+            # TODO BD: do some verification here
+            children = co['children'] if 'children' in co else None
+            parents = co['parents'] if 'parents' in co else None
+            attributes = co['attributes'] if 'attributes' in co else None
+            geometry = []
+            for geom in co['geometry']:
+                semantics = geom['semantics'] if 'semantics' in geom else None
+                texture = geom['texture'] if 'texture' in geom else None
+                geometry.append(
+                    models.Geometry(
+                        type=geom['type'],
+                        lod=geom['lod'],
+                        boundaries=geom['boundaries'],
+                        semantics_obj=semantics,
+                        texture_obj=texture,
+                        appearance=appearance,
+                        vertices=self.j['vertices'],
+                        transform=do_transform
+                    )
+                )
+            self.cityobjects[co_id] = models.CityObject(
+                id=co_id,
+                type=co['type'],
+                attributes=attributes,
+                children=children,
+                parents=parents,
+                geometry=geometry
+            )
+
     def get_cityobjects(self, type=None, id=None):
         """Return a subset of CityObjects
 
@@ -299,7 +320,8 @@ class CityJSON:
         return cityobjects, vertex_lookup
 
 
-    def add_to_j(self, cityobjects, vertex_lookup):
+    def add_to_j(self):
+        cityobjects, vertex_lookup = self.reference_geometry()
         self.j['vertices'] = [[vtx[0], vtx[1], vtx[2]] for vtx in vertex_lookup.keys()]
         self.j['CityObjects'] = cityobjects
 
@@ -316,11 +338,14 @@ class CityJSON:
             return self.j["metadata"]["crs"]["epsg"]
         elif "referenceSystem" in self.j["metadata"]:
             s = self.j["metadata"]["referenceSystem"]
-            if "epsg" in s.lower():
-                return int(s[s.find("::")+2:])
-            else:
-                print_cmd_warning("Only EPSG codes are supported in the URN. CRS is set to undefined.")
-                return None
+            if "urn" in s.lower():
+                if "epsg" in s.lower():
+                    return int(s[s.find("::")+2:])
+                else:
+                    print_cmd_warning("Only EPSG codes are supported in the URN. CRS is set to undefined.")
+                    return None
+            elif "://www.opengis.net/def/crs/" in s.lower():
+                return int(s[s.rfind("/")+1:])
         else:
             return None
 
@@ -336,10 +361,13 @@ class CityJSON:
 
     def read(self, file, ignore_duplicate_keys=False):
         if ignore_duplicate_keys == True:
-            self.j = json.loads(file.read())
+            try:
+                self.j = json.loads(file.read())
+            except json.decoder.JSONDecodeError as err:
+                raise err
         else:
             try:
-                self.j = json.loads(file.read(), object_pairs_hook=validation.dict_raise_on_duplicates)
+                self.j = json.loads(file.read(), object_pairs_hook=self.dict_raise_on_duplicates)
             except ValueError as err:
                 raise ValueError(err)
         #-- a CityJSON file?
@@ -349,268 +377,47 @@ class CityJSON:
             self.j = {}
             raise ValueError("Not a CityJSON file")
 
-            
-    def fetch_schema(self, folder_schemas=None):
-        v = "-1"
-        if folder_schemas is None:
-            #-- fetch latest from x.y version (x.y.z)
-            tmp = resource_listdir(__name__, '/schemas/')
-            tmp.sort()
-            v = tmp[-1]
-            try:
-                schema = resource_filename(__name__, '/schemas/%s/cityjson.schema.json' % (v))
-            except:
-                return (False, None, '')
-        else:
-            schema = os.path.join(folder_schemas, 'cityjson.schema.json')  
-        #-- open the schema
-        try:
-            fins = open(schema)
-        except: 
-            return (False, None, '')
-        abs_path = os.path.abspath(os.path.dirname(schema))
-        #-- because Windows uses \ and not /        
-        if platform == "darwin" or platform == "linux" or platform == "linux2":
-            base_uri = 'file://{}/'.format(abs_path)
-        else:
-            base_uri = 'file:///{}/'.format(abs_path.replace('\\', '/'))
-        js = jsonref.loads(fins.read(), jsonschema=True, base_uri=base_uri)
-        if v == "-1":
-            v = schema
-        return (True, js, v)
+    def dict_raise_on_duplicates(self, ordered_pairs):
+        d = {}
+        for k, v in ordered_pairs:
+            if k in d:
+               raise ValueError("Invalid CityJSON file, duplicate key for City Object IDs: %r" % (k))
+            else:
+               d[k] = v
+        return d
 
 
-    def fetch_schema_cityobjects(self, folder_schemas=None):
-        if folder_schemas is None:
-            #-- fetch proper schema from the stored ones 
-            tmp = resource_listdir(__name__, '/schemas/')
-            tmp.sort()
-            v = tmp[-1]
-            try:
-                schema = resource_filename(__name__, '/schemas/%s/cityjson.schema.json' % (v))
-            except:
-                return (False, None)
-        else:
-            schema = os.path.join(folder_schemas, 'cityjson.schema.json')  
-        abs_path = os.path.abspath(os.path.dirname(schema))
-        sco_path = abs_path + '/cityobjects.schema.json'
-        #-- because Windows uses \ and not /        
-        if platform == "darwin" or platform == "linux" or platform == "linux2":
-            base_uri = 'file://{}/'.format(abs_path)
-        else:
-            base_uri = 'file:///{}/'.format(abs_path.replace('\\', '/'))
-        jsco = jsonref.loads(open(sco_path).read(), jsonschema=True, base_uri=base_uri)
-        # jsco = json.loads(open(sco_path).read())
-        return (True, jsco)
 
-
-    def validate_extensions(self, folder_schemas=None, longerr=False):
-        print ('-- Validating the Extensions')
-        if "extensions" not in self.j:
-            print ("--- No extensions in the file.")
-            return (True, [])
-        if folder_schemas is None:
-            #-- fetch proper schema from the stored ones 
-            tmp = resource_listdir(__name__, '/schemas/')
-            tmp.sort()
-            v = tmp[-1]
-            try:
-                schema = resource_filename(__name__, '/schemas/%s/cityjson.schema.json' % (v))
-                folder_schemas = os.path.abspath(os.path.dirname(schema))
-            except:
-                return (False, None)
-        isValid = True
-        es = []
-        base_uri = os.path.join(folder_schemas, "extensions")
-        base_uri = os.path.abspath(base_uri)
-        allnewco = set()
-        #-- iterate over each Extensions, and verify each of the properties
-        #-- in the file. Other way around is more cumbersome
-        for ext in self.j["extensions"]:
-            s = self.j["extensions"][ext]["url"]
-            s = s[s.rfind('/') + 1:]
-            print ('\t%s [%s]' % (ext, s))
-            schemapath = os.path.join(base_uri, s)
-            if os.path.isfile(schemapath) == False:
-                return (False, ["Schema file '%s' can't be found" % s])
-            js = json.loads(open(schemapath).read())
-
-            #-- 1. extraCityObjects
-            if "extraCityObjects" in js:
-                for nco in js["extraCityObjects"]:
-                    allnewco.add(nco)
-                    jtmp = {}
-                    jtmp["$schema"] = "http://json-schema.org/draft-07/schema#"
-                    jtmp["type"] = "object"
-                    if platform == "darwin" or platform == "linux" or platform == "linux2":
-                        jtmp["$ref"] = "file://%s#/extraCityObjects/%s" % (schemapath, nco)
-                    else:
-                        jtmp["$ref"] = "file:\\%s#/extraCityObjects/%s" % (schemapath, nco)
-                    jsotf = jsonref.loads(json.dumps(jtmp), jsonschema=True, base_uri=base_uri)
-                    for theid in self.j["CityObjects"]:
-                        if self.j["CityObjects"][theid]["type"] == nco:
-                            nco1 = self.j["CityObjects"][theid]
-                            v, errs = validation.validate_against_schema(nco1, jsotf, longerr)
-                            if (v == False):
-                                isValid = False
-                                es += errs
-
-            #-- 2. extraRootProperties
-            if "extraRootProperties" in js:
-                for nrp in js["extraRootProperties"]:
-                    jtmp = {}
-                    jtmp["$schema"] = "http://json-schema.org/draft-07/schema#"
-                    jtmp["type"] = "object"
-                    if platform == "darwin" or platform == "linux" or platform == "linux2":
-                        jtmp["$ref"] = "file://%s#/extraRootProperties/%s" % (schemapath, nrp)
-                    else:
-                        jtmp["$ref"] = "file:\\%s#/extraRootProperties/%s" % (schemapath, nrp)
-                    jsotf = jsonref.loads(json.dumps(jtmp), jsonschema=True, base_uri=base_uri)
-                    for p in self.j:
-                        if p == nrp:
-                            thep = self.j[p]
-                            v, errs = validation.validate_against_schema(thep, jsotf, longerr)
-                            if (v == False):
-                                isValid = False
-                                es += errs
-
-            #-- 3. extraAttributes
-            if "extraAttributes" in js:
-                for thetype in js["extraAttributes"]:
-                    for ea in js["extraAttributes"][thetype]:
-                        jtmp = {}
-                        jtmp["$schema"] = "http://json-schema.org/draft-07/schema#"
-                        jtmp["type"] = "object"
-                        if platform == "darwin" or platform == "linux" or platform == "linux2":
-                            jtmp["$ref"] = "file://%s#/extraAttributes/%s/%s" % (schemapath, thetype, ea)
-                        else:
-                            jtmp["$ref"] = "file:\\%s#/extraAttributes/%s/%s" % (schemapath, thetype, ea)
-                        jsotf = jsonref.loads(json.dumps(jtmp), jsonschema=True, base_uri=base_uri)
-                        for theid in self.j["CityObjects"]:
-                            if ( (self.j["CityObjects"][theid]["type"] == thetype) and 
-                                 ("attributes" in self.j["CityObjects"][theid])    and
-                                 (ea in self.j["CityObjects"][theid]["attributes"]) ):
-                                a = self.j["CityObjects"][theid]["attributes"][ea]
-                                v, errs = validation.validate_against_schema(a, jsotf, longerr)
-                                if (v == False):
-                                    isValid = False
-                                    es += errs
-
-
-        #-- 4. check if there are CityObjects that do not have a schema
-        for theid in self.j["CityObjects"]:
-            if ( (self.j["CityObjects"][theid]["type"][0] == "+") and
-                 (self.j["CityObjects"][theid]["type"] not in allnewco) ):
-                s = "ERROR:   CityObject " + self.j["CityObjects"][theid]["type"] + " doesn't have a schema."
-                es.append(s)
-                isValid = False
-
-        return (isValid, es)
-
-
-    def validate(self, skip_schema=False, folder_schemas=None, longerr=False):
+    def validate(self):
         #-- only latest version, otherwise a mess with versions and different schemas
         #-- this is it, sorry people
         if (self.j["version"] != CITYJSON_VERSIONS_SUPPORTED[-1]):
-            return (False, True, ["Only files with version v%s can be validated." % (CITYJSON_VERSIONS_SUPPORTED[-1])], "")
-        es = []
-        ws = []
-        #-- 1. schema
-        if skip_schema == False:
-            print ('-- Validating the syntax of the file')
-            b, js, v = self.fetch_schema(folder_schemas)
-            if b == False:
-                return (False, True, ["Can't find the schema."], [])
-            else:
-                print ('\t(using the schemas %s)' % (v))
-                isValid, errs = validation.validate_against_schema(self.j, js, longerr)
-                if (isValid == False):
-                    es += errs
-                    return (False, True, es, [])
+            s = "Only files with version v%s can be validated. " % (CITYJSON_VERSIONS_SUPPORTED[-1])
+            raise Exception(s)
 
-        #-- 2. schema for Extensions
+        #-- fetch extensions from the URLs given
+        js = []
+        js.append(json.dumps(self.j))
+        print("Downloading the Extension JSON schema file(s):")
         if "extensions" in self.j:
-            b, es = self.validate_extensions(folder_schemas)
-            if b == False:
-                return (b, True, es, [])
+            for ext in self.j["extensions"]:
+                theurl = self.j["extensions"][ext]["url"]
+                try:
+                    with urllib.request.urlopen(self.j["extensions"][ext]["url"]) as f:
+                        print("\t- %s" % self.j["extensions"][ext]["url"])
+                        # s = theurl[theurl.rfind('/') + 1:]
+                        # s = os.path.join(os.getcwd(), s)
+                        # tmp = json.loads(f.read().decode('utf-8'))
+                        sf = f.read().decode('utf-8')
+                        js.append(sf)
+                except:
+                    s = "'%s' cannot be downloaded\nAbort" % self.j["extensions"][ext]["url"]
+                    raise Exception(s)
         else:
-            #-- check that there are no +CityObject that do not have a schema
-            #-- (used if the file has no "extensions" property while there are +Pand for instance)
-            for theid in self.j["CityObjects"]:
-                if ( (self.j["CityObjects"][theid]["type"][0] == "+") ):
-                    s = "ERROR:   CityObject " + self.j["CityObjects"][theid]["type"] + " doesn't have a schema."
-                    es.append(s)
-                    return (False, True, es, [])
-
-        #-- 3. Internal consistency validation 
-        print ('-- Validating the internal consistency of the file (see docs for list)')
-        isValid = True
-        if float(self.j["version"]) == 0.6:
-            b, errs = validation.building_parts(self.j) 
-            if b == False:
-                isValid = False
-                es += errs
-            b, errs = validation.building_installations(self.j)
-            if b == False:
-                isValid = False
-                es += errs
-            b, errs = validation.building_pi_parent(self.j)
-            if b == False:
-                isValid = False
-                es += errs
-        #-- for v0.7+ (where the parent-child concept was introduced)                
-        else:
-            b, errs = validation.parent_children_consistency(self.j)
-            if b == False:
-                isValid = False
-                es += errs
-
-        print("\t--Vertex indices coherent")
-        b, errs = validation.wrong_vertex_index(self.j)
-        if b == False:
-            isValid = False
-            es += errs
-        print("\t--Specific for CityGroups")
-        b, errs = validation.city_object_groups(self.j) 
-        if b == False:
-            isValid = False
-            es += errs
-        print("\t--Semantic arrays coherent with geometry")
-        b, errs = validation.semantics_array(self.j)
-        if b == False:
-            isValid = False
-            es += errs
-        #-- 4. WARNINGS
-        woWarnings = True
-        print("\t--Root properties")
-        b, errs = validation.cityjson_properties(self.j, js)
-        if b == False:
-            woWarnings = False
-            ws += errs
-        print("\t--Empty geometries")
-        b, errs = validation.geometry_empty(self.j)
-        if b == False:
-            woWarnings = False
-            ws += errs
-        print("\t--Duplicate vertices")
-        b, errs = validation.duplicate_vertices(self.j)
-        if b == False:
-            woWarnings = False
-            ws += errs
-        print("\t--Orphan vertices")
-        b, errs = validation.orphan_vertices(self.j)
-        if b == False:
-            woWarnings = False
-            ws += errs
-        #-- fetch schema cityobjects.json
-        print("\t--CityGML attributes")
-        b, jsco = self.fetch_schema_cityobjects(folder_schemas)
-        b, errs = validation.citygml_attributes(self.j, jsco)
-        if b == False:
-            woWarnings = False
-            ws += errs
-        # TODO: validate address attributes?
-        return (isValid, woWarnings, es, ws)
+            print("\t- None")
+        val = cjvalpy.CJValidator(js)
+        re = val.validate()
+        return re
 
 
     def get_bbox(self):
@@ -638,7 +445,7 @@ class CityJSON:
 
     def update_bbox(self):
         """
-        Update the bbox (["metadata"]["bbox"]) of the CityJSON.
+        Update the bbox (["metadata"]["geographicalExtent"]) of the CityJSON.
         If there is none then it is added.
         """
         if "metadata" not in self.j:
@@ -679,7 +486,7 @@ class CityJSON:
             return True
 
 
-    def add_bbox_each_cityobjects(self):
+    def update_bbox_each_cityobjects(self, addifmissing=False):
         def recusionvisit(a, vs):
           for each in a:
             if isinstance(each, list):
@@ -687,24 +494,26 @@ class CityJSON:
             else:
                 vs.append(each)
         for co in self.j["CityObjects"]:
-            vs = []
-            bbox = [9e9, 9e9, 9e9, -9e9, -9e9, -9e9]    
-            for g in self.j['CityObjects'][co]['geometry']:
-                recusionvisit(g["boundaries"], vs)
-                for each in vs:
-                    v = self.j["vertices"][each]
-                    for i in range(3):
-                        if v[i] < bbox[i]:
-                            bbox[i] = v[i]
-                    for i in range(3):
-                        if v[i] > bbox[i+3]:
-                            bbox[i+3] = v[i]
-                if "transform" in self.j:
-                    for i in range(3):
-                        bbox[i] = (bbox[i] * self.j["transform"]["scale"][i]) + self.j["transform"]["translate"][i]
-                    for i in range(3):
-                        bbox[i+3] = (bbox[i+3] * self.j["transform"]["scale"][i]) + self.j["transform"]["translate"][i]
-                self.j["CityObjects"][co]["geographicalExtent"] = bbox
+            if addifmissing == True or "geographicalExtent" in self.j["CityObjects"][co]:
+                vs = []
+                bbox = [9e9, 9e9, 9e9, -9e9, -9e9, -9e9]
+                if 'geometry' in self.j['CityObjects'][co]:
+                    for g in self.j['CityObjects'][co]['geometry']:
+                        recusionvisit(g["boundaries"], vs)
+                        for each in vs:
+                            v = self.j["vertices"][each]
+                            for i in range(3):
+                                if v[i] < bbox[i]:
+                                    bbox[i] = v[i]
+                            for i in range(3):
+                                if v[i] > bbox[i+3]:
+                                    bbox[i+3] = v[i]
+                        if "transform" in self.j:
+                            for i in range(3):
+                                bbox[i] = (bbox[i] * self.j["transform"]["scale"][i]) + self.j["transform"]["translate"][i]
+                            for i in range(3):
+                                bbox[i+3] = (bbox[i+3] * self.j["transform"]["scale"][i]) + self.j["transform"]["translate"][i]
+                        self.j["CityObjects"][co]["geographicalExtent"] = bbox
 
 
     def get_centroid(self, coid):
@@ -717,15 +526,16 @@ class CityJSON:
         #-- find the 3D centroid
         centroid = [0, 0, 0]
         total = 0
-        for g in self.j['CityObjects'][coid]['geometry']:
-            vs = []
-            recusionvisit(g["boundaries"], vs)
-            for each in vs:
-                v = self.j["vertices"][each]
-                total += 1
-                centroid[0] += v[0]
-                centroid[1] += v[1]
-                centroid[2] += v[2]
+        if 'geometry' in self.j['CityObjects'][coid]:
+            for g in self.j['CityObjects'][coid]['geometry']:
+                vs = []
+                recusionvisit(g["boundaries"], vs)
+                for each in vs:
+                    v = self.j["vertices"][each]
+                    total += 1
+                    centroid[0] += v[0]
+                    centroid[1] += v[1]
+                    centroid[2] += v[2]
         if (total != 0):
             centroid[0] /= total
             centroid[1] /= total
@@ -817,25 +627,21 @@ class CityJSON:
         if ("appearance" in self.j):
             cm2.j["appearance"] = {}
             subset.process_appearance(self.j, cm2.j)
+        cm2.update_bbox()
         #-- metadata
-        try:
-            cm2.j["metadata"] = copy.deepcopy(self.j["metadata"])
-            cm2.update_metadata(overwrite=True, new_uuid=True)
-            fids = [fid for fid in cm2.j["CityObjects"]]
-            cm2.add_lineage_item("Subset of {} by bounding box {}".format(self.get_identifier(), bbox), features=fids)
-        except:
-            pass
-        
+        if self.has_metadata_extended():
+            try:
+                cm2.j["+metadata-extended"] = copy.deepcopy(self.j["+metadata-extended"])
+                cm2.update_metadata_extended(overwrite=True, new_uuid=True)
+                fids = [fid for fid in cm2.j["CityObjects"]]
+                cm2.add_lineage_item("Subset of {} by bounding box {}".format(self.get_identifier(), bbox), features=fids)
+            except:
+                pass
         return cm2
 
 
     def is_co_toplevel(self, co):
-        if ('toplevel' in co):
-            return co['toplevel']
-        if co["type"] in TOPLEVEL:
-            return True
-        else:
-            return False
+        return ("parents" not in co)
 
     def number_top_co(self):
         count = 0
@@ -853,7 +659,6 @@ class CityJSON:
                 re.append(k)
         return re[offset:(offset+limit)]
 
-               
 
     def get_subset_random(self, number=1, exclude=False):
         random.seed()
@@ -872,15 +677,19 @@ class CityJSON:
             sallkeys = set(self.j["CityObjects"].keys())
             re = sallkeys ^ re
         re = list(re)
-        cm = self.get_subset_ids(re)
-        try:
-            cm.j["metadata"]["lineage"][-1]["processStep"]["description"] = "Random subset of {}".format(self.get_identifier())
-        except:
-            pass
+        cm = self.get_subset_ids(re, update_metadata=False) #-- do not overwrite the metadata there, only here
+        cm.update_bbox()
+        if self.has_metadata_extended():
+            try:
+                cm.update_metadata_extended(overwrite=True)
+                fids = [fid for fid in cm.j["CityObjects"]]
+                cm.add_lineage_item("Random subset of {}".format(self.get_identifier()), features=fids)
+            except:
+                pass
         return cm
 
 
-    def get_subset_ids(self, lsIDs, exclude=False):
+    def get_subset_ids(self, lsIDs, exclude=False, update_metadata=True):
         #-- new sliced CityJSON object
         cm2 = CityJSON()
         cm2.j["version"] = self.j["version"]
@@ -904,14 +713,17 @@ class CityJSON:
         if ("appearance" in self.j):
             cm2.j["appearance"] = {}
             subset.process_appearance(self.j, cm2.j)
+        cm2.update_bbox()
         #-- metadata
-        try:
-            cm2.j["metadata"] = copy.deepcopy(self.j["metadata"])
-            cm2.update_metadata(overwrite=True, new_uuid=True)
-            fids = [fid for fid in cm2.j["CityObjects"]]
-            cm2.add_lineage_item("Subset of {} based on user specified IDs".format(self.get_identifier()), features=fids)
-        except:
-            pass
+        # print(update_metadata)
+        if (update_metadata) and self.has_metadata_extended():
+            try:
+                cm2.j["+metadata-extended"] = copy.deepcopy(self.j["+metadata-extended"])
+                cm2.update_metadata_extended(overwrite=True, new_uuid=True)
+                fids = [fid for fid in cm2.j["CityObjects"]]
+                cm2.add_lineage_item("Subset of {} based on user specified IDs".format(self.get_identifier()), features=fids)
+            except:
+                pass
         return cm2
 
 
@@ -950,13 +762,15 @@ class CityJSON:
         if ("appearance" in self.j):
             cm2.j["appearance"] = {}
             subset.process_appearance(self.j, cm2.j)
+        cm2.update_bbox()
         #-- metadata
-        try:
-            cm2.j["metadata"] = copy.deepcopy(self.j["metadata"])
-            cm2.update_metadata(overwrite=True, new_uuid=True)
-            cm2.add_lineage_item("Subset of {} by object type {}".format(self.get_identifier(), cotype))
-        except:
-            pass
+        if self.has_metadata_extended():
+            try:
+                cm2.j["metadata"] = copy.deepcopy(self.j["metadata"])
+                cm2.update_metadata_extended(overwrite=True, new_uuid=True)
+                cm2.add_lineage_item("Subset of {} by object type {}".format(self.get_identifier(), cotype))
+            except:
+                pass
         return cm2
         
 
@@ -974,7 +788,7 @@ class CityJSON:
             if "textures" in self.j["appearance"]:
                 p = self.j["appearance"]["textures"][0]["image"]
                 cj_dir = os.path.dirname(self.path)
-                url = re.match('http[s]?://|www\.', p)
+                url = re.match(r'http[s]?://|www\.', p)
                 if url:
                     return url
                 else:
@@ -1016,7 +830,7 @@ class CityJSON:
         """
         curr_loc = self.get_textures_location()
         if curr_loc:
-            if re.match('http[s]?://|www\.', new_loc):
+            if re.match(r'http[s]?://|www\.', new_loc):
                 apath = new_loc
                 for t in self.j["appearance"]["textures"]:
                     f = os.path.basename(t["image"])
@@ -1076,6 +890,7 @@ class CityJSON:
 
     def validate_textures(self):
         """Check if the texture files exist"""
+        # TODO: implement validate_textures
         raise NotImplemented
 
 
@@ -1091,10 +906,10 @@ class CityJSON:
             if "default-theme-texture" in self.j["appearance"]:
                 del self.j["appearance"]["default-theme-texture"]
         # print (len(self.j["appearance"]))
-        if self.j["appearance"] is None or len(self.j["appearance"]) == 0:
-            del self.j["appearance"]
+        if "appearance" in self.j:
+            if self.j["appearance"] is None or len(self.j["appearance"]) == 0:
+                del self.j["appearance"]
         return True
-
 
     def remove_materials(self):
         for i in self.j["CityObjects"]:
@@ -1105,12 +920,13 @@ class CityJSON:
                 del self.j["appearance"]["materials"]
             if "default-theme-material" in self.j["appearance"]:
                 del self.j["appearance"]["default-theme-material"]
-        if self.j["appearance"] is None or len(self.j["appearance"]) == 0:
-            del self.j["appearance"]
+        if "appearance" in self.j:
+            if self.j["appearance"] is None or len(self.j["appearance"]) == 0:
+                del self.j["appearance"]
         return True
 
 
-    def number_city_objects(self):
+    def number_city_objects_level1(self):
         total = 0
         for id in self.j["CityObjects"]:
             if self.is_co_toplevel(self.j["CityObjects"][id]):
@@ -1128,12 +944,16 @@ class CityJSON:
             for i in self.j["extensions"]:
                 d.add(i)
             info["extensions"] = sorted(list(d))
-        info["transform/compressed"] = "transform" in self.j
-        info["cityobjects_total"] = self.number_city_objects()
-        d = set()
+        info["cityobjects_1stlevel"] = self.number_city_objects_level1()
+        # info["cityobjects_total"] = len(self.j["CityObjects"])
+        dc = {}
         for key in self.j["CityObjects"]:
-            d.add(self.j['CityObjects'][key]['type'])
-        info["cityobjects_present"] = sorted(list(d))
+            ty = self.j['CityObjects'][key]['type']
+            if ty not in dc:
+                dc[ty] = 1
+            else:
+                dc[ty] += 1
+        info["cityobjects_present"] = {key: value for key, value in sorted(dc.items(), key=lambda item: item[1], reverse=True)}
         if 'appearance' in self.j:
             info["materials"] = 'materials' in self.j['appearance']
             info["textures"] = 'textures' in self.j['appearance']
@@ -1143,8 +963,9 @@ class CityJSON:
         if long == False:
             return json.dumps(info, indent=2)    
         #-- all/long version
+        info["transform/compressed"] = self.j["transform"]
         info["vertices_total"] = len(self.j["vertices"])
-        d.clear()
+        d = set()
         lod = set()
         sem_srf = set()
         co_attributes = set()
@@ -1152,14 +973,14 @@ class CityJSON:
             if 'attributes' in self.j['CityObjects'][key]:
                 for attr in self.j['CityObjects'][key]['attributes'].keys():
                     co_attributes.add(attr)
-            for geom in self.j['CityObjects'][key]['geometry']:
-                d.add(geom["type"])
-                if "lod" in geom:
-                    lod.add(geom["lod"])
-                else: #-- it's a geometry-template
-                    lod.add(self.j["geometry-templates"]["templates"][geom["template"]]["lod"])
-                if "semantics" in geom:
-                    if "surfaces" in geom["semantics"]:
+            if 'geometry' in self.j['CityObjects'][key]:
+                for geom in self.j['CityObjects'][key]['geometry']:
+                    d.add(geom["type"])
+                    if "lod" in geom:
+                        lod.add(geom["lod"])
+                    else: #-- it's a geometry-template
+                        lod.add(self.j["geometry-templates"]["templates"][geom["template"]]["lod"])
+                    if "semantics" in geom:
                         for srf in geom["semantics"]["surfaces"]:
                             sem_srf.add(srf["type"])
         info["geom_primitives_present"] = list(d)
@@ -1190,10 +1011,12 @@ class CityJSON:
         newvertices = []
         #-- visit each geom to gather used ids 
         for theid in self.j["CityObjects"]:
+            if 'geometry' in self.j['CityObjects'][theid]:
                 for g in self.j['CityObjects'][theid]['geometry']:
                     visit_geom(g["boundaries"], oldnewids, newvertices)
         #-- update the faces ids
         for theid in self.j["CityObjects"]:
+            if 'geometry' in self.j['CityObjects'][theid]:
                 for g in self.j['CityObjects'][theid]['geometry']:
                     update_face(g["boundaries"], oldnewids)
         #-- replace the vertices, innit?
@@ -1204,10 +1027,7 @@ class CityJSON:
         return (totalinput - len(self.j["vertices"]))
 
 
-    def remove_duplicate_vertices(self, precision=3):
-        if "transform" in self.j:
-            precision = 0
-
+    def remove_duplicate_vertices(self):
         def update_geom_indices(a, newids):
           for i, each in enumerate(a):
             if isinstance(each, list):
@@ -1219,10 +1039,8 @@ class CityJSON:
         h = {}
         newids = [-1] * len(self.j["vertices"])
         newvertices = []
-        if self.is_transform() == True:
-            precision = 0
         for i, v in enumerate(self.j["vertices"]):
-            s = "{{x:.{p}f}} {{y:.{p}f}} {{z:.{p}f}}".format(p=precision).format(x=v[0], y=v[1], z=v[2])
+            s = "{x} {y} {z}".format(x=v[0], y=v[1], z=v[2])
             if s not in h:
                 newid = len(h)
                 newids[i] = newid
@@ -1232,6 +1050,7 @@ class CityJSON:
                 newids[i] = h[s]
         #-- update indices
         for theid in self.j["CityObjects"]:
+            if 'geometry' in self.j['CityObjects'][theid]:
                 for g in self.j['CityObjects'][theid]['geometry']:
                     update_geom_indices(g["boundaries"], newids)
         #-- replace the vertices, innit?
@@ -1272,7 +1091,7 @@ class CityJSON:
         self.j["transform"]["scale"] = [ss, ss, ss]
         self.j["transform"]["translate"] = [bbox[0], bbox[1], bbox[2]]
         #-- clean the file
-        re = self.remove_duplicate_vertices(0)
+        re = self.remove_duplicate_vertices()
         # print ("Remove duplicates:", re)
         re = self.remove_orphan_vertices()
         # print ("Remove orphans:", re)
@@ -1316,16 +1135,15 @@ class CityJSON:
                         a[i] = each + toffset
                     else:
                         a[i] = each + voffset
-        #-- decompress current CM                        
+
+        #-- decompress current CM
+        imp_digits = math.ceil(abs(math.log(self.j["transform"]["scale"][0], 10)))
         self.decompress()
 
-        #-- metadata
-        try:
-            self.update_metadata(overwrite=True)
-        except:
-            pass
         for cm in lsCMs:
             #-- decompress 
+            if math.ceil(abs(math.log(cm.j["transform"]["scale"][0], 10))) > imp_digits:
+                imp_digits = math.ceil(abs(math.log(cm.j["transform"]["scale"][0], 10)))
             cm.decompress()
             offset = len(self.j["vertices"])
             self.j["vertices"] += cm.j["vertices"]
@@ -1338,22 +1156,24 @@ class CityJSON:
                             if a not in self.j["CityObjects"][theid]["attributes"]:
                                 self.j["CityObjects"][theid]["attributes"][a] = cm.j["CityObjects"][theid]["attributes"][a]
                     #-- merge geoms if not present (based on LoD only)
-                    for g in cm.j['CityObjects'][theid]['geometry']:
-                        thelod = str(g["lod"])
-                        # print ("-->", thelod)
-                        b = False
-                        for g2 in self.j['CityObjects'][theid]['geometry']:
-                            if g2["lod"] == thelod:
-                                b = True
-                                break
-                        if b == False:
-                            self.j['CityObjects'][theid]['geometry'].append(g)
-                            update_geom_indices(self.j['CityObjects'][theid]['geometry'][-1]["boundaries"], offset)    
+                    if 'geometry' in self.j['CityObjects'][theid]:
+                        for g in cm.j['CityObjects'][theid]['geometry']:
+                            thelod = str(g["lod"])
+                            # print ("-->", thelod)
+                            b = False
+                            for g2 in self.j['CityObjects'][theid]['geometry']:
+                                if g2["lod"] == thelod:
+                                    b = True
+                                    break
+                            if b == False:
+                                self.j['CityObjects'][theid]['geometry'].append(g)
+                                update_geom_indices(self.j['CityObjects'][theid]['geometry'][-1]["boundaries"], offset)
                 else:
                     #-- copy the CO
                     self.j["CityObjects"][theid] = cm.j["CityObjects"][theid]
-                    for g in self.j['CityObjects'][theid]['geometry']:
-                        update_geom_indices(g["boundaries"], offset)
+                    if 'geometry' in self.j['CityObjects'][theid]:
+                        for g in self.j['CityObjects'][theid]['geometry']:
+                            update_geom_indices(g["boundaries"], offset)
             #-- templates
             if "geometry-templates" in cm.j:
                 if "geometry-templates" in self.j:
@@ -1374,9 +1194,10 @@ class CityJSON:
                 self.j["geometry-templates"]["vertices-templates"] += cm.j["geometry-templates"]["vertices-templates"]
                 #-- update the "template" in each GeometryInstance
                 for theid in cm.j["CityObjects"]:
-                    for g in self.j['CityObjects'][theid]['geometry']:
-                        if g["type"] == 'GeometryInstance':
-                            g["template"] += notemplates
+                    if 'geometry' in self.j['CityObjects'][theid]:
+                        for g in self.j['CityObjects'][theid]['geometry']:
+                            if g["type"] == 'GeometryInstance':
+                                g["template"] += notemplates
             #-- materials
             if ("appearance" in cm.j) and ("materials" in cm.j["appearance"]):
                 if ("appearance" in self.j) and ("materials" in self.j["appearance"]):
@@ -1385,7 +1206,7 @@ class CityJSON:
                     if "appearance" not in self.j:
                         self.j["appearance"] = {}
                     if "materials" not in self.j["appearance"]:
-                        self.j["appearance"]["materials"] = {}
+                        self.j["appearance"]["materials"] = []
                     offset = 0
                 #-- copy materials
                 for m in cm.j["appearance"]["materials"]:
@@ -1395,7 +1216,10 @@ class CityJSON:
                     for g in self.j['CityObjects'][theid]['geometry']:
                         if 'material' in g:
                             for m in g['material']:
-                                update_geom_indices(g['material'][m]['values'], offset)
+                                if 'values' in g['material'][m]:
+                                    update_geom_indices(g['material'][m]['values'], offset)
+                                else:
+                                    g['material'][m]['value'] = g['material'][m]['value'] + offset
             #-- textures
             if ("appearance" in cm.j) and ("textures" in cm.j["appearance"]):
                 if ("appearance" in self.j) and ("textures" in self.j["appearance"]):
@@ -1420,19 +1244,25 @@ class CityJSON:
                     for g in self.j['CityObjects'][theid]['geometry']:
                         if 'texture' in g:
                             for m in g['texture']:
-                                update_texture_indices(g['texture'][m]['values'], toffset, voffset)
+                                if 'values' in g['texture'][m]:
+                                    update_texture_indices(g['texture'][m]['values'], toffset, voffset)
+                                else:
+                                    raise KeyError(f"The member 'values' is missing from the texture '{m}' in CityObject {theid}")
             #-- metadata
-            try:
-                fids = [fid for fid in cm.j["CityObjects"]]
-                src = {
-                    "description": cm.get_title(),
-                    "sourceReferenceSystem": "urn:ogc:def:crs:EPSG::{}".format(cm.get_epsg()) if cm.get_epsg() else None
-                }
-                self.add_lineage_item("Merge {} into {}".format(cm.get_identifier(), self.get_identifier()), features=fids, source=[src])
-            except:
-                pass
-        # self.remove_duplicate_vertices()
-        # self.remove_orphan_vertices()
+            if self.has_metadata_extended() or cm.has_metadata_extended():
+                try:
+                    fids = [fid for fid in cm.j["CityObjects"]]
+                    src = {
+                        "description": cm.get_title(),
+                        "sourceReferenceSystem": "urn:ogc:def:crs:EPSG::{}".format(cm.get_epsg()) if cm.get_epsg() else None
+                    }
+                    self.add_lineage_item("Merge {} into {}".format(cm.get_identifier(), self.get_identifier()), features=fids, source=[src])
+                except:
+                    pass
+        self.remove_duplicate_vertices()
+        self.remove_orphan_vertices()
+        self.update_bbox()
+        self.compress(imp_digits)
         return True
 
 
@@ -1502,7 +1332,97 @@ class CityJSON:
         return (True, "")
 
 
-    def upgrade_version(self, newversion):
+    def upgrade_version_v10_v11(self, reasons, digit):
+        #-- version
+        self.j["version"] = "1.1"
+        #-- compress for "transform"
+        self.compress(digit)
+        #-- lod=string
+        for theid in self.j["CityObjects"]:
+            if "geometry" in self.j['CityObjects'][theid]:
+                for each, geom in enumerate(self.j['CityObjects'][theid]['geometry']):
+                    if self.j['CityObjects'][theid]['geometry'][each]["type"] != "GeometryInstance":
+                        self.j['CityObjects'][theid]['geometry'][each]['lod'] = str(self.j['CityObjects'][theid]['geometry'][each]['lod'])
+        if "geometry-templates" in self.j:
+            for i, g in enumerate(self.j["geometry-templates"]["templates"]):
+                self.j["geometry-templates"]["templates"][i]["lod"] = str(self.j["geometry-templates"]["templates"][i]["lod"])
+        #-- CityObjectGroup
+            # members -> children
+            # add parents to children
+        for theid in self.j["CityObjects"]:
+            if self.j["CityObjects"][theid]['type'] == 'CityObjectGroup':
+                self.j["CityObjects"][theid]['children'] = self.j["CityObjects"][theid]['members']
+                del self.j["CityObjects"][theid]['members']
+                for ch in self.j["CityObjects"][theid]['children']:
+                    if 'parents' not in self.j["CityObjects"][ch]:
+                        self.j["CityObjects"][ch]["parents"] = []
+                    if theid not in self.j["CityObjects"][ch]["parents"]:
+                        self.j["CityObjects"][ch]["parents"].append(theid)
+        #-- empty geometries
+        for theid in self.j["CityObjects"]:
+            if ("geometry" in self.j['CityObjects'][theid]) and (len(self.j['CityObjects'][theid]['geometry']) == 0):
+                del self.j['CityObjects'][theid]['geometry']
+        #-- BridgeConstructionElement -> BridgeConstructiveElement
+        for theid in self.j["CityObjects"]:
+            if self.j["CityObjects"][theid]['type'] == 'BridgeConstructionElement':
+                self.j["CityObjects"][theid]['type'] = 'BridgeConstructiveElement'
+        #-- CRS: use the new OGC scheme
+        if "metadata" in self.j and "referenceSystem" in self.j["metadata"]:
+            s = self.j["metadata"]["referenceSystem"]
+            if "epsg" in s.lower():
+                self.j["metadata"]["referenceSystem"] = "https://www.opengis.net/def/crs/EPSG/0/%d" % int(s[s.find("::")+2:])
+        #-- addresses are now arrays TODO
+        for theid in self.j["CityObjects"]:
+            if "address" in self.j["CityObjects"][theid]:
+                self.j["CityObjects"][theid]["address"] = [self.j["CityObjects"][theid]["address"]]
+        #-- metadata calculate
+        if "metadata" in self.j:
+            v11_properties = {
+                "citymodelIdentifier": "identifier", 
+                "datasetPointOfContact": "pointOfContact", 
+                "datasetTitle": "title", 
+                "datasetReferenceDate": "referenceDate", 
+                "geographicalExtent": "geographicalExtent", 
+                "referenceSystem": "referenceSystem"
+            }
+            to_delete = []
+            for each in self.j["metadata"]:
+                if each not in v11_properties:
+                    self.add_metadata_extended_property()
+                    self.j["+metadata-extended"][each] = self.j["metadata"][each]
+                    if each == "spatialRepresentationType":
+                        self.j["+metadata-extended"][each] = [self.j["metadata"][each]]
+                    to_delete.append(each)
+            for each in to_delete:
+                del self.j["metadata"][each]
+            #-- rename to the names
+            for each in v11_properties:
+                if each in self.j["metadata"]:
+                    tmp = self.j["metadata"][each]
+                    self.j["metadata"].pop(each)
+                    self.j["metadata"][v11_properties[each]] = tmp
+        #-- GenericCityObject is no longer, add the Extension GenericCityObject
+        gco = False
+        for theid in self.j["CityObjects"]:
+            if self.j["CityObjects"][theid]['type'] == 'GenericCityObject':
+                self.j["CityObjects"][theid]['type'] = '+GenericCityObject'
+                gco = True
+        if gco == True:
+            reasons = '"GenericCityObject" is no longer in v1.1, instead Extensions are used.'
+            reasons += ' Your "GenericCityObject" have been changed to "+GenericCityObject"'
+            reasons += ' and the simple Extension "Generic" is used.'
+            if "extensions" not in self.j:
+                self.j["extensions"] = {}
+            self.j["extensions"]["Generic"]= {}
+            #-- TODO: change URL for Generic Extension
+            self.j["extensions"]["Generic"]["url"] = "https://cityjson.org/extensions/download/generic.ext.json"
+            self.j["extensions"]["Generic"]["version"] = "1.0"
+            return (False, reasons)
+        else:
+            return (True, "")
+
+
+    def upgrade_version(self, newversion, digit):
         re = True
         reasons = ""
         if CITYJSON_VERSIONS_SUPPORTED.count(newversion) == 0:
@@ -1516,6 +1436,9 @@ class CityJSON:
         #-- v0.9
         if (self.get_version() == CITYJSON_VERSIONS_SUPPORTED[2]):
             (re, reasons) = self.upgrade_version_v09_v10(reasons)
+        #-- v1.0
+        if (self.get_version() == CITYJSON_VERSIONS_SUPPORTED[3]):
+            (re, reasons) = self.upgrade_version_v10_v11(reasons, digit)
         return (re, reasons)
 
 
@@ -1574,6 +1497,42 @@ class CityJSON:
         glb = convert.to_glb(self.j)
         return glb
 
+    def export2jsonl(self):
+        out = StringIO()
+        j2 = {}
+        j2["type"] = "CityJSON"
+        j2["version"] = CITYJSON_VERSIONS_SUPPORTED[-1]
+        j2["CityObjects"] = {}
+        j2["vertices"] = []
+        j2["transform"] = self.j["transform"]
+        if "metadata" in self.j:
+            j2["metadata"] = self.j["metadata"]
+        if "extensions" in self.j:
+            j2["extensions"] = self.j["extensions"]
+        json_str = json.dumps(j2, separators=(',',':'))
+        out.write(json_str + '\n')
+        #-- take each IDs and create on CityJSONFeature
+        idsdone = set()
+        for theid in self.j["CityObjects"]:
+            if ("parents" not in self.j["CityObjects"][theid]) and (theid not in idsdone):
+                cm2 = self.get_subset_ids([theid])
+                cm2.j["type"] = "CityJSONFeature"
+                cm2.j["id"] = theid
+                del cm2.j["transform"]
+                del cm2.j["version"]
+                if "metadata" in cm2.j:
+                    del cm2.j["metadata"]
+                if "extensions" in cm2.j:
+                    del cm2.j["extensions"]
+                #-- TODO: remove and deal with geometry-templates here
+                #--       they need to be deferenced
+                if "geometry-templates" in cm2.j:
+                    print_cmd_warning("PANIC! geometry-templates cannot be processed yet")
+                json_str = json.dumps(cm2.j, separators=(',',':'))
+                out.write(json_str + '\n')
+                for theid2 in cm2.j["CityObjects"]:
+                    idsdone.add(theid)
+        return out
 
     def export2obj(self):
         self.decompress()
@@ -1663,10 +1622,8 @@ class CityJSON:
     def reproject(self, epsg):
         if not MODULE_PYPROJ_AVAILABLE:
             raise ModuleNotFoundError("Modul 'pyproj' is not available, please install it from https://pypi.org/project/pyproj/")
-        wascompressed = False
-        if "transform" in self.j:
-            self.decompress()
-            wascompressed = True
+        imp_digits = math.ceil(abs(math.log(self.j["transform"]["scale"][0], 10)))
+        self.decompress()
         p1 = pyproj.Proj(init='epsg:%d' % (self.get_epsg()))
         p2 = pyproj.Proj(init='epsg:%d' % (epsg))
         with progressbar(self.j['vertices']) as vertices:
@@ -1677,28 +1634,58 @@ class CityJSON:
                 v[2] = z
         self.set_epsg(epsg)
         self.update_bbox()
-        if wascompressed == True:
-            self.compress()
+        self.update_bbox_each_cityobjects(False)
+        #-- recompress by using the number of digits we had in original file
+        self.compress(imp_digits)
 
+    def remove_attribute(self, attr):
+        for co in self.j["CityObjects"]:
+            if "attributes" in self.j["CityObjects"][co]:
+                if attr in self.j["CityObjects"][co]["attributes"]:
+                    del self.j["CityObjects"][co]["attributes"][attr]
 
     def extract_lod(self, thelod):
+        def lod_to_string(lod):
+            if lod is None:
+                return None
+            elif isinstance(lod, float):
+                return str(round(lod, 1))
+            elif isinstance(lod, int):
+                return str(lod)
+            elif isinstance(lod, str):
+                return lod
+            else:
+                raise ValueError(f"Type {type(lod)} is not allowed as input")
+
+    def rename_attribute(self, oldattr, newattr):
+        for co in self.j["CityObjects"]:
+            if "attributes" in self.j["CityObjects"][co]:
+                if oldattr in self.j["CityObjects"][co]["attributes"]:
+                    tmp = self.j["CityObjects"][co]["attributes"][oldattr]
+                    self.j["CityObjects"][co]["attributes"][newattr] = tmp
+                    del self.j["CityObjects"][co]["attributes"][oldattr]
+
+    def filter_lod(self, thelod):
         for co in self.j["CityObjects"]:
             re = []
-            for i, g in enumerate(self.j['CityObjects'][co]['geometry']):
-                if int(g['lod']) != thelod:
-                    re.append(g)  
-                    # print (g)      
-            for each in re:
-                self.j['CityObjects'][co]['geometry'].remove(each)
+            if 'geometry' in self.j['CityObjects'][co]:
+                for i, g in enumerate(self.j['CityObjects'][co]['geometry']):
+                    if g['lod'] != thelod:
+                        re.append(g)
+                        # print (g)
+                for each in re:
+                    self.j['CityObjects'][co]['geometry'].remove(each)
         self.remove_duplicate_vertices()
         self.remove_orphan_vertices()
+        self.update_bbox()
         #-- metadata
-        try:
-            self.update_metadata(overwrite=True)
-            fids = [fid for fid in self.j["CityObjects"]]
-            self.add_lineage_item("Extract LoD{} from {}".format(thelod, self.get_identifier()), features=fids)
-        except:
-            pass
+        if self.has_metadata_extended():
+            try:
+                self.update_metadata_extended(overwrite=True)
+                fids = [fid for fid in self.j["CityObjects"]]
+                self.add_lineage_item("Extract LoD{} from {}".format(thelod, self.get_identifier()), features=fids)
+            except:
+                pass
 
 
     def translate(self, values, minimum_xyz):
@@ -1728,6 +1715,33 @@ class CityJSON:
         """
         return "metadata" in self.j
 
+    def has_metadata_extended(self):
+        """
+        Returns whether +metadata-extended exist in this CityJSON file or not
+        """
+        return "+metadata-extended" in self.j
+
+    def metadata_extended_remove(self):
+        """
+        Remove the +metadata-extended in this CityJSON file (if present)
+        """
+        if "+metadata-extended" in self.j:
+            del self.j["+metadata-extended"]
+        if "extensions" in self.j and "MetadataExtended" in self.j["extensions"]:
+            del self.j["extensions"]["MetadataExtended"]
+
+    def add_metadata_extended_property(self):
+        """
+        Adds the +metadata-extended + the link to Extension
+        """
+        if "+metadata-extended" not in self.j:
+            self.j["+metadata-extended"] = {}
+            if "extensions" not in self.j:
+                self.j["extensions"] = {}
+            self.j["extensions"]["MetadataExtended"]= {}
+            self.j["extensions"]["MetadataExtended"]["url"] = "https://raw.githubusercontent.com/cityjson/metadata-extended/main/metadata-extended.ext.json"
+            self.j["extensions"]["MetadataExtended"]["version"] = "1.0"
+
     def get_metadata(self):
         """
         Returns the "metadata" property of this CityJSON file
@@ -1737,10 +1751,21 @@ class CityJSON:
         if not "metadata" in self.j:
             raise KeyError("Metadata is missing")
         return self.j["metadata"]
-    
-    def compute_metadata(self, overwrite=False, new_uuid=False):
+
+    def get_metadata_extended(self):
         """
-        Returns the metadata of this CityJSON file
+        Returns the "+metadata-extended" property of this CityJSON file
+
+        Raises a KeyError exception if metadata is missing
+        """
+        if not "+metadata-extended" in self.j:
+            raise KeyError("MetadataExtended is missing")
+        return self.j["+metadata-extended"]
+
+
+    def compute_metadata_extended(self, overwrite=False, new_uuid=False):
+        """
+        Returns the +metadata-extended of this CityJSON file
         """
         return generate_metadata(citymodel=self.j,
                                  filename=self.path,
@@ -1748,18 +1773,18 @@ class CityJSON:
                                  overwrite_values=overwrite,
                                  recompute_uuid=new_uuid)
 
-    def update_metadata(self, overwrite=False, new_uuid=False):
+
+    def update_metadata_extended(self, overwrite=False, new_uuid=False):
         """
-        Computes and updates the "metadata" property of this CityJSON file
+        Computes and updates the "metadata" property of this CityJSON dataset
         """
+        self.add_metadata_extended_property()
+        metadata, errors = self.compute_metadata_extended(overwrite, new_uuid)
+        self.j["+metadata-extended"] = metadata
         self.update_bbox()
-
-        metadata, errors = self.compute_metadata(overwrite, new_uuid)
-
-        self.j["metadata"] = metadata
-
         return (True, errors)
-    
+
+
     def add_lineage_item(self, description: str, features: list = None, source: list = None, processor: dict = None):
         """Adds a lineage item in metadata.
 
@@ -1778,23 +1803,17 @@ class CityJSON:
                 "stepDateTime": str(nu.isoformat()) + "Z"
             }
         }
-
         if isinstance(features, list):
             new_item["featureIDs"] = features
-        
         if isinstance(source, list):
             new_item["source"] = source
-        
         if isinstance(processor, dict):
             new_item["processStep"]["processor"] = processor
-
         if not self.has_metadata():
             self.j["metadata"] = {}
-
-        if not "lineage" in self.j["metadata"]:
-            self.j["metadata"]["lineage"] = []
-
-        self.j["metadata"]["lineage"].append(new_item)
+        if not "lineage" in self.j["+metadata-extended"]:
+            self.j["+metadata-extended"]["lineage"] = []
+        self.j["+metadata-extended"]["lineage"].append(new_item)
         
 
     def triangulate(self):

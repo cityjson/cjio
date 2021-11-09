@@ -12,7 +12,7 @@ Welcome to cjio's documentation!
 
    includeme
    tutorials
-   modules
+   api
 
 
 Indices and tables

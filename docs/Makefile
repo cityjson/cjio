@@ -16,6 +16,8 @@ help:
 
 # Catch-all target: route all unknown targets to Sphinx using the new
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
+api:
+	sphinx-apidoc -f -o ./source ../cjio ../cjio/*cjio* ../cjio/*convert* ../cjio/*errors* ../cjio/*geom_help* ../cjio/*remove_textures* ../cjio/*subset* ../cjio/*utils* ../cjio/*validation*
 buildandcommithtml: html
 	cd $(BUILDDIR)/html; git add . ; git commit -m "rebuilt docs"; git push origin gh-pages
 %: Makefile

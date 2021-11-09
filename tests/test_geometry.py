@@ -249,6 +249,15 @@ class TestGeometry:
         geom_idx, vertex_lookup, vertex_index = geom.build_index()
         print(geom_idx, vertex_lookup)
 
+    def test_build_surface_index(self):
+        """Build a surface index when there are unused semantic surface object on the
+        geometry. Related to #102."""
+        geom = models.Geometry(type="Solid", lod=1.2)
+        geom.boundaries = [[[[[339152, -40239, -489], [336150, -39020, -489], [337104, -36670, -489], [340106, -37889, -489]]], [[[336150, -39020, 2009], [336150, -39020, -489], [339152, -40239, -489], [339152, -40239, 2009]]], [[[339152, -40239, 2009], [339152, -40239, -489], [340106, -37889, -489], [340106, -37889, 2009]]], [[[337104, -36670, 2009], [337104, -36670, -489], [336150, -39020, -489], [336150, -39020, 2009]]], [[[340106, -37889, 2009], [340106, -37889, -489], [337104, -36670, -489], [337104, -36670, 2009]]], [[[340106, -37889, 2009], [337104, -36670, 2009], [336150, -39020, 2009], [339152, -40239, 2009]]]]]
+        geom.semantics = {}
+        geom.surfaces = {0: {'surface_idx': [[0, 0]], 'type': 'GroundSurface'}, 1: {'surface_idx': [[0, 5]], 'type': 'RoofSurface', 'attributes': {'cladding': 'tiles'}}, 2: {'surface_idx': [[0, 1], [0, 2], [0, 3], [0, 4]], 'type': 'WallSurface', 'attributes': {'on_footprint_edge': True}}, 3: {'surface_idx': None, 'type': 'WallSurface', 'attributes': {'on_footprint_edge': False}}}
+        geom.texture = 0
+        geom.build_semantic_surface_index()
 
     @pytest.mark.balazs
     def test_vertex_indexer(self, ms_triangles):

@@ -17,13 +17,21 @@ Documentation
 Installation
 ------------
 
-It uses Python 3.5+ only.
+It uses Python 3.6+ only.
 
 To install the latest release:
 
 .. code:: console
 
     pip install cjio
+
+.. note:: The commands ``export``, ``reproject`` require extra packages
+    that are not install by default. You can install these packages by specifying the
+    commands for pip.
+
+    .. code:: console
+
+        pip install cjio[export,reproject]
 
 To install the development branch, and still develop with it:
 
@@ -32,10 +40,7 @@ To install the development branch, and still develop with it:
     git checkout develop
     virtualenv venv
     . venv/bin/activate
-    pip install --editable .
-
-Alternatively, you can use the included Pipfile to manage the virtual
-environment with `pipenv <https://pipenv.readthedocs.io/en/latest/>`_.
+    pip install --editable .[develop]
 
 **Note for Windows users**
 
@@ -56,11 +61,17 @@ You can then continue with:
     pip install cjio
 
 
+Supported CityJSON versions
+---------------------------
+
+The operators (``cjio --help``) expect that your file is using the latest version `CityJSON schema <https://www.cityjson.org/specs/overview/>`_.
+If your file uses an earlier version, you can upgrade it with the ``upgrade_version`` operator.
+
 Usage of the CLI
 ----------------
 
 After installation, you have a small program called ``cjio``, to see its
-possibities:
+possibilities:
 
 .. code:: console
 
@@ -69,22 +80,25 @@ possibities:
     Commands:
       assign_epsg                Assign a (new) EPSG.
       clean                      Clean = remove_duplicate_vertices +...
-      compress                   Compress a CityJSON file, ie stores its...
-      decompress                 Decompress a CityJSON file, ie remove the...
       export                     Export the CityJSON to another format.
-      extract_lod                Extract only one LoD for a dataset.
+      filter_lod                 Filter only one LoD for a dataset.
       info                       Output info in simple JSON.
       locate_textures            Output the location of the texture files.
       merge                      Merge the current CityJSON with others.
+      metadata_create            Add the +metadata-extended properties...
+      metadata_get               Shows the metadata and +metadata-extended of...
+      metadata_remove            Remove the +metadata-extended properties.
+      metadata_update            Update the +metadata-extended for properties...
+      remove_attribute           Remove an attribute.
       remove_duplicate_vertices  Remove duplicate vertices a CityJSON file.
       remove_materials           Remove all materials from a CityJSON file.
       remove_orphan_vertices     Remove orphan vertices a CityJSON file.
       remove_textures            Remove all textures from a CityJSON file.
+      rename_attribute           Rename an attribute.
       reproject                  Reproject the CityJSON to a new EPSG.
       save                       Save the city model to a CityJSON file.
       subset                     Create a subset of a CityJSON file.
       translate                  Translate the file by its (-minx, -miny,...
-      update_bbox                Update the bbox of a CityJSON file.
       update_textures            Update the location of the texture files.
       upgrade_version            Upgrade the CityJSON to the latest version.
       validate                   Validate the CityJSON file: (1) against its...

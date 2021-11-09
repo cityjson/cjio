@@ -43,7 +43,8 @@ def print_cmd_substatus(s):
     echo(style(s, fg='cyan'))
 
 def print_cmd_warning(s):
-    echo(style(s, fg='bright_yellow'))
+    echo(style(s, reverse=True, fg='yellow'))
 
-def print_cmd_error(s):
-    echo(style(s, fg='red'))    
+def print_cmd_alert(s):
+    echo(style(s, reverse=True, fg='red'))
+

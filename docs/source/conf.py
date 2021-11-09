@@ -18,11 +18,11 @@ sys.path.insert(0, os.path.abspath('../..'))
 # -- Project information -----------------------------------------------------
 
 project = 'cjio'
-copyright = '2019, Hugo Ledoux'
+copyright = '2021, Hugo Ledoux'
 author = 'Hugo Ledoux, Balázs Dukai'
 
 # The full version, including alpha/beta/rc tags
-release = '0.5.2'
+release = '0.6.10'
 
 
 # -- General configuration ---------------------------------------------------

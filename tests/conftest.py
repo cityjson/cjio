@@ -1,5 +1,6 @@
 import os.path
 import pickle
+import glob
 
 import pytest
 
@@ -35,6 +36,11 @@ def delft(data_dir):
     p = os.path.join(data_dir, 'delft.json')
     with open(p, 'r') as f:
         yield cityjson.CityJSON(file=f)
+        
+@pytest.fixture(scope='session')
+def delft_path(data_dir):
+    p = os.path.join(data_dir, 'delft.json')
+    yield p
 
 @pytest.fixture(scope='session')
 def delft_1b(data_dir):
@@ -47,12 +53,22 @@ def rotterdam_subset(data_dir):
     p = os.path.join(data_dir, 'rotterdam', 'rotterdam_subset.json')
     with open(p, 'r') as f:
         yield cityjson.CityJSON(file=f)
+        
+@pytest.fixture(scope='session')
+def rotterdam_subset_path(data_dir):
+    p = os.path.join(data_dir, 'rotterdam', 'rotterdam_subset.json')
+    yield p
 
 @pytest.fixture(scope='session')
 def zurich_subset(data_dir):
     p = os.path.join(data_dir, 'zurich', 'zurich_subset_lod2.json')
     with open(p, 'r') as f:
         yield cityjson.CityJSON(file=f)
+        
+@pytest.fixture(scope='session')
+def zurich_subset_path(data_dir):
+    p = os.path.join(data_dir, 'zurich', 'zurich_subset_lod2.json')
+    yield p
 
 @pytest.mark.balazs
 @pytest.fixture(scope='function')
@@ -97,10 +113,21 @@ def rectangle(data_dir):
     p = os.path.join(data_dir, 'dummy', 'rectangle.json')
     with open(p, 'r') as f:
         yield cityjson.CityJSON(file=f)
+        
+@pytest.fixture(scope='session')
+def multi_lod(data_dir):
+    p = os.path.join(data_dir, 'multi_lod.json')
+    with open(p, 'r') as f:
+        yield cityjson.CityJSON(file=f)
+        
+@pytest.fixture(scope='session')
+def multi_lod_path(data_dir):
+    p = os.path.join(data_dir, 'multi_lod.json')
+    yield p
 
 @pytest.fixture(scope='session')
 def vertices():
-    yield  [
+    yield [
         (0.0,1.0,0.0),
         (1.0,1.0,0.0),
         (2.0,1.0,0.0),
@@ -133,3 +160,8 @@ def triangulated(data_dir):
         with open(p, 'r') as f:
             cj.append(cityjson.CityJSON(file=f))
     return cj
+
+
+@pytest.fixture(scope='session')
+def mt_1_path(data_dir):
+    return os.path.join(data_dir, 'material', 'mt-1.json')
