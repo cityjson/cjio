@@ -963,6 +963,7 @@ class CityJSON:
         if long == False:
             return json.dumps(info, indent=2)    
         #-- all/long version
+        info["is_triangulated"] = self.is_triangulated()
         info["transform/compressed"] = self.j["transform"]
         info["vertices_total"] = len(self.j["vertices"])
         d = set()
