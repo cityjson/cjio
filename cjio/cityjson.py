@@ -80,7 +80,9 @@ def save(citymodel, path: str, indent: bool = False):
     :param path: Absolute path to a CityJSON file
     """
     citymodel.add_to_j()
-    # FIXME: here should be compression, however the current compression does not work with immutable tuples, but requires mutable lists for the points
+    if citymodel.is_transformed:
+        # FIXME: here should be compression, however the current compression does not work with immutable tuples, but requires mutable lists for the points
+        pass
     citymodel.remove_duplicate_vertices()
     citymodel.remove_orphan_vertices()
     try:
@@ -221,12 +223,22 @@ class CityJSON:
         self.cityobjects.clear()
         # Then do update
         if 'transform' in self.j:
-            self.transform = self.j['transform']
+            self.transform = self.j.pop('transform')
         else:
             self.transform = None
         if transform:
+            # Because I can choose to work with untransformed vertices in the API,
+            # even though there is a Transform Object in self.transform. So, when the
+            # citymodel is written back to json, I we check if we need to transform
+            # the vertices.
+            # Also, this is very nasty, to have:
+            #   - CityJSON.is_transformed ––> the vertices in the API Geometry have been transformed
+            #   - CityJSON.transform --> stores the Transform Object for the API
+            #   - CityJSON.is_transform() --> checks if the json has a 'transform' property
+            self.is_transformed = True if self.transform is not None else False
             do_transform = self.transform
         else:
+            self.is_transformed = False
             do_transform = None
         appearance = self.j['appearance'] if 'appearance' in self.j else None
         for co_id, co in self.j['CityObjects'].items():
