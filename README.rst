@@ -3,11 +3,9 @@ cjio, or CityJSON/io
 
 |License: MIT| |image1|
 
-Python CLI to process and manipulate
-`CityJSON <http://www.cityjson.org>`_ files. The different operators
-can be chained to perform several processing operations in one step, the
-CityJSON model goes through them and different versions of the CityJSON
-model can be saved as files along the pipeline.
+Python CLI to process and manipulate `CityJSON <http://www.cityjson.org>`_ files. 
+The different operators can be chained to perform several processing operations in one step, the
+CityJSON model goes through them and different versions of the CityJSON model can be saved as files along the pipeline.
 
 Documentation
 -------------
@@ -25,7 +23,7 @@ To install the latest release:
 
     pip install cjio
 
-.. note:: The commands ``export``, ``reproject`` require extra packages
+.. note:: The commands ``export``, ``reproject``, and ``validate`` require extra packages
     that are not install by default. You can install these packages by specifying the
     commands for pip.
 
@@ -44,11 +42,10 @@ To install the development branch, and still develop with it:
 
 **Note for Windows users**
 
-If your installation fails based on a *pyproj* or *pyrsistent* error
-there is a small hack to get around it. Based on the python version you
-have installed you can download a wheel (binary of a python package) of
-the problem package/s. A good website to use is
-`here <https://www.lfd.uci.edu/~gohlke/pythonlibs>`_. You then run:
+If your installation fails based on a *pyproj* or *pyrsistent* error there is a small hack to get around it. 
+Based on the python version you have installed you can download a wheel (binary of a python package) of the problem package/s. 
+A good website to use is `here <https://www.lfd.uci.edu/~gohlke/pythonlibs>`_. 
+You then run:
 
 .. code:: console
 
@@ -64,8 +61,9 @@ You can then continue with:
 Supported CityJSON versions
 ---------------------------
 
-The operators (``cjio --help``) expect that your file is using the latest version `CityJSON schema <https://www.cityjson.org/specs/overview/>`_.
-If your file uses an earlier version, you can upgrade it with the ``upgrade_version`` operator.
+The operators (``cjio --version``) expect that your file is using the latest version `CityJSON schema <https://www.cityjson.org/specs/overview/>`_.
+If your file uses an earlier version, you can upgrade it with the ``upgrade`` operator.
+
 
 Usage of the CLI
 ----------------
@@ -78,30 +76,29 @@ possibilities:
     cjio --help
 
     Commands:
-      assign_epsg                Assign a (new) EPSG.
-      clean                      Clean = remove_duplicate_vertices +...
-      export                     Export the CityJSON to another format.
-      filter_lod                 Filter only one LoD for a dataset.
-      info                       Output info in simple JSON.
-      locate_textures            Output the location of the texture files.
-      merge                      Merge the current CityJSON with others.
-      metadata_create            Add the +metadata-extended properties...
-      metadata_get               Shows the metadata and +metadata-extended of...
-      metadata_remove            Remove the +metadata-extended properties.
-      metadata_update            Update the +metadata-extended for properties...
-      remove_attribute           Remove an attribute.
-      remove_duplicate_vertices  Remove duplicate vertices a CityJSON file.
-      remove_materials           Remove all materials from a CityJSON file.
-      remove_orphan_vertices     Remove orphan vertices a CityJSON file.
-      remove_textures            Remove all textures from a CityJSON file.
-      rename_attribute           Rename an attribute.
-      reproject                  Reproject the CityJSON to a new EPSG.
-      save                       Save the city model to a CityJSON file.
-      subset                     Create a subset of a CityJSON file.
-      translate                  Translate the file by its (-minx, -miny,...
-      update_textures            Update the location of the texture files.
-      upgrade_version            Upgrade the CityJSON to the latest version.
-      validate                   Validate the CityJSON file: (1) against its...
+      attribute_remove  Remove an attribute.
+      attribute_rename  Rename an attribute.
+      crs_assign        Assign a (new) CRS (an EPSG).
+      crs_reproject     Reproject to a new EPSG.
+      crs_translate     Translate the coordinates.
+      export            Export to another format.
+      info              Output info in simple JSON.
+      lod_filter        Filter only one LoD for a dataset.
+      materials_remove  Remove all materials.
+      merge             Merge the current CityJSON with other ones.
+      metadata_create   Add the +metadata-extended properties.
+      metadata_get      Shows the metadata and +metadata-extended of this...
+      metadata_remove   Remove the +metadata-extended properties.
+      metadata_update   Update the +metadata-extended.
+      save              Save to a CityJSON file.
+      subset            Create a subset, City Objects can be selected by: (1)...
+      textures_locate   Output the location of the texture files.
+      textures_remove   Remove all textures.
+      textures_update   Update the location of the texture files.
+      triangulate       Triangulate every surface.
+      upgrade           Upgrade the CityJSON to the latest version.
+      validate          Validate the CityJSON: (1) against its schemas (2)...
+      vertices_clean    Remove duplicate vertices + orphan vertices
 
 
 Or see the command-specific help by calling ``--help`` after a command:
@@ -112,8 +109,8 @@ Or see the command-specific help by calling ``--help`` after a command:
 
     Usage: cjio subset [OPTIONS]
 
-      Create a subset of a CityJSON file. One can select City Objects by (1) IDs
-      of City Objects; (2) bbox; (3) City Object type; (4) randomly.
+      Create a subset, City Objects can be selected by: (1) IDs of City Objects;
+      (2) bbox; (3) City Object type; (4) randomly.
 
       These can be combined, except random which overwrites others.
 
@@ -129,71 +126,39 @@ Or see the command-specific help by calling ``--help`` after a command:
                                       The City Object type
       --exclude                       Excludes the selection, thus delete the
                                       selected object(s).
-      --help                          Show this message and exit.
+      --help                          Show this message and exit.    
 
 
 Pipelines of operators
 ----------------------
 
-The 3D city model opened is passed through all the operators, and it
-gets modified by some operators. Operators like ``info`` and
-``validate`` output information in the console and just pass the 3D city
-model to the next operator.
+The input 3D city model opened is passed through all the operators, and it gets modified by some operators. 
+Operators like ``info`` and ``validate`` output information in the console and just pass the 3D city model to the next operator.
 
 .. code:: console
 
-    cjio example.json subset --id house12 info remove_materials info save out.json
-    cjio example.json remove_textures compress info
-    cjio example.json upgrade_version save new.json
-    cjio myfile.json merge '/home/elvis/temp/*.json' save all_merged.json
+    cjio example.city.json subset --id house12 remove_materials save out.city.json
+    cjio example.city.json remove_textures info
+    cjio example.city.json upgrade validate save new.city.json
+    cjio myfile.city.json merge '/home/elvis/temp/*.city.json' save all_merged.city.json
 
-Validation of CityJSON files against the schema
------------------------------------------------
-
-To validate a CityJSON file against the `schemas of
-CityJSON <https://github.com/cityjson/specs/tree/master/schemas>`_
-(this will automatically fetch the schemas for the version of CityJSON):
-
-.. code:: console
-
-    cjio myfile.json validate
-
-If the errors are too many, you can save the validation output to a file:
-
-.. code:: console
-
-    cjio myfile.json validate > /path/to/report.txt
-
-If the file is too large (and thus validation is slow), an option is to
-crop a subset and just validate it:
-
-.. code:: console
-
-    cjio myfile.json subset --random 2 validate
-
-If you want to use your own schemas, give the folder where the master
-schema file ``cityjson.schema.json`` is located:
-
-.. code:: console
-
-    cjio example.json validate --folder_schemas /home/elvis/temp/myschemas/
 
 Generating Binary glTF
 ----------------------
 
-Convert the CityJSON ``example.json`` to a glb file
+Convert the CityJSON ``example.city.json`` to a glb file
 ``/home/elvis/gltfs/example.glb``
 
 .. code:: console
 
     cjio example.json export --format glb /home/elvis/gltfs
 
-Convert the CityJSON ``example.json`` to a glb file
+Convert the CityJSON ``example.city.json`` to a glb file
 ``/home/elvis/test.glb``
 
 .. code:: console
 
-    cjio example.json export --format glb /home/elvis/test.glb
+    cjio example.city.json export --format glb /home/elvis/test.glb
 
 Usage of the API
 ----------------
@@ -274,13 +239,13 @@ This will execute your script in the context of the python environment inside th
 Example CityJSON datasets
 -------------------------
 
-There are a few `example files on the CityJSON
-webpage <https://www.cityjson.org/datasets/>`_.
+There are a few `example files on the CityJSON webpage <https://www.cityjson.org/datasets/>`_.
 
 Alternatively, any `CityGML <https://www.ogc.org/standards/citygml>`_ file can be
 automatically converted to CityJSON with the open-source project
 `citygml-tools <https://github.com/citygml4j/citygml-tools>`_ (based on
 `citygml4j <https://github.com/citygml4j/citygml4j>`_).
+
 
 Acknowledgements
 ----------------
