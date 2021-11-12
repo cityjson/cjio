@@ -6,13 +6,12 @@ from cjio import cjio
 
 
 class TestCLI:
-    """assign_epsg"""
-    def test_assign_epsg_cli(self, delft_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, 'assign_epsg.json')
+    def test_crs_assign_cli(self, delft_path, data_output_dir):
+        p_out = os.path.join(data_output_dir, 'crs_assign.json')
         runner = CliRunner()
         result = runner.invoke(cjio.cli,
                                args=[delft_path,
-                                     'assign_epsg', '4326', 
+                                     'crs_assign', '4326', 
                                      'save',
                                      p_out])
         
@@ -21,15 +20,12 @@ class TestCLI:
         
         os.remove(p_out)
     
-    
-    
-    """clean"""
-    def test_clean_cli(self, delft_path, data_output_dir):
+    def test_vertices_clean_cli(self, delft_path, data_output_dir):
         p_out = os.path.join(data_output_dir, 'clean.json')
         runner = CliRunner()
         result = runner.invoke(cjio.cli,
                                args=[delft_path,
-                                     'clean',
+                                     'vertices_clean',
                                      'save',
                                      p_out])
         
@@ -38,9 +34,6 @@ class TestCLI:
         
         os.remove(p_out)
     
-    
-    
-    """export"""
     def test_export_jsonl_cli(self, delft_path, data_output_dir):
         p_out = os.path.join(data_output_dir, 'delft.jsonl')
         runner = CliRunner()
@@ -116,14 +109,12 @@ class TestCLI:
     
         os.remove(p_out)
     
-    
-    """filter_lod"""
-    def test_filter_lod_cli(self, multi_lod_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, 'filter_lod.json')
+    def test_lod_filter_cli(self, multi_lod_path, data_output_dir):
+        p_out = os.path.join(data_output_dir, 'lod_filter.json')
         runner = CliRunner()
         result = runner.invoke(cjio.cli,
                                args=[multi_lod_path,
-                                     'filter_lod', '1.2',
+                                     'lod_filter', '1.2',
                                      'save',
                                      p_out])
         
@@ -132,18 +123,14 @@ class TestCLI:
         
         os.remove(p_out)
     
-    
-    """get_metadata"""
-    def test_get_metadata_cli(self, delft_path):
+    def test_metadata_get_cli(self, delft_path):
         runner = CliRunner()
         result = runner.invoke(cjio.cli,
                                args=[delft_path,
-                                     'get_metadata'])
+                                     'metadata_get'])
         
         assert result.exit_code == 0    
     
-    
-    """info"""
     def test_info_cli(self, delft_path):
         runner = CliRunner()
         result = runner.invoke(cjio.cli,
@@ -152,18 +139,14 @@ class TestCLI:
         
         assert result.exit_code == 0    
     
-    
-    """locate_textures"""
-    def test_locate_textures_cli(self, rotterdam_subset_path):
+    def test_textures_locate_cli(self, rotterdam_subset_path):
         runner = CliRunner()
         result = runner.invoke(cjio.cli,
                                args=[rotterdam_subset_path,
-                                     'locate_textures'])
+                                     'textures_locate'])
         
         assert result.exit_code == 0    
     
-    
-    """merge"""
     def test_merge_cli(self, delft_path, rotterdam_subset_path, data_output_dir):
         p_out = os.path.join(data_output_dir, 'merge.json')
         runner = CliRunner()
@@ -178,14 +161,12 @@ class TestCLI:
         
         os.remove(p_out)
     
-    
-    """remove_attribute"""
-    def test_remove_attribute_cli(self, delft_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, 'remove_attribute.json')
+    def test_attribute_remove_cli(self, delft_path, data_output_dir):
+        p_out = os.path.join(data_output_dir, 'attribute_remove.json')
         runner = CliRunner()
         result = runner.invoke(cjio.cli,
                                args=[delft_path,
-                                     'remove_attribute', 'bgt_status',
+                                     'attribute_remove', 'bgt_status',
                                      'save',
                                      p_out])
         
@@ -193,31 +174,13 @@ class TestCLI:
         assert os.path.exists(p_out) == True
         
         os.remove(p_out)
-    
-    
-    """remove_duplicate_vertices"""
-    def test_remove_duplicate_vertices_cli(self, delft_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, 'remove_duplicate_vertices.json')
-        runner = CliRunner()
-        result = runner.invoke(cjio.cli,
-                               args=[delft_path,
-                                     'remove_duplicate_vertices',
-                                     'save',
-                                     p_out])
         
-        assert result.exit_code == 0
-        assert os.path.exists(p_out) == True
-        
-        os.remove(p_out)
-    
-    
-    """remove_materials"""
-    def test_remove_materials_cli(self, rotterdam_subset_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, 'remove_materials.json')
+    def test_materials_remove_cli(self, rotterdam_subset_path, data_output_dir):
+        p_out = os.path.join(data_output_dir, 'materials_remove.json')
         runner = CliRunner()
         result = runner.invoke(cjio.cli,
                                args=[rotterdam_subset_path,
-                                     'remove_materials',
+                                     'materials_remove',
                                      'save',
                                      p_out])
         
@@ -226,30 +189,12 @@ class TestCLI:
         
         os.remove(p_out)
     
-    
-    """remove_orphan_vertices"""
-    def test_remove_orphan_vertices_cli(self, delft_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, 'remove_orphan_vertices.json')
-        runner = CliRunner()
-        result = runner.invoke(cjio.cli,
-                               args=[delft_path,
-                                     'remove_orphan_vertices',
-                                     'save',
-                                     p_out])
-        
-        assert result.exit_code == 0
-        assert os.path.exists(p_out) == True
-        
-        os.remove(p_out)
-    
-    
-    """remove_textures"""
-    def test_remove_textures_cli(self, rotterdam_subset_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, 'remove_textures.json')
+    def test_textures_remove_cli(self, rotterdam_subset_path, data_output_dir):
+        p_out = os.path.join(data_output_dir, 'textures_remove.json')
         runner = CliRunner()
         result = runner.invoke(cjio.cli,
                                args=[rotterdam_subset_path,
-                                     'remove_textures',
+                                     'textures_remove',
                                      'save',
                                      p_out])
         
@@ -258,14 +203,12 @@ class TestCLI:
         
         os.remove(p_out)
     
-    
-    """rename_attribute"""
-    def test_rename_attribute_cli(self, delft_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, 'rename_attribute.json')
+    def test_attribute_rename_cli(self, delft_path, data_output_dir):
+        p_out = os.path.join(data_output_dir, 'attribute_rename.json')
         runner = CliRunner()
         result = runner.invoke(cjio.cli,
                                args=[delft_path,
-                                     'rename_attribute', 'hoek', 'angle',
+                                     'attribute_rename', 'hoek', 'angle',
                                      'save',
                                      p_out])
         
@@ -274,14 +217,12 @@ class TestCLI:
         
         os.remove(p_out)
     
-    
-    """reproject"""
-    def test_reproject_cli(self, rotterdam_subset_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, 'reproject.json')
+    def test_crs_reproject_cli(self, rotterdam_subset_path, data_output_dir):
+        p_out = os.path.join(data_output_dir, 'crs_reproject.json')
         runner = CliRunner()
         result = runner.invoke(cjio.cli,
                                args=[rotterdam_subset_path,
-                                     'reproject', '4326',
+                                     'crs_reproject', '4326',
                                      'save',
                                      p_out])
         
@@ -290,8 +231,6 @@ class TestCLI:
         
         os.remove(p_out)
     
-    
-    """save"""
     def test_save_cli(self, delft_path, data_output_dir):
         p_out = os.path.join(data_output_dir, 'save.json')
         runner = CliRunner()
@@ -305,8 +244,6 @@ class TestCLI:
         
         os.remove(p_out)
     
-    
-    """subset"""
     def test_subset_ids_cli(self, zurich_subset_path, data_output_dir):
         p_out = os.path.join(data_output_dir, 'subset_ids.json')
         runner = CliRunner()
@@ -324,8 +261,6 @@ class TestCLI:
         
         os.remove(p_out)
     
-    
-    """subset"""
     def test_subset_bbox_cli(self, zurich_subset_path, data_output_dir):
         p_out = os.path.join(data_output_dir, 'subset_bbox.json')
         runner = CliRunner()
@@ -343,8 +278,6 @@ class TestCLI:
         
         os.remove(p_out)
     
-    
-    """subset"""
     def test_subset_random_cli(self, zurich_subset_path, data_output_dir):
         p_out = os.path.join(data_output_dir, 'subset_random.json')
         runner = CliRunner()
@@ -360,8 +293,6 @@ class TestCLI:
         
         os.remove(p_out)
     
-    
-    """subset"""
     def test_subset_cotype_cli(self, zurich_subset_path, data_output_dir):
         p_out = os.path.join(data_output_dir, 'subset_cotype.json')
         runner = CliRunner()
@@ -377,14 +308,12 @@ class TestCLI:
         
         os.remove(p_out)
 
-
-    """translate"""
-    def test_translate_cli(self, delft_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, 'translate.json')
+    def test_crs_translate_cli(self, delft_path, data_output_dir):
+        p_out = os.path.join(data_output_dir, 'crs_translate.json')
         runner = CliRunner()
         result = runner.invoke(cjio.cli,
                                args=[delft_path,
-                                     'translate',
+                                     'crs_translate',
                                      '--values', '-1', '-1', '-1',
                                      'save',
                                      p_out])
@@ -394,14 +323,12 @@ class TestCLI:
         
         os.remove(p_out)
     
-    
-    """update_metadata"""
-    def test_update_metadata_cli(self, delft_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, 'update_metadata.json')
+    def test_metadata_update_cli(self, delft_path, data_output_dir):
+        p_out = os.path.join(data_output_dir, 'metadata_update.json')
         runner = CliRunner()
         result = runner.invoke(cjio.cli,
                                args=[delft_path,
-                                     'update_metadata',
+                                     'metadata_update',
                                      'save',
                                      p_out])
         
@@ -410,17 +337,15 @@ class TestCLI:
         
         os.remove(p_out)
     
-    
-    """update_textures"""
-    def test_update_textures_cli(self, rotterdam_subset_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, 'update_textures.json')
+    def test_textures_update_cli(self, rotterdam_subset_path, data_output_dir):
+        p_out = os.path.join(data_output_dir, 'textures_update.json')
         t_path = os.path.join(os.path.dirname(rotterdam_subset_path), 'appearances_test')
         os.makedirs(t_path, exist_ok=True)
         
         runner = CliRunner()
         result = runner.invoke(cjio.cli,
                                args=[rotterdam_subset_path,
-                                     'update_textures', t_path,
+                                     'textures_update', t_path,
                                      'save',
                                      p_out])
         
@@ -429,15 +354,13 @@ class TestCLI:
         
         os.remove(p_out)
         os.rmdir(t_path)
-    
-    
-    """upgrade_version"""
-    def test_upgrade_version_cli(self, delft_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, 'upgrade_version.json')
+
+    def test_upgrade_cli(self, delft_path, data_output_dir):
+        p_out = os.path.join(data_output_dir, 'upgrade.json')
         runner = CliRunner()
         result = runner.invoke(cjio.cli,
                                args=[delft_path,
-                                     'upgrade_version',
+                                     'upgrade',
                                      'save',
                                      p_out])
         
@@ -445,9 +368,7 @@ class TestCLI:
         assert os.path.exists(p_out) == True
         
         os.remove(p_out)
-    
-    
-    """validate"""
+
     def test_validate_cli(self, delft_path):
         runner = CliRunner()
         result = runner.invoke(cjio.cli,
