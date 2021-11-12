@@ -48,6 +48,9 @@ setup(
             'pandas',
             'mapbox-earcut'
         ],
+        'validate': [
+            'cjvalpy'
+        ],        
         'reproject': [
             'pyproj'
         ]
