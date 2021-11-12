@@ -29,7 +29,7 @@ To install the latest release:
 
     .. code:: console
 
-        pip install cjio[export,reproject]
+        pip install 'cjio[export,reproject]'
 
 To install the development branch, and still develop with it:
 
@@ -38,7 +38,7 @@ To install the development branch, and still develop with it:
     git checkout develop
     virtualenv venv
     . venv/bin/activate
-    pip install --editable .[develop]
+    pip install --editable '.[develop]'
 
 **Note for Windows users**
 
