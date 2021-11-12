@@ -33,10 +33,6 @@ setup(
     ],
     install_requires=[
         'Click',
-        'jsonschema',
-        'fastjsonschema',
-        'jsonschema_rs',
-        'jsonref'
     ],
     extras_require={
         'develop': [
