@@ -127,6 +127,12 @@ def export_cmd(filename, format):
     OBJ, Binary glTF (glb), Batched 3DModel (b3dm), STL, JSONL (JSON Lines, for streaming). 
     
     Currently textures are not supported, sorry.
+
+    Usage examples:
+
+    \b
+        cjio myfile.city.json export --format obj myfile.obj 
+        cjio myfile.city.json export --format jsonl myfile.txt 
     """
     def exporter(cm):
         output = utils.verify_filename(filename)
