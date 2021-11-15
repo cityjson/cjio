@@ -1520,23 +1520,27 @@ class CityJSON:
         j2["transform"] = self.j["transform"]
         if "metadata" in self.j:
             j2["metadata"] = self.j["metadata"]
+        if "+metadata-extended" in self.j:
+            j2["+metadata-extended"] = self.j["+metadata-extended"]            
         if "extensions" in self.j:
             j2["extensions"] = self.j["extensions"]
         json_str = json.dumps(j2, separators=(',',':'))
         out.write(json_str + '\n')
         #-- take each IDs and create on CityJSONFeature
         idsdone = set()
+        theallowedproperties = ["type", "id", "CityObjects", "vertices", "appearance"]
         for theid in self.j["CityObjects"]:
             if ("parents" not in self.j["CityObjects"][theid]) and (theid not in idsdone):
                 cm2 = self.get_subset_ids([theid])
                 cm2.j["type"] = "CityJSONFeature"
                 cm2.j["id"] = theid
-                del cm2.j["transform"]
-                del cm2.j["version"]
-                if "metadata" in cm2.j:
-                    del cm2.j["metadata"]
-                if "extensions" in cm2.j:
-                    del cm2.j["extensions"]
+                # allp = cm2.j
+                todelete = []
+                for p in cm2.j:
+                    if p not in theallowedproperties:
+                        todelete.append(p)
+                for p in todelete:
+                    del cm2.j[p]
                 #-- TODO: remove and deal with geometry-templates here
                 #--       they need to be deferenced
                 if "geometry-templates" in cm2.j:
