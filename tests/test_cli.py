@@ -216,21 +216,6 @@ class TestCLI:
         
         os.remove(p_out)
     
-    def test_subset_random_cli(self, zurich_subset_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, 'subset_random.json')
-        runner = CliRunner()
-        result = runner.invoke(cjio.cli,
-                               args=[zurich_subset_path,
-                                     'subset', '--random',
-                                     '10',
-                                     'save',
-                                     p_out])
-        
-        assert result.exit_code == 0
-        assert os.path.exists(p_out) == True
-        
-        os.remove(p_out)
-    
     def test_subset_cotype_cli(self, zurich_subset_path, data_output_dir):
         p_out = os.path.join(data_output_dir, 'subset_cotype.json')
         runner = CliRunner()
