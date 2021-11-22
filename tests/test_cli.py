@@ -76,20 +76,6 @@ class TestCLI:
     
         os.remove(p_out)
     
-    def test_lod_filter_cli(self, multi_lod_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, 'lod_filter.json')
-        runner = CliRunner()
-        result = runner.invoke(cjio.cli,
-                               args=[multi_lod_path,
-                                     'lod_filter', '1.2',
-                                     'save',
-                                     p_out])
-        
-        assert result.exit_code == 0
-        assert os.path.exists(p_out) == True
-        
-        os.remove(p_out)
-    
     def test_metadata_get_cli(self, delft_path):
         runner = CliRunner()
         result = runner.invoke(cjio.cli,

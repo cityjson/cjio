@@ -207,11 +207,11 @@ class TestCityJSON:
         
     def test_filter_lod(self, multi_lod):
         cm = multi_lod
-        cm.filter_lod("2.2")
+        cm.filter_lod("1.3")
         for coid in cm.j['CityObjects']:
             if 'geometry' in cm.j['CityObjects']:
                 for geom in cm.j['CityObjects'][coid]['geometry']:
-                    assert geom["lod"] == "2.2"
+                    assert geom["lod"] == "1.3"
 
     def test_merge_materials(materials):
         """Testing #100
