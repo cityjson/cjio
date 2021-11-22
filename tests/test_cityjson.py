@@ -229,7 +229,7 @@ def test_merge_materials(materials):
     Merging two files with materials. One has the member 'values', the other has the
     member 'value' on their CityObjects.
     """
-    cm1, cm2 = materials
+    cm1, cm2 = materials[:2]
     # cm1 contains the CityObject with 'value'. During the merge, the Material Object
     # from cm1 is appended to the list of Materials in cm2
     assert cm2.merge([cm1, ])
