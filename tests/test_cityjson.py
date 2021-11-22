@@ -194,15 +194,16 @@ class TestCityJSON:
         for item in cm:
             item.triangulate()
 
-
-    def test_is_triangulate(self,triangulated):
+    def test_is_triangulate(self, triangulated):
         cm = triangulated
         for item in cm:
             assert item.is_triangulated()
 
     def test_convert_to_jsonl(self, delft):
-         cm = copy.deepcopy(delft)
-         jsonl = cm.export2jsonl()
+        cm = copy.deepcopy(delft)
+        jsonl = cm.export2jsonl()
+        for l in jsonl.readlines():
+            json.loads(l)
         
     def test_filter_lod(self, multi_lod):
         cm = multi_lod

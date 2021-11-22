@@ -33,25 +33,6 @@ class TestCLI:
         assert os.path.exists(p_out) == True
         
         os.remove(p_out)
-    
-    def test_export_jsonl_cli(self, delft_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, 'delft.jsonl')
-        runner = CliRunner()
-        result = runner.invoke(cjio.cli,
-                               args=[delft_path,
-                                     'export',
-                                     '--format', 'jsonl',
-                                     p_out])
-        
-        assert result.exit_code == 0
-        assert os.path.exists(p_out) == True
-        
-        with open(p_out, 'r') as f:
-            for l in f.readlines():
-                # Check if valid JSON
-                json.loads(l)
-                
-        os.remove(p_out)
                 
     def test_export_glb_cli(self, delft_path, data_output_dir):
         p_out = os.path.join(data_output_dir, 'delft.glb')
