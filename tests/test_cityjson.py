@@ -213,7 +213,7 @@ class TestCityJSON:
                 for geom in cm.j['CityObjects'][coid]['geometry']:
                     assert geom["lod"] == "1.3"
 
-    def test_merge_materials(materials):
+    def test_merge_materials(self, materials):
         """Testing #100
         Merging two files with materials. One has the member 'values', the other has the
         member 'value' on their CityObjects.
