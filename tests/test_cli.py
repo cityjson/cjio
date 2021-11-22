@@ -81,20 +81,6 @@ class TestCLI:
         
         os.remove(p_out)
         
-    def test_export_stl_cli(self, delft_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, 'delft.stl')
-        runner = CliRunner()
-        result = runner.invoke(cjio.cli,
-                               args=[delft_path,
-                                     'export',
-                                     '--format', 'stl',
-                                     p_out])
-        
-        assert result.exit_code == 0
-        assert os.path.exists(p_out) == True
-        
-        os.remove(p_out)
-        
     def test_export_obj_cli(self, delft_path, data_output_dir):
         p_out = os.path.join(data_output_dir, 'delft.obj')
         runner = CliRunner()

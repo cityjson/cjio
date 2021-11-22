@@ -189,17 +189,6 @@ class TestCityJSON:
          cm = copy.deepcopy(delft)
          obj = cm.export2stl()
 
-    def test_export_stl_cmd(self, data_dir, data_output_dir):
-        """Debugging"""
-        p = os.path.join(data_dir, 'delft.json')
-        runner = CliRunner()
-        result = runner.invoke(cjio.cli,
-                               args=[p,
-                                     'export',
-                                     '--format', 'stl',
-                                     data_output_dir])
-
-
     def test_triangulate(self, materials):
         """Test #101"""
         cm = materials
@@ -224,16 +213,16 @@ class TestCityJSON:
                 for geom in cm.j['CityObjects'][coid]['geometry']:
                     assert geom["lod"] == "2.2"
 
-def test_merge_materials(materials):
-    """Testing #100
-    Merging two files with materials. One has the member 'values', the other has the
-    member 'value' on their CityObjects.
-    """
-    cm1, cm2 = materials[:2]
-    # cm1 contains the CityObject with 'value'. During the merge, the Material Object
-    # from cm1 is appended to the list of Materials in cm2
-    assert cm2.merge([cm1, ])
-    assert len(cm2.j['CityObjects']) == 4
-    # The value of 'value' in the CityObject from cm1 must be updated to point to the
-    # correct Material Object in the materials list
-    assert cm2.j['CityObjects']['NL.IMBAG.Pand.0518100001755018-0']['geometry'][0]['material']['default']['value'] == 1
+    def test_merge_materials(materials):
+        """Testing #100
+        Merging two files with materials. One has the member 'values', the other has the
+        member 'value' on their CityObjects.
+        """
+        cm1, cm2 = materials[:2]
+        # cm1 contains the CityObject with 'value'. During the merge, the Material Object
+        # from cm1 is appended to the list of Materials in cm2
+        assert cm2.merge([cm1, ])
+        assert len(cm2.j['CityObjects']) == 4
+        # The value of 'value' in the CityObject from cm1 must be updated to point to the
+        # correct Material Object in the materials list
+        assert cm2.j['CityObjects']['NL.IMBAG.Pand.0518100001755018-0']['geometry'][0]['material']['default']['value'] == 1
