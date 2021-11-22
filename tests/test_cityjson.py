@@ -1,13 +1,10 @@
-"""Test the CityJSON class
+"""Test the CityJSON class"""
 
-"""
 import pytest
-import os.path
-from click.testing import CliRunner
 import copy
 from cjio import cityjson, models
-from cjio import cjio
 from math import isclose
+import json
 
 
 @pytest.fixture(scope='module')
@@ -101,6 +98,8 @@ class TestCityJSON:
     
     def test_subset_random(self, zurich_subset):
         subset = zurich_subset.get_subset_random(10)
+        cnt = sum(1 for co in subset.j["CityObjects"].values() if co["type"] == "Building")
+        assert cnt == 10
     
     def test_subset_cotype(self, zurich_subset):
         subset = zurich_subset.get_subset_cotype("Building")
