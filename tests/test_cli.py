@@ -233,23 +233,6 @@ class TestCLI:
         
         os.remove(p_out)
     
-    def test_subset_bbox_cli(self, zurich_subset_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, 'subset_bbox.json')
-        runner = CliRunner()
-        result = runner.invoke(cjio.cli,
-                               args=[zurich_subset_path,
-                                     'subset', '--bbox',
-                                     '2678219.194', '1243078.7249999999', '2682811.964', '1248058.2475',
-                                     'save',
-                                     p_out])
-    
-        print(result.stdout_bytes)
-        
-        assert result.exit_code == 0
-        assert os.path.exists(p_out) == True
-        
-        os.remove(p_out)
-    
     def test_subset_random_cli(self, zurich_subset_path, data_output_dir):
         p_out = os.path.join(data_output_dir, 'subset_random.json')
         runner = CliRunner()
