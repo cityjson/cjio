@@ -62,15 +62,7 @@ class TestCLI:
                                args=[delft_path,
                                      'info'])
         
-        assert result.exit_code == 0    
-    
-    def test_textures_locate_cli(self, rotterdam_subset_path):
-        runner = CliRunner()
-        result = runner.invoke(cjio.cli,
-                               args=[rotterdam_subset_path,
-                                     'textures_locate'])
-        
-        assert result.exit_code == 0    
+        assert result.exit_code == 0
     
     def test_merge_cli(self, delft_path, rotterdam_subset_path, data_output_dir):
         p_out = os.path.join(data_output_dir, 'merge.json')
