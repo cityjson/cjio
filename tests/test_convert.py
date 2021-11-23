@@ -17,6 +17,7 @@ class TestB3dm:
         glb = convert.to_glb(delft.j)
         b3dm = convert.to_b3dm(delft, glb)
 
+
 class Test3dtiles:
 
     def test_export_3dtiles_cmd(self, data_dir, data_output_dir):
