@@ -1,13 +1,10 @@
-"""Test the CityJSON class
+"""Test the CityJSON class"""
 
-"""
 import pytest
-import os.path
-from click.testing import CliRunner
 import copy
 from cjio import cityjson, models
-from cjio import cjio
 from math import isclose
+import json
 
 
 @pytest.fixture(scope='module')
@@ -101,6 +98,8 @@ class TestCityJSON:
     
     def test_subset_random(self, zurich_subset):
         subset = zurich_subset.get_subset_random(10)
+        cnt = sum(1 for co in subset.j["CityObjects"].values() if co["type"] == "Building")
+        assert cnt == 10
     
     def test_subset_cotype(self, zurich_subset):
         subset = zurich_subset.get_subset_cotype("Building")
@@ -189,51 +188,41 @@ class TestCityJSON:
          cm = copy.deepcopy(delft)
          obj = cm.export2stl()
 
-    def test_export_stl_cmd(self, data_dir, data_output_dir):
-        """Debugging"""
-        p = os.path.join(data_dir, 'delft.json')
-        runner = CliRunner()
-        result = runner.invoke(cjio.cli,
-                               args=[p,
-                                     'export',
-                                     '--format', 'stl',
-                                     data_output_dir])
-
-
     def test_triangulate(self, materials):
         """Test #101"""
         cm = materials
         for item in cm:
             item.triangulate()
 
-
-    def test_is_triangulate(self,triangulated):
+    def test_is_triangulate(self, triangulated):
         cm = triangulated
         for item in cm:
             assert item.is_triangulated()
 
     def test_convert_to_jsonl(self, delft):
-         cm = copy.deepcopy(delft)
-         jsonl = cm.export2jsonl()
+        cm = copy.deepcopy(delft)
+        jsonl = cm.export2jsonl()
+        for l in jsonl.readlines():
+            json.loads(l)
         
     def test_filter_lod(self, multi_lod):
         cm = multi_lod
-        cm.filter_lod("2.2")
+        cm.filter_lod("1.3")
         for coid in cm.j['CityObjects']:
             if 'geometry' in cm.j['CityObjects']:
                 for geom in cm.j['CityObjects'][coid]['geometry']:
-                    assert geom["lod"] == "2.2"
+                    assert geom["lod"] == "1.3"
 
-def test_merge_materials(materials):
-    """Testing #100
-    Merging two files with materials. One has the member 'values', the other has the
-    member 'value' on their CityObjects.
-    """
-    cm1, cm2 = materials[:2]
-    # cm1 contains the CityObject with 'value'. During the merge, the Material Object
-    # from cm1 is appended to the list of Materials in cm2
-    assert cm2.merge([cm1, ])
-    assert len(cm2.j['CityObjects']) == 4
-    # The value of 'value' in the CityObject from cm1 must be updated to point to the
-    # correct Material Object in the materials list
-    assert cm2.j['CityObjects']['NL.IMBAG.Pand.0518100001755018-0']['geometry'][0]['material']['default']['value'] == 1
+    def test_merge_materials(self, materials):
+        """Testing #100
+        Merging two files with materials. One has the member 'values', the other has the
+        member 'value' on their CityObjects.
+        """
+        cm1, cm2 = materials[:2]
+        # cm1 contains the CityObject with 'value'. During the merge, the Material Object
+        # from cm1 is appended to the list of Materials in cm2
+        assert cm2.merge([cm1, ])
+        assert len(cm2.j['CityObjects']) == 4
+        # The value of 'value' in the CityObject from cm1 must be updated to point to the
+        # correct Material Object in the materials list
+        assert cm2.j['CityObjects']['NL.IMBAG.Pand.0518100001755018-0']['geometry'][0]['material']['default']['value'] == 1
