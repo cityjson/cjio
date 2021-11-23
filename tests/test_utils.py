@@ -34,24 +34,3 @@ class TestFileNamesPaths:
     def test_verify_filenames_invalid(self, invalid_path):
         with pytest.raises(ClickException) as e:
             utils.verify_filename(invalid_path[0])
-
-    def test_file(self, data_dir):
-        """When the user passes a path to a file as output"""
-        extension = 'b3dm'
-        p = os.path.join(data_dir, 'delft.json')
-        filepath = utils.generate_filepath(p, extension)
-        pass
-
-    def test_dir(self, data_dir):
-        """When the user passes a path to a directory as output"""
-        extension = 'b3dm'
-        filepath = utils.generate_filepath(data_dir, extension)
-        pass
-
-    def test_partitioned_file(self, data_dir):
-        """User passed a path to a file, but the input is partitioned"""
-        pass
-
-    def test_partitioned_dir(self, data_dir, data_output_dir):
-        """User passed a path to a directory, but the input is partitioned"""
-        pass
