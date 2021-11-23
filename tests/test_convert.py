@@ -10,16 +10,6 @@ class TestGltf:
     def test_convert_to_glb(self, delft):
         glb = convert.to_glb(delft.j)
 
-    def test_export_glb_cmd(self, data_dir, data_output_dir):
-        """Debugging"""
-        p = os.path.join(data_dir, 'delft.json')
-        runner = CliRunner()
-        result = runner.invoke(cjio.cli,
-                               args=[p,
-                                     'export',
-                                     '--format', 'gltf',
-                                     data_output_dir])
-
 
 class TestB3dm:
 
