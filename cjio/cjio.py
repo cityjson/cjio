@@ -202,12 +202,8 @@ def export_cmd(filename, format):
             str = "Install it: https://pypi.org/project/mapbox-earcut/"
             utils.print_cmd_warning(str)
             raise click.ClickException('Abort.')
-        # NOTE BD: export_cmd can take a list of citymodels, which is the output of the partitioner
-        if format.lower() == '3dtiles' or not isinstance(cm, list):
-            exporter(cm)
         else:
-            for subset in cm:
-                exporter(subset)
+            exporter(cm)
         return cm
     return processor
 
