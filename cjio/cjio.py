@@ -322,7 +322,7 @@ def merge_cmd(filepattern):
 
 @cli.command('subset')
 @click.option('--id', multiple=True, help='The ID of the City Objects; can be used multiple times.')
-@click.option('--bbox', nargs=4, type=float, help='2D bbox: (minx miny maxx maxy).')
+@click.option('--bbox', nargs=4, type=float, help='2D bbox: minx miny maxx maxy.')
 @click.option('--random', type=int, help='Number of random City Objects to select.')
 @click.option('--cotype',
     type=click.Choice(['Building', 'Bridge', 'Road', 'TransportSquare', 'LandUse', 'Railway', 'TINRelief', 'WaterBody', 'PlantCover', 'SolitaryVegetationObject', 'CityFurniture', 'GenericCityObject', 'Tunnel']), 
@@ -339,6 +339,14 @@ def subset_cmd(id, bbox, random, cotype, exclude):
     These can be combined, except random which overwrites others.
 
     Option '--exclude' excludes the selected objects, or "reverse" the selection.
+
+    Usage examples:
+
+    \b
+        cjio myfile.city.json subset --bbox 104607 490148 104703 490257 save out.city.json 
+        cjio myfile.city.json subset --id house12 save out.city.json
+        cjio myfile.city.json subset --random 5 save out.city.json
+        cjio myfile.city.json subset --cotype LandUse save out.city.json
     """
     def processor(cm):
         utils.print_cmd_status('Subset of CityJSON')
