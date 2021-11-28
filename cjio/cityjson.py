@@ -957,15 +957,53 @@ class CityJSON:
                 d.add(i)
             info["extensions"] = sorted(list(d))
         info["cityobjects_1stlevel"] = self.number_city_objects_level1()
-        # info["cityobjects_total"] = len(self.j["CityObjects"])
-        dc = {}
+        info["cityobjects_total"] = len(self.j["CityObjects"])
+        # dcp = {}
+        # for key in self.j["CityObjects"]:
+        #     dcp[self.j['CityObjects'][key]['type']] = []
+        # dcn = {}
+        # for key in self.j["CityObjects"]:
+        #     ty = self.j['CityObjects'][key]['type']
+        #     if ty not in dcn:
+        #         dcn[ty] = 1
+        #     else:
+        #         dcn[ty] += 1
+        #     if "parents" in self.j['CityObjects'][key]:
+        #         for each in self.j['CityObjects'][key]['parents']:
+        #             pt = self.j['CityObjects'][each]['type']
+        #             if pt not in dcp[ty]:
+        #                 dcp[ty].append(pt) 
+        # print('dcp:', dcp)
+
+        # levels = []
+        # for each in dcp:
+        #     if len(dpc[each]) == 0:
+
+        d = {}
         for key in self.j["CityObjects"]:
             ty = self.j['CityObjects'][key]['type']
-            if ty not in dc:
-                dc[ty] = 1
-            else:
-                dc[ty] += 1
-        info["cityobjects_present"] = {key: value for key, value in sorted(dc.items(), key=lambda item: item[1], reverse=True)}
+            if 'parents' not in self.j['CityObjects'][key]:
+                if ty not in d:
+                    d[ty] = 1
+                else: 
+                    d[ty] += 1
+                self.info_children_dfs(key, ty, d)
+
+        print(d)
+
+        for each in d:
+            if each.count('/') == 0:
+                s = "|-- {} ({})".format(each, d[each])
+                print(s)
+                self.print_info_tree(d, each, 1)
+                    
+            
+
+
+
+
+        # info["cityobjects_present"] = {key: value for key, value in sorted(dcn.items(), key=lambda item: item[1], reverse=True)}
+
         if 'appearance' in self.j:
             info["materials"] = 'materials' in self.j['appearance']
             info["textures"] = 'textures' in self.j['appearance']
@@ -1001,6 +1039,29 @@ class CityJSON:
         info["semantics_surfaces_present"] = list(sem_srf)
         info["cityobject_attributes"] = list(co_attributes)
         return json.dumps(info, indent=2)
+
+
+    def print_info_tree(self, d, t, level):
+        for each in d:
+            if each.startswith(t + '/') == True and each.count('/') == level:
+                x = each.rsplit("/")[-1]
+                s = "{}|-- {} ({})".format(" "*3*level, x, d[each])    
+                print(s)
+                self.print_info_tree(d, each, level+1)
+
+    def info_children_dfs(self, key, typeparent, d):
+        if 'children' in self.j['CityObjects'][key]:
+            for c in self.j['CityObjects'][key]['children']:
+                ct = self.j['CityObjects'][c]['type']
+                s = typeparent + '/' + ct
+                # print(s)
+                if s not in d:
+                    d[s] = 1
+                else: 
+                    d[s] += 1
+                self.info_children_dfs(c, s, d)
+
+
 
 
     def remove_orphan_vertices(self):
