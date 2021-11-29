@@ -110,7 +110,10 @@ def process_pipeline(processors, input, ignore_duplicate_keys):
 def info_cmd(context, long):
     """Output info in simple JSON."""
     def processor(cm):
-        click.echo(cm.get_info(long=long))
+        utils.print_cmd_status('Information ⬇️')
+        s = "\n".join(cm.get_info(long=long))
+        click.echo(s)
+        utils.print_cmd_status('Information ⬆️')
         return cm
     return processor
 

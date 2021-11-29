@@ -947,37 +947,43 @@ class CityJSON:
 
 
     def get_info(self, long=False):
-        info = collections.OrderedDict()
-        info["cityjson_version"] = self.get_version()
-        info["epsg"] = self.get_epsg()
-        info["bbox"] = self.get_bbox()
+        s = []
+        s.append("CityJSON version = {}".format(self.get_version()))
+        s.append("EPSG = {}".format(self.get_epsg()))
+        s.append("bbox = {}".format(self.get_bbox()))
         if "extensions" in self.j:
             d = set()
             for i in self.j["extensions"]:
                 d.add(i)
-            info["extensions"] = sorted(list(d))
-        info["cityobjects_1stlevel"] = self.number_city_objects_level1()
-        # info["cityobjects_total"] = len(self.j["CityObjects"])
-        dc = {}
+            s.append("Extensions = {}".format(sorted(list(d))))
+        #-- hierarchy tree for CityObjects
+        s.append("=== CityObjects ===")
+        d = {}
         for key in self.j["CityObjects"]:
             ty = self.j['CityObjects'][key]['type']
-            if ty not in dc:
-                dc[ty] = 1
-            else:
-                dc[ty] += 1
-        info["cityobjects_present"] = {key: value for key, value in sorted(dc.items(), key=lambda item: item[1], reverse=True)}
+            if 'parents' not in self.j['CityObjects'][key]:
+                if ty not in d:
+                    d[ty] = 1
+                else: 
+                    d[ty] += 1
+                self.info_children_dfs(key, ty, d)
+        for each in d:
+            if each.count('/') == 0:
+                s2 = "|-- {} ({})".format(each, d[each])
+                s.append(s2)
+                self.print_info_tree(s, d, each, 1)
+        s.append("===================")
         if 'appearance' in self.j:
-            info["materials"] = 'materials' in self.j['appearance']
-            info["textures"] = 'textures' in self.j['appearance']
+            s.append("materials = {}".format('materials' in self.j['appearance']))
+            s.append("textures = {}".format('textures' in self.j['appearance']))
         else:
-            info["materials"] = False
-            info["textures"] =  False
+            s.append("materials = {}".format(False))
+            s.append("textures = {}".format(False))
         if long == False:
-            return json.dumps(info, indent=2)    
+            return s    
         #-- all/long version
-        info["is_triangulated"] = self.is_triangulated()
-        info["transform/compressed"] = self.j["transform"]
-        info["vertices_total"] = len(self.j["vertices"])
+        s.append("vertices_total = {}".format(len(self.j["vertices"])))
+        s.append("is_triangulated = {}".format(self.is_triangulated()))
         d = set()
         lod = set()
         sem_srf = set()
@@ -996,11 +1002,32 @@ class CityJSON:
                     if "semantics" in geom:
                         for srf in geom["semantics"]["surfaces"]:
                             sem_srf.add(srf["type"])
-        info["geom_primitives_present"] = list(d)
-        info["level_of_detail"] = list(lod)
-        info["semantics_surfaces_present"] = list(sem_srf)
-        info["cityobject_attributes"] = list(co_attributes)
-        return json.dumps(info, indent=2)
+        s.append("geom primitives = {}".format(list(d)))
+        s.append("LoD = {}".format(list(lod)))
+        s.append("semantics surfaces = {}".format(list(sem_srf)))
+        s.append("attributes = {}".format(list(co_attributes)))
+        return s
+
+
+    def print_info_tree(self, s, d, t, level):
+        for each in d:
+            if each.startswith(t + '/') == True and each.count('/') == level:
+                x = each.rsplit("/")[-1]
+                s2 = "{}|-- {} ({})".format(" "*4*level, x, d[each])    
+                s.append(s2)
+                self.print_info_tree(s, d, each, level+1)
+
+    def info_children_dfs(self, key, typeparent, d):
+        if 'children' in self.j['CityObjects'][key]:
+            for c in self.j['CityObjects'][key]['children']:
+                ct = self.j['CityObjects'][c]['type']
+                s = typeparent + '/' + ct
+                # print(s)
+                if s not in d:
+                    d[s] = 1
+                else: 
+                    d[s] += 1
+                self.info_children_dfs(c, s, d)
 
 
     def remove_orphan_vertices(self):
@@ -2153,9 +2180,10 @@ class CityJSON:
         """
 
         for theid in self.j['CityObjects']:
-            for geom in self.j['CityObjects'][theid]['geometry']:
-                if ((geom['type'] == 'MultiSurface') or (geom['type'] == 'CompositeSurface')):
-                    for face in geom['boundaries']:
+            if 'geometry' in self.j['CityObjects'][theid]:
+                for geom in self.j['CityObjects'][theid]['geometry']:
+                    if ((geom['type'] == 'MultiSurface') or (geom['type'] == 'CompositeSurface')):
+                        for face in geom['boundaries']:
                         for f in face:
                             if len(f) != 3:
                                 return False
