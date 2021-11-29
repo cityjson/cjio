@@ -972,7 +972,7 @@ class CityJSON:
                 s2 = "|-- {} ({})".format(each, d[each])
                 s.append(s2)
                 self.print_info_tree(s, d, each, 1)
-        s.append("=============== ===")
+        s.append("===================")
         if 'appearance' in self.j:
             s.append("materials = {}".format('materials' in self.j['appearance']))
             s.append("textures = {}".format('textures' in self.j['appearance']))
