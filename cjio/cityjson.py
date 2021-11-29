@@ -118,8 +118,7 @@ def off2cj(file):
     cm["version"] = CITYJSON_VERSIONS_SUPPORTED[-1]
     cm["extensions"] = {}
     cm["extensions"]["Generic"]= {}
-    #-- TODO: change URL for Generic Extension
-    cm["extensions"]["Generic"]["url"] = "https://homepage.tudelft.nl/23t4p/generic.ext.json"
+    cm["extensions"]["Generic"]["url"] = "https://cityjson.org/extensions/download/generic.ext.json"
     cm["extensions"]["Generic"]["version"] = "1.0"
     cm["CityObjects"] = {}
     cm["vertices"] = []
@@ -162,8 +161,7 @@ def poly2cj(file):
     cm["version"] = CITYJSON_VERSIONS_SUPPORTED[-1]
     cm["extensions"] = {}
     cm["extensions"]["Generic"]= {}
-    #-- TODO: change URL for Generic Extension
-    cm["extensions"]["Generic"]["url"] = "https://homepage.tudelft.nl/23t4p/generic.ext.json"
+    cm["extensions"]["Generic"]["url"] = "https://cityjson.org/extensions/download/generic.ext.json"
     cm["extensions"]["Generic"]["version"] = "1.0"
     cm["CityObjects"] = {}
     cm["vertices"] = []
@@ -2184,21 +2182,21 @@ class CityJSON:
                 for geom in self.j['CityObjects'][theid]['geometry']:
                     if ((geom['type'] == 'MultiSurface') or (geom['type'] == 'CompositeSurface')):
                         for face in geom['boundaries']:
-                        for f in face:
-                            if len(f) != 3:
-                                return False
-                elif (geom['type'] == 'Solid'):
-                    for shell in geom['boundaries']:
-                        for face in shell:
                             for f in face:
                                 if len(f) != 3:
                                     return False
-                elif ((geom['type'] == 'MultiSolid') or (geom['type'] == 'CompositeSolid')):
-                    for solid in geom['boundaries']:
-                        for shell in solid:
+                    elif (geom['type'] == 'Solid'):
+                        for shell in geom['boundaries']:
                             for face in shell:
                                 for f in face:
                                     if len(f) != 3:
                                         return False
+                    elif ((geom['type'] == 'MultiSolid') or (geom['type'] == 'CompositeSolid')):
+                        for solid in geom['boundaries']:
+                            for shell in solid:
+                                for face in shell:
+                                    for f in face:
+                                        if len(f) != 3:
+                                            return False
         return True
 
