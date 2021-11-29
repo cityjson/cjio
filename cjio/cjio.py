@@ -108,7 +108,7 @@ def process_pipeline(processors, input, ignore_duplicate_keys):
 @click.pass_context
 @click.option('--long', is_flag=True, help='More gory details about the file.')
 def info_cmd(context, long):
-    """Output info in simple JSON."""
+    """Output information about the dataset."""
     def processor(cm):
         utils.print_cmd_status('Information ⬇️')
         s = "\n".join(cm.get_info(long=long))
