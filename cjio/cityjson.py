@@ -2180,9 +2180,10 @@ class CityJSON:
         """
 
         for theid in self.j['CityObjects']:
-            for geom in self.j['CityObjects'][theid]['geometry']:
-                if ((geom['type'] == 'MultiSurface') or (geom['type'] == 'CompositeSurface')):
-                    for face in geom['boundaries']:
+            if 'geometry' in self.j['CityObjects'][theid]:
+                for geom in self.j['CityObjects'][theid]['geometry']:
+                    if ((geom['type'] == 'MultiSurface') or (geom['type'] == 'CompositeSurface')):
+                        for face in geom['boundaries']:
                         for f in face:
                             if len(f) != 3:
                                 return False
