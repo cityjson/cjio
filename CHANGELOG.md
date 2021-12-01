@@ -1,5 +1,20 @@
 # Changelog
 
+
+## [0.7.0] - 2021-12-01
+### Changed
+- Minimum required CityJSON version is 1.1
+- Many operators names changed, it's now "property-verb", so that all the operators related to textures for instance are together
+- The metadata are only updated (with lineage) when there is a [metadata-extended](https://github.com/cityjson/metadata-extended) property in the file, otherwise nothing is modified
+- The schema validator (operator `validate`) is not written in Python anymore and part of cjio, it's using [cjval](https://github.com/cityjson/cjval) and its [Python binding](https://github.com/cityjson/cjvalpy) (which needs to be installed). The validator is several orders of magniture faster too
+
+### Added
+- A new operator `triangulate` that triangulates each surface of the input (de-triangulate coming soon)
+
+### Fixed
+- Several bugs were fixed
+
+
 ## [0.6.10] - 2021-10-18
 ### Changed
 - Minimum required Python is 3.6
