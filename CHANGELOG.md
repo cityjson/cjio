@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.7.2] - 2021-12-02
+### Fixed
+- String representation of the CityJSON class works again
+
 ## [0.7.1] - 2021-12-01
 ### Fixed
 - save operator was crashing for unknown reasons sometimes, this is fixed
