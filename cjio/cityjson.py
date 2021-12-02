@@ -206,7 +206,7 @@ class CityJSON:
 
 
     def __repr__(self):
-        return self.get_info()
+        return os.linesep.join(self.get_info())
 
 
     ##-- API functions
