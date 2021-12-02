@@ -1,5 +1,6 @@
 import sys
 import os.path
+from os import linesep
 
 import click
 import json
@@ -111,7 +112,7 @@ def info_cmd(context, long):
     """Output information about the dataset."""
     def processor(cm):
         utils.print_cmd_status('Information ⬇️')
-        s = "\n".join(cm.get_info(long=long))
+        s = linesep.join(cm.get_info(long=long))
         click.echo(s)
         utils.print_cmd_status('Information ⬆️')
         return cm
