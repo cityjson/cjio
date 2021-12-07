@@ -5,7 +5,6 @@ import shutil
 
 import json
 import collections
-import jsonref
 import urllib.request
 import tempfile
 import math
