@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.7.3] - 2021-12-15
+### Fixed
+- STL export (#127)
+
 ## [0.7.2] - 2021-12-02
 ### Fixed
 - String representation of the CityJSON class works again
