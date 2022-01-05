@@ -328,15 +328,16 @@ def merge_cmd(filepattern):
 @click.option('--bbox', nargs=4, type=float, help='2D bbox: minx miny maxx maxy.')
 @click.option('--random', type=int, help='Number of random City Objects to select.')
 @click.option('--cotype',
+    multiple=True,
     type=click.Choice(['Building', 'Bridge', 'Road', 'TransportSquare', 'LandUse', 'Railway', 'TINRelief', 'WaterBody', 'PlantCover', 'SolitaryVegetationObject', 'CityFurniture', 'GenericCityObject', 'Tunnel']), 
-    help='The City Object type')
+    help='The City Object type; can be used multiple times.')
 @click.option('--exclude', is_flag=True, help='Excludes the selection, thus delete the selected object(s).')
 def subset_cmd(id, bbox, random, cotype, exclude):
     """
     Create a subset, City Objects can be selected by:
     (1) IDs of City Objects;
     (2) bbox;
-    (3) City Object type;
+    (3) City Object type(s);
     (4) randomly.
 
     These can be combined, except random which overwrites others.
@@ -349,7 +350,7 @@ def subset_cmd(id, bbox, random, cotype, exclude):
         cjio myfile.city.json subset --bbox 104607 490148 104703 490257 save out.city.json 
         cjio myfile.city.json subset --id house12 save out.city.json
         cjio myfile.city.json subset --random 5 save out.city.json
-        cjio myfile.city.json subset --cotype LandUse save out.city.json
+        cjio myfile.city.json subset --cotype LandUse --cotype Building save out.city.json
     """
     def processor(cm):
         utils.print_cmd_status('Subset of CityJSON')

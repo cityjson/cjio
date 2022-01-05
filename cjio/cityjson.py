@@ -18,6 +18,7 @@ from io import StringIO
 from sys import platform
 from click import progressbar
 from datetime import datetime, date
+from typing import Tuple
 MODULE_NUMPY_AVAILABLE = True
 MODULE_PYPROJ_AVAILABLE = True
 MODULE_EARCUT_AVAILABLE = True
@@ -737,19 +738,22 @@ class CityJSON:
         return cm2
 
 
-    def get_subset_cotype(self, cotype, exclude=False):
+    def get_subset_cotype(self, cotypes: Tuple[str], exclude=False):
         # print ('get_subset_cotype')
-        lsCOtypes = [cotype]
-        if cotype == 'Building':
-            lsCOtypes.append('BuildingInstallation')
-            lsCOtypes.append('BuildingPart')
-        if cotype == 'Bridge':
-            lsCOtypes.append('BridgePart')
-            lsCOtypes.append('BridgeInstallation')
-            lsCOtypes.append('BridgeConstructionElement')
-        if cotype == 'Tunnel':
-            lsCOtypes.append('TunnelInstallation')
-            lsCOtypes.append('TunnelPart')
+        if not isinstance(cotypes, tuple):
+            raise TypeError("cotypes must be a tuple of CityObject types")
+        lsCOtypes = list(cotypes)
+        for cotype in cotypes:
+            if cotype == 'Building':
+                lsCOtypes.append('BuildingInstallation')
+                lsCOtypes.append('BuildingPart')
+            if cotype == 'Bridge':
+                lsCOtypes.append('BridgePart')
+                lsCOtypes.append('BridgeInstallation')
+                lsCOtypes.append('BridgeConstructionElement')
+            if cotype == 'Tunnel':
+                lsCOtypes.append('TunnelInstallation')
+                lsCOtypes.append('TunnelPart')
         #-- new sliced CityJSON object
         cm2 = CityJSON()
         cm2.j["version"] = self.j["version"]

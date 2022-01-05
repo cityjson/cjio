@@ -101,9 +101,9 @@ class TestCityJSON:
         cnt = sum(1 for co in subset.j["CityObjects"].values() if co["type"] == "Building")
         assert cnt == 10
     
-    def test_subset_cotype(self, zurich_subset):
-        subset = zurich_subset.get_subset_cotype("Building")
-        types = ["Building", "BuildingPart", "BuildingInstallation", "BuildingConstructiveElement", "BuildingFurniture", "BuildingStorey", "BuildingRoom", "BuildingUnit"]
+    def test_subset_cotype(self, delft):
+        subset = delft.get_subset_cotype(["Building", "LandUse"])
+        types = ["LandUse", "Building", "BuildingPart", "BuildingInstallation", "BuildingConstructiveElement", "BuildingFurniture", "BuildingStorey", "BuildingRoom", "BuildingUnit"]
         
         for co in subset.j['CityObjects']:
             assert subset.j['CityObjects'][co]['type'] in types

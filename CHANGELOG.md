@@ -1,5 +1,9 @@
 # Changelog
 
+## [unreleased]
+### Added
+- Subset more than one CityObject type (#9)
+
 
 ## [0.7.0] - 2021-12-01
 ### Changed
