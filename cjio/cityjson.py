@@ -252,7 +252,7 @@ class CityJSON:
                 geometry.append(
                     models.Geometry(
                         type=geom['type'],
-                        lod=geom['lod'],
+                        lod=geom.get('lod'),
                         boundaries=geom['boundaries'],
                         semantics_obj=semantics,
                         texture_obj=texture,

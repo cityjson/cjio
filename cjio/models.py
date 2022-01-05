@@ -5,6 +5,7 @@ import json
 from copy import deepcopy
 import collections
 from typing import Iterable, Mapping
+import warnings
 
 # TODO BD: this iteration is not really nice, maybe implement it in a way that don't need to use .items() and .values()
 # for co_id, co in cm.cityobjects.items():
@@ -282,6 +283,8 @@ class Geometry(object):
                     sh.append(s)
                 solids.append(sh)
             return solids
+        elif btype.lower() == 'geometryinstance':
+            warnings.warn("Unsupported geometry type GeometryInstance", UserWarning)
         else:
             raise TypeError("Unknown geometry type: {}".format(btype))
 
