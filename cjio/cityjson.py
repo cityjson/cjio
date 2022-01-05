@@ -629,7 +629,7 @@ class CityJSON:
                     re.add(each)
         
         for each in re:
-            cm2.j["CityObjects"][each] = self.j["CityObjects"][each]
+            cm2.j["CityObjects"][each] = copy.deepcopy(self.j["CityObjects"][each])
         #-- geometry
         subset.process_geometry(self.j, cm2.j)
         #-- templates

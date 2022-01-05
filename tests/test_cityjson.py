@@ -95,6 +95,17 @@ class TestCityJSON:
                 (centroid[1] >= bbox[1]) and
                 (centroid[0] <  bbox[2]) and
                 (centroid[1] <  bbox[3]))
+
+    def test_subset_bbox_loop(self, delft):
+        """Issue #10"""
+        bbox = delft.update_bbox()
+        subs_box = (84873.68845606346, 447503.6748565406, 84919.65679078053, 447548.4091420035)
+        nr_cos = []
+        for i in range(4):
+            s = delft.get_subset_bbox(subs_box)
+            nr_cos.append(len(s.j["CityObjects"]))
+        _f = nr_cos[0]
+        assert all(i == _f for i in nr_cos)
     
     def test_subset_random(self, zurich_subset):
         subset = zurich_subset.get_subset_random(10)

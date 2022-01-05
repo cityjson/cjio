@@ -4,6 +4,9 @@
 ### Added
 - Subset more than one CityObject type (#9)
 
+### Fixed
+- Subset with BBOX does not modify the input model anymore (#10)
+
 
 ## [0.7.0] - 2021-12-01
 ### Changed
