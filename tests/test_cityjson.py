@@ -113,7 +113,7 @@ class TestCityJSON:
         assert cnt == 10
     
     def test_subset_cotype(self, delft):
-        subset = delft.get_subset_cotype(["Building", "LandUse"])
+        subset = delft.get_subset_cotype(("Building", "LandUse"))
         types = ["LandUse", "Building", "BuildingPart", "BuildingInstallation", "BuildingConstructiveElement", "BuildingFurniture", "BuildingStorey", "BuildingRoom", "BuildingUnit"]
         
         for co in subset.j['CityObjects']:
