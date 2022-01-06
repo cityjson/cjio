@@ -1,5 +1,6 @@
 import sys
 import os.path
+from os import linesep
 
 import click
 import json
@@ -111,7 +112,7 @@ def info_cmd(context, long):
     """Output information about the dataset."""
     def processor(cm):
         utils.print_cmd_status('Information ⬇️')
-        s = "\n".join(cm.get_info(long=long))
+        s = linesep.join(cm.get_info(long=long))
         click.echo(s)
         utils.print_cmd_status('Information ⬆️')
         return cm
@@ -235,8 +236,6 @@ def save_cmd(filename, indent, textures):
         #         cm.j["metadata"]["fileIdentifier"] = os.path.basename(output['path'])
         # except:
         #     pass
-
-        print(cm)
 
         utils.print_cmd_status("Saving CityJSON to a file %s" % output['path'])
         try:

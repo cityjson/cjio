@@ -5,7 +5,6 @@ import shutil
 
 import json
 import collections
-import jsonref
 import urllib.request
 import tempfile
 import math
@@ -207,7 +206,7 @@ class CityJSON:
 
 
     def __repr__(self):
-        return self.get_info()
+        return os.linesep.join(self.get_info())
 
 
     ##-- API functions
@@ -1644,6 +1643,7 @@ class CityJSON:
                 if ( (geom['type'] == 'MultiSurface') or (geom['type'] == 'CompositeSurface') ):
                     for face in geom['boundaries']:
                         re, b = self.triangulate_face(face, vnp)
+                        n, bb = geom_help.get_normal_newell(face)
                         if b == True:
                             for t in re:
                                 out.write("facet normal %f %f %f\nouter loop\n" % (n[0], n[1], n[2]))
