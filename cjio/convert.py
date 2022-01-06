@@ -140,10 +140,11 @@ def to_glb(cm):
     matid = 0
     material_ids = []
 
-
     vertexlist = np.array(cm.j["vertices"])
 
-    for coi,theid in enumerate(cm.j['CityObjects']):
+    # CityObject index with geometry that goes into the glb
+    coi = 0
+    for theid in cm.j['CityObjects']:
         forimax = []
 
         if "geometry" in cm.j['CityObjects'][theid] and len(cm.j['CityObjects'][theid]['geometry']) != 0:
@@ -163,8 +164,7 @@ def to_glb(cm):
                 matid = 5
             elif (comType == "CityFurniture"):
                 matid = 6
-            elif (
-                    comType == "Bridge" or comType == "BridgePart" or comType == "BridgeInstallation" or comType == "BridgeConstructionElement"):
+            elif (comType == "Bridge" or comType == "BridgePart" or comType == "BridgeInstallation" or comType == "BridgeConstructionElement"):
                 matid = 7
             elif (comType == "Tunnel" or comType == "TunnelPart" or comType == "TunnelInstallation"):
                 matid = 8
@@ -304,6 +304,8 @@ def to_glb(cm):
             nodes.append({"mesh": coi})
             # one node per CityObject
             node_indices.append(coi)
+
+            coi += 1
 
     #-- buffers
     buffer = dict()

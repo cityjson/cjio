@@ -21,7 +21,7 @@ class TestGltf:
 
     def test_debug_den_haag_glb(self, data_dir):
         # CityJSON v1.1
-        p = os.path.join(data_dir, "DH_01.city.json")
+        p = os.path.join(data_dir, "DH_01_subs.city.json")
         with open(p, 'r') as f:
             cm = cityjson.CityJSON(file=f)
         glb = cm.export2glb()
