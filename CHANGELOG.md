@@ -9,6 +9,19 @@
 - `cityjson.load()` does not fail on a `GeometryInstance`, however it does not load it either (#19)
 
 
+## [0.7.3] - 2021-12-15
+### Fixed
+- STL export (#127)
+
+## [0.7.2] - 2021-12-02
+### Fixed
+- String representation of the CityJSON class works again
+
+## [0.7.1] - 2021-12-01
+### Fixed
+- save operator was crashing for unknown reasons sometimes, this is fixed
+
+
 ## [0.7.0] - 2021-12-01
 ### Changed
 - Minimum required CityJSON version is 1.1
