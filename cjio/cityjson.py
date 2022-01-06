@@ -1527,15 +1527,14 @@ class CityJSON:
 
 
     def export2b3dm(self):
-        glb = convert.to_glb(self.j)
+        glb = convert.to_glb(self)
         b3dm = convert.to_b3dm(self, glb)
         return b3dm
 
 
-    def export2gltf(self):
-        # TODO B: probably no need to double wrap this to_gltf(), but its long, and
-        # the current cityjson.py is long already
-        glb = convert.to_glb(self.j)
+    def export2glb(self):
+        self.decompress()
+        glb = convert.to_glb(self)
         return glb
 
     def export2jsonl(self):

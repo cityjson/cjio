@@ -17,11 +17,19 @@ def several_cms(data_dir, request):
 class TestGltf:
 
     def test_convert_to_glb(self, several_cms):
-        glb = convert.to_glb(several_cms.j)
+        glb = several_cms.export2glb()
+
+    def test_debug_den_haag_glb(self, data_dir):
+        # CityJSON v1.1
+        p = os.path.join(data_dir, "DH_01.city.json")
+        with open(p, 'r') as f:
+            cm = cityjson.CityJSON(file=f)
+        glb = cm.export2glb()
+
 
 
 class TestB3dm:
 
     def test_convert_to_b3dm(self, delft):
-        glb = convert.to_glb(delft.j)
+        glb = delft.export2glb()
         b3dm = convert.to_b3dm(delft, glb)

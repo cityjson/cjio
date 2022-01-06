@@ -168,7 +168,7 @@ def export_cmd(filename, format):
             bufferbin = "{}.glb".format(fname)
             binfile = os.path.join(os.path.dirname(output['path']), bufferbin)
             utils.print_cmd_status("Exporting CityJSON to glb %s" % binfile)
-            glb = cm.export2gltf()
+            glb = cm.export2glb()
             # TODO B: how many buffer can there be in the 'buffers'?
             try:
                 glb.seek(0)

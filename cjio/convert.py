@@ -100,7 +100,7 @@ def to_b3dm(cm, glb):
 
     return b3dm_bin
 
-def to_glb(j):
+def to_glb(cm):
     """Convert to Binary glTF (.glb)
 
     Adapted from CityJSON2glTF: https://github.com/tudelft3d/CityJSON2glTF
@@ -118,7 +118,7 @@ def to_glb(j):
     gltf_bin = bytearray()
     glb = BytesIO()
     try:
-        if len(j['CityObjects']) == 0:
+        if len(cm.j['CityObjects']) == 0:
             return glb
     except KeyError as e:
         raise TypeError("Not a CityJSON")
@@ -140,14 +140,15 @@ def to_glb(j):
     matid = 0
     material_ids = []
 
-    vertexlist = np.array(j["vertices"])
 
-    for coi,theid in enumerate(j['CityObjects']):
+    vertexlist = np.array(cm.j["vertices"])
+
+    for coi,theid in enumerate(cm.j['CityObjects']):
         forimax = []
 
-        if len(j['CityObjects'][theid]['geometry']) != 0:
+        if "geometry" in cm.j['CityObjects'][theid] and len(cm.j['CityObjects'][theid]['geometry']) != 0:
 
-            comType = j['CityObjects'][theid]['type']
+            comType = cm.j['CityObjects'][theid]['type']
             if (comType == "Building" or comType == "BuildingPart" or comType == "BuildingInstallation"):
                 matid = 0
             elif (comType == "TINRelief"):
@@ -171,7 +172,7 @@ def to_glb(j):
                 matid = 9
             material_ids.append(matid)
 
-            for geom in j['CityObjects'][theid]['geometry']:
+            for geom in cm.j['CityObjects'][theid]['geometry']:
                 poscount = poscount + 1
                 if geom['type'] == "Solid":
                     triList = []
