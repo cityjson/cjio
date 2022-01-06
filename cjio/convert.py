@@ -200,7 +200,10 @@ def to_glb(cm):
             # need to reindex the vertices, otherwise if the vtx index exceeds the nr. of vertices in the
             # accessor then we get "ACCESSOR_INDEX_OOB" error
             for i,v in enumerate(flatgeom):
-                vtx_np[i] = vertexlist[v]
+                # Need to swap the axis, because gltf uses a right-handed coordinate
+                # system. glTF defines +Y as up, +Z as forward, and -X as right;
+                # the front of a glTF asset faces +Z.
+                vtx_np[i] = np.array((vertexlist[v][1], vertexlist[v][2], vertexlist[v][0]))
                 vtx_idx_np[i] = i
             bin_vtx = vtx_np.astype(np.float32).tostring()
             # convert geometry indices to binary
