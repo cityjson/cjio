@@ -151,14 +151,14 @@ Convert the CityJSON ``example.city.json`` to a glb file
 
 .. code:: console
 
-    cjio example.json export --format glb /home/elvis/gltfs
+    cjio example.json export glb /home/elvis/gltfs
 
 Convert the CityJSON ``example.city.json`` to a glb file
 ``/home/elvis/test.glb``
 
 .. code:: console
 
-    cjio example.city.json export --format glb /home/elvis/test.glb
+    cjio example.city.json export glb /home/elvis/test.glb
 
 Usage of the API
 ----------------

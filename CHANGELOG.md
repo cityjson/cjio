@@ -9,6 +9,9 @@
 - `cityjson.load()` does not fail on a `GeometryInstance`, however it does not load it either (#19)
 - Fixes to the *glb* exporter (#20, #57, #83), and fixed the coordinate system
 
+### Changed
+- Export format is an argument, not an option (#35), e.g. `cjio ... export obj out.obj`
+
 
 ## [0.7.3] - 2021-12-15
 ### Fixed

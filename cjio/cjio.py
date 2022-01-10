@@ -120,23 +120,22 @@ def info_cmd(context, long):
 
 
 @cli.command('export')
-@click.argument('filename')
-@click.option('--format',
+@click.argument('format',
               type=click.Choice(['obj', 'jsonl', 'stl', 'glb', 'b3dm']),
-              required=True,
-              help="Export format")
+              required=True)
+@click.argument('filename')
 def export_cmd(filename, format):
     """Export to another format.
 
     OBJ, Binary glTF (glb), Batched 3DModel (b3dm), STL, JSONL (JSON Lines, for streaming). 
     
-    Currently textures are not supported, sorry.
+    Currently, textures are not supported, sorry.
 
     Usage examples:
 
     \b
-        cjio myfile.city.json export --format obj myfile.obj 
-        cjio myfile.city.json export --format jsonl myfile.txt 
+        cjio myfile.city.json export obj myfile.obj
+        cjio myfile.city.json export jsonl myfile.txt
     """
     def exporter(cm):
         output = utils.verify_filename(filename)
