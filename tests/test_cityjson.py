@@ -202,13 +202,11 @@ class TestCityJSON:
     def test_triangulate(self, materials):
         """Test #101"""
         cm = materials
-        for item in cm:
-            item.triangulate()
+        cm.triangulate()
 
     def test_is_triangulate(self, triangulated):
         cm = triangulated
-        for item in cm:
-            assert item.is_triangulated()
+        assert cm.is_triangulated()
 
     def test_convert_to_jsonl(self, delft):
         cm = copy.deepcopy(delft)
