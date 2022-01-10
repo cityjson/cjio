@@ -8,6 +8,8 @@
 - Subset with BBOX does not modify the input model anymore (#10)
 - `cityjson.load()` does not fail on a `GeometryInstance`, however it does not load it either (#19)
 - Fixes to the *glb* exporter (#20, #57, #83), and fixed the coordinate system
+- `texture` and `material` are correctly removed from the geometries of the CityObjects with `textures/materials_remove`
+- `vertex-texture` is removed from the CityJSON with `textures_remove`
 
 ### Changed
 - Export format is an argument, not an option (#35), e.g. `cjio ... export obj out.obj`

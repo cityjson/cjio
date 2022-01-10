@@ -908,26 +908,27 @@ class CityJSON:
 
 
     def remove_textures(self):
-        for i in self.j["CityObjects"]:
-            if "texture" in self.j["CityObjects"][i]:
-                del self.j["CityObjects"][i]["texture"]
+        for co in self.j["CityObjects"].values():
+            for geom in co["geometry"]:
+                if "texture" in geom:
+                    del geom["texture"]
         if "appearance" in self.j:
             if "textures" in self.j["appearance"]:
                 del self.j["appearance"]["textures"]
-            if "vertices-texture" in self.j["appearance"]:
-                del self.j["appearance"]["vertices-texture"]
+            if "vertex-texture" in self.j["appearance"]:
+                del self.j["appearance"]["vertex-texture"]
             if "default-theme-texture" in self.j["appearance"]:
                 del self.j["appearance"]["default-theme-texture"]
-        # print (len(self.j["appearance"]))
         if "appearance" in self.j:
             if self.j["appearance"] is None or len(self.j["appearance"]) == 0:
                 del self.j["appearance"]
         return True
 
     def remove_materials(self):
-        for i in self.j["CityObjects"]:
-            if "material" in self.j["CityObjects"][i]:
-                del self.j["CityObjects"][i]["material"]
+        for co in self.j["CityObjects"].values():
+            for geom in co["geometry"]:
+                if "material" in geom:
+                    del geom["material"]
         if "appearance" in self.j:
             if "materials" in self.j["appearance"]:
                 del self.j["appearance"]["materials"]
