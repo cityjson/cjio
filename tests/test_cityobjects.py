@@ -5,7 +5,7 @@ import pytest
 
 from cjio import models
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='function')
 def cm_rdam_subset(rotterdam_subset):
     rotterdam_subset.cityobjects = dict()
     for co_id, co in rotterdam_subset.j['CityObjects'].items():

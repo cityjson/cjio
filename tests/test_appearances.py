@@ -53,3 +53,6 @@ def test_update_textures_url(rotterdam_subset):
 def test_update_textures_none(dummy_noappearance):
     with pytest.raises(errors.InvalidOperation):
         dummy_noappearance.update_textures_location('somepath', relative=True)
+#
+# def test_remove_textures(rotterdam_subset):
+#     cm = rotterdam_subset.

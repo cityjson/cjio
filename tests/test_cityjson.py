@@ -7,7 +7,7 @@ from math import isclose
 import json
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='function')
 def cm_zur_subset(zurich_subset):
     zurich_subset.cityobjects = dict()
     for co_id, co in zurich_subset.j['CityObjects'].items():

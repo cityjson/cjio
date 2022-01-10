@@ -40,7 +40,7 @@ class TestCLI:
         result = runner.invoke(cjio.cli,
                                args=[delft_path,
                                      'export',
-                                     '--format', 'obj',
+                                     'obj',
                                      p_out])
         
         assert result.exit_code == 0
