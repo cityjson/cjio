@@ -150,6 +150,18 @@ def materials(data_dir, request):
     with open(p, 'r') as f:
         yield cityjson.CityJSON(file=f)
 
+@pytest.fixture(scope='session')
+def materials_two(data_dir):
+    """Two models with materials for testing their merging"""
+    cms = []
+    p = os.path.join(data_dir, 'material', 'mt-1.json')
+    with open(p, 'r') as f:
+        cms.append(cityjson.CityJSON(file=f))
+    p = os.path.join(data_dir, 'material', 'mt-2.json')
+    with open(p, 'r') as f:
+        cms.append(cityjson.CityJSON(file=f))
+    yield cms
+
 @pytest.fixture(scope='session',
                 params=[
                     ('material', 'mt-1-triangulated.json'),
