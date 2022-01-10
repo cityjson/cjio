@@ -61,9 +61,9 @@ def get_normal_newell(poly):
     
     if (n==np.array([0.0, 0.0, 0.0])).all():
         # print("one wrong")
-        return n
+        return (n, False)
     n = n / math.sqrt(n[0]*n[0] + n[1]*n[1] + n[2]*n[2])    
-    return n
+    return (n, True)
 
 
 def triangulate_face(face, vnp):
@@ -82,7 +82,7 @@ def triangulate_face(face, vnp):
         total += len(face[i])
         rings[i] = total
         # 1. normal with Newell's method
-    n = get_normal_newell(sfv)
+    n, b = get_normal_newell(sfv)
     sfv2d = np.zeros((sfv.shape[0], 2))
     for i, p in enumerate(sfv):
         xy = to_2d(p, n)
