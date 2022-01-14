@@ -245,7 +245,7 @@ class CityJSON:
             parents = co['parents'] if 'parents' in co else None
             attributes = co['attributes'] if 'attributes' in co else None
             geometry = []
-            for geom in co['geometry']:
+            for geom in co.get('geometry',[]):
                 semantics = geom['semantics'] if 'semantics' in geom else None
                 texture = geom['texture'] if 'texture' in geom else None
                 geometry.append(
