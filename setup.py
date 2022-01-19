@@ -32,6 +32,7 @@ setup(
     ],
     install_requires=[
         'Click',
+        'numpy'
     ],
     extras_require={
         'develop': [
@@ -39,7 +40,6 @@ setup(
             'bump2version'
         ],
         'export': [
-            'numpy',
             'pandas',
             'mapbox-earcut'
         ],

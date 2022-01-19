@@ -13,6 +13,7 @@
 
 ### Changed
 - Export format is an argument, not an option (#35), e.g. `cjio ... export obj out.obj`
+- NumPy is a hard requirement
 
 
 ## [0.7.3] - 2021-12-15
