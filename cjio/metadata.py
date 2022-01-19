@@ -1,13 +1,11 @@
 """Module containing metadata related functions"""
 
 import uuid
-import json
 import os
-import time
 import re
 import collections, functools, operator
 import sys
-from datetime import date, datetime
+from datetime import date
 import platform
 
 def generate_metadata(citymodel: dict,

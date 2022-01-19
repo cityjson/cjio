@@ -1,5 +1,5 @@
+"""CityModel subset functions"""
 
-import json
 
 def select_co_bbox(j, bbox):
     #-- select the CO whose

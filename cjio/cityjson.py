@@ -1,22 +1,16 @@
 
 import os
 import re
-import shutil
 
 import json
-import collections
 import urllib.request
-import tempfile
 import math
 import shutil
-from pkg_resources import resource_filename
-from pkg_resources import resource_listdir
 import copy
 import random
 from io import StringIO
-from sys import platform
 from click import progressbar
-from datetime import datetime, date
+from datetime import datetime
 from typing import Tuple
 MODULE_NUMPY_AVAILABLE = True
 MODULE_PYPROJ_AVAILABLE = True
