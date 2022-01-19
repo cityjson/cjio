@@ -24,10 +24,7 @@ MODULE_EARCUT_AVAILABLE = True
 MODULE_PANDAS_AVAILABLE = True
 MODULE_CJVAL_AVAILABLE = True
 
-try:
-    import numpy as np
-except ImportError as e:
-    MODULE_NUMPY_AVAILABLE = False
+import numpy as np
 try:
     import pyproj
 except ImportError as e:

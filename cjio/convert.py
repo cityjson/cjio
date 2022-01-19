@@ -3,11 +3,7 @@ import json
 
 from cjio import geom_help
 
-MODULE_NUMPY_AVAILABLE = True
-try:
-    import numpy as np
-except ImportError as e:
-    MODULE_NUMPY_AVAILABLE = False
+import numpy as np
 
 def flatten(x):
     result = []

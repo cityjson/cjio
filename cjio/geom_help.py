@@ -1,28 +1,6 @@
 import math
 
-# FIXME: temporary solution to make Numpy conditional because of PyInstaller issues on Windows
-# Traceback (most recent call last):
-#
-#   File "site-packages\numpy\core\__init__.py", line 24, in <module>
-#
-#   File "c:\python38\lib\site-packages\PyInstaller\loader\pyimod03_importers.py", line 621, in exec_module
-#
-#     exec(bytecode, module.__dict__)
-#
-#   File "site-packages\numpy\core\multiarray.py", line 14, in <module>
-#
-#   File "c:\python38\lib\site-packages\PyInstaller\loader\pyimod03_importers.py", line 621, in exec_module
-#
-#     exec(bytecode, module.__dict__)
-#
-#   File "site-packages\numpy\core\overrides.py", line 7, in <module>
-#
-# ImportError: DLL load failed while importing _multiarray_umath: The specified module could not be found.
-MODULE_NUMPY_AVAILABLE = True
-try:
-    import numpy as np
-except ImportError as e:
-    MODULE_NUMPY_AVAILABLE = False
+import numpy as np
 
 MODULE_EARCUT_AVAILABLE = True
 try:
