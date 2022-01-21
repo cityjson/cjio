@@ -11,4 +11,4 @@ fi
 
 echo "Running as $(whoami)"
 
-exec "/app/.venv/bin/$@"
+exec "$@"
