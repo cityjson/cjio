@@ -1,0 +1,8 @@
+venv
+.pytest_cache
+.git
+.run
+docs
+tests
+tmp
+cjio.egg-info
