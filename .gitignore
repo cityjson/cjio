@@ -114,6 +114,7 @@ ENV/
 
 # PyCharm
 .idea*
+/.run/
 
 # KDE
 .directory
