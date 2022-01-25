@@ -10,6 +10,7 @@
 - Fixes to the *glb* exporter (#20, #57, #83), and fixed the coordinate system
 - `texture` and `material` are correctly removed from the geometries of the CityObjects with `textures/materials_remove`
 - `vertex-texture` is removed from the CityJSON with `textures_remove`
+- Docker image build (#77, #132)
 
 ### Changed
 - Export format is an argument, not an option (#35), e.g. `cjio ... export obj out.obj`

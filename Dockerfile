@@ -28,9 +28,11 @@ RUN cd /app && \
     cjio --version
 
 FROM python:3.8.12-slim AS cjio
-LABEL org.opencontainers.image.authors="b.dukai@tudelft.nl"
-LABEL maintainer.email="b.dukai@tudelft.nl" maintainer.name="Balázs Dukai"
-LABEL description="cjio, or CityJSON/io"
+LABEL org.opencontainers.image.authors="Balázs Dukai <b.dukai@tudelft.nl>"
+LABEL org.opencontainers.image.licenses="MIT"
+LABEL org.opencontainers.image.url="https://github.com/cityjson/cjio"
+LABEL org.opencontainers.image.description="Python CLI to process and manipulate CityJSON files. The different operators can be chained to perform several processing operations in one step, the CityJSON model goes through them and different versions of the CityJSON model can be saved as files along the pipeline."
+LABEL org.opencontainers.image.title="cjio"
 
 RUN useradd -u 1001 -G root -s /bin/bash app && \
     chgrp -R 0 /etc/passwd && \
