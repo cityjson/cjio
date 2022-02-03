@@ -567,19 +567,15 @@ class CityJSON:
         if "metadata" in self.j:
             if "identifier" in self.j["metadata"]:
                 cm_id = self.j["metadata"]["identifier"]
-        
         if cm_id:
             template = "{cm_id} ({file_id})"
         else:
             template = "{file_id}"
-
         if "metadata" in self.j:
             if "identifier" in self.j["metadata"]:
                 return template.format(cm_id=cm_id, file_id=self.j["metadata"]["identifier"])
-
         if self.path:
             return os.path.basename(self.path)
-        
         return "unknown"
 
 
