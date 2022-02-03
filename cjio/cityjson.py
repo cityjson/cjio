@@ -594,12 +594,6 @@ class CityJSON:
 
     def get_subset_bbox(self, bbox, exclude=False):
         # print ('get_subset_bbox')
-        #-- new sliced CityJSON object
-        cm2 = CityJSON()
-        cm2.j["version"] = self.j["version"]
-        cm2.path = self.path
-        if "transform" in self.j:
-            cm2.j["transform"] = self.j["transform"]
         re = set()            
         for coid in self.j["CityObjects"]:
             centroid = self.get_centroid(coid)
@@ -609,40 +603,15 @@ class CityJSON:
                 (centroid[0] <  bbox[2]) and
                 (centroid[1] <  bbox[3]) ):
                 re.add(coid)
-        re2 = copy.deepcopy(re)
-        if exclude == True:
-            allkeys = set(self.j["CityObjects"].keys())
-            re = allkeys ^ re
         #-- also add the parent-children
-        for theid in re2:
+        for theid in re:
             if "children" in self.j['CityObjects'][theid]:
                 for child in self.j['CityObjects'][theid]['children']:
                     re.add(child)
             if "parents" in self.j['CityObjects'][theid]:
                 for each in self.j['CityObjects'][theid]['parents']:
                     re.add(each)
-        
-        for each in re:
-            cm2.j["CityObjects"][each] = copy.deepcopy(self.j["CityObjects"][each])
-        #-- geometry
-        subset.process_geometry(self.j, cm2.j)
-        #-- templates
-        subset.process_templates(self.j, cm2.j)
-        #-- appearance
-        if ("appearance" in self.j):
-            cm2.j["appearance"] = {}
-            subset.process_appearance(self.j, cm2.j)
-        cm2.update_bbox()
-        #-- metadata
-        if self.has_metadata_extended():
-            try:
-                cm2.j["+metadata-extended"] = copy.deepcopy(self.j["+metadata-extended"])
-                cm2.update_metadata_extended(overwrite=True)
-                fids = [fid for fid in cm2.j["CityObjects"]]
-                cm2.add_lineage_item("Subset of {} by bounding box {}".format(self.get_identifier(), bbox), features=fids)
-            except:
-                pass
-        return cm2
+        return self.subset(lsIDs=re, exclude=exclude)
 
 
     def is_co_toplevel(self, co):
@@ -665,38 +634,14 @@ class CityJSON:
         return re[offset:(offset+limit)]
 
 
-    def get_subset_random(self, number=1, exclude=False):
-        random.seed()
-        total = len(self.j["CityObjects"])
-        if number > total:
-            number = total
-        allkeys = list(self.j["CityObjects"].keys())
-        re = set()
-        count = 0
-        while (count < number):
-            t = allkeys[random.randint(0, total - 1)]
-            if self.is_co_toplevel(self.j["CityObjects"][t]):
-                re.add(t)
-                count += 1
+    def subset(self, lsIDs, exclude=False):
+        #-- copy selected CO to the j2
+        re = subset.select_co_ids(self.j, lsIDs)
+        #-- exclude
         if exclude == True:
             sallkeys = set(self.j["CityObjects"].keys())
-            re = sallkeys ^ re
+            re = sallkeys - re
         re = list(re)
-        cm = self.get_subset_ids(re) #-- do not overwrite the metadata there, only here
-        # cm.update_bbox()
-        # cm.update_identifier()
-        #-- TODO: copy the metadata, what about the name/uuid
-        # if self.has_metadata_extended():
-        #     try:
-        #         cm.update_metadata_extended(overwrite=True)
-        #         fids = [fid for fid in cm.j["CityObjects"]]
-        #         cm.add_lineage_item("Random subset of {}".format(self.get_identifier()), features=fids)
-        #     except:
-        #         pass
-        return cm
-
-
-    def get_subset_ids(self, lsIDs, exclude=False):
         #-- new sliced CityJSON object
         cm2 = CityJSON()
         cm2.j["version"] = self.j["version"]
@@ -705,12 +650,6 @@ class CityJSON:
             cm2.j["extensions"] = self.j["extensions"]
         if "transform" in self.j:
             cm2.j["transform"] = self.j["transform"]
-        #-- copy selected CO to the j2
-        re = subset.select_co_ids(self.j, lsIDs)
-        #-- exclude (inverse selection)
-        if exclude == True:
-            allkeys = set(self.j["CityObjects"].keys())
-            re = allkeys ^ re
         #-- select only the COs
         for each in re:
             cm2.j["CityObjects"][each] = self.j["CityObjects"][each]
@@ -730,16 +669,35 @@ class CityJSON:
         if "metadata" in self.j:
             cm2.j["metadata"] = self.j["metadata"]
             cm2.update_metadata()
-        # print(update_metadata)
-        # if self.has_metadata_extended():
-        #     try:
-        #         cm2.j["+metadata-extended"] = copy.deepcopy(self.j["+metadata-extended"])
-        #         cm2.update_metadata_extended(overwrite=True, new_uuid=True)
-        #         fids = [fid for fid in cm2.j["CityObjects"]]
-        #         cm2.add_lineage_item("Subset of {} based on user specified IDs".format(self.get_identifier()), features=fids)
-        #     except:
-        #         pass
+        if self.has_metadata_extended():
+            try:
+                cm2.j["+metadata-extended"] = copy.deepcopy(self.j["+metadata-extended"])
+                cm2.update_metadata_extended(overwrite=True)
+                fids = [fid for fid in cm2.j["CityObjects"]]
+                cm2.add_lineage_item("Subset of {}".format(self.get_identifier()), features=fids)
+            except:
+                pass
         return cm2
+
+
+    def get_subset_random(self, number=1, exclude=False):
+        random.seed()
+        total = len(self.j["CityObjects"])
+        if number > total:
+            number = total
+        allkeys = list(self.j["CityObjects"].keys())
+        re = set()
+        count = 0
+        while (count < number):
+            t = allkeys[random.randint(0, total - 1)]
+            if self.is_co_toplevel(self.j["CityObjects"][t]):
+                re.add(t)
+                count += 1
+        return self.subset(lsIDs=re, exclude=exclude)
+
+
+    def get_subset_ids(self, lsIDs, exclude=False):
+        return self.subset(lsIDs=set(lsIDs), exclude=exclude)
 
 
     def get_subset_cotype(self, cotypes: Tuple[str], exclude=False):
@@ -1820,9 +1778,7 @@ class CityJSON:
         """
         return generate_metadata(citymodel=self.j,
                                  filename=self.path,
-                                 reference_date=self.reference_date,
-                                 overwrite_values=overwrite,
-                                 recompute_uuid=new_uuid)
+                                 overwrite_values=overwrite)
 
 
     def update_metadata_extended(self, overwrite=False, new_uuid=False):
