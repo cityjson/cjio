@@ -327,8 +327,7 @@ def merge_cmd(filepattern):
 @click.option('--random', type=int, help='Number of random City Objects to select.')
 @click.option('--cotype',
     multiple=True,
-    type=click.Choice(['Building', 'Bridge', 'Road', 'TransportSquare', 'LandUse', 'Railway', 'TINRelief', 'WaterBody', 'PlantCover', 'SolitaryVegetationObject', 'CityFurniture', 'GenericCityObject', 'Tunnel']), 
-    help='The City Object type; can be used multiple times.')
+    help='The City Object types; can be used multiple times.')
 @click.option('--exclude', is_flag=True, help='Excludes the selection, thus delete the selected object(s).')
 def subset_cmd(id, bbox, random, cotype, exclude):
     """

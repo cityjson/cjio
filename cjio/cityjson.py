@@ -603,14 +603,6 @@ class CityJSON:
                 (centroid[0] <  bbox[2]) and
                 (centroid[1] <  bbox[3]) ):
                 re.add(coid)
-        #-- also add the parent-children
-        for theid in re:
-            if "children" in self.j['CityObjects'][theid]:
-                for child in self.j['CityObjects'][theid]['children']:
-                    re.add(child)
-            if "parents" in self.j['CityObjects'][theid]:
-                for each in self.j['CityObjects'][theid]['parents']:
-                    re.add(each)
         return self.subset(lsIDs=re, exclude=exclude)
 
 
@@ -700,54 +692,26 @@ class CityJSON:
         return self.subset(lsIDs=set(lsIDs), exclude=exclude)
 
 
-    def get_subset_cotype(self, cotypes: Tuple[str], exclude=False):
-        # print ('get_subset_cotype')
-        if not isinstance(cotypes, tuple):
-            raise TypeError("cotypes must be a tuple of CityObject types")
-        lsCOtypes = list(cotypes)
-        for cotype in cotypes:
-            if cotype == 'Building':
-                lsCOtypes.append('BuildingInstallation')
-                lsCOtypes.append('BuildingPart')
-            if cotype == 'Bridge':
-                lsCOtypes.append('BridgePart')
-                lsCOtypes.append('BridgeInstallation')
-                lsCOtypes.append('BridgeConstructionElement')
-            if cotype == 'Tunnel':
-                lsCOtypes.append('TunnelInstallation')
-                lsCOtypes.append('TunnelPart')
-        #-- new sliced CityJSON object
-        cm2 = CityJSON()
-        cm2.j["version"] = self.j["version"]
-        cm2.path = self.path
-        if "transform" in self.j:
-            cm2.j["transform"] = self.j["transform"]
-        #-- copy selected CO to the j2
+    def get_subset_cotype(self, cotypes, exclude=False):
+        # random.seed()
+        # total = len(self.j["CityObjects"])
+        # if number > total:
+        #     number = total
+        # allkeys = list(self.j["CityObjects"].keys())
+        # re = set()
+        # count = 0
+        # while (count < number):
+        #     t = allkeys[random.randint(0, total - 1)]
+        #     if self.is_co_toplevel(self.j["CityObjects"][t]):
+        #         re.add(t)
+        #         count += 1
+        # return self.subset(lsIDs=re, exclude=exclude)
+        re = set()
         for theid in self.j["CityObjects"]:
-            if exclude == False:
-                if self.j["CityObjects"][theid]["type"] in lsCOtypes:
-                    cm2.j["CityObjects"][theid] = self.j["CityObjects"][theid]
-            else:
-                if self.j["CityObjects"][theid]["type"] not in lsCOtypes:
-                    cm2.j["CityObjects"][theid] = self.j["CityObjects"][theid]
-        #-- geometry
-        subset.process_geometry(self.j, cm2.j)
-        #-- templates
-        subset.process_templates(self.j, cm2.j)
-        #-- appearance
-        if ("appearance" in self.j):
-            cm2.j["appearance"] = {}
-            subset.process_appearance(self.j, cm2.j)
-        cm2.update_bbox()
-        #-- metadata
-        if self.has_metadata_extended():
-            try:
-                cm2.j["metadata"] = copy.deepcopy(self.j["metadata"])
-                cm2.update_metadata_extended(overwrite=True, new_uuid=True)
-                cm2.add_lineage_item("Subset of {} by object type {}".format(self.get_identifier(), cotype))
-            except:
-                pass
-        return cm2
+            if self.j["CityObjects"][theid]["type"] in cotypes:
+                re.add(theid)
+        return self.subset(lsIDs=re, exclude=exclude)
+        
         
 
     def get_textures_location(self):
