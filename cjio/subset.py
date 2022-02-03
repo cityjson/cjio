@@ -23,13 +23,13 @@ def select_co_ids(j, IDs):
             if "children" in j['CityObjects'][id]:
                 for child in j['CityObjects'][id]['children']:
                     re.add(child)
-            # if "parents" in j['CityObjects'][id]:
-            #     for p in j['CityObjects'][id]['parents']:
-            #         re.add(p) 
-            #         #-- add siblings
-            #         if "children" in j['CityObjects'][p]:
-            #             for child in j['CityObjects'][p]['children']:
-            #                 re.add(child)
+            if "parents" in j['CityObjects'][id]:
+                for p in j['CityObjects'][id]['parents']:
+                    re.add(p) 
+                    #-- add siblings
+                    if "children" in j['CityObjects'][p]:
+                        for child in j['CityObjects'][p]['children']:
+                            re.add(child)
     return re                
 
 
