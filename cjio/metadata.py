@@ -19,9 +19,6 @@ def generate_metadata(citymodel: dict,
     overwrite_values -- Boolean that forces to overwrite existing values if True (default: False)
     """
 
-    def distributionFormatVersion_func():
-        return citymodel["version"]
-
     def fileIdentifier_func():
         return os.path.basename(filename)
 
@@ -104,7 +101,6 @@ def generate_metadata(citymodel: dict,
     md_dictionary = {
         "datasetCharacterSet": "UTF-8",
         "datasetTopicCategory": "geoscientificInformation",
-        "distributionFormatVersion": distributionFormatVersion_func,
         "metadataStandard": "ISO 19115 - Geographic Information - Metadata",
         "metadataStandardVersion": "ISO 19115:2014(E)",
         "metadataCharacterSet": "UTF-8",
