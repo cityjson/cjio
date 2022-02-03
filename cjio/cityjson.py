@@ -5,6 +5,7 @@ import re
 import json
 import urllib.request
 import math
+import uuid
 import shutil
 import copy
 import random
@@ -45,6 +46,17 @@ from cjio.metadata import generate_metadata
 
 CITYJSON_VERSIONS_SUPPORTED = ['0.6', '0.8', '0.9', '1.0', '1.1']
 
+CITYJSON_PROPERTIES = ["type", 
+                       "version", 
+                       "extensions", 
+                       "transform", 
+                       "metadata", 
+                       "CityObjects", 
+                       "vertices", 
+                       "appearance", 
+                       "geometry-templates",
+                       "+metadata-extended"
+                      ]
 
 
 def load(path, transform: bool = True):
@@ -435,6 +447,11 @@ class CityJSON:
         return bbox
 
 
+    def update_metadata(self):
+        self.update_bbox()
+        self.update_metadata_identifier()
+
+
     def update_bbox(self):
         """
         Update the bbox (["metadata"]["geographicalExtent"]) of the CityJSON.
@@ -449,6 +466,14 @@ class CityJSON:
         bbox = self.calculate_bbox()
         self.j["metadata"]["geographicalExtent"] = bbox
         return bbox        
+
+    def update_metadata_identifier(self):
+        """
+        Replaces the metadata/identifier (if present) by a new one (UUID)
+        """
+        if "metadata" in self.j:
+            if "identifier" in self.j["metadata"]:
+                self.j["metadata"]["identifier"] = str(uuid.uuid4())
 
 
     def set_epsg(self, newepsg):
@@ -540,8 +565,8 @@ class CityJSON:
         If there is one in metadata, it will be returned. Otherwise, the filename will.
         """
         if "metadata" in self.j:
-            if "citymodelIdentifier" in self.j["metadata"]:
-                cm_id = self.j["metadata"]["citymodelIdentifier"]
+            if "identifier" in self.j["metadata"]:
+                cm_id = self.j["metadata"]["identifier"]
         
         if cm_id:
             template = "{cm_id} ({file_id})"
@@ -549,8 +574,8 @@ class CityJSON:
             template = "{file_id}"
 
         if "metadata" in self.j:
-            if "fileIdentifier" in self.j["metadata"]:
-                return template.format(cm_id=cm_id, file_id=self.j["metadata"]["fileIdentifier"])
+            if "identifier" in self.j["metadata"]:
+                return template.format(cm_id=cm_id, file_id=self.j["metadata"]["identifier"])
 
         if self.path:
             return os.path.basename(self.path)
@@ -566,8 +591,8 @@ class CityJSON:
         """
 
         if "metadata" in self.j:
-            if "datasetTitle" in self.j["metadata"]:
-                return self.j["metadata"]["datasetTitle"]
+            if "title" in self.j["metadata"]:
+                return self.j["metadata"]["title"]
         
         return self.get_identifier()
 
@@ -616,7 +641,7 @@ class CityJSON:
         if self.has_metadata_extended():
             try:
                 cm2.j["+metadata-extended"] = copy.deepcopy(self.j["+metadata-extended"])
-                cm2.update_metadata_extended(overwrite=True, new_uuid=True)
+                cm2.update_metadata_extended(overwrite=True)
                 fids = [fid for fid in cm2.j["CityObjects"]]
                 cm2.add_lineage_item("Subset of {} by bounding box {}".format(self.get_identifier(), bbox), features=fids)
             except:
@@ -661,19 +686,21 @@ class CityJSON:
             sallkeys = set(self.j["CityObjects"].keys())
             re = sallkeys ^ re
         re = list(re)
-        cm = self.get_subset_ids(re, update_metadata=False) #-- do not overwrite the metadata there, only here
-        cm.update_bbox()
-        if self.has_metadata_extended():
-            try:
-                cm.update_metadata_extended(overwrite=True)
-                fids = [fid for fid in cm.j["CityObjects"]]
-                cm.add_lineage_item("Random subset of {}".format(self.get_identifier()), features=fids)
-            except:
-                pass
+        cm = self.get_subset_ids(re) #-- do not overwrite the metadata there, only here
+        # cm.update_bbox()
+        # cm.update_identifier()
+        #-- TODO: copy the metadata, what about the name/uuid
+        # if self.has_metadata_extended():
+        #     try:
+        #         cm.update_metadata_extended(overwrite=True)
+        #         fids = [fid for fid in cm.j["CityObjects"]]
+        #         cm.add_lineage_item("Random subset of {}".format(self.get_identifier()), features=fids)
+        #     except:
+        #         pass
         return cm
 
 
-    def get_subset_ids(self, lsIDs, exclude=False, update_metadata=True):
+    def get_subset_ids(self, lsIDs, exclude=False):
         #-- new sliced CityJSON object
         cm2 = CityJSON()
         cm2.j["version"] = self.j["version"]
@@ -684,9 +711,11 @@ class CityJSON:
             cm2.j["transform"] = self.j["transform"]
         #-- copy selected CO to the j2
         re = subset.select_co_ids(self.j, lsIDs)
+        #-- exclude (inverse selection)
         if exclude == True:
             allkeys = set(self.j["CityObjects"].keys())
             re = allkeys ^ re
+        #-- select only the COs
         for each in re:
             cm2.j["CityObjects"][each] = self.j["CityObjects"][each]
         #-- geometry
@@ -697,17 +726,23 @@ class CityJSON:
         if ("appearance" in self.j):
             cm2.j["appearance"] = {}
             subset.process_appearance(self.j, cm2.j)
-        cm2.update_bbox()
+        #-- copy all other non mandatory properties
+        for p in self.j:
+            if p not in CITYJSON_PROPERTIES:
+                cm2.j[p] = self.j[p]
         #-- metadata
+        if "metadata" in self.j:
+            cm2.j["metadata"] = self.j["metadata"]
+            cm2.update_metadata()
         # print(update_metadata)
-        if (update_metadata) and self.has_metadata_extended():
-            try:
-                cm2.j["+metadata-extended"] = copy.deepcopy(self.j["+metadata-extended"])
-                cm2.update_metadata_extended(overwrite=True, new_uuid=True)
-                fids = [fid for fid in cm2.j["CityObjects"]]
-                cm2.add_lineage_item("Subset of {} based on user specified IDs".format(self.get_identifier()), features=fids)
-            except:
-                pass
+        # if self.has_metadata_extended():
+        #     try:
+        #         cm2.j["+metadata-extended"] = copy.deepcopy(self.j["+metadata-extended"])
+        #         cm2.update_metadata_extended(overwrite=True, new_uuid=True)
+        #         fids = [fid for fid in cm2.j["CityObjects"]]
+        #         cm2.add_lineage_item("Subset of {} based on user specified IDs".format(self.get_identifier()), features=fids)
+        #     except:
+        #         pass
         return cm2
 
 
@@ -1759,8 +1794,8 @@ class CityJSON:
             if "extensions" not in self.j:
                 self.j["extensions"] = {}
             self.j["extensions"]["MetadataExtended"]= {}
-            self.j["extensions"]["MetadataExtended"]["url"] = "https://raw.githubusercontent.com/cityjson/metadata-extended/main/metadata-extended.ext.json"
-            self.j["extensions"]["MetadataExtended"]["version"] = "1.0"
+            self.j["extensions"]["MetadataExtended"]["url"] = "https://raw.githubusercontent.com/cityjson/metadata-extended/0.5/metadata-extended.ext.json"
+            self.j["extensions"]["MetadataExtended"]["version"] = "0.5"
 
     def get_metadata(self):
         """

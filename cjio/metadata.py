@@ -10,9 +10,7 @@ import platform
 
 def generate_metadata(citymodel: dict,
                       filename: str = None,
-                      reference_date: str = None,
-                      overwrite_values: bool = False,
-                      recompute_uuid: bool = False):
+                      overwrite_values: bool = False):
     """Returns a tuple containing a dictionary of the metadata and a list of errors.
 
     Keyword arguments:
@@ -20,35 +18,6 @@ def generate_metadata(citymodel: dict,
     filename  -- String with the name of the original file
     overwrite_values -- Boolean that forces to overwrite existing values if True (default: False)
     """
-
-    def citymodelIdentifier_func():
-        return str(uuid.uuid4())
-
-    def datasetReferenceDate_func() -> str:
-        """
-        Try to get the date that a file was created, falling back to when it was
-        last modified if that isn't possible.
-        See http://stackoverflow.com/a/39501288/1709587 for explanation.
-
-        If the CityModel is newly created then the file doesn't exist yet. In this case
-        we fall back to the 'reference_date' argument.
-        """
-        if filename is None and reference_date is None:
-            raise ValueError("Need to provide either a filename or reference_date in order to compute the datasetReferenceDate")
-        elif filename:
-            if platform.system() == 'Windows':
-                return str(date.fromtimestamp(os.path.getctime(filename)))
-            else:
-                stat = os.stat(filename)
-                try:
-                    return str(date.fromtimestamp(stat.st_birthtime))
-                except AttributeError:
-                    # We're probably on Linux. No easy way to get creation dates here,
-                    # so we'll settle for when its content was last modified.
-                    return str(date.fromtimestamp(stat.st_mtime))
-        else:
-            return reference_date
-
 
     def distributionFormatVersion_func():
         return citymodel["version"]
@@ -136,8 +105,6 @@ def generate_metadata(citymodel: dict,
         "datasetCharacterSet": "UTF-8",
         "datasetTopicCategory": "geoscientificInformation",
         "distributionFormatVersion": distributionFormatVersion_func,
-        "spatialRepresentationType": "vector",
-        "fileIdentifier": fileIdentifier_func,
         "metadataStandard": "ISO 19115 - Geographic Information - Metadata",
         "metadataStandardVersion": "ISO 19115:2014(E)",
         "metadataCharacterSet": "UTF-8",
@@ -168,10 +135,7 @@ def generate_metadata(citymodel: dict,
         metadata = citymodel["+metadata-extended"].copy()
     else:
         metadata = {}
-    if ("citymodelIdentifier" not in metadata) or recompute_uuid:
-        metadata["citymodelIdentifier"] = citymodelIdentifier_func()
-    if "datasetReferenceDate" not in metadata:
-        metadata["datasetReferenceDate"] = datasetReferenceDate_func()
+ 
 
     bad_list = []
     populate_metadata_dict(md_dictionary)
