@@ -335,18 +335,9 @@ class CityJSON:
     def get_epsg(self):
         if "metadata" not in self.j:
             return None
-        if "crs" in self.j["metadata"] and "epsg" in self.j["metadata"]["crs"]:
-            return self.j["metadata"]["crs"]["epsg"]
-        elif "referenceSystem" in self.j["metadata"]:
+        if "referenceSystem" in self.j["metadata"]:
             s = self.j["metadata"]["referenceSystem"]
-            if "urn" in s.lower():
-                if "epsg" in s.lower():
-                    return int(s[s.find("::")+2:])
-                else:
-                    print_cmd_warning("Only EPSG codes are supported in the URN. CRS is set to undefined.")
-                    return None
-            elif "://www.opengis.net/def/crs/" in s.lower():
-                return int(s[s.rfind("/")+1:])
+            return int(s[s.rfind("/")+1:])
         else:
             return None
 
@@ -472,19 +463,11 @@ class CityJSON:
             return False
         if "metadata" not in self.j:
             self.j["metadata"] = {}
-        if float(self.get_version()) < 0.7:
-            if "crs" not in self.j["metadata"]:
-                self.j["metadata"]["crs"] = {} 
-            if "epsg" not in self.j["metadata"]["crs"]:
-                self.j["metadata"]["crs"]["epsg"] = {}
-            self.j["metadata"]["crs"]["epsg"] = i
-            return True
-        else:
-            if "referenceSystem" not in self.j["metadata"]:
-                self.j["metadata"]["referenceSystem"] = {}
-            s = 'urn:ogc:def:crs:EPSG::' + str(i)
-            self.j["metadata"]["referenceSystem"] = s
-            return True
+        if "referenceSystem" not in self.j["metadata"]:
+            self.j["metadata"]["referenceSystem"] = {}
+        s = 'https://www.opengis.net/def/crs/EPSG/0/' + str(i)
+        self.j["metadata"]["referenceSystem"] = s
+        return True
 
 
     def update_bbox_each_cityobjects(self, addifmissing=False):
