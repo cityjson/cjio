@@ -46,9 +46,10 @@ def generate_metadata(citymodel: dict,
 
         def LoD_func():
             presentLoDs = CityObjects_md[cm_type]["presentLoDs"]
-            for g in CityObjects[c_o]["geometry"]:
-                if "template" in g.keys():
-                    LoD = str(citymodel["geometry-templates"]["templates"][g["template"]]["lod"])
+            if "geometry" in CityObjects[c_o]:
+                for g in CityObjects[c_o]["geometry"]:
+                    if "template" in g.keys():
+                        LoD = str(citymodel["geometry-templates"]["templates"][g["template"]]["lod"])
                 else:
                     LoD = str(g["lod"])
                 if LoD in presentLoDs:
@@ -84,10 +85,11 @@ def generate_metadata(citymodel: dict,
                 CityObjects_md[parent(cm_type)][cm_type+"s"] += 1
             else:
                 CityObjects_md[cm_type]["uniqueFeatureCount"] += 1
-                CityObjects_md[cm_type]["aggregateFeatureCount"] += len(CityObjects[c_o]["geometry"])
+                if "geometry" in CityObjects[c_o]:
+                    CityObjects_md[cm_type]["aggregateFeatureCount"] += len(CityObjects[c_o]["geometry"])
                 LoD_func()
                 if cm_type == "TINRelief":
-                    CityObjects_md[cm_type]["triangleCount"] += sum([len(b) for g in CityObjects[c_o]["geometry"] for b in g["boundaries"]])
+                    CityObjects_md[cm_type]["triangleCount"] += sum([len(b) for g in CityObjects[c_o].get("geometry", []) for b in g["boundaries"]])
         return CityObjects_md
 
     def thematicModels_func():
