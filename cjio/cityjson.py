@@ -605,6 +605,15 @@ class CityJSON:
                 re.add(coid)
         return self.subset(lsIDs=re, exclude=exclude)
 
+    def get_subset_radius(self, x, y, radius, exclude=False):
+        re = set()            
+        for coid in self.j["CityObjects"]:
+            centroid = self.get_centroid(coid)
+            if (centroid is not None):
+                dist = ((centroid[0] - x)**2) + ((centroid[1] - y)**2)
+                if dist < radius**2: 
+                    re.add(coid)
+        return self.subset(lsIDs=re, exclude=exclude)
 
     def is_co_toplevel(self, co):
         return ("parents" not in co)
@@ -711,7 +720,7 @@ class CityJSON:
             if self.j["CityObjects"][theid]["type"] in cotypes:
                 re.add(theid)
         return self.subset(lsIDs=re, exclude=exclude)
-        
+
         
 
     def get_textures_location(self):
