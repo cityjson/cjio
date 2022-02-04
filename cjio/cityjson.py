@@ -924,7 +924,7 @@ class CityJSON:
         #-- all/long version
         s.append("vertices_total = {}".format(len(self.j["vertices"])))
         s.append("is_triangulated = {}".format(self.is_triangulated()))
-        d = set()
+        geoms = set()
         lod = set()
         sem_srf = set()
         co_attributes = set()
@@ -934,7 +934,7 @@ class CityJSON:
                     co_attributes.add(attr)
             if 'geometry' in self.j['CityObjects'][key]:
                 for geom in self.j['CityObjects'][key]['geometry']:
-                    d.add(geom["type"])
+                    geoms.add(geom["type"])
                     if "lod" in geom:
                         lod.add(geom["lod"])
                     else: #-- it's a geometry-template
@@ -942,10 +942,11 @@ class CityJSON:
                     if "semantics" in geom:
                         for srf in geom["semantics"]["surfaces"]:
                             sem_srf.add(srf["type"])
-        s.append("geom primitives = {}".format(list(d)))
-        s.append("LoD = {}".format(list(lod)))
-        s.append("semantics surfaces = {}".format(list(sem_srf)))
-        s.append("attributes = {}".format(list(co_attributes)))
+        getsorted = lambda a : sorted(list(a))
+        s.append("geom primitives = {}".format(getsorted(geoms)))
+        s.append("LoD = {}".format(getsorted(lod)))
+        s.append("semantics surfaces = {}".format(getsorted(sem_srf)))
+        s.append("attributes = {}".format(getsorted(co_attributes)))
         return s
 
 
