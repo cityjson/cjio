@@ -46,6 +46,8 @@ from cjio.metadata import generate_metadata
 
 CITYJSON_VERSIONS_SUPPORTED = ['0.6', '0.8', '0.9', '1.0', '1.1']
 
+METADATAEXTENDED_VERSION = "0.5"
+
 CITYJSON_PROPERTIES = ["type", 
                        "version", 
                        "extensions", 
@@ -1721,8 +1723,8 @@ class CityJSON:
             if "extensions" not in self.j:
                 self.j["extensions"] = {}
             self.j["extensions"]["MetadataExtended"]= {}
-            self.j["extensions"]["MetadataExtended"]["url"] = "https://raw.githubusercontent.com/cityjson/metadata-extended/0.5/metadata-extended.ext.json"
-            self.j["extensions"]["MetadataExtended"]["version"] = "0.5"
+            self.j["extensions"]["MetadataExtended"]["url"] = "https://raw.githubusercontent.com/cityjson/metadata-extended/{}/metadata-extended.ext.json".format(METADATAEXTENDED_VERSION)
+            self.j["extensions"]["MetadataExtended"]["version"] = METADATAEXTENDED_VERSION
 
     def get_metadata(self):
         """
