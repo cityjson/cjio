@@ -549,14 +549,18 @@ def attribute_rename_cmd(oldattr, newattr):
         return cm
     return processor
 
+
 @cli.command('crs_translate')
 @click.option('--values', nargs=3, type=float, help='(x, y, z)')
 def crs_translate_cmd(values):
     """
     Translate the coordinates. 
-    All are moved (-minx, -miny, -minz) of the model.
-    Three values can also be given, eg: 
+    By default, they are all moved by (-minx, -miny, -minz), 
+    so the values are smaller (often useful for further processing data).
+    The CRS/EPSG is updated to 'None'.
+    Three specific values for the translation can also be given.
 
+        $ cjio myfile.city.json crs_translate save out.city.json
         $ cjio myfile.city.json crs_translate --values -100 -25 -1 save out.city.json
     """
     def processor(cm):

@@ -1675,24 +1675,18 @@ class CityJSON:
 
     def translate(self, values, minimum_xyz):
         if minimum_xyz == True:
-            #-- find the minimums
-            bbox = [9e9, 9e9, 9e9]    
-            for v in self.j["vertices"]:
-                for i in range(3):
-                    if v[i] < bbox[i]:
-                        bbox[i] = v[i]
-            bbox[0] = -bbox[0]
-            bbox[1] = -bbox[1]
-            bbox[2] = -bbox[2]
+            self.j["transform"]["translate"][0] -= bbox[0]
+            self.j["transform"]["translate"][1] -= bbox[1]
+            self.j["transform"]["translate"][2] -= bbox[2]
         else:
             bbox = values
-        for v in self.j['vertices']:
-            v[0] = v[0] + bbox[0]
-            v[1] = v[1] + bbox[1]
-            v[2] = v[2] + bbox[2]
+            self.j["transform"]["translate"][0] += bbox[0]
+            self.j["transform"]["translate"][1] += bbox[1]
+            self.j["transform"]["translate"][2] += bbox[2]
         self.set_epsg(None)
         self.update_bbox()
         return bbox
+
     
     def has_metadata(self):
         """
