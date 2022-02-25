@@ -2,6 +2,8 @@
 import os
 import re
 
+import triangle
+
 import json
 import urllib.request
 import math
@@ -1423,7 +1425,65 @@ class CityJSON:
         return (re, reasons)
 
 
+    def triangulate_face_2(self, face, vnp):
+        print("face:", face)
+        print("vnp:", vnp)
+
+        sf = np.array([], dtype=np.int64)
+        #-- if a triangle then do nothing
+        if ( (len(face) == 1) and (len(face[0]) == 3) ):
+            return (np.array(face), True)
+
+        for ring in face:
+            sf = np.hstack( (sf, np.array(ring)) )
+        sfv = vnp[sf]
+        print("sf", sf)
+        print("sfv", sfv.shape)
+        print("vnp", vnp)
+        # print(sfv)
+        
+        rings = np.zeros(len(face), dtype=np.int64)
+        total = 0
+        for i in range(len(face)):
+            total += len(face[i])
+            rings[i] = total
+        print("rings", rings[-1])
+
+        # 1. normal with Newell's method
+        n, b = geom_help.get_normal_newell(sfv)
+
+        # 2. project to the plane to get xy
+        sfv2d = np.zeros( (sfv.shape[0], 2))
+        # print (sfv2d)
+        for i,p in enumerate(sfv):
+            xy = geom_help.to_2d(p, n)
+            sfv2d[i][0] = xy[0]
+            sfv2d[i][1] = xy[1]
+        # print(sfv2d)
+    
+        #-- deal with segments/constraints
+        sg = np.zeros( (rings[-1], 2), dtype=np.int64)
+        print("sg.shape", sg.shape)
+
+        for i,e in enumerate(sg):
+            sg[i][0] = i
+            sg[i][1] = i + 1
+        starti = 0
+        for each in rings:
+            sg[each - 1][1] = starti
+            starti = each
+        print("sg", sg)
+        
+        A = dict(vertices=sfv2d, segments=sg)
+        re = triangle.triangulate(A, 'p')
+        print("triangles", re['triangles'])
+        return (re['triangles'], True)
+  
+
+
     def triangulate_face(self, face, vnp):
+        if len(face) > 1:
+            print("==>", len(face))
         sf = np.array([], dtype=np.int64)
         if ( (len(face) == 1) and (len(face[0]) == 3) ):
             return (np.array(face), True)
@@ -1853,6 +1913,7 @@ class CityJSON:
                             re = np.array(face)
                             b = True
                         else:
+                            # re, b = self.triangulate_face_2(face, vnp)
                             re, b = self.triangulate_face(face, vnp)
 
                         if b == True:
