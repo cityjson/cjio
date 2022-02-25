@@ -1508,7 +1508,13 @@ class CityJSON:
             return([], False)
         re = re['triangles']
         for i,each in enumerate(re):
-              re[i] = sf[each]
+            # re[i] = sf[each]
+            try:
+                re[i] = sf[each]
+            except:
+                return(re, False)
+                # print("oupsie")
+
         return (re, True)
         # print("triangles", re)
 
@@ -1915,6 +1921,9 @@ class CityJSON:
         vnp = np.array(self.j["vertices"])
 
         for theid in self.j['CityObjects']:
+            print("=======")
+            print(theid)
+            print("=======")
             for geom in self.j['CityObjects'][theid]['geometry']:
                 sflag = False
                 mflag = False
