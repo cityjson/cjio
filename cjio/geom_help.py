@@ -45,7 +45,12 @@ def get_normal_newell(poly):
 
 def get_centroid(ring):
     from shapely.geometry.polygon import LinearRing
+    from shapely.geometry.polygon import Point
     r = LinearRing(ring)
+    c = r.representative_point()
+    print("centroidddd:", r.contains(c))
+    # print("centroidddd:", r.contains(Point(66, 11)))
+    # return r.centroid
     return r.representative_point()
 
 def triangulate_face(face, vnp):

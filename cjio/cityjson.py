@@ -1429,11 +1429,11 @@ class CityJSON:
         print("==>face:", face)
         # print("vnp:", vnp)
 
-        sf = np.array([], dtype=np.int64)
         #-- if a triangle then do nothing
         if ( (len(face) == 1) and (len(face[0]) == 3) ):
             return (np.array(face), True)
 
+        sf = np.array([], dtype=np.int64)
         for ring in face:
             sf = np.hstack( (sf, np.array(ring)) )
         sfv = vnp[sf]
@@ -1447,7 +1447,7 @@ class CityJSON:
         for i in range(len(face)):
             total += len(face[i])
             rings[i] = total
-        # print("rings", rings[-1])
+        print("rings", rings)
 
         # 1. normal with Newell's method
         n, b = geom_help.get_normal_newell(sfv)
@@ -1480,40 +1480,58 @@ class CityJSON:
             holes = np.zeros((len(rings) - 1, 2))
             for k in range(len(rings) - 1):
                 a = sfv2d[rings[k]:rings[k+1]]
-                c = geom_help.get_centroid(a)
-                holes[k][0] = c.x
-                holes[k][1] = c.y
-                # print("holes:", holes)
+                print("a", a)
+                sg1 = np.zeros( (a.shape[0], 2), dtype=np.int64)
+                for i,e in enumerate(sg1):
+                    sg1[i][0] = i
+                    sg1[i][1] = i + 1
+                sg1[-1][1] = 0
+                pcl = dict(vertices=a, segments=sg1)
+                trl = triangle.triangulate(pcl, 'p')
+                t = trl['triangles'][0]
+                print("trl", t)
+                c = np.average(a[t], axis=0)
+                print("c", c)
+                # a0 = np.average(b, axis=0)
+                # c = geom_help.get_centroid(a)
+                holes[k][0] = c[0]
+                holes[k][1] = c[1]
+                # print(sfv2d)
+            print("holes:", holes)
             A = dict(vertices=sfv2d, segments=sg, holes=holes)
         else:
             A = dict(vertices=sfv2d, segments=sg)
             print(sfv2d)
         re = triangle.triangulate(A, 'p')
+        
+        if 'triangles' not in re:
+            return([], False)
         re = re['triangles']
-        # print("triangles", re)
-
-
         for i,each in enumerate(re):
               re[i] = sf[each]
+        return (re, True)
+        # print("triangles", re)
 
+        # print("re:", re)
 
-        ##-- check orientation
-        # t = re['triangles'][0]
-        # print(t)
-        # print("sfv:", sfv)
+        # ##-- check orientation
+        # t = re[0]
+        # print("t", t)
+        # # print("sfv:", sfv)
         # # print(sfv[t[1]])
-        # veca = sfv[t[1]] - sfv[t[0]]
-        # vecb = sfv[t[2]] - sfv[t[0]]
+        # veca = vnp[t[1]] - vnp[t[0]]
+        # vecb = vnp[t[2]] - vnp[t[0]]
+        # # thecross = np.zeros(3)
         # i = (veca[1] * vecb[2]) - (veca[2] * vecb[1])
         # j = (veca[0] * vecb[2]) - (veca[2] * vecb[0])
         # k = (veca[0] * vecb[1]) - (veca[1] * vecb[0])
-        # print (i,j,k)
-        # # zz = np.dot(n, [i, j, k])
-        # # print(zz)
+
+        # print ("normal", i, -j, k)
+        # zz = np.dot(n, [i, -j, k])
+        # print("dot", zz)
 
         # print(re['triangles'])
 
-        return (re, True)
 
   
 
