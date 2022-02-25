@@ -1426,8 +1426,8 @@ class CityJSON:
 
 
     def triangulate_face_2(self, face, vnp):
-        print("face:", face)
-        print("vnp:", vnp)
+        print("==>face:", face)
+        # print("vnp:", vnp)
 
         sf = np.array([], dtype=np.int64)
         #-- if a triangle then do nothing
@@ -1437,9 +1437,9 @@ class CityJSON:
         for ring in face:
             sf = np.hstack( (sf, np.array(ring)) )
         sfv = vnp[sf]
-        print("sf", sf)
-        print("sfv", sfv.shape)
-        print("vnp", vnp)
+        # print("sf", sf)
+        # print("sfv", sfv)
+        # print("vnp", vnp)
         # print(sfv)
         
         rings = np.zeros(len(face), dtype=np.int64)
@@ -1447,13 +1447,14 @@ class CityJSON:
         for i in range(len(face)):
             total += len(face[i])
             rings[i] = total
-        print("rings", rings[-1])
+        # print("rings", rings[-1])
 
         # 1. normal with Newell's method
         n, b = geom_help.get_normal_newell(sfv)
+        print("n:", n)
 
         # 2. project to the plane to get xy
-        sfv2d = np.zeros( (sfv.shape[0], 2))
+        sfv2d = np.zeros((sfv.shape[0], 2))
         # print (sfv2d)
         for i,p in enumerate(sfv):
             xy = geom_help.to_2d(p, n)
@@ -1463,8 +1464,7 @@ class CityJSON:
     
         #-- deal with segments/constraints
         sg = np.zeros( (rings[-1], 2), dtype=np.int64)
-        print("sg.shape", sg.shape)
-
+        # print("sg.shape", sg.shape)
         for i,e in enumerate(sg):
             sg[i][0] = i
             sg[i][1] = i + 1
@@ -1472,12 +1472,49 @@ class CityJSON:
         for each in rings:
             sg[each - 1][1] = starti
             starti = each
-        print("sg", sg)
-        
-        A = dict(vertices=sfv2d, segments=sg)
+        # print("sg", sg)
+
+        #-- deal with holes
+        if len(rings) > 1:
+            print("==> irings")
+            holes = np.zeros((len(rings) - 1, 2))
+            for k in range(len(rings) - 1):
+                a = sfv2d[rings[k]:rings[k+1]]
+                c = geom_help.get_centroid(a)
+                holes[k][0] = c.x
+                holes[k][1] = c.y
+                # print("holes:", holes)
+            A = dict(vertices=sfv2d, segments=sg, holes=holes)
+        else:
+            A = dict(vertices=sfv2d, segments=sg)
+            print(sfv2d)
         re = triangle.triangulate(A, 'p')
-        print("triangles", re['triangles'])
-        return (re['triangles'], True)
+        re = re['triangles']
+        # print("triangles", re)
+
+
+        for i,each in enumerate(re):
+              re[i] = sf[each]
+
+
+        ##-- check orientation
+        # t = re['triangles'][0]
+        # print(t)
+        # print("sfv:", sfv)
+        # # print(sfv[t[1]])
+        # veca = sfv[t[1]] - sfv[t[0]]
+        # vecb = sfv[t[2]] - sfv[t[0]]
+        # i = (veca[1] * vecb[2]) - (veca[2] * vecb[1])
+        # j = (veca[0] * vecb[2]) - (veca[2] * vecb[0])
+        # k = (veca[0] * vecb[1]) - (veca[1] * vecb[0])
+        # print (i,j,k)
+        # # zz = np.dot(n, [i, j, k])
+        # # print(zz)
+
+        # print(re['triangles'])
+
+        return (re, True)
+
   
 
 
@@ -1913,8 +1950,8 @@ class CityJSON:
                             re = np.array(face)
                             b = True
                         else:
-                            # re, b = self.triangulate_face_2(face, vnp)
-                            re, b = self.triangulate_face(face, vnp)
+                            re, b = self.triangulate_face_2(face, vnp)
+                            # re, b = self.triangulate_face(face, vnp)
 
                         if b == True:
                             for t in re:
@@ -1995,7 +2032,7 @@ class CityJSON:
                                 re = np.array(face)
                                 b = True
                             else:
-                                re, b = self.triangulate_face(face, vnp)
+                                re, b = self.triangulate_face_2(face, vnp)
                             if b == True:
                                 for t in re:
                                     tlist3 = []
@@ -2091,7 +2128,7 @@ class CityJSON:
                                     re = np.array(face)
                                     b = True
                                 else:
-                                    re, b = self.triangulate_face(face, vnp)
+                                    re, b = self.triangulate_face_2(face, vnp)
                                 if b == True:
                                     for t in re:
                                         tlist4 = []

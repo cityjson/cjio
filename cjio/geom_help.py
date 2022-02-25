@@ -43,6 +43,10 @@ def get_normal_newell(poly):
     n = n / math.sqrt(n[0]*n[0] + n[1]*n[1] + n[2]*n[2])    
     return (n, True)
 
+def get_centroid(ring):
+    from shapely.geometry.polygon import LinearRing
+    r = LinearRing(ring)
+    return r.representative_point()
 
 def triangulate_face(face, vnp):
     if not MODULE_EARCUT_AVAILABLE:
