@@ -199,10 +199,10 @@ def export_cmd(filename, format):
 
     def processor(cm):
         #-- mapbox_earcut available?
-        if (format != 'jsonl') and (cityjson.MODULE_EARCUT_AVAILABLE == False):
-            str = "OBJ|glTF|b3dm export skipped: Python module 'mapbox_earcut' missing (to triangulate faces)"
+        if (format != 'jsonl') and (cityjson.MODULE_TRIANGLE_AVAILABLE == False):
+            str = "OBJ|glTF|b3dm export skipped: Python module 'triangle' missing (to triangulate faces)"
             utils.print_cmd_alert(str)
-            str = "Install it: https://pypi.org/project/mapbox-earcut/"
+            str = "Install it: https://pypi.org/project/triangle/"
             utils.print_cmd_warning(str)
             raise click.ClickException('Abort.')
         else:
@@ -653,11 +653,11 @@ def triangulate_cmd():
     #-- mapbox_earcut available?
     def processor(cm):
         utils.print_cmd_status('Triangulate the CityJSON file')
-        if (cityjson.MODULE_EARCUT_AVAILABLE == False):
-            str = "Cannot triangulate: Python module 'mapbox_earcut' missing. Stopping here."
+        if (cityjson.MODULE_TRIANGLE_AVAILABLE == False):
+            str = "Cannot triangulate: Python module 'triangle' missing. Stopping here."
             utils.print_cmd_alert(str)
-            str = "Install it: https://pypi.org/project/mapbox-earcut/"
-            utils.print_cmd_alert(str)
+            str = "Install it: https://pypi.org/project/triangle/"
+            utils.print_cmd_warning(str)
             raise click.ClickException('Abort.')
             return cm
         if not(cm.is_triangulated()):

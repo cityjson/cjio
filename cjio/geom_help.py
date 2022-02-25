@@ -2,11 +2,11 @@ import math
 
 import numpy as np
 
-MODULE_EARCUT_AVAILABLE = True
+MODULE_TRIANGLE_AVAILABLE = True
 try:
-    import mapbox_earcut
+    import triangle
 except ImportError as e:
-    MODULE_EARCUT_AVAILABLE = False
+    MODULE_TRIANGLE_AVAILABLE = False
 
 def to_2d(p, n):
     #-- n must be normalised
@@ -43,42 +43,113 @@ def get_normal_newell(poly):
     n = n / math.sqrt(n[0]*n[0] + n[1]*n[1] + n[2]*n[2])    
     return (n, True)
 
-def get_centroid(ring):
-    from shapely.geometry.polygon import LinearRing
-    from shapely.geometry.polygon import Point
-    r = LinearRing(ring)
-    c = r.representative_point()
-    print("centroidddd:", r.contains(c))
-    # print("centroidddd:", r.contains(Point(66, 11)))
-    # return r.centroid
-    return r.representative_point()
 
+##-- with Shewchuk Triangle library
 def triangulate_face(face, vnp):
-    if not MODULE_EARCUT_AVAILABLE:
-        raise ModuleNotFoundError("mapbox-earcut is not installed")
-    if ((len(face) == 1) and (len(face[0]) == 3)):
-        #        print ("Already a triangle")
-        return face
-    sf = np.array([], dtype=np.int32)
-    for ring in face:
-        sf = np.hstack((sf, np.array(ring)))
-    sfv = vnp[sf]
-    rings = np.zeros(len(face), dtype=np.int32)
-    total = 0
-    for i in range(len(face)):
-        total += len(face[i])
-        rings[i] = total
+        #-- if a triangle then do nothing
+        if ( (len(face) == 1) and (len(face[0]) == 3) ):
+            return (np.array(face), True)
+        sf = np.array([], dtype=np.int64)
+        for ring in face:
+            sf = np.hstack( (sf, np.array(ring)) )
+        sfv = vnp[sf]
+    
+        rings = np.zeros(len(face), dtype=np.int64)
+        total = 0
+        for i in range(len(face)):
+            total += len(face[i])
+            rings[i] = total
+
         # 1. normal with Newell's method
-    n, b = get_normal_newell(sfv)
-    sfv2d = np.zeros((sfv.shape[0], 2))
-    for i, p in enumerate(sfv):
-        xy = to_2d(p, n)
-        sfv2d[i][0] = xy[0]
-        sfv2d[i][1] = xy[1]
-    result = mapbox_earcut.triangulate_float32(sfv2d, rings)
+        n, b = get_normal_newell(sfv)
 
-    for i, each in enumerate(result):
-        result[i] = int(sf[each])
+        # 2. project to the plane to get xy
+        sfv2d = np.zeros((sfv.shape[0], 2))
+        for i,p in enumerate(sfv):
+            xy = to_2d(p, n)
+            sfv2d[i][0] = xy[0]
+            sfv2d[i][1] = xy[1]
 
-    #    print (type(result.reshape(-1, 3).tolist()[0][0]))
-    return result.reshape(-1, 3).tolist()
+        #-- 3. deal with segments/constraints, prepare the Triangle input
+        sg = np.zeros( (rings[-1], 2), dtype=np.int64)
+        for i,e in enumerate(sg):
+            sg[i][0] = i
+            sg[i][1] = i + 1
+        starti = 0
+        for each in rings:
+            sg[each - 1][1] = starti
+            starti = each
+        #-- deal with holes
+        if len(rings) > 1:
+            holes = np.zeros((len(rings) - 1, 2))
+            for k in range(len(rings) - 1):
+                #-- basically triangulate the Triangle the Ring, and find the centre
+                #-- of mass of the first triangle
+                a = sfv2d[rings[k]:rings[k+1]]
+                sg1 = np.zeros( (a.shape[0], 2), dtype=np.int64)
+                for i,e in enumerate(sg1):
+                    sg1[i][0] = i
+                    sg1[i][1] = i + 1
+                sg1[-1][1] = 0
+                pcl = dict(vertices=a, segments=sg1)
+                trl = triangle.triangulate(pcl, 'p')
+                t = trl['triangles'][0]
+                c = np.average(a[t], axis=0) #-- find its centre of mass
+                holes[k][0] = c[0]
+                holes[k][1] = c[1]
+            A = dict(vertices=sfv2d, segments=sg, holes=holes)
+        else:
+            A = dict(vertices=sfv2d, segments=sg)
+        re = triangle.triangulate(A, 'p')
+        #-- check the output        
+        if 'triangles' not in re:
+            return([], False)
+        re = re['triangles']
+        for i,each in enumerate(re):
+            try:
+                re[i] = sf[each]
+            except:
+                return(re, False)
+        return (re, True)
+
+def triangulate_face_mapbox_earcut(face, vnp):
+        sf = np.array([], dtype=np.int64)
+        if ( (len(face) == 1) and (len(face[0]) == 3) ):
+            return (np.array(face), True)
+        for ring in face:
+            sf = np.hstack( (sf, np.array(ring)) )
+        sfv = vnp[sf]
+        # print(sf)
+        # print(sfv)
+        rings = np.zeros(len(face), dtype=np.int32)
+        total = 0
+        for i in range(len(face)):
+            total += len(face[i])
+            rings[i] = total
+        # print(rings)
+
+        # 1. normal with Newell's method
+        n, b = geom_help.get_normal_newell(sfv)
+
+        #-- if already a triangle then return it
+        if b == False:
+            return (n, False)
+        # print ("Newell:", n)
+
+        # 2. project to the plane to get xy
+        sfv2d = np.zeros( (sfv.shape[0], 2))
+        # print (sfv2d)
+        for i,p in enumerate(sfv):
+            xy = geom_help.to_2d(p, n)
+            # print("xy", xy)
+            sfv2d[i][0] = xy[0]
+            sfv2d[i][1] = xy[1]
+        result = mapbox_earcut.triangulate_float64(sfv2d, rings)
+        # print (result.reshape(-1, 3))
+
+        for i,each in enumerate(result):
+            # print (sf[i])        
+            result[i] = sf[each]
+        
+        # print (result.reshape(-1, 3))
+        return (result.reshape(-1, 3), True)

@@ -2,8 +2,6 @@
 import os
 import re
 
-import triangle
-
 import json
 import urllib.request
 import math
@@ -17,7 +15,7 @@ from datetime import datetime
 from typing import Tuple
 MODULE_NUMPY_AVAILABLE = True
 MODULE_PYPROJ_AVAILABLE = True
-MODULE_EARCUT_AVAILABLE = True
+MODULE_TRIANGLE_AVAILABLE = True
 MODULE_PANDAS_AVAILABLE = True
 MODULE_CJVAL_AVAILABLE = True
 
@@ -27,9 +25,9 @@ try:
 except ImportError as e:
     MODULE_PYPROJ_AVAILABLE = False
 try:
-    import mapbox_earcut
+    import triangle
 except ImportError as e:
-    MODULE_EARCUT_AVAILABLE = False
+    MODULE_TRIANGLE_AVAILABLE = False
 try:
     import pandas
 except ImportError as e:
@@ -1425,168 +1423,6 @@ class CityJSON:
         return (re, reasons)
 
 
-    def triangulate_face_2(self, face, vnp):
-        print("==>face:", face)
-        # print("vnp:", vnp)
-
-        #-- if a triangle then do nothing
-        if ( (len(face) == 1) and (len(face[0]) == 3) ):
-            return (np.array(face), True)
-
-        sf = np.array([], dtype=np.int64)
-        for ring in face:
-            sf = np.hstack( (sf, np.array(ring)) )
-        sfv = vnp[sf]
-        # print("sf", sf)
-        # print("sfv", sfv)
-        # print("vnp", vnp)
-        # print(sfv)
-        
-        rings = np.zeros(len(face), dtype=np.int64)
-        total = 0
-        for i in range(len(face)):
-            total += len(face[i])
-            rings[i] = total
-        print("rings", rings)
-
-        # 1. normal with Newell's method
-        n, b = geom_help.get_normal_newell(sfv)
-        print("n:", n)
-
-        # 2. project to the plane to get xy
-        sfv2d = np.zeros((sfv.shape[0], 2))
-        # print (sfv2d)
-        for i,p in enumerate(sfv):
-            xy = geom_help.to_2d(p, n)
-            sfv2d[i][0] = xy[0]
-            sfv2d[i][1] = xy[1]
-        # print(sfv2d)
-    
-        #-- deal with segments/constraints
-        sg = np.zeros( (rings[-1], 2), dtype=np.int64)
-        # print("sg.shape", sg.shape)
-        for i,e in enumerate(sg):
-            sg[i][0] = i
-            sg[i][1] = i + 1
-        starti = 0
-        for each in rings:
-            sg[each - 1][1] = starti
-            starti = each
-        # print("sg", sg)
-
-        #-- deal with holes
-        if len(rings) > 1:
-            print("==> irings")
-            holes = np.zeros((len(rings) - 1, 2))
-            for k in range(len(rings) - 1):
-                a = sfv2d[rings[k]:rings[k+1]]
-                print("a", a)
-                sg1 = np.zeros( (a.shape[0], 2), dtype=np.int64)
-                for i,e in enumerate(sg1):
-                    sg1[i][0] = i
-                    sg1[i][1] = i + 1
-                sg1[-1][1] = 0
-                pcl = dict(vertices=a, segments=sg1)
-                trl = triangle.triangulate(pcl, 'p')
-                t = trl['triangles'][0]
-                print("trl", t)
-                c = np.average(a[t], axis=0)
-                print("c", c)
-                # a0 = np.average(b, axis=0)
-                # c = geom_help.get_centroid(a)
-                holes[k][0] = c[0]
-                holes[k][1] = c[1]
-                # print(sfv2d)
-            print("holes:", holes)
-            A = dict(vertices=sfv2d, segments=sg, holes=holes)
-        else:
-            A = dict(vertices=sfv2d, segments=sg)
-            print(sfv2d)
-        re = triangle.triangulate(A, 'p')
-        
-        if 'triangles' not in re:
-            return([], False)
-        re = re['triangles']
-        for i,each in enumerate(re):
-            # re[i] = sf[each]
-            try:
-                re[i] = sf[each]
-            except:
-                return(re, False)
-                # print("oupsie")
-
-        return (re, True)
-        # print("triangles", re)
-
-        # print("re:", re)
-
-        # ##-- check orientation
-        # t = re[0]
-        # print("t", t)
-        # # print("sfv:", sfv)
-        # # print(sfv[t[1]])
-        # veca = vnp[t[1]] - vnp[t[0]]
-        # vecb = vnp[t[2]] - vnp[t[0]]
-        # # thecross = np.zeros(3)
-        # i = (veca[1] * vecb[2]) - (veca[2] * vecb[1])
-        # j = (veca[0] * vecb[2]) - (veca[2] * vecb[0])
-        # k = (veca[0] * vecb[1]) - (veca[1] * vecb[0])
-
-        # print ("normal", i, -j, k)
-        # zz = np.dot(n, [i, -j, k])
-        # print("dot", zz)
-
-        # print(re['triangles'])
-
-
-  
-
-
-    def triangulate_face(self, face, vnp):
-        if len(face) > 1:
-            print("==>", len(face))
-        sf = np.array([], dtype=np.int64)
-        if ( (len(face) == 1) and (len(face[0]) == 3) ):
-            return (np.array(face), True)
-        for ring in face:
-            sf = np.hstack( (sf, np.array(ring)) )
-        sfv = vnp[sf]
-        # print(sf)
-        # print(sfv)
-        rings = np.zeros(len(face), dtype=np.int32)
-        total = 0
-        for i in range(len(face)):
-            total += len(face[i])
-            rings[i] = total
-        # print(rings)
-
-        # 1. normal with Newell's method
-        n, b = geom_help.get_normal_newell(sfv)
-
-        #-- if already a triangle then return it
-        if b == False:
-            return (n, False)
-        # print ("Newell:", n)
-
-        # 2. project to the plane to get xy
-        sfv2d = np.zeros( (sfv.shape[0], 2))
-        # print (sfv2d)
-        for i,p in enumerate(sfv):
-            xy = geom_help.to_2d(p, n)
-            # print("xy", xy)
-            sfv2d[i][0] = xy[0]
-            sfv2d[i][1] = xy[1]
-        result = mapbox_earcut.triangulate_float64(sfv2d, rings)
-        # print (result.reshape(-1, 3))
-
-        for i,each in enumerate(result):
-            # print (sf[i])        
-            result[i] = sf[each]
-        
-        # print (result.reshape(-1, 3))
-        return (result.reshape(-1, 3), True)
-
-
     def export2b3dm(self):
         glb = convert.to_glb(self)
         b3dm = convert.to_b3dm(self, glb)
@@ -1661,18 +1497,20 @@ class CityJSON:
         # print(vnp)
         #-- start with the CO
         for theid in self.j['CityObjects']:
+            if 'geometry' not in self.j['CityObjects'][theid]:
+                continue
             for geom in self.j['CityObjects'][theid]['geometry']:
                 out.write('o ' + str(theid) + '\n')
                 if ( (geom['type'] == 'MultiSurface') or (geom['type'] == 'CompositeSurface') ):
                     for face in geom['boundaries']:
-                        re, b = self.triangulate_face(face, vnp)
+                        re, b = geom_help.triangulate_face(face, vnp)
                         if b == True:
                             for t in re:
                                 out.write("f %d %d %d\n" % (t[0] + 1, t[1] + 1, t[2] + 1))
                 elif (geom['type'] == 'Solid'):
                     for shell in geom['boundaries']:
                         for i, face in enumerate(shell):
-                            re, b = self.triangulate_face(face, vnp)
+                            re, b = geom_help.triangulate_face(face, vnp)
                             if b == True:
                                 for t in re:
                                     out.write("f %d %d %d\n" % (t[0] + 1, t[1] + 1, t[2] + 1))
@@ -1702,7 +1540,7 @@ class CityJSON:
             for geom in self.j['CityObjects'][theid]['geometry']:
                 if ( (geom['type'] == 'MultiSurface') or (geom['type'] == 'CompositeSurface') ):
                     for face in geom['boundaries']:
-                        re, b = self.triangulate_face(face, vnp)
+                        re, b = geom_help.triangulate_face(face, vnp)
                         n, bb = geom_help.get_normal_newell(face)
                         if b == True:
                             for t in re:
@@ -1714,7 +1552,7 @@ class CityJSON:
                 elif (geom['type'] == 'Solid'):
                     for shell in geom['boundaries']:
                         for i, face in enumerate(shell):
-                            re, b = self.triangulate_face(face, vnp)
+                            re, b = geom_help.triangulate_face(face, vnp)
                             if b == True:
                                 for t in re:
                                     out.write("facet normal %f %f %f\nouter loop\n" % (n[0], n[1], n[2]))
@@ -1921,9 +1759,8 @@ class CityJSON:
         vnp = np.array(self.j["vertices"])
 
         for theid in self.j['CityObjects']:
-            print("=======")
-            print(theid)
-            print("=======")
+            if 'geometry' not in self.j['CityObjects'][theid]:
+                continue
             for geom in self.j['CityObjects'][theid]['geometry']:
                 sflag = False
                 mflag = False
@@ -1977,8 +1814,8 @@ class CityJSON:
                             re = np.array(face)
                             b = True
                         else:
-                            re, b = self.triangulate_face_2(face, vnp)
-                            # re, b = self.triangulate_face(face, vnp)
+                            re, b = geom_help.triangulate_face(face, vnp)
+                            # re, b = geom_help.triangulate_face(face, vnp)
 
                         if b == True:
                             for t in re:
@@ -2059,7 +1896,7 @@ class CityJSON:
                                 re = np.array(face)
                                 b = True
                             else:
-                                re, b = self.triangulate_face_2(face, vnp)
+                                re, b = geom_help.triangulate_face(face, vnp)
                             if b == True:
                                 for t in re:
                                     tlist3 = []
@@ -2155,7 +1992,7 @@ class CityJSON:
                                     re = np.array(face)
                                     b = True
                                 else:
-                                    re, b = self.triangulate_face_2(face, vnp)
+                                    re, b = geom_help.triangulate_face(face, vnp)
                                 if b == True:
                                     for t in re:
                                         tlist4 = []
