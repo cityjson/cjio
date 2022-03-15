@@ -1476,11 +1476,14 @@ class CityJSON:
         return out
 
     def export2obj(self):
+        imp_digits = math.ceil(abs(math.log(self.j["transform"]["scale"][0], 10)))
+        ids = "." + str(imp_digits) + "f"
         self.decompress()
         out = StringIO()
         #-- write vertices
         for v in self.j['vertices']:
-            out.write('v ' + str(v[0]) + ' ' + str(v[1]) + ' ' + str(v[2]) + '\n')
+            s = format("v {} {} {}\n".format(format(v[0], ids), format(v[1], ids), format(v[2], ids)))
+            out.write(s)
         vnp = np.array(self.j["vertices"])
         #-- translate to minx,miny
         minx = 9e9
@@ -1514,6 +1517,7 @@ class CityJSON:
                             if b == True:
                                 for t in re:
                                     out.write("f %d %d %d\n" % (t[0] + 1, t[1] + 1, t[2] + 1))
+        self.compress(imp_digits)
         return out
 
     def export2stl(self):
