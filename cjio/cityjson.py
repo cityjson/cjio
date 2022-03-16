@@ -1761,8 +1761,8 @@ class CityJSON:
         Triangulate the CityJSON file face by face together with the texture information.
         """
         vnp = np.array(self.j["vertices"])
-
         for theid in self.j['CityObjects']:
+            # print(theid)
             if 'geometry' not in self.j['CityObjects'][theid]:
                 continue
             for geom in self.j['CityObjects'][theid]['geometry']:

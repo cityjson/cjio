@@ -46,6 +46,7 @@ def get_normal_newell(poly):
 
 ##-- with Shewchuk Triangle library
 def triangulate_face(face, vnp):
+        # print(face)
         #-- remove duplicate vertices, which can *easily* make Triangle segfault
         for i,each in enumerate(face):
             if len(set(each)) < len(each): #-- there are duplicates
@@ -54,7 +55,8 @@ def triangulate_face(face, vnp):
                     if re.count(k) == 0:
                         re.append(k)
                 face[i] = re
-
+        # print(face)
+        # print(len(face))
         if ( (len(face) == 1) and (len(face[0]) <= 3) ):
             if len(face[0]) == 3:
                 #-- if a triangle then do nothing
@@ -62,6 +64,11 @@ def triangulate_face(face, vnp):
             else:
                 #-- if collapsed then ignore and return false
                 return (np.array(face), False)
+
+        for i, ring in enumerate(face):
+            if len(ring) < 3:
+                #-- if a triangle then do nothing
+                return (np.zeros(1), False)
         sf = np.array([], dtype=np.int64)
         for ring in face:
             sf = np.hstack( (sf, np.array(ring)) )
@@ -113,7 +120,13 @@ def triangulate_face(face, vnp):
             A = dict(vertices=sfv2d, segments=sg, holes=holes)
         else:
             A = dict(vertices=sfv2d, segments=sg)
-        re = triangle.triangulate(A, 'p')
+        
+        try:
+            re = triangle.triangulate(A, 'p')
+        except:
+            print("Houston we have a problem...")
+            # re = {}
+            return(np.array(face), False)
         #-- check the output        
         if 'triangles' not in re:
             return([], False)
