@@ -124,7 +124,8 @@ def info_cmd(context, long):
               type=click.Choice(['obj', 'jsonl', 'stl', 'glb', 'b3dm']),
               required=True)
 @click.argument('filename')
-def export_cmd(filename, format):
+@click.option('--sloppy', is_flag=True, help='Use a more lenient triangulator (mapbox-earcut), which is also less robust.')
+def export_cmd(filename, format, sloppy):
     """Export to another format.
 
     OBJ, Binary glTF (glb), Batched 3DModel (b3dm), STL, JSONL (JSON Lines, for streaming). 
@@ -135,9 +136,10 @@ def export_cmd(filename, format):
 
     \b
         cjio myfile.city.json export obj myfile.obj
+        cjio myfile.city.json export --sloppy obj myfile.obj
         cjio myfile.city.json export jsonl myfile.txt
     """
-    def exporter(cm):
+    def exporter(cm, sloppy):
         output = utils.verify_filename(filename)
         if output['dir']:
             os.makedirs(output['path'], exist_ok=True)
@@ -150,7 +152,7 @@ def export_cmd(filename, format):
             utils.print_cmd_status("Exporting CityJSON to OBJ (%s)" % (output['path']))
             try:
                 with click.open_file(output['path'], mode='w') as fo:
-                    re = cm.export2obj()
+                    re = cm.export2obj(sloppy)
                     fo.write(re.getvalue())
             except IOError as e:
                 raise click.ClickException('Invalid output file: "%s".\n%s' % (output['path'], e))
@@ -158,7 +160,7 @@ def export_cmd(filename, format):
             utils.print_cmd_status("Exporting CityJSON to STL (%s)" % (output['path']))
             try:
                 with click.open_file(output['path'], mode='w') as fo:
-                    re = cm.export2stl()
+                    re = cm.export2stl(sloppy)
                     fo.write(re.getvalue())
             except IOError as e:
                 raise click.ClickException('Invalid output file: "%s".\n%s' % (output['path'], e))
@@ -198,7 +200,6 @@ def export_cmd(filename, format):
                 raise click.ClickException('Invalid output file: "%s".\n%s' % (output['path'], e))
 
     def processor(cm):
-        #-- mapbox_earcut available?
         if (format != 'jsonl') and (cityjson.MODULE_TRIANGLE_AVAILABLE == False):
             str = "OBJ|glTF|b3dm export skipped: Python module 'triangle' missing (to triangulate faces)"
             utils.print_cmd_alert(str)
@@ -206,7 +207,7 @@ def export_cmd(filename, format):
             utils.print_cmd_warning(str)
             raise click.ClickException('Abort.')
         else:
-            exporter(cm)
+            exporter(cm, sloppy)
         return cm
     return processor
 
@@ -642,13 +643,19 @@ def metadata_remove_cmd():
     return processor
 
 @cli.command('triangulate')
-def triangulate_cmd():
+@click.option('--sloppy', is_flag=True, help='Use a more lenient triangulator (mapbox-earcut), which is also less robust.')
+def triangulate_cmd(sloppy):
     """
     Triangulate every surface.
+
+    If the robust method fails (crash) then it is caused by invalid input.
+    You can use the option '--sloppy' which uses a more lenient library (mapbox-earcut), 
+    but watch out it is less robust (collapsed triangles could be created).
 
     Takes care of updating: (1) semantics; (2) textures; (3) material.
 
         $ cjio myfile.city.json triangulate save mytriangles.city.json 
+        $ cjio myfile.city.json triangulate --sloppy save mytriangles.city.json 
     """
     #-- mapbox_earcut available?
     def processor(cm):
@@ -661,7 +668,14 @@ def triangulate_cmd():
             raise click.ClickException('Abort.')
             return cm
         if not(cm.is_triangulated()):
-            cm.triangulate()
+            if sloppy == True and cityjson.MODULE_EARCUT_AVAILABLE == False:
+                str = "Cannot triangulate: Python module 'mapbox_earcut' missing. Stopping here."
+                utils.print_cmd_alert(str)
+                str = "Install it: https://pypi.org/project/mapbox-earcut/"
+                utils.print_cmd_warning(str)
+                raise click.ClickException('Abort.')
+            else:
+                cm.triangulate(sloppy)
         else:
             utils.print_cmd_status('This file is already triangulated!')
         return cm

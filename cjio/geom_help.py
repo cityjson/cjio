@@ -8,6 +8,12 @@ try:
 except ImportError as e:
     MODULE_TRIANGLE_AVAILABLE = False
 
+MODULE_EARCUT_AVAILABLE = True
+try:
+    import mapbox_earcut
+except ImportError as e:
+    MODULE_EARCUT_AVAILABLE = False    
+
 def to_2d(p, n):
     #-- n must be normalised
     # p = np.array([1, 2, 3])
@@ -44,8 +50,15 @@ def get_normal_newell(poly):
     return (n, True)
 
 
+def triangulate_face(face, vnp, sloppy=False):
+    if sloppy == False:
+        return triangulate_face_shewchuk(face, vnp)
+    else:
+        return triangulate_face_mapbox_earcut(face, vnp)
+
+
 ##-- with Shewchuk Triangle library
-def triangulate_face(face, vnp):
+def triangulate_face_shewchuk(face, vnp):
         # print(face)
         #-- remove duplicate vertices, which can *easily* make Triangle segfault
         for i,each in enumerate(face):
@@ -155,7 +168,7 @@ def triangulate_face_mapbox_earcut(face, vnp):
         # print(rings)
 
         # 1. normal with Newell's method
-        n, b = geom_help.get_normal_newell(sfv)
+        n, b = get_normal_newell(sfv)
 
         #-- if already a triangle then return it
         if b == False:
@@ -166,7 +179,7 @@ def triangulate_face_mapbox_earcut(face, vnp):
         sfv2d = np.zeros( (sfv.shape[0], 2))
         # print (sfv2d)
         for i,p in enumerate(sfv):
-            xy = geom_help.to_2d(p, n)
+            xy = to_2d(p, n)
             # print("xy", xy)
             sfv2d[i][0] = xy[0]
             sfv2d[i][1] = xy[1]

@@ -16,6 +16,7 @@ from typing import Tuple
 MODULE_NUMPY_AVAILABLE = True
 MODULE_PYPROJ_AVAILABLE = True
 MODULE_TRIANGLE_AVAILABLE = True
+MODULE_EARCUT_AVAILABLE = True
 MODULE_PANDAS_AVAILABLE = True
 MODULE_CJVAL_AVAILABLE = True
 
@@ -28,6 +29,10 @@ try:
     import triangle
 except ImportError as e:
     MODULE_TRIANGLE_AVAILABLE = False
+try:
+    import mapbox_earcut
+except ImportError as e:
+    MODULE_EARCUT_AVAILABLE = False
 try:
     import pandas
 except ImportError as e:
@@ -1475,7 +1480,7 @@ class CityJSON:
                     idsdone.add(theid)
         return out
 
-    def export2obj(self):
+    def export2obj(self, sloppy):
         imp_digits = math.ceil(abs(math.log(self.j["transform"]["scale"][0], 10)))
         ids = "." + str(imp_digits) + "f"
         self.decompress()
@@ -1506,21 +1511,21 @@ class CityJSON:
                 out.write('o ' + str(theid) + '\n')
                 if ( (geom['type'] == 'MultiSurface') or (geom['type'] == 'CompositeSurface') ):
                     for face in geom['boundaries']:
-                        re, b = geom_help.triangulate_face(face, vnp)
+                        re, b = geom_help.triangulate_face(face, vnp, sloppy)
                         if b == True:
                             for t in re:
                                 out.write("f %d %d %d\n" % (t[0] + 1, t[1] + 1, t[2] + 1))
                 elif (geom['type'] == 'Solid'):
                     for shell in geom['boundaries']:
                         for i, face in enumerate(shell):
-                            re, b = geom_help.triangulate_face(face, vnp)
+                            re, b = geom_help.triangulate_face(face, vnp, sloppy)
                             if b == True:
                                 for t in re:
                                     out.write("f %d %d %d\n" % (t[0] + 1, t[1] + 1, t[2] + 1))
         self.compress(imp_digits)
         return out
 
-    def export2stl(self):
+    def export2stl(self, sloppy):
         #TODO: refectoring, duplicated code from 2obj()
         out = StringIO()
         out.write("solid\n")
@@ -1544,7 +1549,7 @@ class CityJSON:
             for geom in self.j['CityObjects'][theid]['geometry']:
                 if ( (geom['type'] == 'MultiSurface') or (geom['type'] == 'CompositeSurface') ):
                     for face in geom['boundaries']:
-                        re, b = geom_help.triangulate_face(face, vnp)
+                        re, b = geom_help.triangulate_face(face, vnp, sloppy)
                         n, bb = geom_help.get_normal_newell(face)
                         if b == True:
                             for t in re:
@@ -1556,7 +1561,8 @@ class CityJSON:
                 elif (geom['type'] == 'Solid'):
                     for shell in geom['boundaries']:
                         for i, face in enumerate(shell):
-                            re, b = geom_help.triangulate_face(face, vnp)
+                            re, b = geom_help.triangulate_face(face, vnp, sloppy)
+                            n, bb = geom_help.get_normal_newell(face)
                             if b == True:
                                 for t in re:
                                     out.write("facet normal %f %f %f\nouter loop\n" % (n[0], n[1], n[2]))
@@ -1756,7 +1762,7 @@ class CityJSON:
         self.j["+metadata-extended"]["lineage"].append(new_item)
         
 
-    def triangulate(self):
+    def triangulate(self, sloppy):
         """
         Triangulate the CityJSON file face by face together with the texture information.
         """
@@ -1818,7 +1824,7 @@ class CityJSON:
                             re = np.array(face)
                             b = True
                         else:
-                            re, b = geom_help.triangulate_face(face, vnp)
+                            re, b = geom_help.triangulate_face(face, vnp, sloppy)
                             # re, b = geom_help.triangulate_face(face, vnp)
 
                         if b == True:
@@ -1900,7 +1906,7 @@ class CityJSON:
                                 re = np.array(face)
                                 b = True
                             else:
-                                re, b = geom_help.triangulate_face(face, vnp)
+                                re, b = geom_help.triangulate_face(face, vnp, sloppy)
                             if b == True:
                                 for t in re:
                                     tlist3 = []
@@ -1996,7 +2002,7 @@ class CityJSON:
                                     re = np.array(face)
                                     b = True
                                 else:
-                                    re, b = geom_help.triangulate_face(face, vnp)
+                                    re, b = geom_help.triangulate_face(face, vnp, sloppy)
                                 if b == True:
                                     for t in re:
                                         tlist4 = []
