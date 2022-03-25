@@ -652,15 +652,15 @@ class CityJSON:
         re = list(re)
         #-- new sliced CityJSON object
         cm2 = CityJSON()
-        cm2.j["version"] = self.j["version"]
-        cm2.path = self.path
+        cm2.j["version"] = copy.deepcopy(self.j["version"])
+        cm2.path = copy.deepcopy(self.path)
         if "extensions" in self.j:
-            cm2.j["extensions"] = self.j["extensions"]
+            cm2.j["extensions"] = copy.deepcopy(self.j["extensions"])
         if "transform" in self.j:
-            cm2.j["transform"] = self.j["transform"]
+            cm2.j["transform"] = copy.deepcopy(self.j["transform"])
         #-- select only the COs
         for each in re:
-            cm2.j["CityObjects"][each] = self.j["CityObjects"][each]
+            cm2.j["CityObjects"][each] = copy.deepcopy(self.j["CityObjects"][each])
         #-- geometry
         subset.process_geometry(self.j, cm2.j)
         #-- templates
@@ -672,10 +672,10 @@ class CityJSON:
         #-- copy all other non mandatory properties
         for p in self.j:
             if p not in CITYJSON_PROPERTIES:
-                cm2.j[p] = self.j[p]
+                cm2.j[p] = copy.deepcopy(self.j[p])
         #-- metadata
         if "metadata" in self.j:
-            cm2.j["metadata"] = self.j["metadata"]
+            cm2.j["metadata"] = copy.deepcopy(self.j["metadata"])
             cm2.update_metadata()
         if self.has_metadata_extended():
             try:
