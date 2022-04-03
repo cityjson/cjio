@@ -197,12 +197,12 @@ class TestCityJSON:
 
     def test_convert_to_stl(self, delft):
          cm = copy.deepcopy(delft)
-         obj = cm.export2stl()
+         obj = cm.export2stl(sloppy=True)
 
     def test_triangulate(self, materials):
         """Test #101"""
         cm = materials
-        cm.triangulate()
+        cm.triangulate(sloppy=False)
 
     def test_is_triangulate(self, triangulated):
         cm = triangulated

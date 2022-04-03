@@ -41,7 +41,8 @@ setup(
         ],
         'export': [
             'pandas',
-            'mapbox-earcut'
+            'mapbox-earcut',
+            'triangle'
         ],
         'validate': [
             'cjvalpy'
