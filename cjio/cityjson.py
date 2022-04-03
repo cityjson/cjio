@@ -689,19 +689,15 @@ class CityJSON:
 
 
     def get_subset_random(self, number=1, exclude=False):
-        random.seed()
-        total = len(self.j["CityObjects"])
-        if number > total:
-            number = total
-        allkeys = list(self.j["CityObjects"].keys())
-        re = set()
-        count = 0
-        while (count < number):
-            t = allkeys[random.randint(0, total - 1)]
-            if self.is_co_toplevel(self.j["CityObjects"][t]):
-                re.add(t)
-                count += 1
-        return self.subset(lsIDs=re, exclude=exclude)
+        """Get a random sample of CityObjects without replacement."""
+        top_level_cos = [id for id, co in self.j["CityObjects"].items()
+                         if self.is_co_toplevel(co)]
+        try:
+            random_ids = random.sample(top_level_cos, k=number)
+        except ValueError:
+            # If the sample size 'k' is larger than the number of CityObjects
+            random_ids = top_level_cos
+        return self.subset(lsIDs=random_ids, exclude=exclude)
 
 
     def get_subset_ids(self, lsIDs, exclude=False):
