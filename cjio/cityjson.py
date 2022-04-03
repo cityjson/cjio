@@ -12,7 +12,6 @@ import random
 from io import StringIO
 from click import progressbar
 from datetime import datetime
-from typing import Tuple
 MODULE_NUMPY_AVAILABLE = True
 MODULE_PYPROJ_AVAILABLE = True
 MODULE_TRIANGLE_AVAILABLE = True
@@ -356,6 +355,8 @@ class CityJSON:
             return None
         if "referenceSystem" in self.j["metadata"]:
             s = self.j["metadata"]["referenceSystem"]
+            if "opengis.net/def/crs" not in s or s.rfind("/") < 0:
+                raise ValueError(f"Invalid CRS string '{s}'. CRS needs to be formatted according to the OGC Name Type Specification: 'http://www.opengis.net/def/crs/{{authority}}/{{version}}/{{code}}'")
             return int(s[s.rfind("/")+1:])
         else:
             return None
