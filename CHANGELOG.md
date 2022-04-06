@@ -26,6 +26,9 @@
 ### Fixed
 - Several bugs were fixed
 
+### API
+- Loading a file with `cityjson.load()` removes the `transform` property from the file
+
 
 ## [0.6.10] - 2021-10-18
 ### Changed
