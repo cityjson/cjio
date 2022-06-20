@@ -1,5 +1,12 @@
 # Changelog
 
+
+## [0.7.4] - 2022-06-20
+### Fixed
+- crash wiht new version of Click (>=8.1) (#140)
+### Added
+- templates for bug reporting
+
 ## [0.7.3] - 2021-12-15
 ### Fixed
 - STL export (#127)
