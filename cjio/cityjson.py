@@ -1621,7 +1621,7 @@ class CityJSON:
             re = []
             if 'geometry' in self.j['CityObjects'][co]:
                 for i, g in enumerate(self.j['CityObjects'][co]['geometry']):
-                    if g['lod'] != thelod:
+                    if str(g['lod']) != thelod:
                         re.append(g)
                         # print (g)
                 for each in re:
