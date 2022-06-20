@@ -55,7 +55,7 @@ def cli(context, input, ignore_duplicate_keys):
     context.obj = {"argument": input}
 
 
-@cli.resultcallback()
+@cli.result_callback()
 def process_pipeline(processors, input, ignore_duplicate_keys):
     extensions = ['.json', '.off', '.poly'] #-- input allowed
     try:
