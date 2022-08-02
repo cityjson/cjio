@@ -480,19 +480,11 @@ class CityJSON:
             return False
         if "metadata" not in self.j:
             self.j["metadata"] = {}
-        if float(self.get_version()) < 0.7:
-            if "crs" not in self.j["metadata"]:
-                self.j["metadata"]["crs"] = {} 
-            if "epsg" not in self.j["metadata"]["crs"]:
-                self.j["metadata"]["crs"]["epsg"] = {}
-            self.j["metadata"]["crs"]["epsg"] = i
-            return True
-        else:
-            if "referenceSystem" not in self.j["metadata"]:
-                self.j["metadata"]["referenceSystem"] = {}
-            s = 'urn:ogc:def:crs:EPSG::' + str(i)
-            self.j["metadata"]["referenceSystem"] = s
-            return True
+        if "referenceSystem" not in self.j["metadata"]:
+            self.j["metadata"]["referenceSystem"] = {}
+        s = 'https://www.opengis.net/def/crs/EPSG/0/' + str(i)
+        self.j["metadata"]["referenceSystem"] = s
+        return True
 
 
     def update_bbox_each_cityobjects(self, addifmissing=False):
