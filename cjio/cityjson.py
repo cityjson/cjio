@@ -90,11 +90,6 @@ def read_stdin():
         cm.j["CityObjects"] = {}
     if "vertices" not in cm.j:
         cm.j["vertices"] = []
-    try:
-        cm.validate()
-    except Exception as e:
-        # TODO: document this in a special webpage
-        raise IOError("First line of STDIN is not a valid CityJSON header.")
     while True:
         lcount += 1
         line = sys.stdin.readline()
