@@ -31,8 +31,8 @@ class PerCommandArgWantSubCmdHelp(click.Argument):
 @click.group(chain=True)
 @click.version_option(version=cjio.__version__, prog_name=cityjson.CITYJSON_VERSIONS_SUPPORTED[-1], message="cjio v%(version)s; supports CityJSON v%(prog)s")
 @click.argument('input', cls=PerCommandArgWantSubCmdHelp)
-@click.option('--ignore_duplicate_keys', is_flag=True, help='Load a CityJSON file even if some City Objects have the same IDs (technically invalid file)')
-@click.option('--suppress_msg', is_flag=True, help='Suppress all information/messages')
+@click.option('--ignore_duplicate_keys', is_flag=True, help='Load a CityJSON file even if some City Objects have the same IDs (technically invalid file).')
+@click.option('--suppress_msg', is_flag=True, help='Suppress all information/messages.')
 @click.pass_context
 def cli(context, input, ignore_duplicate_keys, suppress_msg):
     """Process and manipulate a CityJSON model, and allow
@@ -703,12 +703,15 @@ def triangulate_cmd(sloppy):
 
     If the robust method fails (crash) then it is caused by invalid input.
     You can use the option '--sloppy' which uses a more lenient library (mapbox-earcut), 
-    but watch out it is less robust (collapsed triangles could be created).
+    but watch out it is less robust (collapsed triangles could be created!).
 
     Takes care of updating: (1) semantics; (2) textures; (3) material.
 
-        $ cjio myfile.city.json triangulate save mytriangles.city.json 
-        $ cjio myfile.city.json triangulate --sloppy save mytriangles.city.json 
+    sage examples:
+
+    \b
+        cjio myfile.city.json triangulate save mytriangles.city.json 
+        cjio myfile.city.json triangulate --sloppy save mytriangles.city.json 
     """
     #-- mapbox_earcut available?
     def processor(cm):
