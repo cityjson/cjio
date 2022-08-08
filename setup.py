@@ -14,7 +14,7 @@ setup(
     long_description_content_type="text/x-rst",
     url='https://github.com/cityjson/cjio',
     author='Hugo Ledoux, Balázs Dukai',
-    author_email='h.ledoux@tudelft.nl, b.dukai@tudelft.nl',
+    author_email='h.ledoux@tudelft.nl, balazs.dukai@3dgi.nl',
     python_requires='>=3.6',
     packages=['cjio'],
     # include_package_data=True,
