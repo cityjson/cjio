@@ -1136,6 +1136,61 @@ class CityJSON:
                 for g in self.j['CityObjects'][theid]['geometry']:
                     update_geom_indices(g["boundaries"], offset)
 
+        #-- materials
+        if ("appearance" in j) and ("materials" in j["appearance"]):
+            if ("appearance" in self.j) and ("materials" in self.j["appearance"]):
+                offset = len(self.j["appearance"]["materials"])
+            else:
+                if "appearance" not in self.j:
+                    self.j["appearance"] = {}
+                if "materials" not in self.j["appearance"]:
+                    self.j["appearance"]["materials"] = []
+                offset = 0
+            #-- copy materials
+            for m in j["appearance"]["materials"]:
+                self.j["appearance"]["materials"].append(m)
+            #-- update the "material" in each Geometry
+            for theid in j["CityObjects"]:
+                for g in self.j['CityObjects'][theid]['geometry']:
+                    if 'material' in g:
+                        for m in g['material']:
+                            if 'values' in g['material'][m]:
+                                update_geom_indices(g['material'][m]['values'], offset)
+                            else:
+                                g['material'][m]['value'] = g['material'][m]['value'] + offset
+        #-- textures
+        if ("appearance" in j) and ("textures" in j["appearance"]):
+            if ("appearance" in self.j) and ("textures" in self.j["appearance"]):
+                toffset = len(self.j["appearance"]["textures"])
+                voffset = len(self.j["appearance"]["vertices-texture"])
+            else:
+                if "appearance" not in self.j:
+                    self.j["appearance"] = {}
+                if "textures" not in self.j["appearance"]:
+                    self.j["appearance"]["textures"] = []
+                if "vertices-texture" not in self.j["appearance"]:
+                    self.j["appearance"]["vertices-texture"] = []                        
+                toffset = 0
+                voffset = 0
+            #-- copy vertices-texture
+            self.j["appearance"]["vertices-texture"] += j["appearance"]["vertices-texture"]
+            #-- copy textures
+            for t in j["appearance"]["textures"]:
+                self.j["appearance"]["textures"].append(t)
+            #-- update the "texture" in each Geometry
+            for theid in j["CityObjects"]:
+                for g in self.j['CityObjects'][theid]['geometry']:
+                    if 'texture' in g:
+                        for m in g['texture']:
+                            if 'values' in g['texture'][m]:
+                                update_texture_indices(g['texture'][m]['values'], toffset, voffset)
+                            else:
+                                raise KeyError(f"The member 'values' is missing from the texture '{m}' in CityObject {theid}")
+
+        self.remove_duplicate_vertices()
+        self.remove_orphan_vertices()
+        self.update_bbox()                    
+
 
     def merge(self, lsCMs):
         # decompress() everything
