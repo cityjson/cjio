@@ -132,6 +132,8 @@ def export_cmd(filename, format, sloppy):
     """Export to another format.
 
     OBJ, Binary glTF (glb), Batched 3DModel (b3dm), STL, JSONL (JSON Lines, for streaming). 
+    The result can be stored either in a file, out piped to stdout (by choosing 'stdout' instead
+    of a file).
     
     Currently, textures are not supported, sorry.
 
@@ -140,38 +142,58 @@ def export_cmd(filename, format, sloppy):
     \b
         cjio myfile.city.json export obj myfile.obj
         cjio myfile.city.json export --sloppy obj myfile.obj
-        cjio myfile.city.json export jsonl myfile.txt
+        cjio myfile.city.json export jsonl stdout
     """
     def exporter(cm, sloppy):
-        output = utils.verify_filename(filename)
-        if output['dir']:
-            os.makedirs(output['path'], exist_ok=True)
-            input_filename = os.path.splitext(os.path.basename(cm.path))[0]
-            output['path'] = os.path.join(output['path'], '{f}.{ext}'.format(
-                f=input_filename, ext=format))
+        stdoutoutput = False
+        if filename == 'stdout':
+            stdoutoutput = True
         else:
-            os.makedirs(os.path.dirname(output['path']), exist_ok=True)
+            output = utils.verify_filename(filename)
+            if output['dir']:
+                os.makedirs(output['path'], exist_ok=True)
+                input_filename = os.path.splitext(os.path.basename(cm.path))[0]
+                output['path'] = os.path.join(output['path'], '{f}.{ext}'.format(
+                    f=input_filename, ext=format))
+            else:
+                os.makedirs(os.path.dirname(output['path']), exist_ok=True)
+        #---------- OBJ ----------
         if format.lower() == 'obj':
-            utils.print_cmd_status("Exporting CityJSON to OBJ (%s)" % (output['path']))
-            try:
-                with click.open_file(output['path'], mode='w') as fo:
-                    re = cm.export2obj(sloppy)
-                    fo.write(re.getvalue())
-            except IOError as e:
-                raise click.ClickException('Invalid output file: "%s".\n%s' % (output['path'], e))
+            if stdoutoutput:
+                buf = cm.export2obj(sloppy)
+                buf.seek(0)
+                for l in buf.readlines():
+                    sys.stdout.write(l)
+            else:
+                print_cmd_status("Exporting CityJSON to OBJ (%s)" % (output['path']))
+                try:
+                    with click.open_file(output['path'], mode='w') as fo:
+                        re = cm.export2obj(sloppy)
+                        fo.write(re.getvalue())
+                except IOError as e:
+                    raise click.ClickException('Invalid output file: "%s".\n%s' % (output['path'], e))
+        #---------- STL ----------
         elif format.lower() == 'stl':
-            utils.print_cmd_status("Exporting CityJSON to STL (%s)" % (output['path']))
-            try:
-                with click.open_file(output['path'], mode='w') as fo:
-                    re = cm.export2stl(sloppy)
-                    fo.write(re.getvalue())
-            except IOError as e:
-                raise click.ClickException('Invalid output file: "%s".\n%s' % (output['path'], e))
+            if stdoutoutput:
+                buf = cm.export2stl(sloppy)
+                buf.seek(0)
+                for l in buf.readlines():
+                    sys.stdout.write(l)
+            else:    
+                print_cmd_status("Exporting CityJSON to STL (%s)" % (output['path']))
+                try:
+                    with click.open_file(output['path'], mode='w') as fo:
+                        re = cm.export2stl(sloppy)
+                        fo.write(re.getvalue())
+                except IOError as e:
+                    raise click.ClickException('Invalid output file: "%s".\n%s' % (output['path'], e))
+        #---------- GLB ----------
         elif format.lower() == 'glb':
+            #-- TODO: glb stdout necessary?
             fname = os.path.splitext(os.path.basename(output['path']))[0]
             bufferbin = "{}.glb".format(fname)
             binfile = os.path.join(os.path.dirname(output['path']), bufferbin)
-            utils.print_cmd_status("Exporting CityJSON to glb %s" % binfile)
+            print_cmd_status("Exporting CityJSON to glb %s" % binfile)
             glb = cm.export2glb()
             # TODO B: how many buffer can there be in the 'buffers'?
             try:
@@ -180,34 +202,42 @@ def export_cmd(filename, format, sloppy):
                     bo.write(glb.getvalue())
             except IOError as e:
                 raise click.ClickException('Invalid output file: "%s".\n%s' % (binfile, e))
+        #---------- B3DM ----------
         elif format.lower() == 'b3dm':
+            #-- TODO: b3dm stdout necessary?
             fname = os.path.splitext(os.path.basename(output['path']))[0]
             b3dmbin = "{}.b3dm".format(fname)
             binfile = os.path.join(os.path.dirname(output['path']), b3dmbin)
             b3dm = cm.export2b3dm()
-            utils.print_cmd_status("Exporting CityJSON to b3dm %s" % binfile)
-            utils.print_cmd_warning("Although the conversion works, the output is probably incorrect.")
+            print_cmd_status("Exporting CityJSON to b3dm %s" % binfile)
+            print_cmd_warning("Although the conversion works, the output is probably incorrect.")
             try:
                 b3dm.seek(0)
                 with click.open_file(binfile, mode='wb') as bo:
                     bo.write(b3dm.getvalue())
             except IOError as e:
                 raise click.ClickException('Invalid output file: "%s".\n%s' % (binfile, e))
+        #---------- JSONL ----------
         elif format.lower() == 'jsonl':
-            utils.print_cmd_status("Exporting CityJSON to JSON Lines (%s)" % (output['path']))
-            try:
-                with click.open_file(output['path'], mode='w') as fo:
-                    re = cm.export2jsonl()
-                    fo.write(re.getvalue())
-            except IOError as e:
-                raise click.ClickException('Invalid output file: "%s".\n%s' % (output['path'], e))
-
+            if stdoutoutput:
+                buf = cm.export2jsonl()
+                buf.seek(0)
+                for l in buf.readlines():
+                    sys.stdout.write(l)
+            else:
+                print_cmd_status("Exporting CityJSON to JSON Lines (%s)" % (output['path']))
+                try:
+                    with click.open_file(output['path'], mode='w') as fo:
+                        re = cm.export2jsonl()
+                        fo.write(re.getvalue())
+                except IOError as e:
+                    raise click.ClickException('Invalid output file: "%s".\n%s' % (output['path'], e))
     def processor(cm):
         if (format != 'jsonl') and (cityjson.MODULE_TRIANGLE_AVAILABLE == False):
             str = "OBJ|glTF|b3dm export skipped: Python module 'triangle' missing (to triangulate faces)"
-            utils.print_cmd_alert(str)
+            print_cmd_alert(str)
             str = "Install it: https://pypi.org/project/triangle/"
-            utils.print_cmd_warning(str)
+            print_cmd_warning(str)
             raise click.ClickException('Abort.')
         else:
             exporter(cm, sloppy)
