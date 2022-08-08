@@ -288,15 +288,15 @@ def save_cmd(filename, indent, textures):
             try:
                 fo = click.open_file(output['path'], mode='w')
                 if textures:
-                cm.copy_textures(textures, output['path'])
-            if indent:
-                json_str = json.dumps(cm.j, indent="\t")
-                fo.write(json_str)
-            else:
-                json_str = json.dumps(cm.j, separators=(',',':'))
-                fo.write(json_str)
-        except IOError as e:
-            raise click.ClickException('Invalid output file: %s \n%s' % (output['path'], e))
+                    cm.copy_textures(textures, output['path'])
+                if indent:
+                    json_str = json.dumps(cm.j, indent="\t")
+                    fo.write(json_str)
+                else:
+                    json_str = json.dumps(cm.j, separators=(',',':'))
+                    fo.write(json_str)
+            except IOError as e:
+                raise click.ClickException('Invalid output file: %s \n%s' % (output['path'], e))
 
     def processor(cm):
         saver(cm)
