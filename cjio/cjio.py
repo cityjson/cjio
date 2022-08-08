@@ -223,27 +223,41 @@ def export_cmd(filename, format, sloppy):
               type=str,
               help='Path to the new textures directory. This command copies the textures to a new location. Useful when creating an independent subset of a CityJSON file.')
 def save_cmd(filename, indent, textures):
-    """Save to a CityJSON file."""
-    def saver(cm):
-        output = utils.verify_filename(filename)
-        if output['dir']:
-            os.makedirs(output['path'], exist_ok=True)
-            input_filename = os.path.splitext(os.path.basename(cm.path))[0]
-            output['path'] = os.path.join(output['path'], '{f}.{ext}'.format(
-                f=input_filename, ext='json'))
-        else:
-            os.makedirs(os.path.dirname(output['path']), exist_ok=True)
-        
-        # try:
-        #     if "metadata" in cm.j:
-        #         cm.j["metadata"]["fileIdentifier"] = os.path.basename(output['path'])
-        # except:
-        #     pass
+    """Save to a CityJSON file.
 
-        utils.print_cmd_status("Saving CityJSON to a file %s" % output['path'])
-        try:
-            fo = click.open_file(output['path'], mode='w')
-            if textures:
+    Save to a file on disk, or 'stdout' pipes the file to the standart output.
+
+    Usage examples:
+
+    \b
+        cjio myfile.city.json metadata_update save myfile.city.json
+        cjio myfile.json upgrade save stdout
+    """
+    def saver(cm):
+        stdoutoutput = False
+        if filename == 'stdout':
+            stdoutoutput = True
+        else:
+            output = utils.verify_filename(filename)
+            if output['dir']:
+                os.makedirs(output['path'], exist_ok=True)
+                input_filename = os.path.splitext(os.path.basename(cm.path))[0]
+                output['path'] = os.path.join(output['path'], '{f}.{ext}'.format(
+                    f=input_filename, ext='json'))
+            else:
+                os.makedirs(os.path.dirname(output['path']), exist_ok=True)
+        if stdoutoutput == True:
+            if indent:
+                json_str = json.dumps(cm.j, indent="\t")
+                sys.stdout.write(json_str)
+            else:
+                json_str = json.dumps(cm.j, separators=(',',':'))
+                sys.stdout.write(json_str)
+        else:
+            print_cmd_status("Saving CityJSON to a file %s" % output['path'])
+            try:
+                fo = click.open_file(output['path'], mode='w')
+                if textures:
                 cm.copy_textures(textures, output['path'])
             if indent:
                 json_str = json.dumps(cm.j, indent="\t")
