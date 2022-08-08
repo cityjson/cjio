@@ -31,8 +31,8 @@ setup(
         'Operating System :: Microsoft :: Windows'
     ],
     install_requires=[
-        'Click',
         'numpy'
+        'Click>=8.1.0',
     ],
     extras_require={
         'develop': [
