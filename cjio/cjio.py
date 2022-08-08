@@ -32,8 +32,9 @@ class PerCommandArgWantSubCmdHelp(click.Argument):
 @click.version_option(version=cjio.__version__, prog_name=cityjson.CITYJSON_VERSIONS_SUPPORTED[-1], message="cjio v%(version)s; supports CityJSON v%(prog)s")
 @click.argument('input', cls=PerCommandArgWantSubCmdHelp)
 @click.option('--ignore_duplicate_keys', is_flag=True, help='Load a CityJSON file even if some City Objects have the same IDs (technically invalid file)')
+@click.option('--suppress_msg', is_flag=True, help='Suppress all information/messages')
 @click.pass_context
-def cli(context, input, ignore_duplicate_keys):
+def cli(context, input, ignore_duplicate_keys, suppress_msg):
     """Process and manipulate a CityJSON model, and allow
     different outputs. The different operators can be chained
     to perform several processing in one step, the CityJSON model
@@ -52,15 +53,15 @@ def cli(context, input, ignore_duplicate_keys):
         cjio myfile.city.json subset --id house12 save out.city.json
         cjio myfile.city.json crs_assign 7145 textures_remove export --format obj output.obj
     """
-    context.obj = {"argument": input}
+    context.obj = {"argument": input, "suppress_msg": suppress_msg}
 
 
 @cli.result_callback()
-def process_pipeline(processors, input, ignore_duplicate_keys):
+def process_pipeline(processors, input, ignore_duplicate_keys, suppress_msg):
     extensions = ['.json', '.jsonl', '.off', '.poly'] #-- input allowed
     try:
         if input == 'stdin':
-            cm = cityjson.readstdin()
+            cm = cityjson.read_stdin()
         else:    
             f = click.open_file(input, mode='r', encoding='utf-8-sig')
             extension = os.path.splitext(input)[1].lower()
@@ -68,15 +69,15 @@ def process_pipeline(processors, input, ignore_duplicate_keys):
                 raise IOError("File type not supported (only .json, .off, and .poly).")
             #-- OFF file
             if (extension == '.off'):
-                utils.print_cmd_status("Converting %s to CityJSON" % (input))
+                print_cmd_status("Converting %s to CityJSON" % (input))
                 cm = cityjson.off2cj(f)
             #-- POLY file
             elif (extension == '.poly'):
-                utils.print_cmd_status("Converting %s to CityJSON" % (input))
+                print_cmd_status("Converting %s to CityJSON" % (input))
                 cm = cityjson.poly2cj(f)            
             #-- CityJSON file
             else: 
-                utils.print_cmd_status("Parsing %s" % (input))
+                print_cmd_status("Parsing %s" % (input))
                 cm = cityjson.reader(file=f, ignore_duplicate_keys=ignore_duplicate_keys)
                 if not isinstance(cm.get_version(), str):
                     str1 = "CityJSON version should be a string 'X.Y' (eg '1.0')"
@@ -99,7 +100,7 @@ def process_pipeline(processors, input, ignore_duplicate_keys):
                 elif (cm.get_version() != cityjson.CITYJSON_VERSIONS_SUPPORTED[-1]):
                     str1 = "v%s is not the latest version, and not everything will work.\n" % cm.get_version()
                     str1 += "Upgrade the file with 'upgrade' command: 'cjio input.json upgrade save out.json'" 
-                    utils.print_cmd_alert(str1)
+                    print_cmd_alert(str1)
     except ValueError as e:
         raise click.ClickException('%s: "%s".' % (e, input))
     except IOError as e:
@@ -109,15 +110,14 @@ def process_pipeline(processors, input, ignore_duplicate_keys):
 
 
 @cli.command('info')
-@click.pass_context
 @click.option('--long', is_flag=True, help='More gory details about the file.')
-def info_cmd(context, long):
+def info_cmd(long):
     """Output information about the dataset."""
     def processor(cm):
-        utils.print_cmd_status('Information ⬇️')
+        print_cmd_status('Information ⬇️')
         s = linesep.join(cm.get_info(long=long))
-        click.echo(s)
-        utils.print_cmd_status('Information ⬆️')
+        print_cmd_info(s)
+        print_cmd_status('Information ⬆️')
         return cm
     return processor
 
@@ -278,18 +278,18 @@ def validate_cmd():
     def processor(cm):
         if (cityjson.MODULE_CJVAL_AVAILABLE == False):
             str = "Validation skipped: Python module 'cjvalpy' not installed"
-            utils.print_cmd_alert(str)
+            print_cmd_alert(str)
             str = "To install it: https://www.github.com/cityjson/cjvalpy"
-            utils.print_cmd_warning(str)
+            print_cmd_warning(str)
             str = "Alternatively use the web-app: https://validator.cityjson.org"
-            utils.print_cmd_warning(str)
+            print_cmd_warning(str)
             raise click.ClickException('Abort.')
-        utils.print_cmd_status('Validation (with official CityJSON schemas)')
+        print_cmd_status('Validation (with official CityJSON schemas)')
         try:
             re = cm.validate()
-            click.echo(re)
+            print_cmd_info(re)
         except Exception as e:
-            utils.print_cmd_alert("Error: {}".format(e))
+            print_cmd_alert("Error: {}".format(e))
         return cm
     return processor
 
@@ -306,7 +306,7 @@ def merge_cmd(filepattern):
         $ cjio myfile.city.json merge '/home/elvis/temp/*.json' save merged.city.json
     """
     def processor(cm):
-        utils.print_cmd_status('Merging files')
+        print_cmd_status('Merging files')
         lsCMs = []
         g = glob.glob(filepattern)
         for i in g:
@@ -318,7 +318,7 @@ def merge_cmd(filepattern):
             except IOError as e:
                 raise click.ClickException('Invalid file: "%s".' % (input))
         if len(lsCMs) == 0:
-            click.echo("WARNING: No files to merge.")
+            print_cmd_info("WARNING: No files to merge.")
         else:
             cm.merge(lsCMs)
         return cm
@@ -354,7 +354,7 @@ def subset_cmd(id, bbox, random, cotype, radius, exclude):
         cjio myfile.city.json subset --cotype LandUse --cotype Building save out.city.json
     """
     def processor(cm):
-        utils.print_cmd_status('Subset of CityJSON')
+        print_cmd_status('Subset of CityJSON')
         s = copy.deepcopy(cm)
         if random is not None:
             s = s.get_subset_random(random, exclude=exclude)
@@ -379,7 +379,7 @@ def vertices_clean_cmd():
     Remove duplicate vertices + orphan vertices    
     """
     def processor(cm):
-        utils.print_cmd_status('Clean the file')
+        print_cmd_status('Clean the file')
         cm.remove_duplicate_vertices()
         cm.remove_orphan_vertices()
         return cm
@@ -391,7 +391,7 @@ def materials_remove_cmd():
     Remove all materials.
     """
     def processor(cm):
-        utils.print_cmd_status('Remove all material')
+        print_cmd_status('Remove all material')
         cm.remove_materials()
         return cm
     return processor
@@ -402,7 +402,7 @@ def textures_remove_cmd():
     Remove all textures.
     """
     def processor(cm):
-        utils.print_cmd_status('Remove all textures')
+        print_cmd_status('Remove all textures')
         cm.remove_textures()
         return cm
     return processor
@@ -418,7 +418,7 @@ def crs_assign_cmd(newepsg):
     To reproject (and thus modify all the values of the coordinates) use reproject().
     """
     def processor(cm):
-        utils.print_cmd_status('Assign EPSG:%d' % newepsg)
+        print_cmd_status('Assign EPSG:%d' % newepsg)
         cm.set_epsg(newepsg)
         return cm
     return processor
@@ -435,13 +435,13 @@ def crs_reproject_cmd(epsg):
     def processor(cm):
         if (cityjson.MODULE_PYPROJ_AVAILABLE == False):
             str = "Reprojection skipped: Python module 'pyproj' missing (to reproject coordinates)"
-            utils.print_cmd_alert(str)
+            print_cmd_alert(str)
             str = "Install it: https://pypi.org/project/pyproj/"
-            utils.print_cmd_warning(str)
+            print_cmd_warning(str)
             raise click.ClickException('Abort.')
-        utils.print_cmd_status('Reproject to EPSG:%d' % epsg)
+        print_cmd_status('Reproject to EPSG:%d' % epsg)
         if (cm.get_epsg() == None):
-            click.echo("WARNING: CityJSON has no EPSG defined, can't be reprojected.")
+            print_cmd_warning("WARNING: CityJSON has no EPSG defined, can't be reprojected.")
         else:    
             cm.reproject(epsg)
         return cm
@@ -464,10 +464,10 @@ def upgrade_cmd(digit):
     """
     def processor(cm):
         vlatest = cityjson.CITYJSON_VERSIONS_SUPPORTED[-1]
-        utils.print_cmd_status('Upgrade CityJSON file to v%s' % vlatest)
+        print_cmd_status('Upgrade CityJSON file to v%s' % vlatest)
         re, reasons = cm.upgrade_version(vlatest, digit)
         if (re == False):
-            utils.print_cmd_warning("WARNING: %s" % (reasons))
+            print_cmd_warning("WARNING: %s" % (reasons))
         return cm
     return processor
 
@@ -478,9 +478,15 @@ def textures_locate_cmd():
     Output the location of the texture files.
     """
     def processor(cm):
-        utils.print_cmd_status('Locate the textures')
-        loc = cm.get_textures_location()
-        click.echo(loc)
+        print_cmd_status('Locate the textures')
+        try:
+            loc = cm.get_textures_location()
+            if loc == None:
+                print_cmd_info("This file does not have textures")
+            else:
+                print_cmd_status(loc)
+        except Exception as e:
+            print_cmd_warning(e)     
         return cm
     return processor
 
@@ -494,7 +500,7 @@ def textures_update_cmd(newlocation, relative):
     Can be used if the texture files were moved to new directory.
     """
     def processor(cm):
-        utils.print_cmd_status('Update location of textures')
+        print_cmd_status('Update location of textures')
         cm.update_textures_location(newlocation, relative=relative)
         return cm
     return processor
@@ -514,7 +520,7 @@ def lod_filter_cmd(lod):
     
     """
     def processor(cm):
-        utils.print_cmd_status('Filter LoD: "%s"' % lod)
+        print_cmd_status('Filter LoD: "%s"' % lod)
         cm.filter_lod(lod)
         return cm
     return processor
@@ -530,7 +536,7 @@ def attribute_remove_cmd(attr):
         $ cjio myfile.city.json attribute_remove roofType info
     """
     def processor(cm):
-        utils.print_cmd_status('Remove attribute: "%s"' % attr)
+        print_cmd_status('Remove attribute: "%s"' % attr)
         cm.remove_attribute(attr)
         return cm
     return processor
@@ -548,7 +554,7 @@ def attribute_rename_cmd(oldattr, newattr):
         $ cjio myfile.city.json attribute_rename oldAttr newAttr info
     """
     def processor(cm):
-        utils.print_cmd_status('Rename attribute: "%s" => "%s"' % (oldattr, newattr))
+        print_cmd_status('Rename attribute: "%s" => "%s"' % (oldattr, newattr))
         cm.rename_attribute(oldattr, newattr)
         return cm
     return processor
@@ -572,7 +578,7 @@ def crs_translate_cmd(values):
            bbox = cm.translate(values=[], minimum_xyz=True)
         else:
             bbox = cm.translate(values=values, minimum_xyz=False)
-        utils.print_cmd_status('Translating the file by: (%f, %f, %f)' % (bbox[0], bbox[1], bbox[2]))
+        print_cmd_status('Translating the file by: (%f, %f, %f)' % (bbox[0], bbox[1], bbox[2]))
         return cm
     return processor
 
@@ -586,10 +592,10 @@ def metadata_create_cmd():
     Modify/update the dataset.
     """
     def processor(cm):
-        utils.print_cmd_status('Create the +metadata-extended and populate it')
+        print_cmd_status('Create the +metadata-extended and populate it')
         _, errors = cm.update_metadata_extended(overwrite=True)
         for e in errors:
-            utils.print_cmd_warning(e)
+            print_cmd_warning(e)
         return cm
     return processor
 
@@ -603,10 +609,10 @@ def metadata_update_cmd(overwrite):
     Modify/update the dataset.
     """
     def processor(cm):
-        utils.print_cmd_status('Update the +metadata-extended')
+        print_cmd_status('Update the +metadata-extended')
         _, errors = cm.update_metadata_extended(overwrite)
         for e in errors:
-            utils.print_cmd_warning(e)
+            print_cmd_warning(e)
         return cm
     return processor
 
@@ -628,7 +634,7 @@ def metadata_get_cmd():
             j.update(cm.get_metadata())
         if cm.has_metadata_extended():
             j.update(cm.get_metadata_extended())
-        click.echo(json.dumps(j, indent=2))
+        print_cmd_info(json.dumps(j, indent=2))
         return cm
     return processor
 
@@ -640,7 +646,7 @@ def metadata_remove_cmd():
     Modify/update the dataset.
     """
     def processor(cm):
-        utils.print_cmd_status('Remove the +metadata-extended property')
+        print_cmd_status('Remove the +metadata-extended property')
         cm.metadata_extended_remove()
         return cm
     return processor
@@ -662,27 +668,53 @@ def triangulate_cmd(sloppy):
     """
     #-- mapbox_earcut available?
     def processor(cm):
-        utils.print_cmd_status('Triangulate the CityJSON file')
+        print_cmd_status('Triangulate the CityJSON file')
         if (cityjson.MODULE_TRIANGLE_AVAILABLE == False):
             str = "Cannot triangulate: Python module 'triangle' missing. Stopping here."
-            utils.print_cmd_alert(str)
+            print_cmd_alert(str)
             str = "Install it: https://pypi.org/project/triangle/"
-            utils.print_cmd_warning(str)
+            print_cmd_warning(str)
             raise click.ClickException('Abort.')
             return cm
         if not(cm.is_triangulated()):
             if sloppy == True and cityjson.MODULE_EARCUT_AVAILABLE == False:
                 str = "Cannot triangulate: Python module 'mapbox_earcut' missing. Stopping here."
-                utils.print_cmd_alert(str)
+                print_cmd_alert(str)
                 str = "Install it: https://pypi.org/project/mapbox-earcut/"
-                utils.print_cmd_warning(str)
+                print_cmd_warning(str)
                 raise click.ClickException('Abort.')
             else:
                 cm.triangulate(sloppy)
         else:
-            utils.print_cmd_status('This file is already triangulated!')
+            print_cmd_status('This file is already triangulated!')
         return cm
     return processor
+
+
+
+@click.pass_context
+def print_cmd_info(ctx, s):
+    if ctx.obj["suppress_msg"] == False:
+        click.secho(s)
+
+@click.pass_context
+def print_cmd_status(ctx, s):
+    if ctx.obj["suppress_msg"] == False:
+        click.secho(s, bg='cyan', fg='black')
+
+@click.pass_context
+def print_cmd_substatus(ctx, s):
+    if ctx.obj["suppress_msg"] == False:
+        click.secho(s, fg='cyan')
+
+@click.pass_context
+def print_cmd_warning(ctx, s):
+    if ctx.obj["suppress_msg"] == False:
+        click.secho(s, reverse=True, fg='yellow')
+
+@click.pass_context
+def print_cmd_alert(ctx, s):
+    click.secho(s, reverse=True, fg='red')
 
 
 # Needed for the executable created by PyInstaller
