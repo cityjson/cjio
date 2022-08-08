@@ -1,5 +1,6 @@
 
 import os
+import sys
 import re
 
 import json
@@ -81,6 +82,32 @@ def load(path, transform: bool = True):
     cm.load_from_j(transform=transform)
     return cm
 
+def readstdin():
+    lcount = 1
+    #-- read first line
+    j1 = json.loads(sys.stdin.readline())
+    cm = CityJSON(j=j1)
+    if "CityObjects" not in cm.j:
+        cm.j["CityObjects"] = {}
+    if "vertices" not in cm.j:
+        cm.j["vertices"] = []
+    try:
+        cm.validate()
+    except Exception as e:
+        # TODO: document this in a special webpage
+        raise IOError("First line of STDIN is not a valid CityJSON header.")
+    while True:
+        lcount += 1
+        line = sys.stdin.readline()
+        if line != '':
+            j1 = json.loads(line)
+            # TODO: put CityJSONFeature schema and validate here? defensive programming?
+            if not( "type" in j1 and j1["type"] == 'CityJSONFeature'):
+               raise IOError("Line {} is not of type 'CityJSONFeature'.".format(lcount)) 
+            cm.add_cityjsonfeature(j1)
+        else:
+            break
+    return cm
 
 def save(citymodel, path: str, indent: bool = False):
     """Save a city model to a CityJSON file
@@ -189,6 +216,23 @@ def poly2cj(file):
     j.compress()
     return j
 
+def update_geom_indices(a, offset):
+  for i, each in enumerate(a):
+    if isinstance(each, list):
+        update_geom_indices(each, offset)
+    else:
+        if each is not None:
+            a[i] = each + offset
+def update_texture_indices(a, toffset, voffset):
+  for i, each in enumerate(a):
+    if isinstance(each, list):
+        update_texture_indices(each, toffset, voffset)
+    else:
+        if each is not None:
+            if i == 0:
+                a[i] = each + toffset
+            else:
+                a[i] = each + voffset
 
 class CityJSON:
 
@@ -1092,6 +1136,17 @@ class CityJSON:
         else: 
             return False
 
+    
+    def add_cityjsonfeature(self, j):
+        offset = len(self.j["vertices"])
+        self.j["vertices"] += j["vertices"]
+        #-- add each CityObjects
+        for theid in j["CityObjects"]:
+            self.j["CityObjects"][theid] = j["CityObjects"][theid]
+            if 'geometry' in self.j['CityObjects'][theid]:
+                for g in self.j['CityObjects'][theid]['geometry']:
+                    update_geom_indices(g["boundaries"], offset)
+
 
     def merge(self, lsCMs):
         # decompress() everything
@@ -1101,23 +1156,6 @@ class CityJSON:
         # updates textures
         # updates materials
         #############################
-        def update_geom_indices(a, offset):
-          for i, each in enumerate(a):
-            if isinstance(each, list):
-                update_geom_indices(each, offset)
-            else:
-                if each is not None:
-                    a[i] = each + offset
-        def update_texture_indices(a, toffset, voffset):
-          for i, each in enumerate(a):
-            if isinstance(each, list):
-                update_texture_indices(each, toffset, voffset)
-            else:
-                if each is not None:
-                    if i == 0:
-                        a[i] = each + toffset
-                    else:
-                        a[i] = each + voffset
 
         #-- decompress current CM
         imp_digits = math.ceil(abs(math.log(self.j["transform"]["scale"][0], 10)))

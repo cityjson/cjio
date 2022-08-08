@@ -57,46 +57,49 @@ def cli(context, input, ignore_duplicate_keys):
 
 @cli.result_callback()
 def process_pipeline(processors, input, ignore_duplicate_keys):
-    extensions = ['.json', '.off', '.poly'] #-- input allowed
+    extensions = ['.json', '.jsonl', '.off', '.poly'] #-- input allowed
     try:
-        f = click.open_file(input, mode='r', encoding='utf-8-sig')
-        extension = os.path.splitext(input)[1].lower()
-        if extension not in extensions:
-            raise IOError("File type not supported (only .json, .off, and .poly).")
-        #-- OFF file
-        if (extension == '.off'):
-            utils.print_cmd_status("Converting %s to CityJSON" % (input))
-            cm = cityjson.off2cj(f)
-        #-- POLY file
-        elif (extension == '.poly'):
-            utils.print_cmd_status("Converting %s to CityJSON" % (input))
-            cm = cityjson.poly2cj(f)            
-        #-- CityJSON file
-        else: 
-            utils.print_cmd_status("Parsing %s" % (input))
-            cm = cityjson.reader(file=f, ignore_duplicate_keys=ignore_duplicate_keys)
-            if not isinstance(cm.get_version(), str):
-                str1 = "CityJSON version should be a string 'X.Y' (eg '1.0')"
-                raise click.ClickException(str1) 
-            pattern = re.compile("^(\d\.)(\d)$") #-- correct pattern for version
-            pattern2 = re.compile("^(\d\.)(\d\.)(\d)$") #-- wrong pattern with X.Y.Z
-            if pattern.fullmatch(cm.get_version()) == None:
-                if pattern2.fullmatch(cm.get_version()) != None:
-                    str1 = "CityJSON version should be only X.Y (eg '1.0') and not X.Y.Z (eg '1.0.1')"
+        if input == 'stdin':
+            cm = cityjson.readstdin()
+        else:    
+            f = click.open_file(input, mode='r', encoding='utf-8-sig')
+            extension = os.path.splitext(input)[1].lower()
+            if extension not in extensions:
+                raise IOError("File type not supported (only .json, .off, and .poly).")
+            #-- OFF file
+            if (extension == '.off'):
+                utils.print_cmd_status("Converting %s to CityJSON" % (input))
+                cm = cityjson.off2cj(f)
+            #-- POLY file
+            elif (extension == '.poly'):
+                utils.print_cmd_status("Converting %s to CityJSON" % (input))
+                cm = cityjson.poly2cj(f)            
+            #-- CityJSON file
+            else: 
+                utils.print_cmd_status("Parsing %s" % (input))
+                cm = cityjson.reader(file=f, ignore_duplicate_keys=ignore_duplicate_keys)
+                if not isinstance(cm.get_version(), str):
+                    str1 = "CityJSON version should be a string 'X.Y' (eg '1.0')"
+                    raise click.ClickException(str1) 
+                pattern = re.compile("^(\d\.)(\d)$") #-- correct pattern for version
+                pattern2 = re.compile("^(\d\.)(\d\.)(\d)$") #-- wrong pattern with X.Y.Z
+                if pattern.fullmatch(cm.get_version()) == None:
+                    if pattern2.fullmatch(cm.get_version()) != None:
+                        str1 = "CityJSON version should be only X.Y (eg '1.0') and not X.Y.Z (eg '1.0.1')"
+                        raise click.ClickException(str1)
+                    else:
+                        str1 = "CityJSON version is wrongly formatted"
+                        raise click.ClickException(str1)
+                if (cm.get_version() not in cityjson.CITYJSON_VERSIONS_SUPPORTED):
+                    allv = ""
+                    for v in cityjson.CITYJSON_VERSIONS_SUPPORTED:
+                        allv = allv + v + "/"
+                    str1 = "CityJSON version %s not supported (only versions: %s), not every operators will work.\nPerhaps it's time to upgrade cjio? 'pip install cjio -U'" % (cm.get_version(), allv)
                     raise click.ClickException(str1)
-                else:
-                    str1 = "CityJSON version is wrongly formatted"
-                    raise click.ClickException(str1)
-            if (cm.get_version() not in cityjson.CITYJSON_VERSIONS_SUPPORTED):
-                allv = ""
-                for v in cityjson.CITYJSON_VERSIONS_SUPPORTED:
-                    allv = allv + v + "/"
-                str1 = "CityJSON version %s not supported (only versions: %s), not every operators will work.\nPerhaps it's time to upgrade cjio? 'pip install cjio -U'" % (cm.get_version(), allv)
-                raise click.ClickException(str1)
-            elif (cm.get_version() != cityjson.CITYJSON_VERSIONS_SUPPORTED[-1]):
-                str1 = "v%s is not the latest version, and not everything will work.\n" % cm.get_version()
-                str1 += "Upgrade the file with 'upgrade' command: 'cjio input.json upgrade save out.json'" 
-                utils.print_cmd_alert(str1)
+                elif (cm.get_version() != cityjson.CITYJSON_VERSIONS_SUPPORTED[-1]):
+                    str1 = "v%s is not the latest version, and not everything will work.\n" % cm.get_version()
+                    str1 += "Upgrade the file with 'upgrade' command: 'cjio input.json upgrade save out.json'" 
+                    utils.print_cmd_alert(str1)
     except ValueError as e:
         raise click.ClickException('%s: "%s".' % (e, input))
     except IOError as e:
