@@ -168,7 +168,6 @@ class TestCityJSON:
         cm = copy.deepcopy(delft)
         assert cm.decompress() == True
         cm2 = copy.deepcopy(cm)
-        
         cm.compress(3)
         assert cm.j["transform"]["scale"][0] == 0.001
         assert len(delft.j["vertices"]) == len(cm.j["vertices"])
@@ -226,7 +225,7 @@ class TestCityJSON:
         cm1, cm2 = materials_two
         # cm1 contains the CityObject with 'value'. During the merge, the Material Object
         # from cm1 is appended to the list of Materials in cm2
-        assert cm2.merge([cm1, ])
+        assert cm2.merge([cm1])
         assert len(cm2.j['CityObjects']) == 4
         # The value of 'value' in the CityObject from cm1 must be updated to point to the
         # correct Material Object in the materials list
