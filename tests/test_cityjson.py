@@ -153,16 +153,12 @@ class TestCityJSON:
         """Test the add_lineage_item function"""
 
         test_desc = "We did something"
-
         cm = cityjson.CityJSON()
-
         cm.add_lineage_item(test_desc)
-
-        assert cm.j["metadata"]["lineage"][0]["processStep"]["description"] == test_desc
-
+        assert cm.j["+metadata-extended"]["lineage"][0]["processStep"]["description"] == test_desc
         cm.add_lineage_item("Something else", features=["id1", "id2"], source=[{"description": "BAG"}], processor={"contactName": "3D geoinfo"})
-
-        item = cm.j["metadata"]["lineage"][1]
+        # print(cm.j["+metadata-extended"]["lineage"])
+        item = cm.j["+metadata-extended"]["lineage"][1]
         assert item["processStep"]["description"] == "Something else"
         assert len(item["featureIDs"]) == 2
         assert len(item["source"]) == 1

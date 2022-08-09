@@ -1820,7 +1820,6 @@ class CityJSON:
         :param processor: A dict with contact information for the
             person that conducted the processing
         """
-
         nu = datetime.now()
         new_item = {
             "processStep": {
@@ -1834,16 +1833,17 @@ class CityJSON:
             new_item["source"] = source
         if isinstance(processor, dict):
             new_item["processStep"]["processor"] = processor
-        if not self.has_metadata():
-            self.j["metadata"] = {}
+        if not self.has_metadata_extended():
+            self.add_metadata_extended_property()
         if not "lineage" in self.j["+metadata-extended"]:
             self.j["+metadata-extended"]["lineage"] = []
         self.j["+metadata-extended"]["lineage"].append(new_item)
         
 
     def triangulate(self, sloppy):
-        """
-        Triangulate the CityJSON file face by face together with the texture information.
+        """Triangulate the CityJSON file face by face together with the texture information.
+
+        :param sloppy: A boolean, True=mapbox-earcut False=Shewchuk-robust
         """
         vnp = np.array(self.j["vertices"])
         for theid in self.j['CityObjects']:
