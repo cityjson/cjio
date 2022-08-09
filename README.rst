@@ -145,12 +145,12 @@ Operators like ``info`` and ``validate`` output information in the console and j
 stdin and stdout
 ----------------
 
-Since v0.8 cjio allows to read/write from stdin/stdout.
+Starting from v0.8, cjio allows to read/write from stdin/stdout (standard input/output streams).
 
-For reading, it accepts at this moment only `https://www.cityjson.org/specs/#text-sequences-and-streaming-with-cityjsonfeature <CityJSONL (text sequences with CityJSONFeatures)>`_.
+For reading, it accepts at this moment only `CityJSONL (text sequences with CityJSONFeatures) <https://www.cityjson.org/specs/#text-sequences-and-streaming-with-cityjsonfeature>`_.
 Instead of putting the file name, ``stdin`` must be used.
 
-For writing, both CityJSON files and `https://www.cityjson.org/specs/#text-sequences-and-streaming-with-cityjsonfeature <CityJSONL files>`_ can be piped to stdout.
+For writing, both CityJSON files and `CityJSONL files <https://www.cityjson.org/specs/#text-sequences-and-streaming-with-cityjsonfeature>`_ can be piped to stdout.
 Instead of putting the file name, ``stdout`` must be used.
 Also, the different operators of cjio output messages/information, and those will get in the stdout stream, to avoid this add the flat ``--suppress_msg`` when reading the file, as shown below.
 
