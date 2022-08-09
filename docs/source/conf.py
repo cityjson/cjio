@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 # -- Project information -----------------------------------------------------
 
 project = 'cjio'
-copyright = '2021, Hugo Ledoux'
+copyright = '2022, 3D geoinformation group at TU Delft'
 author = 'Hugo Ledoux, Balázs Dukai'
 
 # The full version, including alpha/beta/rc tags
