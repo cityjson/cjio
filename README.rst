@@ -23,13 +23,13 @@ To install the latest release:
 
     pip install cjio
 
-.. note:: The commands ``export``, ``reproject``, and ``validate`` require extra packages
+.. note:: The commands ``export``, ``triangulate``, ``reproject``, and ``validate`` require extra packages
     that are not install by default. You can install these packages by specifying the
     commands for pip.
 
     .. code:: console
 
-        pip install 'cjio[export,reproject]'
+        pip install 'cjio[export,reproject,validate]'
 
 To install the development branch, and still develop with it:
 
@@ -62,7 +62,7 @@ Supported CityJSON versions
 ---------------------------
 
 The operators (``cjio --version``) expect that your file is using the latest version `CityJSON schema <https://www.cityjson.org/specs/overview/>`_.
-If your file uses an earlier version, you can upgrade it with the ``upgrade`` operator.
+If your file uses an earlier version, you can upgrade it with the ``upgrade`` operator: ``cjio old.json upgrade save newfile.city.json``
 
 
 Usage of the CLI
@@ -82,7 +82,7 @@ possibilities:
       crs_reproject     Reproject to a new EPSG.
       crs_translate     Translate the coordinates.
       export            Export to another format.
-      info              Output info in simple JSON.
+      info              Output information about the dataset.
       lod_filter        Filter only one LoD for a dataset.
       materials_remove  Remove all materials.
       merge             Merge the current CityJSON with other ones.
@@ -99,7 +99,6 @@ possibilities:
       upgrade           Upgrade the CityJSON to the latest version.
       validate          Validate the CityJSON: (1) against its schemas (2)...
       vertices_clean    Remove duplicate vertices + orphan vertices
-
 
 Or see the command-specific help by calling ``--help`` after a command:
 
