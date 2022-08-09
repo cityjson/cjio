@@ -142,6 +142,25 @@ Operators like ``info`` and ``validate`` output information in the console and j
     cjio myfile.city.json merge '/home/elvis/temp/*.city.json' save all_merged.city.json
 
 
+stdin and stdout
+----------------
+
+Since v0.8 cjio allows to read/write from stdin/stdout.
+
+For reading, it accepts at this moment only `https://www.cityjson.org/specs/#text-sequences-and-streaming-with-cityjsonfeature <CityJSONL (text sequences with CityJSONFeatures)>`_.
+Instead of putting the file name, ``stdin`` must be used.
+
+For writing, both CityJSON files and `https://www.cityjson.org/specs/#text-sequences-and-streaming-with-cityjsonfeature <CityJSONL files>`_ can be piped to stdout.
+Instead of putting the file name, ``stdout`` must be used.
+Also, the different operators of cjio output messages/information, and those will get in the stdout stream, to avoid this add the flat ``--suppress_msg`` when reading the file, as shown below.
+
+.. code:: console
+
+    cat myjsonlfile.txt | cjio --suppress_msg stdin remove_materials save stdout
+    cjio --suppress_msg myfile.city.json remove_materials save stdout
+    cat myfile.city.json | cjio stdin crs_reproject 7415 export jsonl mystream.txt
+
+
 Generating Binary glTF
 ----------------------
 
