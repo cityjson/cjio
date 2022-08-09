@@ -156,9 +156,9 @@ Also, the different operators of cjio output messages/information, and those wil
 
 .. code:: console
 
-    cat myjsonlfile.txt | cjio --suppress_msg stdin remove_materials save stdout
-    cjio --suppress_msg myfile.city.json remove_materials save stdout
-    cat myfile.city.json | cjio stdin crs_reproject 7415 export jsonl mystream.txt
+    cat myjsonlfile.txt | cjio --suppress_msg stdin remove_materials save stdout 
+    cjio --suppress_msg myfile.city.json remove_materials export jsonl stdout | less
+    cat myfile.city.json | cjio --suppress_msg stdin crs_reproject 7415 export jsonl mystream.txt
 
 
 Generating Binary glTF
