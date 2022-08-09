@@ -111,9 +111,9 @@ def save(citymodel, path: str, indent: bool = False):
     :param path: Absolute path to a CityJSON file
     """
     citymodel.add_to_j()
-    if citymodel.is_transformed:
-        # FIXME: here should be compression, however the current compression does not work with immutable tuples, but requires mutable lists for the points
-        pass
+    # if citymodel.is_transformed:
+    #     # FIXME: here should be compression, however the current compression does not work with immutable tuples, but requires mutable lists for the points
+    #     pass
     citymodel.remove_duplicate_vertices()
     citymodel.remove_orphan_vertices()
     try:
