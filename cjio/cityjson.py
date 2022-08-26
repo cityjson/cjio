@@ -10,9 +10,15 @@ import uuid
 import shutil
 import copy
 import random
+import warnings
 from io import StringIO
+
+import click
 from click import progressbar
 from datetime import datetime
+
+from cjio import errors
+
 MODULE_NUMPY_AVAILABLE = True
 MODULE_PYPROJ_AVAILABLE = True
 MODULE_TRIANGLE_AVAILABLE = True
@@ -44,7 +50,7 @@ except ImportError as e:
 
 
 from cjio import subset, geom_help, convert, models
-from cjio.errors import InvalidOperation
+from cjio.errors import CJInvalidOperation
 from cjio.metadata import generate_metadata
 
 
@@ -387,6 +393,31 @@ class CityJSON:
 
     def get_version(self):
         return self.j["version"]
+
+    def check_version(self):
+        if not isinstance(self.get_version(), str):
+            str1 = "CityJSON version should be a string 'X.Y' (eg '1.0')"
+            raise errors.CJInvalidVersion(str1)
+        pattern = re.compile("^(\d\.)(\d)$")  # -- correct pattern for version
+        pattern2 = re.compile("^(\d\.)(\d\.)(\d)$")  # -- wrong pattern with X.Y.Z
+        if pattern.fullmatch(self.get_version()) == None:
+            if pattern2.fullmatch(self.get_version()) != None:
+                str1 = "CityJSON version should be only X.Y (eg '1.0') and not X.Y.Z (eg '1.0.1')"
+                raise errors.CJInvalidVersion(str1)
+            else:
+                str1 = "CityJSON version is wrongly formatted"
+                raise errors.CJInvalidVersion(str1)
+        if (self.get_version() not in CITYJSON_VERSIONS_SUPPORTED):
+            allv = ""
+            for v in CITYJSON_VERSIONS_SUPPORTED:
+                allv = allv + v + "/"
+            str1 = "CityJSON version %s not supported (only versions: %s), not every operators will work.\nPerhaps it's time to upgrade cjio? 'pip install cjio -U'" % (
+                self.get_version(), allv)
+            raise errors.CJInvalidVersion(str1)
+        elif (self.get_version() != CITYJSON_VERSIONS_SUPPORTED[-1]):
+            str1 = "v%s is not the latest version, and not everything will work.\n" % self.get_version()
+            str1 += "Upgrade the file with 'upgrade' command: 'cjio input.json upgrade save out.json'"
+            errors.CJWarning(str1).warn()
 
 
     def get_epsg(self):
@@ -835,7 +866,7 @@ class CityJSON:
                         f = os.path.basename(t["image"])
                         t["image"] = os.path.join(apath, f)
         else:
-            raise InvalidOperation("Cannot update textures in a city model without textures")
+            raise CJInvalidOperation("Cannot update textures in a city model without textures")
 
 
     def copy_textures(self, new_loc, json_path):
@@ -871,7 +902,7 @@ class CityJSON:
             finally:
                 self.path = curr_path
         else:
-            raise InvalidOperation("Cannot copy textures from a city model without textures")
+            raise CJInvalidOperation("Cannot copy textures from a city model without textures")
 
 
     def validate_textures(self):
@@ -1552,7 +1583,7 @@ class CityJSON:
                 #-- TODO: remove and deal with geometry-templates here
                 #--       they need to be deferenced
                 if "geometry-templates" in cm2.j:
-                    print_cmd_warning("PANIC! geometry-templates cannot be processed yet")
+                    errors.CJWarning("PANIC! geometry-templates cannot be processed yet").warn()
                 json_str = json.dumps(cm2.j, separators=(',',':'))
                 out.write(json_str + '\n')
                 for theid2 in cm2.j["CityObjects"]:

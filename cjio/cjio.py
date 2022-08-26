@@ -1,15 +1,14 @@
 import sys
 import os.path
+import warnings
 from os import linesep
 
 import click
 import json
 import copy
 import glob
-import re
 import cjio
-from cjio import cityjson, utils
-
+from cjio import cityjson, utils, errors
 
 
 #-- https://stackoverflow.com/questions/47437472/in-python-click-how-do-i-see-help-for-subcommands-whose-parents-have-required
@@ -79,28 +78,12 @@ def process_pipeline(processors, input, ignore_duplicate_keys, suppress_msg):
             else: 
                 print_cmd_status("Parsing %s" % (input))
                 cm = cityjson.reader(file=f, ignore_duplicate_keys=ignore_duplicate_keys)
-                if not isinstance(cm.get_version(), str):
-                    str1 = "CityJSON version should be a string 'X.Y' (eg '1.0')"
-                    raise click.ClickException(str1) 
-                pattern = re.compile("^(\d\.)(\d)$") #-- correct pattern for version
-                pattern2 = re.compile("^(\d\.)(\d\.)(\d)$") #-- wrong pattern with X.Y.Z
-                if pattern.fullmatch(cm.get_version()) == None:
-                    if pattern2.fullmatch(cm.get_version()) != None:
-                        str1 = "CityJSON version should be only X.Y (eg '1.0') and not X.Y.Z (eg '1.0.1')"
-                        raise click.ClickException(str1)
-                    else:
-                        str1 = "CityJSON version is wrongly formatted"
-                        raise click.ClickException(str1)
-                if (cm.get_version() not in cityjson.CITYJSON_VERSIONS_SUPPORTED):
-                    allv = ""
-                    for v in cityjson.CITYJSON_VERSIONS_SUPPORTED:
-                        allv = allv + v + "/"
-                    str1 = "CityJSON version %s not supported (only versions: %s), not every operators will work.\nPerhaps it's time to upgrade cjio? 'pip install cjio -U'" % (cm.get_version(), allv)
-                    raise click.ClickException(str1)
-                elif (cm.get_version() != cityjson.CITYJSON_VERSIONS_SUPPORTED[-1]):
-                    str1 = "v%s is not the latest version, and not everything will work.\n" % cm.get_version()
-                    str1 += "Upgrade the file with 'upgrade' command: 'cjio input.json upgrade save out.json'" 
-                    print_cmd_alert(str1)
+                try:
+                    with warnings.catch_warnings(record=True) as w:
+                        cm.check_version()
+                        print_cmd_alert(w)
+                except errors.CJInvalidVersion as e:
+                    raise click.ClickException(e.msg)
     except ValueError as e:
         raise click.ClickException('%s: "%s".' % (e, input))
     except IOError as e:
@@ -220,7 +203,9 @@ def export_cmd(filename, format, sloppy):
         #---------- JSONL ----------
         elif format.lower() == 'jsonl':
             if stdoutoutput:
-                buf = cm.export2jsonl()
+                with warnings.catch_warnings(record=True) as w:
+                    buf = cm.export2jsonl()
+                    print_cmd_warning(w)
                 buf.seek(0)
                 for l in buf.readlines():
                     sys.stdout.write(l)
@@ -228,7 +213,9 @@ def export_cmd(filename, format, sloppy):
                 print_cmd_status("Exporting CityJSON to JSON Lines (%s)" % (output['path']))
                 try:
                     with click.open_file(output['path'], mode='w') as fo:
-                        re = cm.export2jsonl()
+                        with warnings.catch_warnings(record=True) as w:
+                            re = cm.export2jsonl()
+                            print_cmd_warning(w)
                         fo.write(re.getvalue())
                 except IOError as e:
                     raise click.ClickException('Invalid output file: "%s".\n%s' % (output['path'], e))
@@ -738,30 +725,44 @@ def triangulate_cmd(sloppy):
     return processor
 
 
+def _print_cmd(s, **styles):
+    if isinstance(s, str):
+        click.secho(s, **styles)
+    elif isinstance(s, list):
+        for w in s:
+            if isinstance(w, warnings.WarningMessage):
+                click.secho(w.message, **styles)
+            else:
+                raise TypeError(
+                    "Can only print CLI warning from a string or a list of warning.WarningMessage")
+    else:
+        raise TypeError(
+            "Can only print CLI warning from a string or a list of warning.WarningMessage")
+
 
 @click.pass_context
 def print_cmd_info(ctx, s):
     if ctx.obj["suppress_msg"] == False:
-        click.secho(s)
+        _print_cmd(s)
 
 @click.pass_context
 def print_cmd_status(ctx, s):
     if ctx.obj["suppress_msg"] == False:
-        click.secho(s, bg='cyan', fg='black')
+        _print_cmd(s, bg='cyan', fg='black')
 
 @click.pass_context
 def print_cmd_substatus(ctx, s):
     if ctx.obj["suppress_msg"] == False:
-        click.secho(s, fg='cyan')
+        _print_cmd(s, fg='cyan')
 
 @click.pass_context
 def print_cmd_warning(ctx, s):
     if ctx.obj["suppress_msg"] == False:
-        click.secho(s, reverse=True, fg='yellow')
+        _print_cmd(s, reverse=True, fg='yellow')
 
 @click.pass_context
 def print_cmd_alert(ctx, s):
-    click.secho(s, reverse=True, fg='red')
+    _print_cmd(s, reverse=True, fg='red')
 
 
 # Needed for the executable created by PyInstaller

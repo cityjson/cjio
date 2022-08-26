@@ -374,6 +374,22 @@
                     }
                 }
             ]
+        },
+        "1243": {
+              "type": "SolitaryVegetationObject",
+              "geometry": [
+                {
+                  "type": "GeometryInstance",
+                  "template": 0,
+                  "boundaries": [0],
+                  "transformationMatrix": [
+                    2.0, 0.0, 0.0, 0.0,
+                    0.0, 2.0, 0.0, 0.0,
+                    0.0, 0.0, 2.0, 0.0,
+                    0.0, 0.0, 0.0, 1.0
+                  ]
+                }
+              ]
         }
     },
     "vertices":
