@@ -764,7 +764,8 @@ def print_cmd_warning(ctx, s):
 
 @click.pass_context
 def print_cmd_alert(ctx, s):
-    _print_cmd(s, reverse=True, fg='red')
+    if ctx.obj["suppress_msg"] == False:
+        _print_cmd(s, reverse=True, fg='red')
 
 
 # Needed for the executable created by PyInstaller
