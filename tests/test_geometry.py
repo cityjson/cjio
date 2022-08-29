@@ -4,6 +4,7 @@
 import pytest
 from math import isclose
 
+from pyproj import CRS
 from cjio import models
 
 
@@ -488,6 +489,13 @@ class TestGeometry:
             assert parent == res
         else:
             pytest.xfail("surface does not have parent")
+
+    def test_reproject(self, data_geometry, data_vtx_idx):
+        type, boundary, result, vertex_list = data_vtx_idx
+        vertices = data_geometry[1]
+        geom = models.Geometry(type=type, boundaries=boundary, vertices=vertices)
+        bdry = geom.reproject(7415, crs_to=CRS("OGC:CRS84"))
+        print(bdry)
 
 
 class TestGeometryIntegration:
