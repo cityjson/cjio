@@ -10,10 +10,8 @@ import uuid
 import shutil
 import copy
 import random
-import warnings
 from io import StringIO
 
-import click
 from click import progressbar
 from datetime import datetime
 
@@ -28,7 +26,7 @@ MODULE_CJVAL_AVAILABLE = True
 
 import numpy as np
 try:
-    import pyproj
+    from pyproj.transformer import TransformerGroup
 except ImportError as e:
     MODULE_PYPROJ_AVAILABLE = False
 try:
@@ -1688,11 +1686,16 @@ class CityJSON:
             raise ModuleNotFoundError("Modul 'pyproj' is not available, please install it from https://pypi.org/project/pyproj/")
         imp_digits = math.ceil(abs(math.log(self.j["transform"]["scale"][0], 10)))
         self.decompress()
-        p1 = pyproj.Proj(init='epsg:%d' % (self.get_epsg()))
-        p2 = pyproj.Proj(init='epsg:%d' % (epsg))
+        # Using TransformerGroup instead of Transformer, because we cannot retrieve the
+        # transformer defintion from it.
+        # See https://github.com/pyproj4/pyproj/issues/753#issuecomment-737249093
+        tg = TransformerGroup(f"EPSG:{self.get_epsg():d}",
+                              f"EPSG:{epsg:d}",
+                              always_xy=True)
+        # TODO: log.info(f"Transformer: {tg.transformers[0].description}")
         with progressbar(self.j['vertices']) as vertices:
             for v in vertices:
-                x, y, z = pyproj.transform(p1, p2, v[0], v[1], v[2])
+                x, y, z = tg.transformers[0].transform(v[0], v[1], v[2])
                 v[0] = x
                 v[1] = y
                 v[2] = z

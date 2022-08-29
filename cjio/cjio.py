@@ -473,8 +473,10 @@ def crs_reproject_cmd(epsg):
         print_cmd_status('Reproject to EPSG:%d' % epsg)
         if (cm.get_epsg() == None):
             print_cmd_warning("WARNING: CityJSON has no EPSG defined, can't be reprojected.")
-        else:    
-            cm.reproject(epsg)
+        else:
+            with warnings.catch_warnings(record=True) as w:
+                cm.reproject(epsg)
+                print_cmd_warning(w)
         return cm
     return processor
 
