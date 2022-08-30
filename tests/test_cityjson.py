@@ -7,7 +7,7 @@ from math import isclose
 import json
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='function')
 def cm_zur_subset(zurich_subset):
     zurich_subset.cityobjects = dict()
     for co_id, co in zurich_subset.j['CityObjects'].items():
@@ -95,15 +95,26 @@ class TestCityJSON:
                 (centroid[1] >= bbox[1]) and
                 (centroid[0] <  bbox[2]) and
                 (centroid[1] <  bbox[3]))
+
+    def test_subset_bbox_loop(self, delft):
+        """Issue #10"""
+        bbox = delft.update_bbox()
+        subs_box = (84873.68845606346, 447503.6748565406, 84919.65679078053, 447548.4091420035)
+        nr_cos = []
+        for i in range(4):
+            s = delft.get_subset_bbox(subs_box)
+            nr_cos.append(len(s.j["CityObjects"]))
+        _f = nr_cos[0]
+        assert all(i == _f for i in nr_cos)
     
     def test_subset_random(self, zurich_subset):
         subset = zurich_subset.get_subset_random(10)
         cnt = sum(1 for co in subset.j["CityObjects"].values() if co["type"] == "Building")
         assert cnt == 10
     
-    def test_subset_cotype(self, zurich_subset):
-        subset = zurich_subset.get_subset_cotype("Building")
-        types = ["Building", "BuildingPart", "BuildingInstallation", "BuildingConstructiveElement", "BuildingFurniture", "BuildingStorey", "BuildingRoom", "BuildingUnit"]
+    def test_subset_cotype(self, delft):
+        subset = delft.get_subset_cotype(("Building", "LandUse"))
+        types = ["LandUse", "Building", "BuildingPart", "BuildingInstallation", "BuildingConstructiveElement", "BuildingFurniture", "BuildingStorey", "BuildingRoom", "BuildingUnit"]
         
         for co in subset.j['CityObjects']:
             assert subset.j['CityObjects'][co]['type'] in types
@@ -142,16 +153,12 @@ class TestCityJSON:
         """Test the add_lineage_item function"""
 
         test_desc = "We did something"
-
         cm = cityjson.CityJSON()
-
         cm.add_lineage_item(test_desc)
-
-        assert cm.j["metadata"]["lineage"][0]["processStep"]["description"] == test_desc
-
+        assert cm.j["+metadata-extended"]["lineage"][0]["processStep"]["description"] == test_desc
         cm.add_lineage_item("Something else", features=["id1", "id2"], source=[{"description": "BAG"}], processor={"contactName": "3D geoinfo"})
-
-        item = cm.j["metadata"]["lineage"][1]
+        # print(cm.j["+metadata-extended"]["lineage"])
+        item = cm.j["+metadata-extended"]["lineage"][1]
         assert item["processStep"]["description"] == "Something else"
         assert len(item["featureIDs"]) == 2
         assert len(item["source"]) == 1
@@ -161,7 +168,6 @@ class TestCityJSON:
         cm = copy.deepcopy(delft)
         assert cm.decompress() == True
         cm2 = copy.deepcopy(cm)
-        
         cm.compress(3)
         assert cm.j["transform"]["scale"][0] == 0.001
         assert len(delft.j["vertices"]) == len(cm.j["vertices"])
@@ -186,18 +192,16 @@ class TestCityJSON:
 
     def test_convert_to_stl(self, delft):
          cm = copy.deepcopy(delft)
-         obj = cm.export2stl()
+         obj = cm.export2stl(sloppy=True)
 
     def test_triangulate(self, materials):
         """Test #101"""
         cm = materials
-        for item in cm:
-            item.triangulate()
+        cm.triangulate(sloppy=False)
 
     def test_is_triangulate(self, triangulated):
         cm = triangulated
-        for item in cm:
-            assert item.is_triangulated()
+        assert cm.is_triangulated()
 
     def test_convert_to_jsonl(self, delft):
         cm = copy.deepcopy(delft)
@@ -213,15 +217,15 @@ class TestCityJSON:
                 for geom in cm.j['CityObjects'][coid]['geometry']:
                     assert geom["lod"] == "1.3"
 
-    def test_merge_materials(self, materials):
+    def test_merge_materials(self, materials_two):
         """Testing #100
         Merging two files with materials. One has the member 'values', the other has the
         member 'value' on their CityObjects.
         """
-        cm1, cm2 = materials[:2]
+        cm1, cm2 = materials_two
         # cm1 contains the CityObject with 'value'. During the merge, the Material Object
         # from cm1 is appended to the list of Materials in cm2
-        assert cm2.merge([cm1, ])
+        assert cm2.merge([cm1])
         assert len(cm2.j['CityObjects']) == 4
         # The value of 'value' in the CityObject from cm1 must be updated to point to the
         # correct Material Object in the materials list

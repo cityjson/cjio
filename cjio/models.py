@@ -5,6 +5,12 @@ import json
 from copy import deepcopy
 import collections
 from typing import Iterable, Mapping
+import warnings
+
+from cjio.cityjson import MODULE_PYPROJ_AVAILABLE
+
+if MODULE_PYPROJ_AVAILABLE:
+    from cjio.cityjson import TransformerGroup
 
 # TODO BD: this iteration is not really nice, maybe implement it in a way that don't need to use .items() and .values()
 # for co_id, co in cm.cityobjects.items():
@@ -145,7 +151,7 @@ class Geometry(object):
             return surface_idx
 
     @staticmethod
-    def _vertex_mapper(ring, vertices, transform):
+    def _vertex_mapper(ring, transform, vertices=None):
         """Maps vertex coordinates to vertex indices and/or apply transformation on them
         :param ring: A ring defined as an array of vertex indices pointing to ``vertices``
         :param vertices: The array of vertices from the CityJSON file
@@ -176,6 +182,21 @@ class Geometry(object):
             z = deepcopy((vertex[2] * transform["scale"][2]) + transform["translate"][2])
             return x,y,z
 
+    @staticmethod
+    def _reproject_vertex(vertex, transformer):
+        """Apply the tranformation from a Transform object to a vertex
+        :param vertex: A vertex with 3 coordinates, typically (x,y,z)
+        :type vertex: sequence
+        :param transformer: A pyproj Transformer instance
+        :return: A vertex with reprojected coordinates
+        :type return: sequence
+        """
+        return transformer.transform(*vertex)
+
+    @staticmethod
+    def _reproject_ring(ring, transformer):
+        return [Geometry._reproject_vertex(vtx, transformer) for vtx in ring]
+
 
     @staticmethod
     def _vertex_indexer(geom, vtx_lookup, vtx_idx):
@@ -204,20 +225,21 @@ class Geometry(object):
         if not self_cp.boundaries:
             return self_cp
         if self_cp.type.lower() == 'multipoint':
-            self_cp.boundaries = self_cp._vertex_mapper(self_cp.boundaries, vertices, transform)
+            self_cp.boundaries = self_cp._vertex_mapper(self_cp.boundaries, transform,
+                                                        vertices)
         elif self_cp.type.lower() == 'multilinestring':
-            self_cp.boundaries = [self_cp._vertex_mapper(ring, vertices, transform) for ring in self_cp.boundaries]
+            self_cp.boundaries = [self_cp._vertex_mapper(ring, transform, vertices) for ring in self_cp.boundaries]
         elif self_cp.type.lower() == 'multisurface' or self_cp.type.lower() == 'compositesurface':
             s = list()
             for surface in self_cp.boundaries:
-                s.append([self_cp._vertex_mapper(ring, vertices, transform) for ring in surface])
+                s.append([self_cp._vertex_mapper(ring, transform, vertices) for ring in surface])
             self_cp.boundaries = s
         elif self_cp.type.lower() == 'solid':
             sh = list()
             for shell in self_cp.boundaries:
                 s = list()
                 for surface in shell:
-                    s.append([self_cp._vertex_mapper(ring, vertices, transform) for ring in surface])
+                    s.append([self_cp._vertex_mapper(ring, transform, vertices) for ring in surface])
                 sh.append(s)
             self_cp.boundaries = sh
         elif self_cp.type.lower() == 'multisolid' or self_cp.type.lower() == 'compositesolid':
@@ -227,7 +249,7 @@ class Geometry(object):
                 for shell in solid:
                     s = list()
                     for surface in shell:
-                        s.append([self_cp._vertex_mapper(ring, vertices, transform) for ring in surface])
+                        s.append([self_cp._vertex_mapper(ring, transform, vertices) for ring in surface])
                     sh.append(s)
                 solids.append(sh)
             self_cp.boundaries = solids
@@ -247,17 +269,17 @@ class Geometry(object):
         if btype.lower() == 'multipoint':
             if not isinstance(boundaries[0], int):
                 raise TypeError("Boundary definition does not correspond to MultiPoint")
-            return self._vertex_mapper(boundaries, vertices, transform)
+            return self._vertex_mapper(boundaries, transform, vertices)
         elif btype.lower() == 'multilinestring':
             if not isinstance(boundaries[0][0], int):
                 raise TypeError("Boundary definition does not correspond to MultiPoint")
-            return [self._vertex_mapper(b, vertices, transform) for b in boundaries]
+            return [self._vertex_mapper(b, transform, vertices) for b in boundaries]
         elif btype.lower() == 'multisurface' or btype.lower() == 'compositesurface':
             s = list()
             if not isinstance(boundaries[0][0][0], int):
                 raise TypeError("Boundary definition does not correspond to MultiSurface or CompositeSurface")
             for surface in boundaries:
-                s.append([self._vertex_mapper(ring, vertices, transform) for ring in surface])
+                s.append([self._vertex_mapper(ring, transform, vertices) for ring in surface])
             return s
         elif btype.lower() == 'solid':
             sh = list()
@@ -266,7 +288,7 @@ class Geometry(object):
             for shell in boundaries:
                 s = list()
                 for surface in shell:
-                    s.append([self._vertex_mapper(ring, vertices, transform) for ring in surface])
+                    s.append([self._vertex_mapper(ring, transform, vertices) for ring in surface])
                 sh.append(s)
             return sh
         elif btype.lower() == 'multisolid' or btype.lower() == 'compositesolid':
@@ -278,10 +300,12 @@ class Geometry(object):
                 for shell in solid:
                     s = list()
                     for surface in shell:
-                        s.append([self._vertex_mapper(ring, vertices, transform) for ring in surface])
+                        s.append([self._vertex_mapper(ring, transform, vertices) for ring in surface])
                     sh.append(s)
                 solids.append(sh)
             return solids
+        elif btype.lower() == 'geometryinstance':
+            warnings.warn("Unsupported geometry type GeometryInstance", UserWarning)
         else:
             raise TypeError("Unknown geometry type: {}".format(btype))
 
@@ -512,3 +536,65 @@ class Geometry(object):
         if self.surfaces:
             j['semantics'] = {}
         return j
+
+    def reproject(self, epsg_from, epsg_to=None, crs_to=None):
+        """Reproject the boundaries to 'epsg'.
+
+        :param epsg_from: Current EPSG code of the citymodel (int)
+        :param epsg_to: EPSG code to convert to (int)
+        :param crs_to: pyproj.CRS to convert to
+        """
+        if not MODULE_PYPROJ_AVAILABLE:
+            raise ModuleNotFoundError("Modul 'pyproj' is not available, please install it from https://pypi.org/project/pyproj/")
+        if epsg_to is not None:
+            _to = f"EPSG:{epsg_to:d}"
+        elif crs_to is not None:
+            _to = crs_to
+        else:
+            raise ValueError("Either epsg_to or crs_to must be provided")
+        tg = TransformerGroup(f"EPSG:{epsg_from:d}", _to)
+        transformer = tg.transformers[0]
+        if not self.boundaries:
+            return list()
+        if self.type.lower() == 'multipoint':
+            if not isinstance(self.boundaries[0], tuple):
+                raise TypeError("Boundary definition does not correspond to MultiPoint")
+            return self._reproject_ring(self.boundaries, transformer)
+        elif self.type.lower() == 'multilinestring':
+            if not isinstance(self.boundaries[0][0], tuple):
+                raise TypeError("Boundary definition does not correspond to MultiPoint")
+            return [self._reproject_ring(b, transformer) for b in self.boundaries]
+        elif self.type.lower() == 'multisurface' or self.type.lower() == 'compositesurface':
+            s = list()
+            if not isinstance(self.boundaries[0][0][0], tuple):
+                raise TypeError("Boundary definition does not correspond to MultiSurface or CompositeSurface")
+            for surface in self.boundaries:
+                s.append([self._reproject_ring(ring, transformer) for ring in surface])
+            return s
+        elif self.type.lower() == 'solid':
+            sh = list()
+            if not isinstance(self.boundaries[0][0][0][0], tuple):
+                raise TypeError("Boundary definition does not correspond to Solid")
+            for shell in self.boundaries:
+                s = list()
+                for surface in shell:
+                    s.append([self._reproject_ring(ring, transformer) for ring in surface])
+                sh.append(s)
+            return sh
+        elif self.type.lower() == 'multisolid' or self.type.lower() == 'compositesolid':
+            solids = list()
+            if not isinstance(self.boundaries[0][0][0][0][0], tuple):
+                raise TypeError("Boundary definition does not correspond to MultiSolid or CompositeSolid")
+            for solid in self.boundaries:
+                sh = list()
+                for shell in solid:
+                    s = list()
+                    for surface in shell:
+                        s.append([self._reproject_ring(ring, transformer) for ring in surface])
+                    sh.append(s)
+                solids.append(sh)
+            return solids
+        elif self.type.lower() == 'geometryinstance':
+            warnings.warn("Unsupported geometry type GeometryInstance", UserWarning)
+        else:
+            raise TypeError("Unknown geometry type: {}".format(self.type))

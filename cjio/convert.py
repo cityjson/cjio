@@ -3,11 +3,7 @@ import json
 
 from cjio import geom_help
 
-MODULE_NUMPY_AVAILABLE = True
-try:
-    import numpy as np
-except ImportError as e:
-    MODULE_NUMPY_AVAILABLE = False
+import numpy as np
 
 def flatten(x):
     result = []
@@ -100,7 +96,7 @@ def to_b3dm(cm, glb):
 
     return b3dm_bin
 
-def to_glb(j):
+def to_glb(cm):
     """Convert to Binary glTF (.glb)
 
     Adapted from CityJSON2glTF: https://github.com/tudelft3d/CityJSON2glTF
@@ -118,7 +114,7 @@ def to_glb(j):
     gltf_bin = bytearray()
     glb = BytesIO()
     try:
-        if len(j['CityObjects']) == 0:
+        if len(cm.j['CityObjects']) == 0:
             return glb
     except KeyError as e:
         raise TypeError("Not a CityJSON")
@@ -140,14 +136,16 @@ def to_glb(j):
     matid = 0
     material_ids = []
 
-    vertexlist = np.array(j["vertices"])
+    vertexlist = np.array(cm.j["vertices"])
 
-    for coi,theid in enumerate(j['CityObjects']):
+    # CityObject index with geometry that goes into the glb
+    coi = 0
+    for theid in cm.j['CityObjects']:
         forimax = []
 
-        if len(j['CityObjects'][theid]['geometry']) != 0:
+        if "geometry" in cm.j['CityObjects'][theid] and len(cm.j['CityObjects'][theid]['geometry']) != 0:
 
-            comType = j['CityObjects'][theid]['type']
+            comType = cm.j['CityObjects'][theid]['type']
             if (comType == "Building" or comType == "BuildingPart" or comType == "BuildingInstallation"):
                 matid = 0
             elif (comType == "TINRelief"):
@@ -162,8 +160,7 @@ def to_glb(j):
                 matid = 5
             elif (comType == "CityFurniture"):
                 matid = 6
-            elif (
-                    comType == "Bridge" or comType == "BridgePart" or comType == "BridgeInstallation" or comType == "BridgeConstructionElement"):
+            elif (comType == "Bridge" or comType == "BridgePart" or comType == "BridgeInstallation" or comType == "BridgeConstructionElement"):
                 matid = 7
             elif (comType == "Tunnel" or comType == "TunnelPart" or comType == "TunnelInstallation"):
                 matid = 8
@@ -171,23 +168,31 @@ def to_glb(j):
                 matid = 9
             material_ids.append(matid)
 
-            for geom in j['CityObjects'][theid]['geometry']:
+            for geom in cm.j['CityObjects'][theid]['geometry']:
                 poscount = poscount + 1
                 if geom['type'] == "Solid":
                     triList = []
                     for shell in geom['boundaries']:
                         for face in shell:
-                            tri = geom_help.triangulate_face(face, vertexlist)
-                            for t in tri:
-                                triList.append(list(t))
+                            tri, success = geom_help.triangulate_face(face, vertexlist)
+                            if success:
+                                for t in tri:
+                                    triList.append(list(t))
+                            else:
+                                # TODO: logging
+                                print(f"Failed to triangulate face in CityObject {theid}")
                     trigeom = (flatten(triList))
 
                 elif (geom['type'] == 'MultiSurface') or (geom['type'] == 'CompositeSurface'):
                     triList = []
                     for face in geom['boundaries']:
-                        tri = geom_help.triangulate_face(face, vertexlist)
-                        for t in tri:
-                            triList.append(t)
+                        tri, success = geom_help.triangulate_face(face, vertexlist)
+                        if success:
+                            for t in tri:
+                                triList.append(t)
+                        else:
+                            # TODO: logging
+                            print(f"Failed to triangulate face in CityObject {theid}")
                     trigeom = (flatten(triList))
                 flatgeom = trigeom
                 forimax.append(flatgeom)
@@ -199,7 +204,13 @@ def to_glb(j):
             # need to reindex the vertices, otherwise if the vtx index exceeds the nr. of vertices in the
             # accessor then we get "ACCESSOR_INDEX_OOB" error
             for i,v in enumerate(flatgeom):
-                vtx_np[i] = vertexlist[v]
+                # Need to swap the axis, because gltf uses a right-handed coordinate
+                # system. glTF defines +Y as up, +Z as forward, and -X as right;
+                # the front of a glTF asset faces +Z.
+                try:
+                    vtx_np[i] = np.array((vertexlist[v][1], vertexlist[v][2], vertexlist[v][0]))
+                except IndexError as e:
+                    print(i, v)
                 vtx_idx_np[i] = i
             bin_vtx = vtx_np.astype(np.float32).tostring()
             # convert geometry indices to binary
@@ -303,6 +314,8 @@ def to_glb(j):
             nodes.append({"mesh": coi})
             # one node per CityObject
             node_indices.append(coi)
+
+            coi += 1
 
     #-- buffers
     buffer = dict()

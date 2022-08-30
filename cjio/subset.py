@@ -1,9 +1,5 @@
+"""CityModel subset functions"""
 
-import json
-
-def select_co_bbox(j, bbox):
-    #-- select the CO whose
-    pass
 
 def select_co_ids(j, IDs):
     IDs = list(IDs)
