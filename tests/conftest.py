@@ -166,7 +166,6 @@ def materials_two(data_dir):
                 params=[
                     ('material', 'mt-1-triangulated.json'),
                     ('material', 'mt-2-triangulated.json'),
-                    ('dummy', 'dummy-triangulated.json')
                 ])
 def triangulated(data_dir, request):
     p = os.path.join(data_dir, *request.param)
