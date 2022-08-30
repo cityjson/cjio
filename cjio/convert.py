@@ -174,17 +174,25 @@ def to_glb(cm):
                     triList = []
                     for shell in geom['boundaries']:
                         for face in shell:
-                            tri = geom_help.triangulate_face(face, vertexlist)
-                            for t in tri:
-                                triList.append(list(t))
+                            tri, success = geom_help.triangulate_face(face, vertexlist)
+                            if success:
+                                for t in tri:
+                                    triList.append(list(t))
+                            else:
+                                # TODO: logging
+                                print(f"Failed to triangulate face in CityObject {theid}")
                     trigeom = (flatten(triList))
 
                 elif (geom['type'] == 'MultiSurface') or (geom['type'] == 'CompositeSurface'):
                     triList = []
                     for face in geom['boundaries']:
-                        tri = geom_help.triangulate_face(face, vertexlist)
-                        for t in tri:
-                            triList.append(t)
+                        tri, success = geom_help.triangulate_face(face, vertexlist)
+                        if success:
+                            for t in tri:
+                                triList.append(t)
+                        else:
+                            # TODO: logging
+                            print(f"Failed to triangulate face in CityObject {theid}")
                     trigeom = (flatten(triList))
                 flatgeom = trigeom
                 forimax.append(flatgeom)
@@ -199,7 +207,10 @@ def to_glb(cm):
                 # Need to swap the axis, because gltf uses a right-handed coordinate
                 # system. glTF defines +Y as up, +Z as forward, and -X as right;
                 # the front of a glTF asset faces +Z.
-                vtx_np[i] = np.array((vertexlist[v][1], vertexlist[v][2], vertexlist[v][0]))
+                try:
+                    vtx_np[i] = np.array((vertexlist[v][1], vertexlist[v][2], vertexlist[v][0]))
+                except IndexError as e:
+                    print(i, v)
                 vtx_idx_np[i] = i
             bin_vtx = vtx_np.astype(np.float32).tostring()
             # convert geometry indices to binary

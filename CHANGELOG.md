@@ -5,6 +5,8 @@
 ### Added
 - Subset more than one CityObject type (#9)
 - `models.Geometry.reproject()` for reprojecting dereferenced geometry boundaries
+- Read from `stdin` and save to `stdout`
+- `--suppress_msg` to suppress all messages. Required when saving to `stdout`
 
 ### Fixed
 - Subset with BBOX does not modify the input model anymore (#10)
@@ -13,15 +15,17 @@
 - `texture` and `material` are correctly removed from the geometries of the CityObjects with `textures/materials_remove`
 - `vertex-texture` is removed from the CityJSON with `textures_remove`
 - Docker image build (#77, #132)
+- Other minor fixes
 
 ### Changed
 - Export format is an argument, not an option (#35), e.g. `cjio ... export obj out.obj`
 - NumPy is a hard requirement
 - Require pyproj >= 3.0.0 (#142)
+- Refactor warnings and alert printing (#143)
 
 ## [0.7.4] - 2022-06-20
 ### Fixed
-- crash wiht new version of Click (>=8.1) (#140)
+- crash with new version of Click (>=8.1) (#140)
 ### Added
 - templates for bug reporting
 
