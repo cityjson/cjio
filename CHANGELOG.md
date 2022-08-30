@@ -1,9 +1,10 @@
 # Changelog
 
 
-## [unreleased]
+## [0.7.5] – 2022-08-80
 ### Added
 - Subset more than one CityObject type (#9)
+- `models.Geometry.reproject()` for reprojecting dereferenced geometry boundaries
 
 ### Fixed
 - Subset with BBOX does not modify the input model anymore (#10)
@@ -16,6 +17,7 @@
 ### Changed
 - Export format is an argument, not an option (#35), e.g. `cjio ... export obj out.obj`
 - NumPy is a hard requirement
+- Require pyproj >= 3.0.0 (#142)
 
 ## [0.7.4] - 2022-06-20
 ### Fixed
