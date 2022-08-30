@@ -30,5 +30,15 @@ def verify_filename(filename):
     return res
 
 
+def print_cmd_status(s):
+    echo(style(s, bg='cyan', fg='black'))
 
+def print_cmd_substatus(s):
+    echo(style(s, fg='cyan'))
+
+def print_cmd_warning(s):
+    echo(style(s, reverse=True, fg='yellow'))
+
+def print_cmd_alert(s):
+    echo(style(s, reverse=True, fg='red'))
 

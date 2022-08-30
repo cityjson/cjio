@@ -40,10 +40,9 @@ class TestCLI:
         result = runner.invoke(cjio.cli,
                                args=[delft_path,
                                      'export',
-                                     'obj',
+                                     '--format', 'obj',
                                      p_out])
-        if result.exit_code != 0:
-            print(f"CLI returned '{result.output}'")
+        
         assert result.exit_code == 0
         assert os.path.exists(p_out) == True
     
@@ -55,15 +54,14 @@ class TestCLI:
                                args=[delft_path,
                                      'metadata_get'])
         
-        assert result.exit_code == 0
+        assert result.exit_code == 0    
     
     def test_info_cli(self, delft_path):
         runner = CliRunner()
         result = runner.invoke(cjio.cli,
                                args=[delft_path,
                                      'info'])
-        if result.exit_code != 0:
-            print(f"CLI returned '{result.output}'")
+        
         assert result.exit_code == 0
     
     def test_merge_cli(self, delft_path, rotterdam_subset_path, data_output_dir):

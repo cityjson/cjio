@@ -19,7 +19,7 @@ do
   mv "$filepath" "$oldfilepath"
   
   # save upgraded files with names of original files
-  cjio "$oldfilepath" upgrade save "$filepath" >> $LOG_PATH
+  cjio "$oldfilepath" upgrade_version save "$filepath" >> $LOG_PATH
 
   echo -e "\n ========== \n" >> $LOG_PATH
   

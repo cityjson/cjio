@@ -8,13 +8,13 @@ with open("README.rst", "r") as fh:
 
 setup(
     name='cjio',
-    version='0.7.5',
+    version='0.7.4',
     description='CLI to process and manipulate CityJSON files',
     long_description=long_description,
     long_description_content_type="text/x-rst",
     url='https://github.com/cityjson/cjio',
     author='Hugo Ledoux, Balázs Dukai',
-    author_email='h.ledoux@tudelft.nl, balazs.dukai@3dgi.nl',
+    author_email='h.ledoux@tudelft.nl, b.dukai@tudelft.nl',
     python_requires='>=3.6',
     packages=['cjio'],
     # include_package_data=True,
@@ -31,8 +31,7 @@ setup(
         'Operating System :: Microsoft :: Windows'
     ],
     install_requires=[
-        'numpy',
-        'Click>=8.1.0'
+        'Click>=8.1.0',
     ],
     extras_require={
         'develop': [
@@ -40,15 +39,15 @@ setup(
             'bump2version'
         ],
         'export': [
+            'numpy',
             'pandas',
-            'mapbox-earcut',
-            'triangle'
+            'mapbox-earcut'
         ],
         'validate': [
             'cjvalpy'
         ],        
         'reproject': [
-            'pyproj>=3.0.0'
+            'pyproj'
         ]
     },
     entry_points='''
