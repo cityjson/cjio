@@ -48,7 +48,7 @@ setup(
             'cjvalpy'
         ],        
         'reproject': [
-            'pyproj'
+            'pyproj>=3.0.0'
         ]
     },
     entry_points='''
