@@ -1,7 +1,12 @@
 # Changelog
 
 
-## [0.7.5] – 2022-08-80
+## [0.7.6] – 2022-09-12
+### Changed
+- cjvalpy >=v0.3 is required to use the latest schemas (v1.1.2)
+- fix the parsing of the validation string
+
+
 ## [0.7.5] – 2022-08-08
 ### Added
 - Subset more than one CityObject type (#9)
