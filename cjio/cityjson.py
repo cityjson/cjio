@@ -492,7 +492,8 @@ class CityJSON:
                     s = "'%s' cannot be downloaded\nAbort" % self.j["extensions"][ext]["url"]
                     raise Exception(s)
         val = cjvalpy.CJValidator(js)
-        re = val.validate()
+        val.validate()
+        re = val.get_report()
         return re
 
 

@@ -45,7 +45,7 @@ setup(
             'triangle'
         ],
         'validate': [
-            'cjvalpy'
+            'cjvalpy>=0.3.0'
         ],        
         'reproject': [
             'pyproj>=3.0.0'
