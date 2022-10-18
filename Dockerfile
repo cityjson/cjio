@@ -14,8 +14,8 @@ RUN apt-get update && \
         libgeos-3.9.0 \
         libproj19
 
-ARG PIP_VERSION="pip==21.3.1"
-ARG SETUPTOOL_VERSION="setuptools==60.5.0"
+ARG PIP_VERSION="pip==22.3.0"
+ARG SETUPTOOL_VERSION="setuptools==65.5.0"
 COPY setup.py setup.cfg README.rst LICENSE CHANGELOG.md /app/
 COPY cjio /app/cjio
 RUN python -m venv /opt/venv
@@ -28,7 +28,7 @@ RUN cd /app && \
     cjio --version
 
 FROM python:3.8.12-slim AS cjio
-LABEL org.opencontainers.image.authors="Balázs Dukai <b.dukai@tudelft.nl>"
+LABEL org.opencontainers.image.authors="Balázs Dukai <balazs.dukai@3dgi.nl>"
 LABEL org.opencontainers.image.licenses="MIT"
 LABEL org.opencontainers.image.url="https://github.com/cityjson/cjio"
 LABEL org.opencontainers.image.description="Python CLI to process and manipulate CityJSON files. The different operators can be chained to perform several processing operations in one step, the CityJSON model goes through them and different versions of the CityJSON model can be saved as files along the pipeline."
