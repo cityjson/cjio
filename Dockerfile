@@ -9,19 +9,35 @@ RUN useradd -u 1001 -G root app && \
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
+        curl \
         build-essential \
-        gcc \
-        libgeos-3.9.0 \
-        libproj19
+        gcc
 
 ARG PIP_VERSION="pip==22.3.0"
 ARG SETUPTOOL_VERSION="setuptools==65.5.0"
-COPY setup.py setup.cfg README.rst LICENSE CHANGELOG.md /app/
-COPY cjio /app/cjio
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
+RUN python3 -m pip install ${PIP_VERSION} ${SETUPTOOL_VERSION}
+
+# --- cjvalpy build from source because https://github.com/cityjson/cjio/issues/146
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+ENV PATH="/root/.cargo/bin:$PATH"
+RUN pip install maturin
+
+ARG CJVALPY_VERSION="0.3.2"
+RUN curl -L -o cjvalpy.tar.gz https://github.com/cityjson/cjvalpy/archive/refs/tags/${CJVALPY_VERSION}.tar.gz && \
+    tar -xvf cjvalpy.tar.gz && \
+    cd cjvalpy-${CJVALPY_VERSION} && \
+    maturin build --release && \
+    cd ./target/wheels/
+ARG WHEEL="cjvalpy-${CJVALPY_VERSION}/target/wheels/*.whl"
+RUN pip install ${WHEEL} && \
+    pip uninstall -y maturin
+# ---
+
+COPY setup.py setup.cfg README.rst LICENSE CHANGELOG.md /app/
+COPY cjio /app/cjio
 RUN cd /app && \
-    python3 -m pip install ${PIP_VERSION} ${SETUPTOOL_VERSION} && \
     pip install .[export,validate,reproject] && \
     rm -rf /tmp/* && \
     rm -rf /user/local/man && \
