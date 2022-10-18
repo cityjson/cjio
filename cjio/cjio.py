@@ -39,6 +39,8 @@ def cli(context, input, ignore_duplicate_keys, suppress_msg):
     to perform several processing in one step, the CityJSON model
     goes through the different operators.
 
+    Can read a file or from stdin (with a JSONL file as input).
+
     To get help on specific command, eg for 'validate':
 
     \b
@@ -48,9 +50,9 @@ def cli(context, input, ignore_duplicate_keys, suppress_msg):
 
     \b
         cjio myfile.city.json info 
-        cjio myfile.city.json validate
         cjio myfile.city.json subset --id house12 save out.city.json
         cjio myfile.city.json crs_assign 7145 textures_remove export --format obj output.obj
+        bat myjsonl.txt | cjio stdin info
     """
     context.obj = {"argument": input, "suppress_msg": suppress_msg}
 
@@ -125,7 +127,7 @@ def export_cmd(filename, format, sloppy):
     \b
         cjio myfile.city.json export obj myfile.obj
         cjio myfile.city.json export --sloppy obj myfile.obj
-        cjio myfile.city.json export jsonl stdout
+        cjio --suppress_msg myfile.city.json export jsonl stdout
     """
     def exporter(cm, sloppy):
         stdoutoutput = False
