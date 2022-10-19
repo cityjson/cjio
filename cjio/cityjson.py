@@ -1558,6 +1558,8 @@ class CityJSON:
         j2["transform"] = self.j["transform"]
         if "metadata" in self.j:
             j2["metadata"] = self.j["metadata"]
+        if "geometry-templates" in self.j:
+            j2["geometry-templates"] = self.j["geometry-templates"]            
         if "+metadata-extended" in self.j:
             j2["+metadata-extended"] = self.j["+metadata-extended"]            
         if "extensions" in self.j:
@@ -1579,10 +1581,6 @@ class CityJSON:
                         todelete.append(p)
                 for p in todelete:
                     del cm2.j[p]
-                #-- TODO: remove and deal with geometry-templates here
-                #--       they need to be deferenced
-                if "geometry-templates" in cm2.j:
-                    errors.CJWarning("PANIC! geometry-templates cannot be processed yet").warn()
                 json_str = json.dumps(cm2.j, separators=(',',':'))
                 out.write(json_str + '\n')
                 for theid2 in cm2.j["CityObjects"]:
