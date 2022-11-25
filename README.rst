@@ -23,8 +23,7 @@ To install the latest release:
 
     pip install cjio
 
-.. note:: The commands ``export``, ``triangulate``, ``reproject``, and ``validate`` require extra packages
-    that are not install by default. You can install these packages by specifying the
+.. note:: The commands ``export``, ``triangulate``, ``reproject``, and ``validate`` require extra packages that are not install by default. You can install these packages by specifying the
     commands for pip.
 
     .. code:: console
