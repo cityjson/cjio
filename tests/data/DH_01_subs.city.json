@@ -1,0 +1,2052 @@
+{
+	"type": "CityJSON",
+	"version": "1.1",
+	"CityObjects": {
+		"GUID_8CE54418-E2F7-49A7-9A8D-C3D172BA62C4_1": {
+			"type": "BuildingPart",
+			"attributes": {
+				"roofType": "1000",
+				"RelativeEavesHeight": 9.419,
+				"RelativeRidgeHeight": 9.419,
+				"AbsoluteEavesHeight": 12.871,
+				"AbsoluteRidgeHeight": 12.871
+			},
+			"geometry": [
+				{
+					"type": "Solid",
+					"boundaries": [
+						[
+							[
+								[
+									0,
+									1,
+									2,
+									3
+								]
+							],
+							[
+								[
+									1,
+									4,
+									5,
+									2
+								]
+							],
+							[
+								[
+									4,
+									6,
+									7,
+									5
+								]
+							],
+							[
+								[
+									6,
+									0,
+									3,
+									7
+								]
+							],
+							[
+								[
+									6,
+									4,
+									1,
+									0
+								]
+							],
+							[
+								[
+									3,
+									2,
+									5,
+									7
+								]
+							]
+						]
+					],
+					"semantics": {
+						"values": [
+							[
+								0,
+								1,
+								2,
+								3,
+								4,
+								5
+							]
+						],
+						"surfaces": [
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "RoofSurface",
+								"Direction": 0,
+								"Slope": 90
+							},
+							{
+								"type": "GroundSurface"
+							}
+						]
+					},
+					"material": {
+						"": {
+							"values": [
+								[
+									0,
+									0,
+									0,
+									0,
+									1,
+									2
+								]
+							]
+						}
+					},
+					"lod": "2"
+				}
+			],
+			"parents": [
+				"GUID_8CE54418-E2F7-49A7-9A8D-C3D172BA62C4"
+			]
+		},
+		"GUID_13974D93-CB4F-4B5A-AB1E-577DD9928CF2_1": {
+			"type": "BuildingPart",
+			"attributes": {
+				"roofType": "1130",
+				"RelativeEavesHeight": 6.108,
+				"RelativeRidgeHeight": 8.711,
+				"AbsoluteEavesHeight": 11.864,
+				"AbsoluteRidgeHeight": 14.467
+			},
+			"geometry": [
+				{
+					"type": "Solid",
+					"boundaries": [
+						[
+							[
+								[
+									8,
+									9,
+									10,
+									11
+								]
+							],
+							[
+								[
+									9,
+									12,
+									13,
+									10
+								]
+							],
+							[
+								[
+									12,
+									14,
+									15,
+									13
+								]
+							],
+							[
+								[
+									14,
+									8,
+									11,
+									15
+								]
+							],
+							[
+								[
+									12,
+									9,
+									16
+								]
+							],
+							[
+								[
+									8,
+									14,
+									17
+								]
+							],
+							[
+								[
+									9,
+									8,
+									17,
+									16
+								]
+							],
+							[
+								[
+									14,
+									12,
+									16,
+									17
+								]
+							],
+							[
+								[
+									11,
+									10,
+									13,
+									15
+								]
+							]
+						]
+					],
+					"semantics": {
+						"values": [
+							[
+								0,
+								1,
+								2,
+								3,
+								4,
+								5,
+								6,
+								7,
+								8
+							]
+						],
+						"surfaces": [
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "RoofSurface",
+								"Direction": 13.805,
+								"Slope": 41.871
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "RoofSurface",
+								"Direction": 281.185,
+								"Slope": 42.617
+							},
+							{
+								"type": "RoofSurface",
+								"Direction": 101.069,
+								"Slope": 42.198
+							},
+							{
+								"type": "GroundSurface"
+							}
+						]
+					},
+					"material": {
+						"": {
+							"values": [
+								[
+									3,
+									3,
+									3,
+									3,
+									4,
+									3,
+									4,
+									4,
+									5
+								]
+							]
+						}
+					},
+					"lod": "2"
+				}
+			],
+			"parents": [
+				"GUID_13974D93-CB4F-4B5A-AB1E-577DD9928CF2"
+			]
+		},
+		"GUID_3D7D60B9-8F3A-4D3B-A3E5-CD9B5565A5B2": {
+			"type": "Building",
+			"attributes": {
+				"roofType": "1030",
+				"RelativeEavesHeight": 6.148,
+				"RelativeRidgeHeight": 9.508,
+				"AbsoluteEavesHeight": 11.38,
+				"AbsoluteRidgeHeight": 14.739
+			},
+			"geometry": [
+				{
+					"type": "Solid",
+					"boundaries": [
+						[
+							[
+								[
+									18,
+									19,
+									20,
+									21
+								]
+							],
+							[
+								[
+									19,
+									22,
+									23,
+									20
+								]
+							],
+							[
+								[
+									22,
+									24,
+									25,
+									23
+								]
+							],
+							[
+								[
+									24,
+									18,
+									21,
+									25
+								]
+							],
+							[
+								[
+									22,
+									19,
+									26
+								]
+							],
+							[
+								[
+									18,
+									24,
+									27
+								]
+							],
+							[
+								[
+									19,
+									18,
+									27,
+									26
+								]
+							],
+							[
+								[
+									24,
+									22,
+									26,
+									27
+								]
+							],
+							[
+								[
+									21,
+									20,
+									23,
+									25
+								]
+							]
+						]
+					],
+					"semantics": {
+						"values": [
+							[
+								0,
+								1,
+								2,
+								3,
+								4,
+								5,
+								6,
+								7,
+								8
+							]
+						],
+						"surfaces": [
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "RoofSurface",
+								"Direction": 130.846,
+								"Slope": 53.978
+							},
+							{
+								"type": "RoofSurface",
+								"Direction": 310.986,
+								"Slope": 53.979
+							},
+							{
+								"type": "GroundSurface"
+							}
+						]
+					},
+					"material": {
+						"": {
+							"values": [
+								[
+									6,
+									6,
+									6,
+									6,
+									6,
+									6,
+									7,
+									7,
+									8
+								]
+							]
+						}
+					},
+					"lod": "2"
+				}
+			]
+		},
+		"GUID_DBDABF53-7DD5-4C2F-BE7F-51F29A0CBA16_1": {
+			"type": "BuildingPart",
+			"attributes": {
+				"roofType": "1000",
+				"RelativeEavesHeight": 3.133,
+				"RelativeRidgeHeight": 3.133,
+				"AbsoluteEavesHeight": 7.717,
+				"AbsoluteRidgeHeight": 7.717
+			},
+			"geometry": [
+				{
+					"type": "Solid",
+					"boundaries": [
+						[
+							[
+								[
+									28,
+									29,
+									30,
+									31
+								]
+							],
+							[
+								[
+									29,
+									32,
+									33,
+									30
+								]
+							],
+							[
+								[
+									32,
+									34,
+									35,
+									33
+								]
+							],
+							[
+								[
+									34,
+									28,
+									31,
+									35
+								]
+							],
+							[
+								[
+									34,
+									32,
+									29,
+									28
+								]
+							],
+							[
+								[
+									31,
+									30,
+									33,
+									35
+								]
+							]
+						]
+					],
+					"semantics": {
+						"values": [
+							[
+								0,
+								1,
+								2,
+								3,
+								4,
+								5
+							]
+						],
+						"surfaces": [
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "RoofSurface",
+								"Direction": 0,
+								"Slope": 90
+							},
+							{
+								"type": "GroundSurface"
+							}
+						]
+					},
+					"material": {
+						"": {
+							"values": [
+								[
+									9,
+									9,
+									9,
+									9,
+									10,
+									11
+								]
+							]
+						}
+					},
+					"lod": "2"
+				}
+			],
+			"parents": [
+				"GUID_DBDABF53-7DD5-4C2F-BE7F-51F29A0CBA16"
+			]
+		},
+		"GUID_8CE54418-E2F7-49A7-9A8D-C3D172BA62C4": {
+			"type": "Building",
+			"children": [
+				"GUID_8CE54418-E2F7-49A7-9A8D-C3D172BA62C4_1",
+				"GUID_8CE54418-E2F7-49A7-9A8D-C3D172BA62C4_2"
+			]
+		},
+		"GUID_DBDABF53-7DD5-4C2F-BE7F-51F29A0CBA16_3": {
+			"type": "BuildingPart",
+			"attributes": {
+				"roofType": "1000",
+				"RelativeEavesHeight": 3.115,
+				"RelativeRidgeHeight": 3.115,
+				"AbsoluteEavesHeight": 7.717,
+				"AbsoluteRidgeHeight": 7.717
+			},
+			"geometry": [
+				{
+					"type": "Solid",
+					"boundaries": [
+						[
+							[
+								[
+									36,
+									37,
+									38,
+									39
+								]
+							],
+							[
+								[
+									37,
+									40,
+									41,
+									38
+								]
+							],
+							[
+								[
+									40,
+									42,
+									43,
+									41
+								]
+							],
+							[
+								[
+									42,
+									36,
+									39,
+									43
+								]
+							],
+							[
+								[
+									42,
+									40,
+									37,
+									36
+								]
+							],
+							[
+								[
+									39,
+									38,
+									41,
+									43
+								]
+							]
+						]
+					],
+					"semantics": {
+						"values": [
+							[
+								0,
+								1,
+								2,
+								3,
+								4,
+								5
+							]
+						],
+						"surfaces": [
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "RoofSurface",
+								"Direction": 0,
+								"Slope": 90
+							},
+							{
+								"type": "GroundSurface"
+							}
+						]
+					},
+					"material": {
+						"": {
+							"values": [
+								[
+									12,
+									12,
+									12,
+									12,
+									13,
+									14
+								]
+							]
+						}
+					},
+					"lod": "2"
+				}
+			],
+			"parents": [
+				"GUID_DBDABF53-7DD5-4C2F-BE7F-51F29A0CBA16"
+			]
+		},
+		"GUID_DBDABF53-7DD5-4C2F-BE7F-51F29A0CBA16_2": {
+			"type": "BuildingPart",
+			"attributes": {
+				"roofType": "1030",
+				"RelativeEavesHeight": 5.319,
+				"RelativeRidgeHeight": 8.596,
+				"AbsoluteEavesHeight": 9.817,
+				"AbsoluteRidgeHeight": 13.093
+			},
+			"geometry": [
+				{
+					"type": "Solid",
+					"boundaries": [
+						[
+							[
+								[
+									44,
+									45,
+									46,
+									47
+								]
+							],
+							[
+								[
+									45,
+									48,
+									49,
+									46
+								]
+							],
+							[
+								[
+									48,
+									50,
+									51,
+									49
+								]
+							],
+							[
+								[
+									50,
+									44,
+									47,
+									51
+								]
+							],
+							[
+								[
+									48,
+									45,
+									52
+								]
+							],
+							[
+								[
+									44,
+									50,
+									53
+								]
+							],
+							[
+								[
+									45,
+									44,
+									53,
+									52
+								]
+							],
+							[
+								[
+									50,
+									48,
+									52,
+									53
+								]
+							],
+							[
+								[
+									47,
+									46,
+									49,
+									51
+								]
+							]
+						]
+					],
+					"semantics": {
+						"values": [
+							[
+								0,
+								1,
+								2,
+								3,
+								4,
+								5,
+								6,
+								7,
+								8
+							]
+						],
+						"surfaces": [
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "RoofSurface",
+								"Direction": 233.86,
+								"Slope": 54.071
+							},
+							{
+								"type": "RoofSurface",
+								"Direction": 53.824,
+								"Slope": 54.071
+							},
+							{
+								"type": "GroundSurface"
+							}
+						]
+					},
+					"material": {
+						"": {
+							"values": [
+								[
+									15,
+									15,
+									15,
+									15,
+									15,
+									15,
+									16,
+									16,
+									17
+								]
+							]
+						}
+					},
+					"lod": "2"
+				}
+			],
+			"parents": [
+				"GUID_DBDABF53-7DD5-4C2F-BE7F-51F29A0CBA16"
+			]
+		},
+		"GUID_13974D93-CB4F-4B5A-AB1E-577DD9928CF2_3": {
+			"type": "BuildingPart",
+			"attributes": {
+				"roofType": "1000",
+				"RelativeEavesHeight": 2.612,
+				"RelativeRidgeHeight": 2.612,
+				"AbsoluteEavesHeight": 8.774,
+				"AbsoluteRidgeHeight": 8.774
+			},
+			"geometry": [
+				{
+					"type": "Solid",
+					"boundaries": [
+						[
+							[
+								[
+									54,
+									55,
+									56,
+									57
+								]
+							],
+							[
+								[
+									55,
+									58,
+									59,
+									56
+								]
+							],
+							[
+								[
+									58,
+									60,
+									61,
+									59
+								]
+							],
+							[
+								[
+									60,
+									62,
+									63,
+									61
+								]
+							],
+							[
+								[
+									62,
+									64,
+									65,
+									63
+								]
+							],
+							[
+								[
+									64,
+									54,
+									57,
+									65
+								]
+							],
+							[
+								[
+									64,
+									62,
+									60,
+									58,
+									55,
+									54
+								]
+							],
+							[
+								[
+									57,
+									56,
+									59,
+									61,
+									63,
+									65
+								]
+							]
+						]
+					],
+					"semantics": {
+						"values": [
+							[
+								0,
+								1,
+								2,
+								3,
+								4,
+								5,
+								6,
+								7
+							]
+						],
+						"surfaces": [
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "RoofSurface",
+								"Direction": 0,
+								"Slope": 90
+							},
+							{
+								"type": "GroundSurface"
+							}
+						]
+					},
+					"material": {
+						"": {
+							"values": [
+								[
+									18,
+									18,
+									18,
+									18,
+									18,
+									18,
+									19,
+									20
+								]
+							]
+						}
+					},
+					"lod": "2"
+				}
+			],
+			"parents": [
+				"GUID_13974D93-CB4F-4B5A-AB1E-577DD9928CF2"
+			]
+		},
+		"GUID_13974D93-CB4F-4B5A-AB1E-577DD9928CF2": {
+			"type": "Building",
+			"children": [
+				"GUID_13974D93-CB4F-4B5A-AB1E-577DD9928CF2_1",
+				"GUID_13974D93-CB4F-4B5A-AB1E-577DD9928CF2_2",
+				"GUID_13974D93-CB4F-4B5A-AB1E-577DD9928CF2_3"
+			]
+		},
+		"GUID_8CE54418-E2F7-49A7-9A8D-C3D172BA62C4_2": {
+			"type": "BuildingPart",
+			"attributes": {
+				"roofType": "1000",
+				"RelativeEavesHeight": 6.392,
+				"RelativeRidgeHeight": 6.392,
+				"AbsoluteEavesHeight": 10.075,
+				"AbsoluteRidgeHeight": 10.075
+			},
+			"geometry": [
+				{
+					"type": "Solid",
+					"boundaries": [
+						[
+							[
+								[
+									66,
+									67,
+									68,
+									69
+								]
+							],
+							[
+								[
+									67,
+									70,
+									71,
+									68
+								]
+							],
+							[
+								[
+									70,
+									72,
+									73,
+									71
+								]
+							],
+							[
+								[
+									72,
+									74,
+									75,
+									73
+								]
+							],
+							[
+								[
+									74,
+									76,
+									77,
+									75
+								]
+							],
+							[
+								[
+									76,
+									78,
+									79,
+									77
+								]
+							],
+							[
+								[
+									78,
+									66,
+									69,
+									79
+								]
+							],
+							[
+								[
+									78,
+									76,
+									74,
+									72,
+									70,
+									67,
+									66
+								]
+							],
+							[
+								[
+									69,
+									68,
+									71,
+									73,
+									75,
+									77,
+									79
+								]
+							]
+						]
+					],
+					"semantics": {
+						"values": [
+							[
+								0,
+								1,
+								2,
+								3,
+								4,
+								5,
+								6,
+								7,
+								8
+							]
+						],
+						"surfaces": [
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "RoofSurface",
+								"Direction": 0,
+								"Slope": 90
+							},
+							{
+								"type": "GroundSurface"
+							}
+						]
+					},
+					"material": {
+						"": {
+							"values": [
+								[
+									21,
+									21,
+									21,
+									21,
+									21,
+									21,
+									21,
+									22,
+									23
+								]
+							]
+						}
+					},
+					"lod": "2"
+				}
+			],
+			"parents": [
+				"GUID_8CE54418-E2F7-49A7-9A8D-C3D172BA62C4"
+			]
+		},
+		"GUID_DBDABF53-7DD5-4C2F-BE7F-51F29A0CBA16": {
+			"type": "Building",
+			"children": [
+				"GUID_DBDABF53-7DD5-4C2F-BE7F-51F29A0CBA16_1",
+				"GUID_DBDABF53-7DD5-4C2F-BE7F-51F29A0CBA16_2",
+				"GUID_DBDABF53-7DD5-4C2F-BE7F-51F29A0CBA16_3"
+			]
+		},
+		"GUID_13974D93-CB4F-4B5A-AB1E-577DD9928CF2_2": {
+			"type": "BuildingPart",
+			"attributes": {
+				"roofType": "1000",
+				"RelativeEavesHeight": 5.599,
+				"RelativeRidgeHeight": 5.599,
+				"AbsoluteEavesHeight": 11.664,
+				"AbsoluteRidgeHeight": 11.664
+			},
+			"geometry": [
+				{
+					"type": "Solid",
+					"boundaries": [
+						[
+							[
+								[
+									80,
+									81,
+									82,
+									83
+								]
+							],
+							[
+								[
+									81,
+									84,
+									85,
+									82
+								]
+							],
+							[
+								[
+									84,
+									86,
+									87,
+									85
+								]
+							],
+							[
+								[
+									86,
+									88,
+									89,
+									87
+								]
+							],
+							[
+								[
+									88,
+									90,
+									91,
+									89
+								]
+							],
+							[
+								[
+									90,
+									80,
+									83,
+									91
+								]
+							],
+							[
+								[
+									90,
+									88,
+									86,
+									84,
+									81,
+									80
+								]
+							],
+							[
+								[
+									83,
+									82,
+									85,
+									87,
+									89,
+									91
+								]
+							]
+						]
+					],
+					"semantics": {
+						"values": [
+							[
+								0,
+								1,
+								2,
+								3,
+								4,
+								5,
+								6,
+								7
+							]
+						],
+						"surfaces": [
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "WallSurface"
+							},
+							{
+								"type": "RoofSurface",
+								"Direction": 0,
+								"Slope": 90
+							},
+							{
+								"type": "GroundSurface"
+							}
+						]
+					},
+					"material": {
+						"": {
+							"values": [
+								[
+									24,
+									24,
+									24,
+									24,
+									24,
+									24,
+									25,
+									26
+								]
+							]
+						}
+					},
+					"lod": "2"
+				}
+			],
+			"parents": [
+				"GUID_13974D93-CB4F-4B5A-AB1E-577DD9928CF2"
+			]
+		}
+	},
+	"vertices": [
+		[
+			28211,
+			361399,
+			9420
+		],
+		[
+			20170,
+			369698,
+			9420
+		],
+		[
+			20170,
+			369698,
+			0
+		],
+		[
+			28211,
+			361399,
+			0
+		],
+		[
+			23374,
+			372867,
+			9420
+		],
+		[
+			23374,
+			372867,
+			0
+		],
+		[
+			31709,
+			364442,
+			9420
+		],
+		[
+			31709,
+			364442,
+			0
+		],
+		[
+			77204,
+			6383,
+			8413
+		],
+		[
+			78904,
+			15040,
+			8413
+		],
+		[
+			78904,
+			15040,
+			2305
+		],
+		[
+			77204,
+			6383,
+			2305
+		],
+		[
+			83510,
+			13908,
+			8413
+		],
+		[
+			83510,
+			13908,
+			2305
+		],
+		[
+			81841,
+			5252,
+			8413
+		],
+		[
+			81841,
+			5252,
+			2305
+		],
+		[
+			80791,
+			12174,
+			11016
+		],
+		[
+			79522,
+			5817,
+			11016
+		],
+		[
+			28616,
+			128533,
+			7929
+		],
+		[
+			24967,
+			124304,
+			7929
+		],
+		[
+			24967,
+			124304,
+			1781
+		],
+		[
+			28616,
+			128533,
+			1781
+		],
+		[
+			17989,
+			130382,
+			7929
+		],
+		[
+			17989,
+			130382,
+			1781
+		],
+		[
+			21696,
+			134638,
+			7929
+		],
+		[
+			21696,
+			134638,
+			1781
+		],
+		[
+			21478,
+			127343,
+			11288
+		],
+		[
+			25156,
+			131587,
+			11288
+		],
+		[
+			2988,
+			201434,
+			4266
+		],
+		[
+			1356,
+			203628,
+			4266
+		],
+		[
+			1356,
+			203628,
+			1132
+		],
+		[
+			2988,
+			201434,
+			1132
+		],
+		[
+			1753,
+			203962,
+			4266
+		],
+		[
+			1753,
+			203962,
+			1132
+		],
+		[
+			3385,
+			201723,
+			4266
+		],
+		[
+			3385,
+			201723,
+			1132
+		],
+		[
+			446,
+			205752,
+			4266
+		],
+		[
+			605,
+			205534,
+			4266
+		],
+		[
+			605,
+			205534,
+			1151
+		],
+		[
+			446,
+			205752,
+			1151
+		],
+		[
+			164,
+			205197,
+			4266
+		],
+		[
+			164,
+			205197,
+			1151
+		],
+		[
+			0,
+			205423,
+			4266
+		],
+		[
+			0,
+			205423,
+			1151
+		],
+		[
+			3385,
+			201723,
+			6366
+		],
+		[
+			446,
+			205752,
+			6366
+		],
+		[
+			446,
+			205752,
+			1045
+		],
+		[
+			3385,
+			201723,
+			1045
+		],
+		[
+			7705,
+			211139,
+			6366
+		],
+		[
+			7705,
+			211139,
+			1045
+		],
+		[
+			10693,
+			207055,
+			6366
+		],
+		[
+			10693,
+			207055,
+			1045
+		],
+		[
+			4075,
+			208446,
+			9641
+		],
+		[
+			7039,
+			204389,
+			9641
+		],
+		[
+			79050,
+			3586,
+			5322
+		],
+		[
+			78715,
+			2076,
+			5322
+		],
+		[
+			78715,
+			2076,
+			2711
+		],
+		[
+			79050,
+			3586,
+			2711
+		],
+		[
+			81120,
+			1511,
+			5322
+		],
+		[
+			81120,
+			1511,
+			2711
+		],
+		[
+			80829,
+			0,
+			5322
+		],
+		[
+			80829,
+			0,
+			2711
+		],
+		[
+			76159,
+			1068,
+			5322
+		],
+		[
+			76159,
+			1068,
+			2711
+		],
+		[
+			76746,
+			4055,
+			5322
+		],
+		[
+			76746,
+			4055,
+			2711
+		],
+		[
+			35510,
+			357403,
+			6623
+		],
+		[
+			32999,
+			355654,
+			6623
+		],
+		[
+			32999,
+			355654,
+			231
+		],
+		[
+			35510,
+			357403,
+			231
+		],
+		[
+			30348,
+			358707,
+			6623
+		],
+		[
+			30348,
+			358707,
+			231
+		],
+		[
+			32495,
+			360760,
+			6623
+		],
+		[
+			32495,
+			360760,
+			231
+		],
+		[
+			30245,
+			363168,
+			6623
+		],
+		[
+			30245,
+			363168,
+			231
+		],
+		[
+			31709,
+			364442,
+			6623
+		],
+		[
+			31709,
+			364442,
+			231
+		],
+		[
+			36459,
+			359641,
+			6623
+		],
+		[
+			36459,
+			359641,
+			231
+		],
+		[
+			77204,
+			6383,
+			8213
+		],
+		[
+			81841,
+			5252,
+			8213
+		],
+		[
+			81841,
+			5252,
+			2614
+		],
+		[
+			77204,
+			6383,
+			2614
+		],
+		[
+			81120,
+			1511,
+			8213
+		],
+		[
+			81120,
+			1511,
+			2614
+		],
+		[
+			78715,
+			2076,
+			8213
+		],
+		[
+			78715,
+			2076,
+			2614
+		],
+		[
+			79050,
+			3586,
+			8213
+		],
+		[
+			79050,
+			3586,
+			2614
+		],
+		[
+			76746,
+			4055,
+			8213
+		],
+		[
+			76746,
+			4055,
+			2614
+		]
+	],
+	"appearance": {
+		"materials": [
+			{
+				"name": "UUID_aeb6892a-0b32-43c7-9dd9-a2af12cc173b",
+				"ambientIntensity": 0.2,
+				"diffuseColor": [
+					0.922,
+					0.922,
+					0.922
+				]
+			},
+			{
+				"name": "UUID_6f7b0280-0db0-4e1f-b053-daafcd4f6088",
+				"ambientIntensity": 0.2,
+				"diffuseColor": [
+					0.502,
+					0,
+					0
+				]
+			},
+			{
+				"name": "UUID_95febf13-31d1-4338-b7ad-50d7369e3c47",
+				"ambientIntensity": 0.2,
+				"diffuseColor": [
+					0.502,
+					0.502,
+					0.502
+				]
+			},
+			{
+				"name": "UUID_8ec236f3-5cd4-4138-b820-d3e684191ce4",
+				"ambientIntensity": 0.2,
+				"diffuseColor": [
+					0.922,
+					0.922,
+					0.922
+				]
+			},
+			{
+				"name": "UUID_d8d25df6-00ac-4379-b228-aa8bb19973d3",
+				"ambientIntensity": 0.2,
+				"diffuseColor": [
+					0.502,
+					0,
+					0
+				]
+			},
+			{
+				"name": "UUID_e0cc68bc-cd48-45d4-b269-bfec38ff2611",
+				"ambientIntensity": 0.2,
+				"diffuseColor": [
+					0.502,
+					0.502,
+					0.502
+				]
+			},
+			{
+				"name": "UUID_372db6e9-c842-49af-85e7-5ef90f146ca4",
+				"ambientIntensity": 0.2,
+				"diffuseColor": [
+					0.922,
+					0.922,
+					0.922
+				]
+			},
+			{
+				"name": "UUID_9482f59e-5b25-4bf0-b00f-a2d0fd7296ce",
+				"ambientIntensity": 0.2,
+				"diffuseColor": [
+					0.502,
+					0,
+					0
+				]
+			},
+			{
+				"name": "UUID_04d4d206-f1e3-4a01-b897-a2d1574dbd3b",
+				"ambientIntensity": 0.2,
+				"diffuseColor": [
+					0.502,
+					0.502,
+					0.502
+				]
+			},
+			{
+				"name": "UUID_96933acb-e678-41f6-afac-ae5dfef4cf84",
+				"ambientIntensity": 0.2,
+				"diffuseColor": [
+					0.922,
+					0.922,
+					0.922
+				]
+			},
+			{
+				"name": "UUID_747391c0-16a9-4b50-b150-b925cfd8f32d",
+				"ambientIntensity": 0.2,
+				"diffuseColor": [
+					0.502,
+					0,
+					0
+				]
+			},
+			{
+				"name": "UUID_9e0225c5-54ba-4f86-b673-ff6f37bbd8ff",
+				"ambientIntensity": 0.2,
+				"diffuseColor": [
+					0.502,
+					0.502,
+					0.502
+				]
+			},
+			{
+				"name": "UUID_78315a06-3a59-4e0d-a9f0-5c5f0afa0fa9",
+				"ambientIntensity": 0.2,
+				"diffuseColor": [
+					0.922,
+					0.922,
+					0.922
+				]
+			},
+			{
+				"name": "UUID_3baaff1d-d6e9-4fec-8d21-189bf70ebf84",
+				"ambientIntensity": 0.2,
+				"diffuseColor": [
+					0.502,
+					0,
+					0
+				]
+			},
+			{
+				"name": "UUID_8ddb8b90-5dbc-45b4-a7b7-e89bde4736b2",
+				"ambientIntensity": 0.2,
+				"diffuseColor": [
+					0.502,
+					0.502,
+					0.502
+				]
+			},
+			{
+				"name": "UUID_cd90d017-bd19-4ced-a95a-2e0c4f2951d6",
+				"ambientIntensity": 0.2,
+				"diffuseColor": [
+					0.922,
+					0.922,
+					0.922
+				]
+			},
+			{
+				"name": "UUID_8fb5e3cf-51dc-445e-940a-bbd00136157a",
+				"ambientIntensity": 0.2,
+				"diffuseColor": [
+					0.502,
+					0,
+					0
+				]
+			},
+			{
+				"name": "UUID_347948ae-8cc6-40fc-b911-96dc5c214e3b",
+				"ambientIntensity": 0.2,
+				"diffuseColor": [
+					0.502,
+					0.502,
+					0.502
+				]
+			},
+			{
+				"name": "UUID_2f64001f-6654-4a60-97d8-4df8bb57ca78",
+				"ambientIntensity": 0.2,
+				"diffuseColor": [
+					0.922,
+					0.922,
+					0.922
+				]
+			},
+			{
+				"name": "UUID_aab9d163-5635-4a10-ba0c-91be5e7e17e4",
+				"ambientIntensity": 0.2,
+				"diffuseColor": [
+					0.502,
+					0,
+					0
+				]
+			},
+			{
+				"name": "UUID_b6fc9b69-1cba-42fa-9cab-9b7f79a8a887",
+				"ambientIntensity": 0.2,
+				"diffuseColor": [
+					0.502,
+					0.502,
+					0.502
+				]
+			},
+			{
+				"name": "UUID_7d928852-c0a4-4c25-959f-462091a869b5",
+				"ambientIntensity": 0.2,
+				"diffuseColor": [
+					0.922,
+					0.922,
+					0.922
+				]
+			},
+			{
+				"name": "UUID_9971ae25-a4f8-4e20-b3fd-28aa9bbcf245",
+				"ambientIntensity": 0.2,
+				"diffuseColor": [
+					0.502,
+					0,
+					0
+				]
+			},
+			{
+				"name": "UUID_83e797c4-019d-47f3-879d-573ac4729a37",
+				"ambientIntensity": 0.2,
+				"diffuseColor": [
+					0.502,
+					0.502,
+					0.502
+				]
+			},
+			{
+				"name": "UUID_86eb2ef2-9363-4e7e-a899-4e42139ec0c1",
+				"ambientIntensity": 0.2,
+				"diffuseColor": [
+					0.922,
+					0.922,
+					0.922
+				]
+			},
+			{
+				"name": "UUID_498bb41a-4b8d-42dd-b990-4726f787dd0b",
+				"ambientIntensity": 0.2,
+				"diffuseColor": [
+					0.502,
+					0,
+					0
+				]
+			},
+			{
+				"name": "UUID_af4a5bcf-eb97-4bef-b974-b6fd5eb59fc9",
+				"ambientIntensity": 0.2,
+				"diffuseColor": [
+					0.502,
+					0.502,
+					0.502
+				]
+			}
+		]
+	},
+	"metadata": {
+		"geographicalExtent": [
+			78612.16900000001,
+			457782.107,
+			3.451,
+			78695.679,
+			458154.974,
+			14.739
+		]
+	},
+	"transform": {
+		"scale": [
+			0.001,
+			0.001,
+			0.001
+		],
+		"translate": [
+			78612.16900000001,
+			457782.107,
+			3.451
+		]
+	}
+}
