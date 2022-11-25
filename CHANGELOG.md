@@ -1,5 +1,9 @@
 # Changelog
 
+## [unreleased]
+### Changed
+- The function that used an API are going to be deprecated in the upcoming releases, because the cjio API under refactoring. The affected functions are `cityjson.save`, `cityjson.load`, `cityjson.save`, `cityjson.load_from_j`, `cityjson.get_cityobjects`, `cityjson.set_cityobjects`, `cityjson.to_dataframe`, `cityjson.reference_geometry`, `cityjson.add_to_j` and all members of the `cityjson.models` module. There is a new cityjson library under development, called cjlib, which will replace the relevant parts in cjio.
+
 
 ## [0.7.6] – 2022-09-12
 ### Changed

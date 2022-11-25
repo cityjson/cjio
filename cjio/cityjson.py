@@ -2,6 +2,7 @@
 import os
 import sys
 import re
+import warnings
 
 import json
 import urllib.request
@@ -76,6 +77,9 @@ def load(path, transform: bool = True):
     :param transform: Apply the coordinate transformation to the vertices (if applicable)
     :return: A CityJSON object
     """
+    warnings.warn("cityjson.load() will be deprecated, because the cjio API is under "
+                  "refactoring. The new cityjson library, cjlib, is coming soon.",
+                  DeprecationWarning)
     with open(path, 'r') as fin:
         try:
             cm = CityJSON(file=fin)
@@ -114,6 +118,9 @@ def save(citymodel, path: str, indent: bool = False):
     :param citymodel: A CityJSON object
     :param path: Absolute path to a CityJSON file
     """
+    warnings.warn("cityjson.save() will be deprecated, because the cjio API is under "
+                  "refactoring. The new cityjson library, cjlib, is coming soon.",
+                  DeprecationWarning)
     citymodel.add_to_j()
     # if citymodel.is_transformed:
     #     # FIXME: here should be compression, however the current compression does not work with immutable tuples, but requires mutable lists for the points
@@ -269,6 +276,10 @@ class CityJSON:
 
         If the CityJSON API members have values, they are removed and updated.
         """
+        warnings.warn(
+            "cityjson.load_from_j() will be deprecated, because the cjio API is under "
+            "refactoring. The new cityjson library, cjlib, is coming soon.",
+            DeprecationWarning)
         # Delete everything first
         self.cityobjects.clear()
         # Then do update
@@ -383,6 +394,10 @@ class CityJSON:
 
 
     def add_to_j(self):
+        warnings.warn(
+            "cityjson.add_to_j() will be deprecated, because the cjio API is under "
+            "refactoring. The new cityjson library, cjlib, is coming soon.",
+            DeprecationWarning)
         cityobjects, vertex_lookup = self.reference_geometry()
         self.j['vertices'] = [[vtx[0], vtx[1], vtx[2]] for vtx in vertex_lookup.keys()]
         self.j['CityObjects'] = cityobjects
