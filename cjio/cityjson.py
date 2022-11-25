@@ -1181,7 +1181,7 @@ class CityJSON:
                 self.j["appearance"]["materials"].append(m)
             #-- update the "material" in each Geometry
             for theid in j["CityObjects"]:
-                for g in self.j['CityObjects'][theid]['geometry']:
+                for g in self.j['CityObjects'][theid].get('geometry', []):
                     if 'material' in g:
                         for m in g['material']:
                             if 'values' in g['material'][m]:
