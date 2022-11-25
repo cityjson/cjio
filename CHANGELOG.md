@@ -1,6 +1,13 @@
 # Changelog
 
 
+## [0.8.0] – 2022-11-XX
+### Added
+- added for read/write from stdin/stdout of CityJSONL (CityJSONFeatures), so cjio can be part of a pipeline of operators processing 3D city models
+### Changed
+- many small bugs fixed
+
+
 ## [0.7.6] – 2022-09-12
 ### Changed
 - cjvalpy >=v0.3 is required to use the latest schemas (v1.1.2)
