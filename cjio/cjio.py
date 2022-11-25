@@ -52,7 +52,7 @@ def cli(context, input, ignore_duplicate_keys, suppress_msg):
         cjio myfile.city.json info 
         cjio myfile.city.json subset --id house12 save out.city.json
         cjio myfile.city.json crs_assign 7145 textures_remove export --format obj output.obj
-        bat myjsonl.txt | cjio stdin info
+        cat mystream.city.jsonl | cjio stdin info
     """
     context.obj = {"argument": input, "suppress_msg": suppress_msg}
 

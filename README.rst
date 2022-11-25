@@ -152,11 +152,11 @@ Instead of putting the file name, ``stdin`` must be used.
 
 For writing, both CityJSON files and `CityJSONL files <https://www.cityjson.org/specs/#text-sequences-and-streaming-with-cityjsonfeature>`_ can be piped to stdout.
 Instead of putting the file name, ``stdout`` must be used.
-Also, the different operators of cjio output messages/information, and those will get in the stdout stream, to avoid this add the flat ``--suppress_msg`` when reading the file, as shown below.
+Also, the different operators of cjio output messages/information, and those will get in the stdout stream, to avoid this add the flag ``--suppress_msg`` when reading the file, as shown below.
 
 .. code:: console
 
-    cat myjsonlfile.txt | cjio --suppress_msg stdin remove_materials save stdout 
+    cat mystream.city.jsonl | cjio --suppress_msg stdin remove_materials save stdout 
     cjio --suppress_msg myfile.city.json remove_materials export jsonl stdout | less
     cat myfile.city.json | cjio --suppress_msg stdin crs_reproject 7415 export jsonl mystream.txt
 
