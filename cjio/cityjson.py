@@ -1771,16 +1771,17 @@ class CityJSON:
                 pass
 
 
-    def translate(self, values, minimum_xyz):
-        if minimum_xyz == True:
+    def translate(self, minxyz: list = None):
+        if minxyz is None:
+            bbox = self.get_bbox()
             self.j["transform"]["translate"][0] -= bbox[0]
             self.j["transform"]["translate"][1] -= bbox[1]
             self.j["transform"]["translate"][2] -= bbox[2]
         else:
-            bbox = values
-            self.j["transform"]["translate"][0] += bbox[0]
-            self.j["transform"]["translate"][1] += bbox[1]
-            self.j["transform"]["translate"][2] += bbox[2]
+            bbox = minxyz
+            self.j["transform"]["translate"][0] += minxyz[0]
+            self.j["transform"]["translate"][1] += minxyz[1]
+            self.j["transform"]["translate"][2] += minxyz[2]
         self.set_epsg(None)
         self.update_bbox()
         return bbox
