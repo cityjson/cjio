@@ -1,11 +1,11 @@
 # Changelog
 
-## [0.8.0] – 2022-11-XX
+## [0.8.0] – 2022-11-28
 ### Added
-- added for read/write from stdin/stdout of CityJSONL (CityJSONFeatures), so cjio can be part of a pipeline of operators processing 3D city models
+- added functions for reading/writing CityJSONL (CityJSONFeatures) from stdin/stdout, so cjio can be part of a pipeline of operators processing 3D city models 🚀
 ### Changed
 - many small bugs fixed
-- The function that used an API are going to be deprecated in the upcoming releases, because the cjio API under refactoring. The affected functions are `cityjson.save`, `cityjson.load`, `cityjson.save`, `cityjson.load_from_j`, `cityjson.get_cityobjects`, `cityjson.set_cityobjects`, `cityjson.to_dataframe`, `cityjson.reference_geometry`, `cityjson.add_to_j` and all members of the `cityjson.models` module. There is a new cityjson library under development, called cjlib, which will replace the relevant parts in cjio.
+- The function that used an API are going to be deprecated in the upcoming releases, because the cjio API is under refactoring. The affected functions are `cityjson.save`, `cityjson.load`, `cityjson.save`, `cityjson.load_from_j`, `cityjson.get_cityobjects`, `cityjson.set_cityobjects`, `cityjson.to_dataframe`, `cityjson.reference_geometry`, `cityjson.add_to_j` and all members of the `cityjson.models` module. There is a new cityjson library under development, called cjlib, which will replace the relevant parts in cjio.
 
 
 ## [0.7.6] – 2022-09-12
