@@ -17,6 +17,10 @@ if MODULE_PYPROJ_AVAILABLE:
 #     for geom in co.geometry:
 #         for srf in geom.surfaces.values():
 
+warnings.warn("cityjson.models module will be deprecated, because the cjio API is under "
+              "refactoring. The new cityjson library, cjlib, is coming soon.",
+              DeprecationWarning)
+
 class CityObject(object):
     """CityObject class"""
     def __init__(self, id,

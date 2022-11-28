@@ -155,7 +155,7 @@ class TestCLI:
         result = runner.invoke(cjio.cli,
                                args=[delft_path,
                                      'crs_translate',
-                                     '--values', '-1', '-1', '-1',
+                                     '--minxyz', '-1', '-1', '-1',
                                      'save',
                                      p_out])
         

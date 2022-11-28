@@ -52,7 +52,7 @@ def cli(context, input, ignore_duplicate_keys, suppress_msg):
         cjio myfile.city.json info 
         cjio myfile.city.json subset --id house12 save out.city.json
         cjio myfile.city.json crs_assign 7145 textures_remove export --format obj output.obj
-        bat myjsonl.txt | cjio stdin info
+        cat mystream.city.jsonl | cjio stdin info
     """
     context.obj = {"argument": input, "suppress_msg": suppress_msg}
 
@@ -596,23 +596,24 @@ def attribute_rename_cmd(oldattr, newattr):
 
 
 @cli.command('crs_translate')
-@click.option('--values', nargs=3, type=float, help='(x, y, z)')
-def crs_translate_cmd(values):
+@click.option('--minxyz', nargs=3, type=float, help='(x, y, z)')
+def crs_translate_cmd(minxyz):
     """
     Translate the coordinates. 
     By default, they are all moved by (-minx, -miny, -minz), 
     so the values are smaller (often useful for further processing data).
     The CRS/EPSG is updated to 'None'.
-    Three specific values for the translation can also be given.
+    Three specific values for the translation can also be given with --minxyz.
 
         $ cjio myfile.city.json crs_translate save out.city.json
-        $ cjio myfile.city.json crs_translate --values -100 -25 -1 save out.city.json
+        $ cjio myfile.city.json crs_translate --minxyz -100 -25 -1 save out.city.json
     """
     def processor(cm):
-        if len(values) == 0:
-           bbox = cm.translate(values=[], minimum_xyz=True)
+        print(minxyz)
+        if minxyz is None :
+           bbox = cm.translate(None)
         else:
-            bbox = cm.translate(values=values, minimum_xyz=False)
+            bbox = cm.translate(minxyz)
         print_cmd_status('Translating the file by: (%f, %f, %f)' % (bbox[0], bbox[1], bbox[2]))
         return cm
     return processor

@@ -2,6 +2,7 @@
 import os
 import sys
 import re
+import warnings
 
 import json
 import urllib.request
@@ -76,6 +77,9 @@ def load(path, transform: bool = True):
     :param transform: Apply the coordinate transformation to the vertices (if applicable)
     :return: A CityJSON object
     """
+    warnings.warn("cityjson.load() will be deprecated, because the cjio API is under "
+                  "refactoring. The new cityjson library, cjlib, is coming soon.",
+                  DeprecationWarning)
     with open(path, 'r') as fin:
         try:
             cm = CityJSON(file=fin)
@@ -114,6 +118,9 @@ def save(citymodel, path: str, indent: bool = False):
     :param citymodel: A CityJSON object
     :param path: Absolute path to a CityJSON file
     """
+    warnings.warn("cityjson.save() will be deprecated, because the cjio API is under "
+                  "refactoring. The new cityjson library, cjlib, is coming soon.",
+                  DeprecationWarning)
     citymodel.add_to_j()
     # if citymodel.is_transformed:
     #     # FIXME: here should be compression, however the current compression does not work with immutable tuples, but requires mutable lists for the points
@@ -269,6 +276,10 @@ class CityJSON:
 
         If the CityJSON API members have values, they are removed and updated.
         """
+        warnings.warn(
+            "cityjson.load_from_j() will be deprecated, because the cjio API is under "
+            "refactoring. The new cityjson library, cjlib, is coming soon.",
+            DeprecationWarning)
         # Delete everything first
         self.cityobjects.clear()
         # Then do update
@@ -383,6 +394,10 @@ class CityJSON:
 
 
     def add_to_j(self):
+        warnings.warn(
+            "cityjson.add_to_j() will be deprecated, because the cjio API is under "
+            "refactoring. The new cityjson library, cjlib, is coming soon.",
+            DeprecationWarning)
         cityobjects, vertex_lookup = self.reference_geometry()
         self.j['vertices'] = [[vtx[0], vtx[1], vtx[2]] for vtx in vertex_lookup.keys()]
         self.j['CityObjects'] = cityobjects
@@ -955,7 +970,10 @@ class CityJSON:
         s = []
         s.append("CityJSON version = {}".format(self.get_version()))
         s.append("EPSG = {}".format(self.get_epsg()))
-        s.append("bbox = {}".format(self.get_bbox()))
+        sb = ""
+        for each in self.get_bbox():
+            sb += "{:.3f} ".format(each)
+        s.append("bbox = [ {}]".format(sb))
         if "extensions" in self.j:
             d = set()
             for i in self.j["extensions"]:
@@ -1181,7 +1199,7 @@ class CityJSON:
                 self.j["appearance"]["materials"].append(m)
             #-- update the "material" in each Geometry
             for theid in j["CityObjects"]:
-                for g in self.j['CityObjects'][theid]['geometry']:
+                for g in self.j['CityObjects'][theid].get('geometry', []):
                     if 'material' in g:
                         for m in g['material']:
                             if 'values' in g['material'][m]:
@@ -1754,16 +1772,17 @@ class CityJSON:
                 pass
 
 
-    def translate(self, values, minimum_xyz):
-        if minimum_xyz == True:
+    def translate(self, minxyz: list = None):
+        if minxyz is None:
+            bbox = self.get_bbox()
             self.j["transform"]["translate"][0] -= bbox[0]
             self.j["transform"]["translate"][1] -= bbox[1]
             self.j["transform"]["translate"][2] -= bbox[2]
         else:
-            bbox = values
-            self.j["transform"]["translate"][0] += bbox[0]
-            self.j["transform"]["translate"][1] += bbox[1]
-            self.j["transform"]["translate"][2] += bbox[2]
+            bbox = minxyz
+            self.j["transform"]["translate"][0] += minxyz[0]
+            self.j["transform"]["translate"][1] += minxyz[1]
+            self.j["transform"]["translate"][2] += minxyz[2]
         self.set_epsg(None)
         self.update_bbox()
         return bbox
