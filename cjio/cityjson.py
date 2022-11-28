@@ -970,7 +970,10 @@ class CityJSON:
         s = []
         s.append("CityJSON version = {}".format(self.get_version()))
         s.append("EPSG = {}".format(self.get_epsg()))
-        s.append("bbox = {}".format(self.get_bbox()))
+        sb = ""
+        for each in self.get_bbox():
+            sb += "{:.3f} ".format(each)
+        s.append("bbox = [ {}]".format(sb))
         if "extensions" in self.j:
             d = set()
             for i in self.j["extensions"]:
