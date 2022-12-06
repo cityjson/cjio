@@ -1580,8 +1580,8 @@ class CityJSON:
         out = StringIO()
         out.write(self.cityjson_for_features() + '\n')
         #-- take each IDs and create on CityJSONFeature
-        for feature_json_str in self.generate_features():
-            out.write(feature_json_str + '\n')
+        for feature in self.generate_features():
+            out.write(json.dumps(feature.j, separators=(',', ':')) + '\n')
         return out
 
     def cityjson_for_features(self):
@@ -1609,7 +1609,11 @@ class CityJSON:
         Does not output a first CityJSON object. To create the first CityJSON object,
         use :py:func:`cityjson_for_features`.
 
-        Returns a generator over the CityJSONFeature strings.
+        Unlike :py:func:`cityjson_for_features`, this function returns the
+        CityJSONFeature object (and not a JSON string). This is because downstream
+        applications often want to process the CityJSONFeature object further.
+
+        Returns a generator over the CityJSONFeatures.
         """
         idsdone = set()
         theallowedproperties = ["type", "id", "CityObjects", "vertices", "appearance"]
@@ -1626,7 +1630,7 @@ class CityJSON:
                         todelete.append(p)
                 for p in todelete:
                     del cm2.j[p]
-                yield json.dumps(cm2.j, separators=(',', ':'))
+                yield cm2
                 for theid2 in cm2.j["CityObjects"]:
                     idsdone.add(theid)
 
