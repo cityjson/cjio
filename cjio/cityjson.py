@@ -1578,6 +1578,16 @@ class CityJSON:
 
     def export2jsonl(self):
         out = StringIO()
+        out.write(self.cityjson_for_features() + '\n')
+        #-- take each IDs and create on CityJSONFeature
+        for feature_json_str in self.generate_features():
+            out.write(feature_json_str + '\n')
+        return out
+
+    def cityjson_for_features(self):
+        """Export a CityJSON object string from the city model.
+        The CityJSON object string is meant to be used as the 'first object' in a
+        CityJSONFeature stream, thus the 'vertices' and 'CityObjects' are empty."""
         j2 = {}
         j2["type"] = "CityJSON"
         j2["version"] = CITYJSON_VERSIONS_SUPPORTED[-1]
@@ -1587,18 +1597,25 @@ class CityJSON:
         if "metadata" in self.j:
             j2["metadata"] = self.j["metadata"]
         if "geometry-templates" in self.j:
-            j2["geometry-templates"] = self.j["geometry-templates"]            
+            j2["geometry-templates"] = self.j["geometry-templates"]
         if "+metadata-extended" in self.j:
-            j2["+metadata-extended"] = self.j["+metadata-extended"]            
+            j2["+metadata-extended"] = self.j["+metadata-extended"]
         if "extensions" in self.j:
             j2["extensions"] = self.j["extensions"]
-        json_str = json.dumps(j2, separators=(',',':'))
-        out.write(json_str + '\n')
-        #-- take each IDs and create on CityJSONFeature
+        return json.dumps(j2, separators=(',', ':'))
+
+    def generate_features(self):
+        """Generates CityJSONFeatures from the city model.
+        Does not output a first CityJSON object. To create the first CityJSON object,
+        use :py:func:`cityjson_for_features`.
+
+        Returns a generator over the CityJSONFeature strings.
+        """
         idsdone = set()
         theallowedproperties = ["type", "id", "CityObjects", "vertices", "appearance"]
         for theid in self.j["CityObjects"]:
-            if ("parents" not in self.j["CityObjects"][theid]) and (theid not in idsdone):
+            if ("parents" not in self.j["CityObjects"][theid]) and (
+                    theid not in idsdone):
                 cm2 = self.get_subset_ids([theid])
                 cm2.j["type"] = "CityJSONFeature"
                 cm2.j["id"] = theid
@@ -1609,11 +1626,9 @@ class CityJSON:
                         todelete.append(p)
                 for p in todelete:
                     del cm2.j[p]
-                json_str = json.dumps(cm2.j, separators=(',',':'))
-                out.write(json_str + '\n')
+                yield json.dumps(cm2.j, separators=(',', ':'))
                 for theid2 in cm2.j["CityObjects"]:
                     idsdone.add(theid)
-        return out
 
     def export2obj(self, sloppy):
         imp_digits = math.ceil(abs(math.log(self.j["transform"]["scale"][0], 10)))
