@@ -1,5 +1,9 @@
 # Changelog
 
+## [unreleased]
+### Added
+- Added the `translate` paramter to `cityjson.compress` to manually set the tranlation properties instead of computing from the data.
+
 ## [0.8.0] – 2022-11-28
 ### Added
 - added functions for reading/writing CityJSONL (CityJSONFeatures) from stdin/stdout, so cjio can be part of a pipeline of operators processing 3D city models 🚀

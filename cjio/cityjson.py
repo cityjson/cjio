@@ -1129,15 +1129,25 @@ class CityJSON:
         return (totalinput - len(self.j["vertices"]))
 
 
-    def compress(self, important_digits=3):
+    def compress(self, important_digits=3, translate=None):
+        """Compress the city model by scaling and translating it.
+
+        The scaling factor is defined by 'important_digits'. The translation properties
+        are either determined as the minimum coordinates of the city model if
+        'translate=None', or can be
+        set by providing the ``[x, y, z]`` translation properties to 'translate'.
+        """
         if "transform" in self.j:
             return False
-        #-- find the minx/miny/minz
-        bbox = [9e9, 9e9, 9e9]    
-        for v in self.j["vertices"]:
-            for i in range(3):
-                if v[i] < bbox[i]:
-                    bbox[i] = v[i]
+        #-- find the minx/miny/minz or set from translate
+        if translate:
+            bbox = translate
+        else:
+            bbox = [9e9, 9e9, 9e9]
+            for v in self.j["vertices"]:
+                for i in range(3):
+                    if v[i] < bbox[i]:
+                        bbox[i] = v[i]
         #-- convert vertices in self.j to int
         n = [0, 0, 0]
         p = '%.' + str(important_digits) + 'f' 
