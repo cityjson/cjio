@@ -46,14 +46,14 @@ def to_b3dm(cm, glb):
 
     #-- Batch table
     attributes = set()
-    for coid,co in cm.j['CityObjects'].items():
+    for coi_node_idxd,co in cm.j['CityObjects'].items():
         try:
             attributes |= set(co['attributes'].keys())
         except KeyError:
             pass
     if len(attributes) > 0:
         batch_table = {attribute: [] for attribute in attributes}
-        for coid,co in cm.j['CityObjects'].items():
+        for coi_node_idxd,co in cm.j['CityObjects'].items():
             for attribute in attributes:
                 try:
                     batch_table[attribute].append(co['attributes'][attribute])
@@ -131,15 +131,35 @@ def to_glb(cm):
     meshes = []
     poscount = 0
     nodes = []
-    node_indices = []
+    child_node_indices = []
     accessors = []
     matid = 0
     material_ids = []
 
     vertexlist = np.array(cm.j["vertices"])
 
-    # CityObject index with geometry that goes into the glb
-    coi = 0
+    # gltf uses a right-handed coordinate system. 
+    # glTF defines +Y as up, +Z as forward, and -X as right, thus the front of a glTF 
+    # asset faces +Z.
+    # The root node of the scene contains the y-up to z-up transformation matrix,
+    # which is needed for inherently z-up data. 
+    # See https://github.com/CesiumGS/3d-tiles/tree/main/specification#y-up-to-z-up
+    nodes.append({
+        "matrix": [1, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, 1],
+        "children": [],
+        "name": cm.j.get("metadata", "citymodel").get("identifier", "citymodel")
+    })
+    root_node_idx = 0
+
+    # CityObject index with geometry that goes into the glb and is represented by a
+    # mesh.
+    mesh_idx = 0
+    # Since we have an empty root node (without a mesh), but then we have a flat
+    # hierarchy (single level) under the root node, each mesh is represented by one
+    # (child) node. Technically, we could use 'mesh_idx + 1' in the code below as the
+    # child node index, but we use a separate variable for extra clarity.
+    child_node_idx = 1
+
     for theid in cm.j['CityObjects']:
         forimax = []
 
@@ -168,6 +188,7 @@ def to_glb(cm):
                 matid = 9
             material_ids.append(matid)
 
+            # TODO: skip triangulation if already triangulated
             for geom in cm.j['CityObjects'][theid]['geometry']:
                 poscount = poscount + 1
                 if geom['type'] == "Solid":
@@ -208,7 +229,9 @@ def to_glb(cm):
                 # system. glTF defines +Y as up, +Z as forward, and -X as right;
                 # the front of a glTF asset faces +Z.
                 try:
-                    vtx_np[i] = np.array((vertexlist[v][1], vertexlist[v][2], vertexlist[v][0]))
+                    # vtx_np[i] = np.array((vertexlist[v][1], vertexlist[v][2], vertexlist[v][0]))
+                    vtx_np[i] = np.array(
+                        (vertexlist[v][0], vertexlist[v][1], vertexlist[v][2]))
                 except IndexError as e:
                     print(i, v)
                 vtx_idx_np[i] = i
@@ -264,7 +287,10 @@ def to_glb(cm):
 
             # accessor for geometry indices bufferView
             accessor = dict()
-            accessor["bufferView"] = 0 if coi == 0  else coi * 3
+            # We start the bufferViews with i==1, because the root node does not have
+            # a bufferView, because it is empty (does not have a mesh)
+            # Without a root node we would need  = 0 if coi_node_idx == 0  else coi_node_idx * 3
+            accessor["bufferView"] = mesh_idx * 3
             accessor["componentType"] = 5125
             accessor["count"] = int(vtx_idx_np.size)
             accessor["type"] = "SCALAR"
@@ -274,7 +300,8 @@ def to_glb(cm):
 
             # accessor for geometry vertices bufferView
             accessor = dict()
-            accessor["bufferView"] = 1 if coi == 0  else coi * 3 + 1
+            # without an empty root node we would need = 1 if coi_node_idx == 0  else coi_node_idx * 3 + 1
+            accessor["bufferView"] = mesh_idx * 3 + 1
             accessor["componentType"] = 5126
             accessor["count"] = int(vtx_idx_np.size)
             accessor["type"] = "VEC3"
@@ -288,7 +315,8 @@ def to_glb(cm):
 
             # accessor for batchid bufferView
             accessor = dict()
-            accessor["bufferView"] = 2 if coi == 0  else coi * 3 + 2
+            # without an empty root node we would need = 2 if coi_node_idx == 0  else coi_node_idx * 3 + 2
+            accessor["bufferView"] = mesh_idx * 3 + 2
             accessor["componentType"] = 5123
             accessor["count"] = int(vtx_idx_np.size)
             accessor["type"] = "SCALAR"
@@ -310,12 +338,12 @@ def to_glb(cm):
 
             # ----- nodes
             # a node has a mesh, and the mesh is referenced by its index in the meshes
-            # , "matrix": [1,0,0,0,0,0,-1,0,0,1,0,0,0,0,0,1]}
-            nodes.append({"mesh": coi})
+            nodes.append({"mesh": mesh_idx})
             # one node per CityObject
-            node_indices.append(coi)
+            child_node_indices.append(child_node_idx)
 
-            coi += 1
+            mesh_idx += 1
+            child_node_idx += 1
 
     #-- buffers
     buffer = dict()
@@ -327,10 +355,12 @@ def to_glb(cm):
     gltf_json["bufferViews"] = bufferViews
     gltf_json["accessors"] = accessors
     gltf_json["meshes"] = meshes
+
+    nodes[root_node_idx]["children"] = child_node_indices
     gltf_json["nodes"] = nodes
 
     scene = dict()
-    scene["nodes"] = node_indices
+    scene["nodes"] = [root_node_idx,]
     gltf_json["scenes"] = [scene]
 
     #-- materials
