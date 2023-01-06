@@ -26,6 +26,15 @@ class TestGltf:
             cm = cityjson.CityJSON(file=f)
         glb = cm.export2glb()
 
+    def test_debug_delft_glb(self, data_dir, data_output_dir):
+        # CityJSON v1.1
+        p = os.path.join(data_dir, "0-1.city.json")
+        with open(p, 'r') as f:
+            cm = cityjson.CityJSON(file=f)
+        glb = cm.export2glb()
+        glb.seek(0)
+        with open(f"{data_output_dir}/0-1.glb", mode='wb') as bo:
+            bo.write(glb.getvalue())
 
 
 class TestB3dm:

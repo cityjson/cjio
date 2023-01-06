@@ -367,9 +367,9 @@ def to_glb(cm):
     materials = [
         {  # building red
             "pbrMetallicRoughness": {
-                "baseColorFactor": [1.000, 0.000, 0.000, 1.0],
-                "metallicFactor": 0.5,
-                "roughnessFactor": 1.0
+                "baseColorFactor": [0.7200, 0.320, 0.220, 1.0],
+                "metallicFactor": 0.0,
+                "roughnessFactor": 0.0
             }
         },
         {  # terrain brown
