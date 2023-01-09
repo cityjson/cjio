@@ -5,6 +5,10 @@
 - Added the `translate` paramter to `cityjson.compress` to manually set the tranlation properties instead of computing from the data.
 - The `cityjson.cityjson_for_features` and `cityjson.generate_features` methods.
 
+### Changed
+- The glb converter (`to_glb`) sets a root transformation matrix for z-up to y-up, instead of swapping the vertex coordinates directly.
+- The glb converter takes a `do_triangulate` argument to completely skip triangulation.
+
 ## [0.8.0] – 2022-11-28
 ### Added
 - added functions for reading/writing CityJSONL (CityJSONFeatures) from stdin/stdout, so cjio can be part of a pipeline of operators processing 3D city models 🚀

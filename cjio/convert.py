@@ -96,7 +96,7 @@ def to_b3dm(cm, glb):
 
     return b3dm_bin
 
-def to_glb(cm):
+def to_glb(cm, do_triangulate=True):
     """Convert to Binary glTF (.glb)
 
     Adapted from CityJSON2glTF: https://github.com/tudelft3d/CityJSON2glTF
@@ -188,35 +188,55 @@ def to_glb(cm):
                 matid = 9
             material_ids.append(matid)
 
-            # TODO: skip triangulation if already triangulated
-            for geom in cm.j['CityObjects'][theid]['geometry']:
-                poscount = poscount + 1
-                if geom['type'] == "Solid":
-                    triList = []
-                    for shell in geom['boundaries']:
-                        for face in shell:
+            if do_triangulate:
+                for geom in cm.j['CityObjects'][theid]['geometry']:
+                    poscount = poscount + 1
+                    if geom['type'] == "Solid":
+                        triList = []
+                        for shell in geom['boundaries']:
+                            for face in shell:
+                                tri, success = geom_help.triangulate_face(face, vertexlist)
+                                if success:
+                                    for t in tri:
+                                        triList.append(list(t))
+                                else:
+                                    # TODO: logging
+                                    print(f"Failed to triangulate face in CityObject {theid}")
+                        trigeom = (flatten(triList))
+
+                    elif (geom['type'] == 'MultiSurface') or (geom['type'] == 'CompositeSurface'):
+                        triList = []
+                        for face in geom['boundaries']:
                             tri, success = geom_help.triangulate_face(face, vertexlist)
                             if success:
                                 for t in tri:
-                                    triList.append(list(t))
+                                    triList.append(t)
                             else:
                                 # TODO: logging
                                 print(f"Failed to triangulate face in CityObject {theid}")
-                    trigeom = (flatten(triList))
+                        trigeom = (flatten(triList))
+            else:
+                # If the caller says it's triangulate, then we trust that it's
+                # triangulated.
+                for geom in cm.j['CityObjects'][theid]['geometry']:
+                    poscount = poscount + 1
+                    if geom['type'] == "Solid":
+                        triList = []
+                        for shell in geom['boundaries']:
+                            for face in shell:
+                                for t in face:
+                                    triList.append(list(t))
+                        trigeom = (flatten(triList))
 
-                elif (geom['type'] == 'MultiSurface') or (geom['type'] == 'CompositeSurface'):
-                    triList = []
-                    for face in geom['boundaries']:
-                        tri, success = geom_help.triangulate_face(face, vertexlist)
-                        if success:
-                            for t in tri:
+                    elif (geom['type'] == 'MultiSurface') or (
+                            geom['type'] == 'CompositeSurface'):
+                        triList = []
+                        for face in geom['boundaries']:
+                            for t in face:
                                 triList.append(t)
-                        else:
-                            # TODO: logging
-                            print(f"Failed to triangulate face in CityObject {theid}")
-                    trigeom = (flatten(triList))
-                flatgeom = trigeom
-                forimax.append(flatgeom)
+                        trigeom = (flatten(triList))
+            flatgeom = trigeom
+            forimax.append(flatgeom)
 
             #----- buffer and bufferView
             flatgeom = flatten(forimax)

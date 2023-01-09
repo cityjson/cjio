@@ -1571,9 +1571,9 @@ class CityJSON:
         return b3dm
 
 
-    def export2glb(self):
+    def export2glb(self, do_triangulate=True):
         self.decompress()
-        glb = convert.to_glb(self)
+        glb = convert.to_glb(self, do_triangulate=do_triangulate)
         return glb
 
     def export2jsonl(self):
