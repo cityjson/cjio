@@ -31,7 +31,7 @@ class TestGltf:
         p = os.path.join(data_dir, "0-1.city.json")
         with open(p, 'r') as f:
             cm = cityjson.CityJSON(file=f)
-        glb = cm.export2glb()
+        glb = cm.export2glb(do_triangulate=False)
         glb.seek(0)
         with open(f"{data_output_dir}/0-1.glb", mode='wb') as bo:
             bo.write(glb.getvalue())

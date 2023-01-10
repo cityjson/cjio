@@ -192,3 +192,17 @@ def triangulate_face_mapbox_earcut(face, vnp):
         
         # print (result.reshape(-1, 3))
         return (result.reshape(-1, 3), True)
+
+
+def triangle_normal_weighted(tri, vertexlist):
+    """Compute the triangle normal vector weighted by the triangle area."""
+    v0, v1, v2 = tri[0], tri[1], tri[2]
+    p0 = np.array((vertexlist[v0][0], vertexlist[v0][1], vertexlist[v0][2]))
+    p1 = np.array((vertexlist[v1][0], vertexlist[v1][1], vertexlist[v1][2]))
+    p2 = np.array((vertexlist[v2][0], vertexlist[v2][1], vertexlist[v2][2]))
+    cross_prod = np.cross(p1 - p0, p2 - p0)
+    m = np.linalg.norm(cross_prod)
+    magnitude = 1.0 if math.isclose(m, 0) else m
+    norm_vec = cross_prod / magnitude
+    tri_area = magnitude * 0.5
+    return norm_vec * tri_area

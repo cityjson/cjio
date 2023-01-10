@@ -1,9 +1,13 @@
+import math
 from io import BytesIO
 import json
 
 from cjio import geom_help
 
 import numpy as np
+
+from cjio.geom_help import triangle_normal_weighted
+
 
 def flatten(x):
     result = []
@@ -162,6 +166,7 @@ def to_glb(cm, do_triangulate=True):
 
     for theid in cm.j['CityObjects']:
         forimax = []
+        normals_per_geom = []
 
         if "geometry" in cm.j['CityObjects'][theid] and len(cm.j['CityObjects'][theid]['geometry']) != 0:
 
@@ -188,8 +193,14 @@ def to_glb(cm, do_triangulate=True):
                 matid = 9
             material_ids.append(matid)
 
+            #----- computing vertex normals
+            # We are computing soft-shading, which means computing the weighted average
+            # normal for each vertex.
+            # http://wiki.polycount.com/w/images/e/e5/FrostSoft_doc-3.png
+
             if do_triangulate:
                 for geom in cm.j['CityObjects'][theid]['geometry']:
+                    normals_per_vertex = {i: [] for i in range(len(vertexlist))}
                     poscount = poscount + 1
                     if geom['type'] == "Solid":
                         triList = []
@@ -199,6 +210,12 @@ def to_glb(cm, do_triangulate=True):
                                 if success:
                                     for t in tri:
                                         triList.append(list(t))
+                                        # for gltf, we need to invert the vector
+                                        tri_normal = triangle_normal_weighted(t,
+                                                                              vertexlist) * -1.0
+                                        normals_per_vertex[t[0]].append(tri_normal)
+                                        normals_per_vertex[t[1]].append(tri_normal)
+                                        normals_per_vertex[t[2]].append(tri_normal)
                                 else:
                                     # TODO: logging
                                     print(f"Failed to triangulate face in CityObject {theid}")
@@ -210,22 +227,45 @@ def to_glb(cm, do_triangulate=True):
                             tri, success = geom_help.triangulate_face(face, vertexlist)
                             if success:
                                 for t in tri:
-                                    triList.append(t)
+                                    triList.append(list(t))
+                                    tri_normal = triangle_normal_weighted(t, vertexlist) * -1.0
+                                    normals_per_vertex[t[0]].append(tri_normal)
+                                    normals_per_vertex[t[1]].append(tri_normal)
+                                    normals_per_vertex[t[2]].append(tri_normal)
                             else:
                                 # TODO: logging
                                 print(f"Failed to triangulate face in CityObject {theid}")
                         trigeom = (flatten(triList))
+
+                    forimax.append(trigeom)
+                    # Computing smooth-shading (smooth-normal) for a vertex, as the sum of
+                    # normals weighted by the triangle area of the adjacent triangles.
+                    normals_per_vertex_smooth = {i: None for i in
+                                                 range(len(vertexlist))}
+                    for v, normals in normals_per_vertex.items():
+                        s = sum(normals)
+                        norm = 1.0 if math.isclose(n, 0.0) else n
+                        normals_per_vertex_smooth[v] = s / norm
+                    del normals_per_vertex
+                    normals_per_geom.append(
+                        list(normals_per_vertex_smooth[v] for v in trigeom))
             else:
                 # If the caller says it's triangulate, then we trust that it's
                 # triangulated.
                 for geom in cm.j['CityObjects'][theid]['geometry']:
+                    normals_per_vertex = {i: [] for i in range(len(vertexlist))}
                     poscount = poscount + 1
                     if geom['type'] == "Solid":
                         triList = []
                         for shell in geom['boundaries']:
                             for face in shell:
                                 for t in face:
-                                    triList.append(list(t))
+                                    triList.append(t)
+                                    tri_normal = triangle_normal_weighted(t, vertexlist) * -1.0
+                                    normals_per_vertex[t[0]].append(tri_normal)
+                                    normals_per_vertex[t[1]].append(tri_normal)
+                                    normals_per_vertex[t[2]].append(tri_normal)
+
                         trigeom = (flatten(triList))
 
                     elif (geom['type'] == 'MultiSurface') or (
@@ -234,22 +274,44 @@ def to_glb(cm, do_triangulate=True):
                         for face in geom['boundaries']:
                             for t in face:
                                 triList.append(t)
+                                tri_normal = triangle_normal_weighted(t, vertexlist) * -1.0
+                                normals_per_vertex[t[0]].append(tri_normal)
+                                normals_per_vertex[t[1]].append(tri_normal)
+                                normals_per_vertex[t[2]].append(tri_normal)
                         trigeom = (flatten(triList))
-            flatgeom = trigeom
-            forimax.append(flatgeom)
+
+                    forimax.append(trigeom)
+                    # Computing smooth-shading (smooth-normal) for a vertex, as the sum of
+                    # normals weighted by the triangle area of the adjacent triangles.
+                    normals_per_vertex_smooth = {i: None for i in
+                                                 range(len(vertexlist))}
+                    for v, normals in normals_per_vertex.items():
+                        s = sum(normals)
+                        n = np.linalg.norm(s)
+                        norm = 1.0 if math.isclose(n, 0.0) else n
+                        normals_per_vertex_smooth[v] = s / norm
+                    del normals_per_vertex
+                    normals_per_geom.append(list(normals_per_vertex_smooth[v] for v in trigeom))
+
+            # Flatten the triangle-vertex lists for each CityObject geometry into a
+            # single list. Each consecutive set of three vertices defines a
+            # single triangle primitive.
+            flatgeom = flatten(forimax)
+            # Same for the normal-vertex lists
+            normals_np = np.concatenate(normals_per_geom)
+            if len(normals_np) != len(flatgeom):
+                raise RuntimeError("The length of vertices and normals should be equal")
+            del normals_per_geom
 
             #----- buffer and bufferView
-            flatgeom = flatten(forimax)
+            # allocate for vertex coordinates
             vtx_np = np.zeros((len(flatgeom), 3))
+            # allocate for vertex indices
             vtx_idx_np = np.zeros(len(flatgeom))
             # need to reindex the vertices, otherwise if the vtx index exceeds the nr. of vertices in the
             # accessor then we get "ACCESSOR_INDEX_OOB" error
             for i,v in enumerate(flatgeom):
-                # Need to swap the axis, because gltf uses a right-handed coordinate
-                # system. glTF defines +Y as up, +Z as forward, and -X as right;
-                # the front of a glTF asset faces +Z.
                 try:
-                    # vtx_np[i] = np.array((vertexlist[v][1], vertexlist[v][2], vertexlist[v][0]))
                     vtx_np[i] = np.array(
                         (vertexlist[v][0], vertexlist[v][1], vertexlist[v][2]))
                 except IndexError as e:
@@ -258,6 +320,9 @@ def to_glb(cm, do_triangulate=True):
             bin_vtx = vtx_np.astype(np.float32).tostring()
             # convert geometry indices to binary
             bin_geom = vtx_idx_np.astype(np.uint32).tostring()
+            del flatgeom
+            # convert the normal to binary
+            bin_normals = normals_np.astype(np.float32).tostring()
             # convert batchid to binary
             batchid_np = np.array([i for g in vtx_idx_np])
             bin_batchid = batchid_np.astype(np.uint32).tostring()
@@ -275,13 +340,13 @@ def to_glb(cm, do_triangulate=True):
             gltf_bin.extend(bytearray(padding))
             bufferViews.append(bufferView)
 
-            #-- geometry vertices bufferView
+            #-- geometry vertices (POSITION) bufferView
             bpos = len(gltf_bin)
             offset, padding = byte_offset(bpos, 4)
             bufferView = dict()
             bufferView["buffer"] = 0
             bufferView["byteOffset"] = offset
-            bufferView["byteStride"] = 12
+            # bufferView["byteStride"] = 12
             bufferView["byteLength"] = len(bin_vtx)
             bufferView["target"] = 34962
             # write to the buffer
@@ -289,19 +354,33 @@ def to_glb(cm, do_triangulate=True):
             gltf_bin.extend(bytearray(padding))
             bufferViews.append(bufferView)
 
-            #-- batchid bufferView
+            #-- vertex normals (NORMAL) bufferView
             bpos = len(gltf_bin)
             offset, padding = byte_offset(bpos, 4)
             bufferView = dict()
             bufferView["buffer"] = 0
             bufferView["byteOffset"] = offset
-            bufferView["byteStride"] = 4
-            bufferView["byteLength"] = len(bin_batchid)
+            # bufferView["byteStride"] = 12
+            bufferView["byteLength"] = len(bin_normals)
             bufferView["target"] = 34962
             # write to the buffer
-            gltf_bin.extend(bin_batchid)
+            gltf_bin.extend(bin_normals)
             gltf_bin.extend(bytearray(padding))
             bufferViews.append(bufferView)
+
+            # #-- batchid bufferView
+            # bpos = len(gltf_bin)
+            # offset, padding = byte_offset(bpos, 4)
+            # bufferView = dict()
+            # bufferView["buffer"] = 0
+            # bufferView["byteOffset"] = offset
+            # bufferView["byteStride"] = 4
+            # bufferView["byteLength"] = len(bin_batchid)
+            # bufferView["target"] = 34962
+            # # write to the buffer
+            # gltf_bin.extend(bin_batchid)
+            # gltf_bin.extend(bytearray(padding))
+            # bufferViews.append(bufferView)
 
             # ----- accessors
 
@@ -318,12 +397,12 @@ def to_glb(cm, do_triangulate=True):
             accessor["min"] = [int(vtx_idx_np.min())]
             accessors.append(accessor)
 
-            # accessor for geometry vertices bufferView
+            # accessor for geometry vertices (POSITION) bufferView
             accessor = dict()
             # without an empty root node we would need = 1 if coi_node_idx == 0  else coi_node_idx * 3 + 1
             accessor["bufferView"] = mesh_idx * 3 + 1
             accessor["componentType"] = 5126
-            accessor["count"] = int(vtx_idx_np.size)
+            accessor["count"] = len(vtx_np)
             accessor["type"] = "VEC3"
             accessor["max"] = [float(np.amax(vtx_np, axis=0)[0]),
                                float(np.amax(vtx_np, axis=0)[1]),
@@ -333,14 +412,28 @@ def to_glb(cm, do_triangulate=True):
                                float(np.amin(vtx_np, axis=0)[2])]
             accessors.append(accessor)
 
-            # accessor for batchid bufferView
+            # accessor for vertex normals (NORMAL) bufferView
             accessor = dict()
-            # without an empty root node we would need = 2 if coi_node_idx == 0  else coi_node_idx * 3 + 2
             accessor["bufferView"] = mesh_idx * 3 + 2
-            accessor["componentType"] = 5123
-            accessor["count"] = int(vtx_idx_np.size)
-            accessor["type"] = "SCALAR"
+            accessor["componentType"] = 5126
+            accessor["count"] = len(normals_np)
+            accessor["type"] = "VEC3"
+            accessor["max"] = [float(np.amax(normals_np, axis=0)[0]),
+                               float(np.amax(normals_np, axis=0)[1]),
+                               float(np.amax(normals_np, axis=0)[2])]
+            accessor["min"] = [float(np.amin(normals_np, axis=0)[0]),
+                               float(np.amin(normals_np, axis=0)[1]),
+                               float(np.amin(normals_np, axis=0)[2])]
             accessors.append(accessor)
+
+            # # accessor for batchid bufferView
+            # accessor = dict()
+            # # without an empty root node we would need = 2 if coi_node_idx == 0  else coi_node_idx * 3 + 2
+            # accessor["bufferView"] = mesh_idx * 3 + 3
+            # accessor["componentType"] = 5123
+            # accessor["count"] = len(batchid_np)
+            # accessor["type"] = "SCALAR"
+            # accessors.append(accessor)
 
             # ----- meshes
             # one mesh per CityObject
@@ -350,7 +443,8 @@ def to_glb(cm, do_triangulate=True):
                 "indices": len(accessors) - 3,
                 "material": matid,
                 "attributes": {
-                    "_BATCHID": len(accessors) - 1,
+                    # "_BATCHID": len(accessors) - 1,
+                    "NORMAL": len(accessors) - 1,
                     "POSITION": len(accessors) - 2,
                 }
             }]
@@ -389,7 +483,7 @@ def to_glb(cm, do_triangulate=True):
             "pbrMetallicRoughness": {
                 "baseColorFactor": [0.7200, 0.320, 0.220, 1.0],
                 "metallicFactor": 0.0,
-                "roughnessFactor": 0.0
+                "roughnessFactor": 1.0
             }
         },
         {  # terrain brown
