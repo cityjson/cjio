@@ -6,8 +6,10 @@
 - The `cityjson.cityjson_for_features` and `cityjson.generate_features` methods.
 
 ### Changed
-- The glb converter (`to_glb`) sets a root transformation matrix for z-up to y-up, instead of swapping the vertex coordinates directly.
-- The glb converter takes a `do_triangulate` argument to completely skip triangulation.
+#### gltf (glb) converter
+- `to_glb` sets a root transformation matrix for z-up to y-up, instead of swapping the vertex coordinates directly.
+- Takes a `do_triangulate` argument to completely skip triangulation.
+- Compute (smooth) normals.
 
 ## [0.8.0] – 2022-11-28
 ### Added
