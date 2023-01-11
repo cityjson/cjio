@@ -6,7 +6,7 @@ from cjio import geom_help
 
 import numpy as np
 
-from cjio.geom_help import triangle_normal_weighted
+from cjio.geom_help import triangle_normal
 
 
 def flatten(x):
@@ -211,8 +211,7 @@ def to_glb(cm, do_triangulate=True):
                                     for t in tri:
                                         triList.append(list(t))
                                         # for gltf, we need to invert the vector
-                                        tri_normal = triangle_normal_weighted(t,
-                                                                              vertexlist) * -1.0
+                                        tri_normal = triangle_normal(t, vertexlist, weighted=True) * -1.0
                                         normals_per_vertex[t[0]].append(tri_normal)
                                         normals_per_vertex[t[1]].append(tri_normal)
                                         normals_per_vertex[t[2]].append(tri_normal)
@@ -228,7 +227,7 @@ def to_glb(cm, do_triangulate=True):
                             if success:
                                 for t in tri:
                                     triList.append(list(t))
-                                    tri_normal = triangle_normal_weighted(t, vertexlist) * -1.0
+                                    tri_normal = triangle_normal(t, vertexlist) * -1.0
                                     normals_per_vertex[t[0]].append(tri_normal)
                                     normals_per_vertex[t[1]].append(tri_normal)
                                     normals_per_vertex[t[2]].append(tri_normal)
@@ -244,6 +243,7 @@ def to_glb(cm, do_triangulate=True):
                                                  range(len(vertexlist))}
                     for v, normals in normals_per_vertex.items():
                         s = sum(normals)
+                        n = np.linalg.norm(s)
                         norm = 1.0 if math.isclose(n, 0.0) else n
                         normals_per_vertex_smooth[v] = s / norm
                     del normals_per_vertex
@@ -261,7 +261,7 @@ def to_glb(cm, do_triangulate=True):
                             for face in shell:
                                 for t in face:
                                     triList.append(t)
-                                    tri_normal = triangle_normal_weighted(t, vertexlist) * -1.0
+                                    tri_normal = triangle_normal(t, vertexlist, weighted=True) * -1.0
                                     normals_per_vertex[t[0]].append(tri_normal)
                                     normals_per_vertex[t[1]].append(tri_normal)
                                     normals_per_vertex[t[2]].append(tri_normal)
@@ -274,7 +274,7 @@ def to_glb(cm, do_triangulate=True):
                         for face in geom['boundaries']:
                             for t in face:
                                 triList.append(t)
-                                tri_normal = triangle_normal_weighted(t, vertexlist) * -1.0
+                                tri_normal = triangle_normal(t, vertexlist) * -1.0
                                 normals_per_vertex[t[0]].append(tri_normal)
                                 normals_per_vertex[t[1]].append(tri_normal)
                                 normals_per_vertex[t[2]].append(tri_normal)
@@ -391,7 +391,7 @@ def to_glb(cm, do_triangulate=True):
             # Without a root node we would need  = 0 if coi_node_idx == 0  else coi_node_idx * 3
             accessor["bufferView"] = mesh_idx * 3
             accessor["componentType"] = 5125
-            accessor["count"] = int(vtx_idx_np.size)
+            accessor["count"] = len(vtx_idx_np)
             accessor["type"] = "SCALAR"
             accessor["max"] = [int(vtx_idx_np.max())]
             accessor["min"] = [int(vtx_idx_np.min())]
