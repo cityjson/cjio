@@ -6,7 +6,7 @@ from cjio import geom_help
 
 import numpy as np
 
-from cjio.geom_help import triangle_normal
+from cjio.geom_help import triangle_normal, average_normal
 
 
 def flatten(x):
@@ -210,11 +210,13 @@ def to_glb(cm, do_triangulate=True):
                                 if success:
                                     for t in tri:
                                         triList.append(list(t))
-                                        # for gltf, we need to invert the vector
-                                        tri_normal = triangle_normal(t, vertexlist, weighted=True) * -1.0
-                                        normals_per_vertex[t[0]].append(tri_normal)
-                                        normals_per_vertex[t[1]].append(tri_normal)
-                                        normals_per_vertex[t[2]].append(tri_normal)
+                                        tri_normal = triangle_normal(t, vertexlist, weighted=True)
+                                        if tri_normal is not None:
+                                            # for gltf, we need to invert the vector
+                                            tri_normal = tri_normal * -1.0
+                                            normals_per_vertex[t[0]].append(tri_normal)
+                                            normals_per_vertex[t[1]].append(tri_normal)
+                                            normals_per_vertex[t[2]].append(tri_normal)
                                 else:
                                     # TODO: logging
                                     print(f"Failed to triangulate face in CityObject {theid}")
@@ -227,10 +229,12 @@ def to_glb(cm, do_triangulate=True):
                             if success:
                                 for t in tri:
                                     triList.append(list(t))
-                                    tri_normal = triangle_normal(t, vertexlist) * -1.0
-                                    normals_per_vertex[t[0]].append(tri_normal)
-                                    normals_per_vertex[t[1]].append(tri_normal)
-                                    normals_per_vertex[t[2]].append(tri_normal)
+                                    tri_normal = triangle_normal(t, vertexlist, weighted=True)
+                                    if tri_normal is not None:
+                                        tri_normal = tri_normal * -1.0
+                                        normals_per_vertex[t[0]].append(tri_normal)
+                                        normals_per_vertex[t[1]].append(tri_normal)
+                                        normals_per_vertex[t[2]].append(tri_normal)
                             else:
                                 # TODO: logging
                                 print(f"Failed to triangulate face in CityObject {theid}")
@@ -242,10 +246,7 @@ def to_glb(cm, do_triangulate=True):
                     normals_per_vertex_smooth = {i: None for i in
                                                  range(len(vertexlist))}
                     for v, normals in normals_per_vertex.items():
-                        s = sum(normals)
-                        n = np.linalg.norm(s)
-                        norm = 1.0 if math.isclose(n, 0.0) else n
-                        normals_per_vertex_smooth[v] = s / norm
+                        normals_per_vertex_smooth[v] = average_normal(normals)
                     del normals_per_vertex
                     normals_per_geom.append(
                         list(normals_per_vertex_smooth[v] for v in trigeom))
@@ -261,10 +262,12 @@ def to_glb(cm, do_triangulate=True):
                             for face in shell:
                                 for t in face:
                                     triList.append(t)
-                                    tri_normal = triangle_normal(t, vertexlist, weighted=True) * -1.0
-                                    normals_per_vertex[t[0]].append(tri_normal)
-                                    normals_per_vertex[t[1]].append(tri_normal)
-                                    normals_per_vertex[t[2]].append(tri_normal)
+                                    tri_normal = triangle_normal(t, vertexlist, weighted=True)
+                                    if tri_normal is not None:
+                                        tri_normal = tri_normal * -1.0
+                                        normals_per_vertex[t[0]].append(tri_normal)
+                                        normals_per_vertex[t[1]].append(tri_normal)
+                                        normals_per_vertex[t[2]].append(tri_normal)
 
                         trigeom = (flatten(triList))
 
@@ -274,10 +277,12 @@ def to_glb(cm, do_triangulate=True):
                         for face in geom['boundaries']:
                             for t in face:
                                 triList.append(t)
-                                tri_normal = triangle_normal(t, vertexlist) * -1.0
-                                normals_per_vertex[t[0]].append(tri_normal)
-                                normals_per_vertex[t[1]].append(tri_normal)
-                                normals_per_vertex[t[2]].append(tri_normal)
+                                tri_normal = triangle_normal(t, vertexlist, weighted=True)
+                                if tri_normal is not None:
+                                    tri_normal = tri_normal * -1.0
+                                    normals_per_vertex[t[0]].append(tri_normal)
+                                    normals_per_vertex[t[1]].append(tri_normal)
+                                    normals_per_vertex[t[2]].append(tri_normal)
                         trigeom = (flatten(triList))
 
                     forimax.append(trigeom)
@@ -286,10 +291,7 @@ def to_glb(cm, do_triangulate=True):
                     normals_per_vertex_smooth = {i: None for i in
                                                  range(len(vertexlist))}
                     for v, normals in normals_per_vertex.items():
-                        s = sum(normals)
-                        n = np.linalg.norm(s)
-                        norm = 1.0 if math.isclose(n, 0.0) else n
-                        normals_per_vertex_smooth[v] = s / norm
+                        normals_per_vertex_smooth[v] = average_normal(normals)
                     del normals_per_vertex
                     normals_per_geom.append(list(normals_per_vertex_smooth[v] for v in trigeom))
 
