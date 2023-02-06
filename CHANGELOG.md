@@ -1,6 +1,6 @@
 # Changelog
 
-## [unreleased]
+## [0.8.1] – 2023-02-06
 ### Added
 - Added the `translate` paramter to `cityjson.compress` to manually set the tranlation properties instead of computing from the data.
 - The `cityjson.cityjson_for_features` and `cityjson.generate_features` methods.
