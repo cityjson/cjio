@@ -53,7 +53,7 @@ from cjio.errors import CJInvalidOperation
 from cjio.metadata import generate_metadata
 
 
-CITYJSON_VERSIONS_SUPPORTED = ['0.6', '0.8', '0.9', '1.0', '1.1']
+CITYJSON_VERSIONS_SUPPORTED = ['0.6', '0.8', '0.9', '1.0', '1.1', '2.0']
 
 METADATAEXTENDED_VERSION = "0.5"
 
@@ -1540,10 +1540,30 @@ class CityJSON:
             #-- TODO: change URL for Generic Extension
             self.j["extensions"]["Generic"]["url"] = "https://cityjson.org/extensions/download/generic.ext.json"
             self.j["extensions"]["Generic"]["version"] = "1.0"
-            return (False, reasons)
+            return (True, reasons)
         else:
             return (True, "")
 
+    def upgrade_version_v11_v20(self, reasons, digit):
+        #-- version
+        self.j["version"] = "2.0"
+        #-- GenericCityObject is back!
+        if (
+                "extensions" in self.j and 
+                "Generic" in self.j["extensions"] and 
+                self.j["extensions"]["Generic"]["url"] == "https://cityjson.org/extensions/download/generic.ext.json"):
+            #-- remove the +
+            for theid in self.j["CityObjects"]:
+                if self.j["CityObjects"][theid]['type'] == '+GenericCityObject':
+                    self.j["CityObjects"][theid]['type'] = 'GenericCityObject'
+            #-- delete the Generic extension
+            del self.j["extensions"]["Generic"]        
+            #-- explain to user
+            reasons = '"GenericCityObject" is in v2.0'
+            reasons += ' Your "+GenericCityObject" have been changed to "GenericCityObject"'
+            return (True, reasons)
+        else:
+            return (True, "")
 
     def upgrade_version(self, newversion, digit):
         re = True
@@ -1559,9 +1579,12 @@ class CityJSON:
         #-- v0.9
         if (self.get_version() == CITYJSON_VERSIONS_SUPPORTED[2]):
             (re, reasons) = self.upgrade_version_v09_v10(reasons)
-        #-- v1.0
+        #-- v1.0 => v1.1
         if (self.get_version() == CITYJSON_VERSIONS_SUPPORTED[3]):
             (re, reasons) = self.upgrade_version_v10_v11(reasons, digit)
+        #-- v1.1 => v2.0
+        if (self.get_version() == CITYJSON_VERSIONS_SUPPORTED[4]):
+            (re, reasons) = self.upgrade_version_v11_v20(reasons, digit)            
         return (re, reasons)
 
 
