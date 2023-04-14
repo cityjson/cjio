@@ -1547,11 +1547,21 @@ class CityJSON:
     def upgrade_version_v11_v20(self, reasons, digit):
         #-- version
         self.j["version"] = "2.0"
+        #-- address in metadata is now a json object
+        if (
+                "metadata" in self.j and 
+                "pointOfContact" in self.j["metadata"] and 
+                "address" in self.j["metadata"]["pointOfContact"]
+            ):
+            s = self.j["metadata"]["pointOfContact"]["address"]
+            self.j["metadata"]["pointOfContact"]["address"] = {}
+            self.j["metadata"]["pointOfContact"]["address"]["address"] = s
         #-- GenericCityObject is back!
         if (
                 "extensions" in self.j and 
                 "Generic" in self.j["extensions"] and 
-                self.j["extensions"]["Generic"]["url"] == "https://cityjson.org/extensions/download/generic.ext.json"):
+                self.j["extensions"]["Generic"]["url"] == "https://cityjson.org/extensions/download/generic.ext.json"
+            ):
             #-- remove the +
             for theid in self.j["CityObjects"]:
                 if self.j["CityObjects"][theid]['type'] == '+GenericCityObject':
