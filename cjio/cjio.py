@@ -2,6 +2,7 @@ import sys
 import os.path
 import warnings
 from os import linesep
+from pathlib import Path
 
 import click
 import json
@@ -120,7 +121,7 @@ def export_cmd(filename, format, sloppy):
     The result can be stored either in a file, out piped to stdout (by choosing 'stdout' instead
     of a file).
     
-    Currently, textures are not supported, sorry.
+    Currently, textures are only supported for OBJ export.
 
     Usage examples:
 
@@ -152,9 +153,19 @@ def export_cmd(filename, format, sloppy):
             else:
                 print_cmd_status("Exporting CityJSON to OBJ (%s)" % (output['path']))
                 try:
+                    mtl_path = Path(output['path']).with_suffix('.mtl')
+                    re = cm.export2obj(sloppy, mtl_path.name)
+                    if isinstance(re, tuple):  # MTL file returned
+                        obj, mtl = re[0], re[1]
+                    else:
+                        obj, mtl = re, None
+                    # Write .obj
                     with click.open_file(output['path'], mode='w') as fo:
-                        re = cm.export2obj(sloppy)
-                        fo.write(re.getvalue())
+                        fo.write(obj.getvalue())
+                    if mtl is not None:
+                        # Write optional .mtl
+                        with click.open_file(str(mtl_path), mode='w') as fmtl:
+                            fmtl.write(mtl.getvalue())
                 except IOError as e:
                     raise click.ClickException('Invalid output file: "%s".\n%s' % (output['path'], e))
         #---------- STL ----------

@@ -579,3 +579,42 @@ def to_glb(cm, do_triangulate=True):
     assert length == glb.tell()
 
     return glb
+
+
+def faces_to_obj(faces, out, sloppy, vnp, texture_values=None, textures=None):
+    """Writes a list of surfaces to an obj file. If textures are provided, the coordinate textures are also written.
+    All n-gons with n >=4 are triangulated.
+
+    :param faces: A list of surfaces, each surface is a list of list.
+    :param out: An instance of io.StringIO, the file to write to.
+    :param sloppy: See cjio.export_cmd.
+    :param vnp: An array of vertices.
+    :param texture_values: None or a list of texture coordinates of the same size as faces.
+        Each "texture coordinates" is a list `[idx_texture, x1, x2, ..., xn]`. `idx_texture` is the index of the texture
+        in the `textures` list (starting at 0) and `x1, x2, ..., xn` are the indices of the texture vertices
+        corresponding to the vertices of the face.
+    :param textures: None or a list of textures. Each texture is a dictionary that must have the key `name`.
+    """
+    current_material = None
+    it = zip(faces, texture_values) if texture_values is not None else zip(faces)
+    for face, *texture_vals in it:
+        re, b = geom_help.triangulate_face(face, vnp, sloppy)
+        v_t_map = None
+        if texture_vals:
+            texture_vals = texture_vals[0]
+            mtl = texture_vals[0][0]
+            if mtl != current_material and mtl is not None:
+                out.write('usemtl ' + textures[mtl]['name'] + '\n')
+            current_material = mtl
+            # Map each vertex to its texture coordinate
+            if b == True and current_material is not None:
+                v_t_map = {}
+                for f, t in zip(face, texture_vals):
+                    for v, vt in zip(f, t[1:]):  # t[0] is the material, t[1:] are the texture coordinates
+                        v_t_map[v] = vt
+        if b == True:
+            for v in re:
+                if v_t_map is not None and current_material is not None:
+                    out.write("f %d/%d %d/%d %d/%d\n" % (v[0] + 1, v_t_map[v[0]] + 1, v[1] + 1, v_t_map[v[1]] + 1, v[2] + 1, v_t_map[v[2]] + 1))
+                else:
+                    out.write("f %d %d %d\n" % (v[0] + 1, v[1] + 1, v[2] + 1))
