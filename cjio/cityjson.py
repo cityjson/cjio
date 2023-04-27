@@ -1560,7 +1560,7 @@ class CityJSON:
         if (
                 "extensions" in self.j and 
                 "Generic" in self.j["extensions"] and 
-                self.j["extensions"]["Generic"]["url"] == "https://cityjson.org/extensions/download/generic.ext.json"
+                self.j["extensions"]["Generic"]["url"].__contains__("cityjson.org/extensions/download/generic.ext.json")
             ):
             #-- remove the +
             for theid in self.j["CityObjects"]:
