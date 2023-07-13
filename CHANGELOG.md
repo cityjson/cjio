@@ -1,5 +1,12 @@
 # Changelog
 
+
+## [0.8.2] – 2023-07-13
+### Changed
+- Removed the emojis in the console output for the function 'info'
+
+
+
 ## [0.8.1] – 2023-02-06
 ### Added
 - Added the `translate` paramter to `cityjson.compress` to manually set the tranlation properties instead of computing from the data.
