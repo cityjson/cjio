@@ -578,7 +578,7 @@ class CityJSON:
             self.j["metadata"] = {}
         if "referenceSystem" not in self.j["metadata"]:
             self.j["metadata"]["referenceSystem"] = {}
-        s = 'https://www.opengis.net/def/crs/EPSG/0/' + str(i)
+        s = 'https://www.opengis.net/def/crs/OGC/1.3/CRS' + str(i) +'h'
         self.j["metadata"]["referenceSystem"] = s
         return True
 
@@ -1493,7 +1493,7 @@ class CityJSON:
         if "metadata" in self.j and "referenceSystem" in self.j["metadata"]:
             s = self.j["metadata"]["referenceSystem"]
             if "epsg" in s.lower():
-                self.j["metadata"]["referenceSystem"] = "https://www.opengis.net/def/crs/EPSG/0/%d" % int(s[s.find("::")+2:])
+                self.j["metadata"]["referenceSystem"] = "https://www.opengis.net/def/crs/OGC/1.3/CRS%dh" % int(s[s.find("::")+2:])
         #-- addresses are now arrays TODO
         for theid in self.j["CityObjects"]:
             if "address" in self.j["CityObjects"][theid]:
@@ -1736,8 +1736,8 @@ class CityJSON:
         # transformer defintion from it.
         # See https://github.com/pyproj4/pyproj/issues/753#issuecomment-737249093
         tg = TransformerGroup(f"EPSG:{self.get_epsg():d}",
-                              f"EPSG:{epsg:d}",
-                              always_xy=True)
+                              f"OGC:CRS{epsg:d}h",
+                              always_xy=False)
         # TODO: log.info(f"Transformer: {tg.transformers[0].description}")
         with progressbar(self.j['vertices']) as vertices:
             for v in vertices:
