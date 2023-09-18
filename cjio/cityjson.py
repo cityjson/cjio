@@ -1738,6 +1738,7 @@ class CityJSON:
         tg = TransformerGroup(f"EPSG:{self.get_epsg():d}",
                               f"OGC:CRS{epsg:d}h",
                               always_xy=False)
+        tg.download_grids(verbose=True)
         # TODO: log.info(f"Transformer: {tg.transformers[0].description}")
         with progressbar(self.j['vertices']) as vertices:
             for v in vertices:
@@ -1745,6 +1746,7 @@ class CityJSON:
                 v[0] = x
                 v[1] = y
                 v[2] = z
+        print("C")
         self.set_epsg(epsg)
         self.update_bbox()
         self.update_bbox_each_cityobjects(False)
