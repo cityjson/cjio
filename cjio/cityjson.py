@@ -440,7 +440,7 @@ class CityJSON:
             s = self.j["metadata"]["referenceSystem"]
             if "opengis.net/def/crs" not in s or s.rfind("/") < 0:
                 raise ValueError(f"Invalid CRS string '{s}'. CRS needs to be formatted according to the OGC Name Type Specification: 'http://www.opengis.net/def/crs/{{authority}}/{{version}}/{{code}}'")
-            return int(s[s.rfind("/")+1:])
+            return s[s.rfind("/")+1:]
         else:
             return None
 

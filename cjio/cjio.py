@@ -472,7 +472,7 @@ def crs_reproject_cmd(epsg):
             str = "Install it: https://pypi.org/project/pyproj/"
             print_cmd_warning(str)
             raise click.ClickException('Abort.')
-        print_cmd_status('Reproject to CRS:%d' % epsg)
+        print_cmd_status('Reproject to CRS:%dh' % epsg)
         if (cm.get_epsg() == None):
             print_cmd_warning("WARNING: CityJSON has no EPSG defined, can't be reprojected.")
         else:
