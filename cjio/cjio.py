@@ -107,10 +107,10 @@ def print_cmd():
 def info_cmd(long):
     """Output information about the dataset."""
     def processor(cm):
-        print_cmd_status('Information ⬇️')
+        print_cmd_status('=== Information ===')
         s = linesep.join(cm.get_info(long=long))
         print_cmd_info(s)
-        print_cmd_status('Information ⬆️')
+        print_cmd_status('=== Information ===')
         return cm
     return processor
 

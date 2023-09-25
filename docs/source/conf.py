@@ -22,7 +22,7 @@ copyright = '2022, 3D geoinformation group at TU Delft'
 author = 'Hugo Ledoux, Balázs Dukai'
 
 # The full version, including alpha/beta/rc tags
-release = '0.8.1'
+release = '0.8.2'
 
 
 # -- General configuration ---------------------------------------------------
