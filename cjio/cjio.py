@@ -93,6 +93,14 @@ def process_pipeline(processors, input, ignore_duplicate_keys, suppress_msg):
     for processor in processors:
         cm = processor(cm)
 
+@cli.command('print')
+def print_cmd():
+    """print the (pretty formatted) JSON to the console."""
+    def processor(cm):
+        json_str = json.dumps(cm.j, indent="  ")
+        print_cmd_info(json_str)
+        return cm
+    return processor
 
 @cli.command('info')
 @click.option('--long', is_flag=True, help='More gory details about the file.')
