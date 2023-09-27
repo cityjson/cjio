@@ -15,7 +15,7 @@ Documentation
 Installation
 ------------
 
-It uses Python 3.6+ only.
+It uses Python 3.7+ only.
 
 To install the latest release:
 
@@ -59,6 +59,8 @@ You can then continue with:
 
 Supported CityJSON versions
 ---------------------------
+
+Currently it supports `CityJSON v2.0 <https://www.cityjson.org/specs/>`_.
 
 The operators (``cjio --version``) expect that your file is using the latest version `CityJSON schema <https://www.cityjson.org/specs/overview/>`_.
 If your file uses an earlier version, you can upgrade it with the ``upgrade`` operator: ``cjio old.json upgrade save newfile.city.json``
