@@ -55,7 +55,7 @@ from cjio.metadata import generate_metadata
 
 CITYJSON_VERSIONS_SUPPORTED = ['0.6', '0.8', '0.9', '1.0', '1.1', '2.0']
 
-METADATAEXTENDED_VERSION = "0.5"
+METADATAEXTENDED_VERSION = "0.6"
 
 CITYJSON_PROPERTIES = ["type", 
                        "version", 
