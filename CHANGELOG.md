@@ -1,10 +1,19 @@
 # Changelog
 
 
+
+## [0.9.0] – 2023-09-28
+### Changed
+- now CityJSON v2.0 is the default version
+- fixes for gltf export
+- fix the cjio subset and children
+### Added
+- added an upgrade ops for v2.0 files
+
+
 ## [0.8.2] – 2023-07-13
 ### Changed
 - Removed the emojis in the console output for the function 'info'
-
 
 
 ## [0.8.1] – 2023-02-06
