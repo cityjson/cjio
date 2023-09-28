@@ -60,7 +60,7 @@ You can then continue with:
 Supported CityJSON versions
 ---------------------------
 
-Currently it supports `CityJSON v2.0 <https://www.cityjson.org/specs/>`_, but v1.1 and v1.0 files can be upgraded automatically with the operator `upgrade`.
+Currently it supports `CityJSON v2.0 <https://www.cityjson.org/specs/>`_, but v1.1 and v1.0 files can be upgraded automatically with the operator upgrade`.
 
 The operators (``cjio --version``) expect that your file is using the latest version `CityJSON schema <https://www.cityjson.org/specs/overview/>`_.
 If your file uses an earlier version, you can upgrade it with the ``upgrade`` operator: ``cjio old.json upgrade save newfile.city.json``
