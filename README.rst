@@ -91,6 +91,7 @@ possibilities:
       metadata_get      Shows the metadata and +metadata-extended of this...
       metadata_remove   Remove the +metadata-extended properties.
       metadata_update   Update the +metadata-extended.
+      print             print the (pretty formatted) JSON to the console.
       save              Save to a CityJSON file.
       subset            Create a subset, City Objects can be selected by: (1)...
       textures_locate   Output the location of the texture files.
@@ -105,28 +106,33 @@ Or see the command-specific help by calling ``--help`` after a command:
 
 .. code:: console
 
-    cjio subset --help
+    Usage: cjio INPUT subset [OPTIONS]
 
-    Usage: cjio subset [OPTIONS]
+    Create a subset, City Objects can be selected by: (1) IDs of City Objects;
+    (2) bbox; (3) City Object type(s); (4) randomly.
 
-      Create a subset, City Objects can be selected by: (1) IDs of City Objects;
-      (2) bbox; (3) City Object type; (4) randomly.
+    These can be combined, except random which overwrites others.
 
-      These can be combined, except random which overwrites others.
+    Option '--exclude' excludes the selected objects, or "reverse" the
+    selection.
 
-      Option '--exclude' excludes the selected objects, or "reverse" the
-      selection.
+    Usage examples:
+
+      cjio myfile.city.json subset --bbox 104607 490148 104703 490257 save out.city.json
+      cjio myfile.city.json subset --radius 500.0 610.0 50.0 --exclude save out.city.json
+      cjio myfile.city.json subset --id house12 save out.city.json
+      cjio myfile.city.json subset --random 5 save out.city.json
+      cjio myfile.city.json subset --cotype LandUse --cotype Building save out.city.json
 
     Options:
-      --id TEXT                       The ID of the City Objects; can be used
-                                      multiple times.
-      --bbox FLOAT...                 2D bbox: (minx miny maxx maxy).
-      --random INTEGER                Number of random City Objects to select.
-      --cotype [Building|Bridge|Road|TransportSquare|LandUse|Railway|TINRelief|WaterBody|PlantCover|SolitaryVegetationObject|CityFurniture|GenericCityObject|Tunnel]
-                                      The City Object type
-      --exclude                       Excludes the selection, thus delete the
-                                      selected object(s).
-      --help                          Show this message and exit.    
+      --id TEXT          The ID of the City Objects; can be used multiple times.
+      --bbox FLOAT...    2D bbox: minx miny maxx maxy.
+      --radius FLOAT...  x y radius
+      --random INTEGER   Number of random City Objects to select.
+      --cotype TEXT      The City Object types; can be used multiple times.
+      --exclude          Excludes the selection, thus delete the selected
+                         object(s).
+      --help             Show this message and exit.
 
 
 Pipelines of operators
