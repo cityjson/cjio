@@ -17,12 +17,10 @@ from click import progressbar
 from datetime import datetime
 
 from cjio import errors
-
-class RoundingFloat(float):
-    __repr__ = staticmethod(lambda x: format(x, '.6f'))
+from cjio.floatEncoder import FloatEncoder
 
 json.encoder.c_make_encoder = None
-json.encoder.float = RoundingFloat
+json.encoder.float = FloatEncoder
 
 MODULE_NUMPY_AVAILABLE = True
 MODULE_PYPROJ_AVAILABLE = True
