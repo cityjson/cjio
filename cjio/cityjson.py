@@ -1779,10 +1779,8 @@ class CityJSON:
 
         if digit is None:
             if crs_in.is_projected and crs_out.is_geographic:
-                print("6")
                 imp_digits = 6
             elif crs_in.is_geographic and crs_out.is_projected:
-                print("3")
                 imp_digits = 3
             else:
                 imp_digits = math.ceil(abs(
@@ -1798,6 +1796,7 @@ class CityJSON:
         tg = TransformerGroup(crs_in,
                               crs_out,
                               always_xy=True)
+        tg.download_grids(verbose=True)
 
         with progressbar(self.j['vertices']) as vertices:
             for v in vertices:
