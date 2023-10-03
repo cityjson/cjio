@@ -16,14 +16,6 @@ from io import StringIO
 import numpy as np
 from click import progressbar
 
-from cjio import convert, errors, geom_help, models, subset
-from cjio.errors import CJInvalidOperation
-from cjio.floatEncoder import FloatEncoder
-from cjio.metadata import generate_metadata
-
-json.encoder.c_make_encoder = None
-json.encoder.float = FloatEncoder
-
 MODULE_NUMPY_AVAILABLE = True
 MODULE_PYPROJ_AVAILABLE = True
 MODULE_TRIANGLE_AVAILABLE = True
@@ -53,6 +45,12 @@ try:
 except ImportError as e:
     MODULE_CJVAL_AVAILABLE = False
 
+MODULE_NUMPY_AVAILABLE = True
+MODULE_PYPROJ_AVAILABLE = True
+MODULE_TRIANGLE_AVAILABLE = True
+MODULE_EARCUT_AVAILABLE = True
+MODULE_PANDAS_AVAILABLE = True
+MODULE_CJVAL_AVAILABLE = True
 
 
 
