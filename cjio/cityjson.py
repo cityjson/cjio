@@ -45,27 +45,27 @@ try:
 except ImportError as e:
     MODULE_CJVAL_AVAILABLE = False
 
-MODULE_NUMPY_AVAILABLE = True
-MODULE_PYPROJ_AVAILABLE = True
-MODULE_TRIANGLE_AVAILABLE = True
-MODULE_EARCUT_AVAILABLE = True
-MODULE_PANDAS_AVAILABLE = True
-MODULE_CJVAL_AVAILABLE = True
+from cjio import convert, errors, geom_help, models, subset
+from cjio.errors import CJInvalidOperation
+from cjio.floatEncoder import FloatEncoder
+from cjio.metadata import generate_metadata
 
+json.encoder.c_make_encoder = None
+json.encoder.float = FloatEncoder
 
 
 CITYJSON_VERSIONS_SUPPORTED = ['0.6', '0.8', '0.9', '1.0', '1.1', '2.0']
 
 METADATAEXTENDED_VERSION = "0.6"
 
-CITYJSON_PROPERTIES = ["type", 
-                       "version", 
-                       "extensions", 
-                       "transform", 
-                       "metadata", 
-                       "CityObjects", 
-                       "vertices", 
-                       "appearance", 
+CITYJSON_PROPERTIES = ["type",
+                       "version",
+                       "extensions",
+                       "transform",
+                       "metadata",
+                       "CityObjects",
+                       "vertices",
+                       "appearance",
                        "geometry-templates",
                        "+metadata-extended"
                       ]
