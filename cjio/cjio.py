@@ -469,11 +469,15 @@ def crs_assign_cmd(newepsg):
 
 @cli.command('crs_reproject')
 @click.argument('epsg', type=int)
-def crs_reproject_cmd(epsg):
+@click.option('--digit', type=click.IntRange(1, 12), help='Number of digits to keep.')
+def crs_reproject_cmd(epsg, digit):
     """
     Reproject to a new EPSG.
     The current CityJSON must have an EPSG defined 
     (which can be done with function epsg_assign).
+    It is possible to define the number of digits that will be kept for the result with --digit.
+
+        $ cjio myfile.city.json crs_reproject --digit 7 4979 save newfile.city.json
     """
     def processor(cm):
         if (cityjson.MODULE_PYPROJ_AVAILABLE == False):
@@ -487,14 +491,14 @@ def crs_reproject_cmd(epsg):
             print_cmd_warning("WARNING: CityJSON has no EPSG defined, can't be reprojected.")
         else:
             with warnings.catch_warnings(record=True) as w:
-                cm.reproject(epsg)
+                cm.reproject(epsg, digit)
                 print_cmd_warning(w)
         return cm
     return processor
 
 
 @cli.command('upgrade')
-@click.option('--digit', default=3, type=click.IntRange(1, 12), help='Number of digit to keep to compress.')
+@click.option('--digit', default=3, type=click.IntRange(1, 12), help='Number of digits to keep to compress.')
 def upgrade_cmd(digit):
     """
     Upgrade the CityJSON to the latest version.

@@ -1760,7 +1760,7 @@ class CityJSON:
         out.write("endsolid")
         return out
 
-    def reproject(self, epsg):
+    def reproject(self, epsg, digit):
         """
         Project from one CRS to another.
         First the vertices are decompressed and then they are recompressed.
@@ -1777,14 +1777,20 @@ class CityJSON:
         crs_in = CRS(f"EPSG:{self.get_epsg():d}")
         crs_out = CRS(f"EPSG:{epsg:d}")
 
-        if crs_in.is_projected and crs_out.is_geographic:
-            imp_digits = 6
-        elif crs_in.is_geographic and crs_out.is_projected:
-            imp_digits = 3
+        if digit is None:
+            if crs_in.is_projected and crs_out.is_geographic:
+                print("6")
+                imp_digits = 6
+            elif crs_in.is_geographic and crs_out.is_projected:
+                print("3")
+                imp_digits = 3
+            else:
+                imp_digits = math.ceil(abs(
+                    math.log(
+                        self.j["transform"]["scale"][0], 10)))
+                print(imp_digits)
         else:
-            imp_digits = math.ceil(abs(
-                math.log(
-                    self.j["transform"]["scale"][0], 10)))
+            imp_digits = digit
         self.decompress()
         # Using TransformerGroup instead of Transformer, because we cannot retrieve the
         # transformer defintion from it.
