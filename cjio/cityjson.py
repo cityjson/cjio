@@ -18,6 +18,12 @@ from datetime import datetime
 
 from cjio import errors
 
+class RoundingFloat(float):
+    __repr__ = staticmethod(lambda x: format(x, '.6f'))
+
+json.encoder.c_make_encoder = None
+json.encoder.float = RoundingFloat
+
 MODULE_NUMPY_AVAILABLE = True
 MODULE_PYPROJ_AVAILABLE = True
 MODULE_TRIANGLE_AVAILABLE = True
@@ -1151,6 +1157,7 @@ class CityJSON:
         #-- convert vertices in self.j to int
         n = [0, 0, 0]
         p = '%.' + str(important_digits) + 'f' 
+        print(p)
         for v in self.j["vertices"]:
             for i in range(3):
                 n[i] = v[i] - bbox[i]
@@ -1161,7 +1168,9 @@ class CityJSON:
         ss = '0.'
         ss += '0'*(important_digits - 1)
         ss += '1'
+        print(ss)
         ss = float(ss)
+        print(ss)
         self.j["transform"]["scale"] = [ss, ss, ss]
         self.j["transform"]["translate"] = [bbox[0], bbox[1], bbox[2]]
         #-- clean the file
@@ -1764,6 +1773,7 @@ class CityJSON:
         if not MODULE_PYPROJ_AVAILABLE:
             raise ModuleNotFoundError("Modul 'pyproj' is not available, please install it from https://pypi.org/project/pyproj/")
         imp_digits = math.ceil(abs(math.log(self.j["transform"]["scale"][0], 10)))
+        imp_digits = 6
         self.decompress()
         # Using TransformerGroup instead of Transformer, because we cannot retrieve the
         # transformer defintion from it.
@@ -1771,7 +1781,10 @@ class CityJSON:
         tg = TransformerGroup(f"EPSG:{self.get_epsg():d}",
                               f"EPSG:{epsg:d}",
                               always_xy=True)
-        # TODO: log.info(f"Transformer: {tg.transformers[0].description}")
+        print(f"Transformer: {tg.transformers[0].description}")
+        print(f"Transformer: {tg.transformers[0].accuracy}")
+        print(f"Transformer: {tg.transformers[1].description}")
+        print(f"Transformer: {tg.transformers[1].accuracy}")
         with progressbar(self.j['vertices']) as vertices:
             for v in vertices:
                 x, y, z = tg.transformers[0].transform(v[0], v[1], v[2])
@@ -1782,6 +1795,7 @@ class CityJSON:
         self.update_bbox()
         self.update_bbox_each_cityobjects(False)
         #-- recompress by using the number of digits we had in original file
+        print(f"imp_digits: {imp_digits}")
         self.compress(imp_digits)
 
     def remove_attribute(self, attr):

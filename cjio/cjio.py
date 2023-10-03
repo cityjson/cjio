@@ -10,6 +10,11 @@ import glob
 import cjio
 from cjio import cityjson, utils, errors
 
+class RoundingFloat(float):
+    __repr__ = staticmethod(lambda x: format(x, '.6f'))
+
+json.encoder.c_make_encoder = None
+json.encoder.float = RoundingFloat
 
 #-- https://stackoverflow.com/questions/47437472/in-python-click-how-do-i-see-help-for-subcommands-whose-parents-have-required
 class PerCommandArgWantSubCmdHelp(click.Argument):
