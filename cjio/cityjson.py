@@ -1,22 +1,20 @@
 
-import os
-import sys
-import re
-import warnings
-
-import json
-import urllib.request
-import math
-import uuid
-import shutil
 import copy
+import json
+import math
+import os
 import random
+import re
+import shutil
+import sys
+import urllib.request
+import uuid
+import warnings
+from datetime import datetime
 from io import StringIO
 
+import numpy as np
 from click import progressbar
-from datetime import datetime
-
-from cjio import errors
 
 MODULE_NUMPY_AVAILABLE = True
 MODULE_PYPROJ_AVAILABLE = True
@@ -25,8 +23,8 @@ MODULE_EARCUT_AVAILABLE = True
 MODULE_PANDAS_AVAILABLE = True
 MODULE_CJVAL_AVAILABLE = True
 
-import numpy as np
 try:
+    from pyproj import CRS
     from pyproj.transformer import TransformerGroup
 except ImportError as e:
     MODULE_PYPROJ_AVAILABLE = False
@@ -47,24 +45,27 @@ try:
 except ImportError as e:
     MODULE_CJVAL_AVAILABLE = False
 
-
-from cjio import subset, geom_help, convert, models
+from cjio import convert, errors, geom_help, models, subset
 from cjio.errors import CJInvalidOperation
+from cjio.floatEncoder import FloatEncoder
 from cjio.metadata import generate_metadata
+
+json.encoder.c_make_encoder = None
+json.encoder.float = FloatEncoder
 
 
 CITYJSON_VERSIONS_SUPPORTED = ['0.6', '0.8', '0.9', '1.0', '1.1', '2.0']
 
 METADATAEXTENDED_VERSION = "0.6"
 
-CITYJSON_PROPERTIES = ["type", 
-                       "version", 
-                       "extensions", 
-                       "transform", 
-                       "metadata", 
-                       "CityObjects", 
-                       "vertices", 
-                       "appearance", 
+CITYJSON_PROPERTIES = ["type",
+                       "version",
+                       "extensions",
+                       "transform",
+                       "metadata",
+                       "CityObjects",
+                       "vertices",
+                       "appearance",
                        "geometry-templates",
                        "+metadata-extended"
                       ]
@@ -88,6 +89,7 @@ def load(path, transform: bool = True):
     cm.cityobjects = dict()
     cm.load_from_j(transform=transform)
     return cm
+
 
 def read_stdin():
     lcount = 1
@@ -137,16 +139,15 @@ def save(citymodel, path: str, indent: bool = False):
     except IOError as e:
         raise IOError('Invalid output file: %s \n%s' % (path, e))
 
+
 def reader(file, ignore_duplicate_keys=False):
     return CityJSON(file=file, ignore_duplicate_keys=ignore_duplicate_keys)
 
+
 def off2cj(file):
     l = file.readline()
-    # print(l)
     while (len(l) <= 1) or (l[0] == '#') or (l[:3] == 'OFF'):
         l = file.readline()
-        # print(l)
-        # print ('len', len(l))
     numVertices = int(l.split()[0])
     numFaces    = int(l.split()[1])
     lstVertices = []
@@ -1148,20 +1149,19 @@ class CityJSON:
                 for i in range(3):
                     if v[i] < bbox[i]:
                         bbox[i] = v[i]
-        #-- convert vertices in self.j to int
+        # convert vertices in self.j to int
         n = [0, 0, 0]
-        p = '%.' + str(important_digits) + 'f' 
+        p = '%.' + str(important_digits) + 'f'
         for v in self.j["vertices"]:
             for i in range(3):
                 n[i] = v[i] - bbox[i]
             for i in range(3):
                 v[i] = int((p % n[i]).replace('.', ''))
-        #-- put transform
+
+        # put transform
+        ss = 1. / (math.pow(10, important_digits))
+
         self.j["transform"] = {}
-        ss = '0.'
-        ss += '0'*(important_digits - 1)
-        ss += '1'
-        ss = float(ss)
         self.j["transform"]["scale"] = [ss, ss, ss]
         self.j["transform"]["translate"] = [bbox[0], bbox[1], bbox[2]]
         #-- clean the file
@@ -1760,18 +1760,44 @@ class CityJSON:
         out.write("endsolid")
         return out
 
-    def reproject(self, epsg):
+    def reproject(self, epsg, digit):
+        """
+        Project from one CRS to another.
+        First the vertices are decompressed and then they are recompressed.
+        Previously we used to recompress by using the same number of digits
+        as in the original file. This does not work when switching from projected
+        to geographic and vise verse. When the reprojection is such, the 
+        important digits are set based on the type of CRS. 
+        """
         if not MODULE_PYPROJ_AVAILABLE:
-            raise ModuleNotFoundError("Modul 'pyproj' is not available, please install it from https://pypi.org/project/pyproj/")
-        imp_digits = math.ceil(abs(math.log(self.j["transform"]["scale"][0], 10)))
+            raise ModuleNotFoundError(
+                """Module 'pyproj' is not available.
+                Please install it from https://pypi.org/project/pyproj/""")
+        
+        crs_in = CRS(f"EPSG:{self.get_epsg():d}")
+        crs_out = CRS(f"EPSG:{epsg:d}")
+
+        if digit is None:
+            if crs_in.is_projected and crs_out.is_geographic:
+                imp_digits = 6
+            elif crs_in.is_geographic and crs_out.is_projected:
+                imp_digits = 3
+            else:
+                imp_digits = math.ceil(abs(
+                    math.log(
+                        self.j["transform"]["scale"][0], 10)))
+                print(imp_digits)
+        else:
+            imp_digits = digit
         self.decompress()
         # Using TransformerGroup instead of Transformer, because we cannot retrieve the
         # transformer defintion from it.
         # See https://github.com/pyproj4/pyproj/issues/753#issuecomment-737249093
-        tg = TransformerGroup(f"EPSG:{self.get_epsg():d}",
-                              f"EPSG:{epsg:d}",
+        tg = TransformerGroup(crs_in,
+                              crs_out,
                               always_xy=True)
-        # TODO: log.info(f"Transformer: {tg.transformers[0].description}")
+        tg.download_grids(verbose=True)
+
         with progressbar(self.j['vertices']) as vertices:
             for v in vertices:
                 x, y, z = tg.transformers[0].transform(v[0], v[1], v[2])
@@ -1781,7 +1807,6 @@ class CityJSON:
         self.set_epsg(epsg)
         self.update_bbox()
         self.update_bbox_each_cityobjects(False)
-        #-- recompress by using the number of digits we had in original file
         self.compress(imp_digits)
 
     def remove_attribute(self, attr):
