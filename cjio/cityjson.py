@@ -1,24 +1,25 @@
 
-import os
-import sys
-import re
-import warnings
-
-import json
-import urllib.request
-import math
-import uuid
-import shutil
 import copy
+import json
+import math
+import os
 import random
-from io import StringIO
-import numpy as np
-
-from click import progressbar
+import re
+import shutil
+import sys
+import urllib.request
+import uuid
+import warnings
 from datetime import datetime
+from io import StringIO
 
-from cjio import errors
+import numpy as np
+from click import progressbar
+
+from cjio import convert, errors, geom_help, models, subset
+from cjio.errors import CJInvalidOperation
 from cjio.floatEncoder import FloatEncoder
+from cjio.metadata import generate_metadata
 
 json.encoder.c_make_encoder = None
 json.encoder.float = FloatEncoder
@@ -30,10 +31,9 @@ MODULE_EARCUT_AVAILABLE = True
 MODULE_PANDAS_AVAILABLE = True
 MODULE_CJVAL_AVAILABLE = True
 
-
 try:
-    from pyproj.transformer import TransformerGroup
     from pyproj import CRS
+    from pyproj.transformer import TransformerGroup
 except ImportError as e:
     MODULE_PYPROJ_AVAILABLE = False
 try:
@@ -54,9 +54,6 @@ except ImportError as e:
     MODULE_CJVAL_AVAILABLE = False
 
 
-from cjio import subset, geom_help, convert, models
-from cjio.errors import CJInvalidOperation
-from cjio.metadata import generate_metadata
 
 
 CITYJSON_VERSIONS_SUPPORTED = ['0.6', '0.8', '0.9', '1.0', '1.1', '2.0']
