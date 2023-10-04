@@ -1795,7 +1795,7 @@ class CityJSON:
         # See https://github.com/pyproj4/pyproj/issues/753#issuecomment-737249093
         tg = TransformerGroup(crs_in,
                               crs_out,
-                              always_xy=True)
+                              always_xy=False)
         tg.download_grids(verbose=True)
 
         with progressbar(self.j['vertices']) as vertices:
