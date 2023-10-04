@@ -1008,6 +1008,8 @@ class CityJSON:
         #-- all/long version
         s.append("vertices_total = {}".format(len(self.j["vertices"])))
         s.append("is_triangulated = {}".format(self.is_triangulated()))
+        s.append("transform/scale = {}".format(self.j["transform"]["scale"]))
+        s.append("transform/translate = {}".format(self.j["transform"]["translate"]))
         geoms = set()
         lod = set()
         sem_srf = set()
