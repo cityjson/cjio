@@ -1776,12 +1776,12 @@ class CityJSON:
                 """Module 'pyproj' is not available.
                 Please install it from https://pypi.org/project/pyproj/""")
         
-        crs_in = CRS(f"EPSG:{self.get_epsg():d}")
-        crs_out = CRS(f"EPSG:{epsg:d}")
+        crs_in = CRS(f"EPSG:{self.get_epsg():d}").to_3d()
+        crs_out = CRS(f"EPSG:{epsg:d}").to_3d()
 
         if digit is None:
             if crs_in.is_projected and crs_out.is_geographic:
-                imp_digits = 6
+                imp_digits = 8
             elif crs_in.is_geographic and crs_out.is_projected:
                 imp_digits = 3
             else:
