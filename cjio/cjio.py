@@ -546,7 +546,7 @@ def textures_locate_cmd():
             else:
                 print_cmd_status(loc)
         except Exception as e:
-            print_cmd_warning(e)     
+            print_cmd_warning(str(e))     
         return cm
     return processor
 

@@ -846,7 +846,6 @@ class CityJSON:
                             return os.path.join(cj_dir, d)
                         else:
                             raise NotADirectoryError("Texture directory '%s' not found" % d)
-                            return None
             else:
                 return None
         else:
