@@ -12,9 +12,15 @@ import uuid
 import warnings
 from datetime import datetime
 from io import StringIO
+from pathlib import Path
 
 import numpy as np
 from click import progressbar
+
+from datetime import datetime
+
+from cjio import errors
+from cjio.convert import faces_to_obj
 
 MODULE_NUMPY_AVAILABLE = True
 MODULE_PYPROJ_AVAILABLE = True
@@ -1669,11 +1675,36 @@ class CityJSON:
                 for theid2 in cm2.j["CityObjects"]:
                     idsdone.add(theid)
 
-    def export2obj(self, sloppy):
+    def export2obj(self, sloppy, mtl_fname=None):
+        """Exports the city model to a Wavefront OBJ file. If the model has textures and `mtl_fname` is not None, a MTL
+        file is also created. The obj file will refer to the .mtl file by the name `mtl_fname`.
+
+        Both the `.obj` and the optional `.mtl` files are returned as StringIO objects.
+        """
         imp_digits = math.ceil(abs(math.log(self.j["transform"]["scale"][0], 10)))
         ids = "." + str(imp_digits) + "f"
         self.decompress()
         out = StringIO()
+        #-- handle textures
+        out_mtl = None
+        has_textures = 'appearance' in self.j and 'textures' in self.j['appearance']
+        export_textures = has_textures and mtl_fname is not None  # if mtl_fname is None, we don't export textures -> for stdout output
+        if export_textures:
+            out_mtl = StringIO()
+            mtl_name = mtl_fname
+            out.write('mtllib ' + mtl_name + '\n')
+            # Create .mtl file
+            textures = self.j['appearance']['textures']
+            for t in textures:
+                t['name'] = Path(t['image']).stem
+                out_mtl.write('newmtl {}\n'.format(t['name']))
+                out_mtl.write('Ka 1.000 1.000 1.000\n')
+                out_mtl.write('Kd 1.000 1.000 1.000\n')
+                out_mtl.write('Ks 0.000 0.000 0.000\n')
+                out_mtl.write('d 1.0\n')
+                out_mtl.write('illum 2\n')
+                out_mtl.write('map_Kd {}\n'.format(t['image']))
+                out_mtl.write('\n')
         #-- write vertices
         for v in self.j['vertices']:
             s = format("v {} {} {}\n".format(format(v[0], ids), format(v[1], ids), format(v[2], ids)))
@@ -1692,26 +1723,35 @@ class CityJSON:
             each[1] -= miny
         # print ("min", minx, miny)
         # print(vnp)
+        #-- write texture vertices
+        if export_textures and 'appearance' in self.j and 'vertices-texture' in self.j['appearance']:
+            for v in self.j['appearance']['vertices-texture']:
+                s = format("vt {} {}\n".format(format(v[0], ids), format(v[1], ids)))
+                out.write(s)
         #-- start with the CO
         for theid in self.j['CityObjects']:
             if 'geometry' not in self.j['CityObjects'][theid]:
                 continue
             for geom in self.j['CityObjects'][theid]['geometry']:
                 out.write('o ' + str(theid) + '\n')
-                if ( (geom['type'] == 'MultiSurface') or (geom['type'] == 'CompositeSurface') ):
-                    for face in geom['boundaries']:
-                        re, b = geom_help.triangulate_face(face, vnp, sloppy)
-                        if b == True:
-                            for t in re:
-                                out.write("f %d %d %d\n" % (t[0] + 1, t[1] + 1, t[2] + 1))
-                elif (geom['type'] == 'Solid'):
-                    for shell in geom['boundaries']:
-                        for i, face in enumerate(shell):
-                            re, b = geom_help.triangulate_face(face, vnp, sloppy)
-                            if b == True:
-                                for t in re:
-                                    out.write("f %d %d %d\n" % (t[0] + 1, t[1] + 1, t[2] + 1))
+                if export_textures and 'texture' in geom and len(geom['texture']) > 0:
+                    theme = list(geom['texture'].keys())[0]  # Use the first theme in the dict
+                    texture_values = geom['texture'][theme]['values']
+                    if ( (geom['type'] == 'MultiSurface') or (geom['type'] == 'CompositeSurface') ):
+                        faces_to_obj(geom['boundaries'], out, sloppy, vnp, texture_values, textures)
+                    elif (geom['type'] == 'Solid'):  # depth of geom['texture'] will be one more than for MultiSurface
+                        for shell, tex in zip(geom['boundaries'], texture_values):
+                            faces_to_obj(shell, out, sloppy, vnp, tex, textures)
+                else:
+                    if ((geom['type'] == 'MultiSurface') or (geom['type'] == 'CompositeSurface')):
+                        faces_to_obj(geom['boundaries'], out, sloppy, vnp)
+                    elif (geom['type'] == 'Solid'):
+                        for shell in geom['boundaries']:
+                            faces_to_obj(shell, out, sloppy, vnp)
+
         self.compress(imp_digits)
+        if export_textures:
+            return out, out_mtl
         return out
 
     def export2stl(self, sloppy):
