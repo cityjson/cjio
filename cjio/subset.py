@@ -4,32 +4,29 @@
 def select_co_ids(j, IDs):
     IDs = list(IDs)
     re = set()
-    for theid in j["CityObjects"]:
-        if theid in IDs:
-            re.add(theid)
     for theid in IDs:
-        if theid not in j["CityObjects"]:
-            IDs.remove(theid)
-            print ("WARNING: ID", theid, "not found in input file; ignored.")
-    #-- deal with CityObjectGroup
+        if theid in j["CityObjects"] and "parents" not in j["CityObjects"][theid]:
+            re.add(theid)
+
+    # deal with CityObjectGroup
     for each in j["CityObjects"]:
         if each in IDs:
             if j["CityObjects"][each]["type"] == "CityObjectGroup" and "members" in j["CityObjects"][each]:
                 for member in j["CityObjects"][each]["members"]:
                     re.add(member)
-    #-- also add the children
-    for id in j["CityObjects"]:
-        if id in IDs:
-            if "children" in j['CityObjects'][id]:
-                for child in j['CityObjects'][id]['children']:
-                    re.add(child)
-            if "parents" in j['CityObjects'][id]:
-                for p in j['CityObjects'][id]['parents']:
-                    re.add(p) 
-                    #-- add siblings
-                    if "children" in j['CityObjects'][p]:
-                        for child in j['CityObjects'][p]['children']:
-                            re.add(child)
+    
+    #-- add children "recursively"
+    l = []
+    for id in re:
+        if "children" in j['CityObjects'][id]:
+            for child in j['CityObjects'][id]['children']:
+                l.append(child)
+    while len(l) > 0:
+        c = l.pop()
+        re.add(c)
+        if "children" in j['CityObjects'][c]:
+            for child in j['CityObjects'][c]['children']:
+                l.append(child)
     return re                
 
 

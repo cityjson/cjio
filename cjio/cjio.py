@@ -10,7 +10,9 @@ import copy
 import glob
 import cjio
 from cjio import cityjson, utils, errors
-
+from cjio.floatEncoder import FloatEncoder
+json.encoder.c_make_encoder = None
+json.encoder.float = FloatEncoder
 
 #-- https://stackoverflow.com/questions/47437472/in-python-click-how-do-i-see-help-for-subcommands-whose-parents-have-required
 class PerCommandArgWantSubCmdHelp(click.Argument):
@@ -94,16 +96,24 @@ def process_pipeline(processors, input, ignore_duplicate_keys, suppress_msg):
     for processor in processors:
         cm = processor(cm)
 
+@cli.command('print')
+def print_cmd():
+    """print the (pretty formatted) JSON to the console."""
+    def processor(cm):
+        json_str = json.dumps(cm.j, indent="  ")
+        print_cmd_info(json_str)
+        return cm
+    return processor
 
 @cli.command('info')
 @click.option('--long', is_flag=True, help='More gory details about the file.')
 def info_cmd(long):
     """Output information about the dataset."""
     def processor(cm):
-        print_cmd_status('Information ⬇️')
+        print_cmd_status('=== Information ===')
         s = linesep.join(cm.get_info(long=long))
         print_cmd_info(s)
-        print_cmd_status('Information ⬆️')
+        print_cmd_status('=== Information ===')
         return cm
     return processor
 
@@ -470,11 +480,15 @@ def crs_assign_cmd(newepsg):
 
 @cli.command('crs_reproject')
 @click.argument('epsg', type=int)
-def crs_reproject_cmd(epsg):
+@click.option('--digit', type=click.IntRange(1, 12), help='Number of digits to keep.')
+def crs_reproject_cmd(epsg, digit):
     """
     Reproject to a new EPSG.
     The current CityJSON must have an EPSG defined 
     (which can be done with function epsg_assign).
+    It is possible to define the number of digits that will be kept for the result with --digit.
+
+        $ cjio myfile.city.json crs_reproject --digit 7 4979 save newfile.city.json
     """
     def processor(cm):
         if (cityjson.MODULE_PYPROJ_AVAILABLE == False):
@@ -488,14 +502,14 @@ def crs_reproject_cmd(epsg):
             print_cmd_warning("WARNING: CityJSON has no EPSG defined, can't be reprojected.")
         else:
             with warnings.catch_warnings(record=True) as w:
-                cm.reproject(epsg)
+                cm.reproject(epsg, digit)
                 print_cmd_warning(w)
         return cm
     return processor
 
 
 @cli.command('upgrade')
-@click.option('--digit', default=3, type=click.IntRange(1, 12), help='Number of digit to keep to compress.')
+@click.option('--digit', default=3, type=click.IntRange(1, 12), help='Number of digits to keep to compress.')
 def upgrade_cmd(digit):
     """
     Upgrade the CityJSON to the latest version.
