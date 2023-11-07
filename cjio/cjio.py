@@ -544,7 +544,7 @@ def textures_locate_cmd():
             if loc == None:
                 print_cmd_info("This file does not have textures")
             else:
-                print_cmd_status(loc)
+                print_cmd_info(loc)
         except Exception as e:
             print_cmd_warning(str(e))     
         return cm
