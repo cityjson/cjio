@@ -1031,8 +1031,9 @@ class CityJSON:
                     else: #-- it's a geometry-template
                         lod.add(self.j["geometry-templates"]["templates"][geom["template"]]["lod"])
                     if "semantics" in geom:
-                        for srf in geom["semantics"]["surfaces"]:
-                            sem_srf.add(srf["type"])
+                        if geom["semantics"] is not None:
+                            for srf in geom["semantics"]["surfaces"]:
+                                sem_srf.add(srf["type"])
         getsorted = lambda a : sorted(list(a))
         s.append("geom primitives = {}".format(getsorted(geoms)))
         s.append("LoD = {}".format(getsorted(lod)))
