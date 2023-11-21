@@ -39,6 +39,8 @@ def get_normal_newell(poly):
         ne = i + 1
         if (ne == len(poly)):
             ne = 0
+        if len(poly[i]) < 3 or len(poly[ne]) < 3:
+            return n, False
         n[0] += ( (poly[i][1] - poly[ne][1]) * (poly[i][2] + poly[ne][2]) )
         n[1] += ( (poly[i][2] - poly[ne][2]) * (poly[i][0] + poly[ne][0]) )
         n[2] += ( (poly[i][0] - poly[ne][0]) * (poly[i][1] + poly[ne][1]) )
