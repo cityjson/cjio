@@ -24,7 +24,7 @@ RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 ENV PATH="/root/.cargo/bin:$PATH"
 RUN pip install maturin
 
-ARG CJVALPY_VERSION="0.3.2"
+ARG CJVALPY_VERSION="0.4.1"
 RUN curl -L -o cjvalpy.tar.gz https://github.com/cityjson/cjvalpy/archive/refs/tags/${CJVALPY_VERSION}.tar.gz && \
     tar -xvf cjvalpy.tar.gz && \
     cd cjvalpy-${CJVALPY_VERSION} && \
