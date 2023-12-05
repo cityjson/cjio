@@ -57,14 +57,14 @@ CITYJSON_VERSIONS_SUPPORTED = ['0.6', '0.8', '0.9', '1.0', '1.1', '2.0']
 
 METADATAEXTENDED_VERSION = "0.6"
 
-CITYJSON_PROPERTIES = ["type", 
-                       "version", 
-                       "extensions", 
-                       "transform", 
-                       "metadata", 
-                       "CityObjects", 
-                       "vertices", 
-                       "appearance", 
+CITYJSON_PROPERTIES = ["type",
+                       "version",
+                       "extensions",
+                       "transform",
+                       "metadata",
+                       "CityObjects",
+                       "vertices",
+                       "appearance",
                        "geometry-templates",
                        "+metadata-extended"
                       ]
@@ -105,7 +105,7 @@ def read_stdin():
             j1 = json.loads(line)
             # TODO: put CityJSONFeature schema and validate here? defensive programming?
             if not( "type" in j1 and j1["type"] == 'CityJSONFeature'):
-               raise IOError("Line {} is not of type 'CityJSONFeature'.".format(lcount)) 
+               raise IOError("Line {} is not of type 'CityJSONFeature'.".format(lcount))
             cm.add_cityjsonfeature(j1)
         else:
             break
@@ -548,12 +548,12 @@ class CityJSON:
         if "metadata" not in self.j:
             self.j["metadata"] = {}
         if self.is_empty() == True:
-            bbox = [0, 0, 0, 0, 0, 0]    
+            bbox = [0, 0, 0, 0, 0, 0]
             self.j["metadata"]["geographicalExtent"] = bbox
             return bbox
         bbox = self.calculate_bbox()
         self.j["metadata"]["geographicalExtent"] = bbox
-        return bbox        
+        return bbox
 
     def update_metadata_identifier(self):
         """
@@ -677,12 +677,12 @@ class CityJSON:
         if "metadata" in self.j:
             if "title" in self.j["metadata"]:
                 return self.j["metadata"]["title"]
-        
+
         return self.get_identifier()
 
     def get_subset_bbox(self, bbox, exclude=False):
         # print ('get_subset_bbox')
-        re = set()            
+        re = set()
         for coid in self.j["CityObjects"]:
             centroid = self.get_centroid(coid)
             if ((centroid is not None) and
@@ -694,12 +694,12 @@ class CityJSON:
         return self.subset(lsIDs=re, exclude=exclude)
 
     def get_subset_radius(self, x, y, radius, exclude=False):
-        re = set()            
+        re = set()
         for coid in self.j["CityObjects"]:
             centroid = self.get_centroid(coid)
             if (centroid is not None):
                 dist = ((centroid[0] - x)**2) + ((centroid[1] - y)**2)
-                if dist < radius**2: 
+                if dist < radius**2:
                     re.add(coid)
         return self.subset(lsIDs=re, exclude=exclude)
 
@@ -805,14 +805,14 @@ class CityJSON:
                 re.add(theid)
         return self.subset(lsIDs=re, exclude=exclude)
 
-        
+
 
     def get_textures_location(self):
         """Get the location of the texture files
-        
+
         Assumes that all textures are in the same location. Relative paths
         are expanded to absolute paths.
-        
+
         :returns: path to the directory or URL of the texture files
         :rtype: string (path) or None (on failure)
         :raises: NotADirectoryError
@@ -831,7 +831,7 @@ class CityJSON:
                         return cj_dir
                     elif not os.path.isabs(d):
                         if os.path.isdir(os.path.abspath(d)):
-                            # texture dir is not necessarily in the same dir 
+                            # texture dir is not necessarily in the same dir
                             # as the input file
                             return os.path.abspath(d)
                         elif os.path.isdir(os.path.join(cj_dir, d)):
@@ -848,10 +848,10 @@ class CityJSON:
 
     def update_textures_location(self, new_loc, relative=True):
         """Updates the location of the texture files
-        
+
         If the new location is a directory in the local file system, it is
         expected to exists with the texture files in it.
-        
+
         :param new_loc: path to new texture directory
         :type new_loc: string
         :param relative: create texture links relative to the CityJSON file
@@ -884,7 +884,7 @@ class CityJSON:
 
 
     def copy_textures(self, new_loc, json_path):
-        """Copy the texture files to a new location        
+        """Copy the texture files to a new location
         :param new_loc: path to new texture directory
         :type new_loc: string
         :param json_path: path to the CityJSON file directory
@@ -987,7 +987,7 @@ class CityJSON:
             if 'parents' not in self.j['CityObjects'][key]:
                 if ty not in d:
                     d[ty] = 1
-                else: 
+                else:
                     d[ty] += 1
                 self.info_children_dfs(key, ty, d)
         for each in d:
@@ -1003,7 +1003,7 @@ class CityJSON:
             s.append("materials = {}".format(False))
             s.append("textures = {}".format(False))
         if long == False:
-            return s    
+            return s
         #-- all/long version
         s.append("vertices_total = {}".format(len(self.j["vertices"])))
         s.append("is_triangulated = {}".format(self.is_triangulated()))
@@ -1037,7 +1037,7 @@ class CityJSON:
         for each in d:
             if each.startswith(t + '/') == True and each.count('/') == level:
                 x = each.rsplit("/")[-1]
-                s2 = "{}|-- {} ({})".format(" "*4*level, x, d[each])    
+                s2 = "{}|-- {} ({})".format(" "*4*level, x, d[each])
                 s.append(s2)
                 self.print_info_tree(s, d, each, level+1)
 
@@ -1049,7 +1049,7 @@ class CityJSON:
                 # print(s)
                 if s not in d:
                     d[s] = 1
-                else: 
+                else:
                     d[s] += 1
                 self.info_children_dfs(c, s, d)
 
@@ -1070,10 +1070,10 @@ class CityJSON:
             else:
                 a[i] = oldnewids[each]
         #--
-        totalinput = len(self.j["vertices"])        
+        totalinput = len(self.j["vertices"])
         oldnewids = {}
         newvertices = []
-        #-- visit each geom to gather used ids 
+        #-- visit each geom to gather used ids
         for theid in self.j["CityObjects"]:
             if 'geometry' in self.j['CityObjects'][theid]:
                 for g in self.j['CityObjects'][theid]['geometry']:
@@ -1098,8 +1098,8 @@ class CityJSON:
                 update_geom_indices(each, newids)
             else:
                 a[i] = newids[each]
-        #--            
-        totalinput = len(self.j["vertices"])        
+        #--
+        totalinput = len(self.j["vertices"])
         h = {}
         newids = [-1] * len(self.j["vertices"])
         newvertices = []
@@ -1150,7 +1150,7 @@ class CityJSON:
                         bbox[i] = v[i]
         #-- convert vertices in self.j to int
         n = [0, 0, 0]
-        p = '%.' + str(important_digits) + 'f' 
+        p = '%.' + str(important_digits) + 'f'
         for v in self.j["vertices"]:
             for i in range(3):
                 n[i] = v[i] - bbox[i]
@@ -1180,10 +1180,10 @@ class CityJSON:
                 v[2] = (v[2] * self.j["transform"]["scale"][2]) + self.j["transform"]["translate"][2]
             del self.j["transform"]
             return True
-        else: 
+        else:
             return False
 
-    
+
     def add_cityjsonfeature(self, j):
         offset = len(self.j["vertices"])
         self.j["vertices"] += j["vertices"]
@@ -1227,7 +1227,7 @@ class CityJSON:
                 if "textures" not in self.j["appearance"]:
                     self.j["appearance"]["textures"] = []
                 if "vertices-texture" not in self.j["appearance"]:
-                    self.j["appearance"]["vertices-texture"] = []                        
+                    self.j["appearance"]["vertices-texture"] = []
                 toffset = 0
                 voffset = 0
             #-- copy vertices-texture
@@ -1247,7 +1247,7 @@ class CityJSON:
 
         self.remove_duplicate_vertices()
         self.remove_orphan_vertices()
-        self.update_bbox()                    
+        self.update_bbox()
 
 
     def merge(self, lsCMs):
@@ -1264,7 +1264,7 @@ class CityJSON:
         self.decompress()
 
         for cm in lsCMs:
-            #-- decompress 
+            #-- decompress
             if math.ceil(abs(math.log(cm.j["transform"]["scale"][0], 10))) > imp_digits:
                 imp_digits = math.ceil(abs(math.log(cm.j["transform"]["scale"][0], 10)))
             cm.decompress()
@@ -1354,7 +1354,7 @@ class CityJSON:
                     if "textures" not in self.j["appearance"]:
                         self.j["appearance"]["textures"] = []
                     if "vertices-texture" not in self.j["appearance"]:
-                        self.j["appearance"]["vertices-texture"] = []                        
+                        self.j["appearance"]["vertices-texture"] = []
                     toffset = 0
                     voffset = 0
                 #-- copy vertices-texture
@@ -1390,7 +1390,7 @@ class CityJSON:
 
 
     def upgrade_version_v06_v08(self):
-        #-- version 
+        #-- version
         self.j["version"] = "0.8"
         #-- crs/epgs
         epsg = self.get_epsg()
@@ -1427,7 +1427,7 @@ class CityJSON:
 
 
     def upgrade_version_v08_v09(self, reasons):
-        #-- version 
+        #-- version
         self.j["version"] = "0.9"
         #-- parent --> parents[]
         allids = []
@@ -1445,7 +1445,7 @@ class CityJSON:
 
 
     def upgrade_version_v09_v10(self, reasons):
-        #-- version 
+        #-- version
         self.j["version"] = "1.0"
         #-- extensions
         if "extensions" in self.j:
@@ -1501,11 +1501,11 @@ class CityJSON:
         #-- metadata calculate
         if "metadata" in self.j:
             v11_properties = {
-                "citymodelIdentifier": "identifier", 
-                "datasetPointOfContact": "pointOfContact", 
-                "datasetTitle": "title", 
-                "datasetReferenceDate": "referenceDate", 
-                "geographicalExtent": "geographicalExtent", 
+                "citymodelIdentifier": "identifier",
+                "datasetPointOfContact": "pointOfContact",
+                "datasetTitle": "title",
+                "datasetReferenceDate": "referenceDate",
+                "geographicalExtent": "geographicalExtent",
                 "referenceSystem": "referenceSystem"
             }
             to_delete = []
@@ -1549,8 +1549,8 @@ class CityJSON:
         self.j["version"] = "2.0"
         #-- address in metadata is now a json object
         if (
-                "metadata" in self.j and 
-                "pointOfContact" in self.j["metadata"] and 
+                "metadata" in self.j and
+                "pointOfContact" in self.j["metadata"] and
                 "address" in self.j["metadata"]["pointOfContact"]
             ):
             s = self.j["metadata"]["pointOfContact"]["address"]
@@ -1558,8 +1558,8 @@ class CityJSON:
             self.j["metadata"]["pointOfContact"]["address"]["address"] = s
         #-- GenericCityObject is back!
         if (
-                "extensions" in self.j and 
-                "Generic" in self.j["extensions"] and 
+                "extensions" in self.j and
+                "Generic" in self.j["extensions"] and
                 self.j["extensions"]["Generic"]["url"].__contains__("cityjson.org/extensions/download/generic.ext.json")
             ):
             #-- remove the +
@@ -1567,7 +1567,7 @@ class CityJSON:
                 if self.j["CityObjects"][theid]['type'] == '+GenericCityObject':
                     self.j["CityObjects"][theid]['type'] = 'GenericCityObject'
             #-- delete the Generic extension
-            del self.j["extensions"]["Generic"]        
+            del self.j["extensions"]["Generic"]
             #-- explain to user
             reasons = '"GenericCityObject" is in v2.0'
             reasons += ' Your "+GenericCityObject" have been changed to "GenericCityObject"'
@@ -1580,7 +1580,7 @@ class CityJSON:
         reasons = ""
         if CITYJSON_VERSIONS_SUPPORTED.count(newversion) == 0:
             return (False, "This version is not supported")
-        #-- from v0.6 
+        #-- from v0.6
         if (self.get_version() == CITYJSON_VERSIONS_SUPPORTED[0]):
             self.upgrade_version_v06_v08()
         #-- v0.8
@@ -1594,7 +1594,7 @@ class CityJSON:
             (re, reasons) = self.upgrade_version_v10_v11(reasons, digit)
         #-- v1.1 => v2.0
         if (self.get_version() == CITYJSON_VERSIONS_SUPPORTED[4]):
-            (re, reasons) = self.upgrade_version_v11_v20(reasons, digit)            
+            (re, reasons) = self.upgrade_version_v11_v20(reasons, digit)
         return (re, reasons)
 
 
@@ -1849,7 +1849,7 @@ class CityJSON:
         self.update_bbox()
         return bbox
 
-    
+
     def has_metadata(self):
         """
         Returns whether metadata exist in this CityJSON file or not
@@ -1952,7 +1952,7 @@ class CityJSON:
         if not "lineage" in self.j["+metadata-extended"]:
             self.j["+metadata-extended"]["lineage"] = []
         self.j["+metadata-extended"]["lineage"].append(new_item)
-        
+
 
     def triangulate(self, sloppy):
         """Triangulate the CityJSON file face by face together with the texture information.
@@ -2300,3 +2300,60 @@ class CityJSON:
                                             return False
         return True
 
+
+    def building_semantics(self):
+        """
+        Add semantics to the building CityObjects.
+        """
+
+        semantics = {
+            "surfaces": [
+                {
+                    "type": "GroundSurface",
+                },
+                {
+                    "type": "WallSurface",
+                },
+                {
+                    "type": "RoofSurface",
+                }
+            ],
+            "values": [
+                []
+            ]
+        }
+
+        vertices = self.j['vertices']
+
+        for key, value in self.j['CityObjects'].items():
+
+            cityobject = self.j['CityObjects'][key]
+
+            if cityobject['type'] in ['Building', 'BuildingPart']:
+                semantic = copy.deepcopy(semantics)
+
+                for surface in cityobject['geometry'][0]['boundaries'][0]:
+
+                    points = []
+                    for point in surface[0]:
+                        points.append(vertices[point])
+
+                    p1 = np.array(points[0])
+                    p2 = np.array(points[1])
+                    p3 = np.array(points[2])
+                    v1 = p3 - p1
+                    v2 = p2 - p1
+                    cp = np.cross(v1, v2)
+                    a, b, c = cp
+                    d = np.dot(cp, p3)
+
+                    if c == 0:
+                        semantic['values'][0].append(1)
+                    elif c < 0:
+                        semantic['values'][0].append(2)
+                    elif c > 0:
+                        semantic['values'][0].append(0)
+
+                cityobject['geometry'][0]['semantics'] = semantic
+
+        return self.j

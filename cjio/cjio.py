@@ -49,7 +49,7 @@ def cli(context, input, ignore_duplicate_keys, suppress_msg):
     Usage examples:
 
     \b
-        cjio myfile.city.json info 
+        cjio myfile.city.json info
         cjio myfile.city.json subset --id house12 save out.city.json
         cjio myfile.city.json crs_assign 7145 textures_remove export --format obj output.obj
         cat mystream.city.jsonl | cjio stdin info
@@ -63,7 +63,7 @@ def process_pipeline(processors, input, ignore_duplicate_keys, suppress_msg):
     try:
         if input == 'stdin':
             cm = cityjson.read_stdin()
-        else:    
+        else:
             f = click.open_file(input, mode='r', encoding='utf-8-sig')
             extension = os.path.splitext(input)[1].lower()
             if extension not in extensions:
@@ -75,9 +75,9 @@ def process_pipeline(processors, input, ignore_duplicate_keys, suppress_msg):
             #-- POLY file
             elif (extension == '.poly'):
                 print_cmd_status("Converting %s to CityJSON" % (input))
-                cm = cityjson.poly2cj(f)            
+                cm = cityjson.poly2cj(f)
             #-- CityJSON file
-            else: 
+            else:
                 print_cmd_status("Parsing %s" % (input))
                 cm = cityjson.reader(file=f, ignore_duplicate_keys=ignore_duplicate_keys)
                 try:
@@ -124,10 +124,10 @@ def info_cmd(long):
 def export_cmd(filename, format, sloppy):
     """Export to another format.
 
-    OBJ, Binary glTF (glb), Batched 3DModel (b3dm), STL, JSONL (JSON Lines, for streaming). 
+    OBJ, Binary glTF (glb), Batched 3DModel (b3dm), STL, JSONL (JSON Lines, for streaming).
     The result can be stored either in a file, out piped to stdout (by choosing 'stdout' instead
     of a file).
-    
+
     Currently, textures are not supported, sorry.
 
     Usage examples:
@@ -172,7 +172,7 @@ def export_cmd(filename, format, sloppy):
                 buf.seek(0)
                 for l in buf.readlines():
                     sys.stdout.write(l)
-            else:    
+            else:
                 print_cmd_status("Exporting CityJSON to STL (%s)" % (output['path']))
                 try:
                     with click.open_file(output['path'], mode='w') as fo:
@@ -246,7 +246,7 @@ def export_cmd(filename, format, sloppy):
 @click.argument('filename')
 @click.option('--indent', is_flag=True,
               help='Indent the file. Helpful when you want to examine the file in a text editor.')
-@click.option('--textures', default=None, 
+@click.option('--textures', default=None,
               type=str,
               help='Path to the new textures directory. This command copies the textures to a new location. Useful when creating an independent subset of a CityJSON file.')
 def save_cmd(filename, indent, textures):
@@ -304,11 +304,11 @@ def save_cmd(filename, indent, textures):
 @cli.command('validate')
 def validate_cmd():
     """
-    Validate the CityJSON: 
+    Validate the CityJSON:
     (1) against its schemas
     (2) against the (potential) Extensions schemas
     (3) extra validations
-    
+
     (see https://github.com/cityjson/cjval#what-is-validated-exactly for details)
 
     The Extensions in the files are fetched automatically.
@@ -341,7 +341,7 @@ def merge_cmd(filepattern):
     """
     Merge the current CityJSON with other ones.
     All City Objects with their textures/materials/templates are handled.
-    
+
     Possible to give a wildcard but put it between quotes:
 
         $ cjio myfile.city.json merge '/home/elvis/temp/*.json' save merged.city.json
@@ -388,8 +388,8 @@ def subset_cmd(id, bbox, random, cotype, radius, exclude):
     Usage examples:
 
     \b
-        cjio myfile.city.json subset --bbox 104607 490148 104703 490257 save out.city.json 
-        cjio myfile.city.json subset --radius 500.0 610.0 50.0 --exclude save out.city.json 
+        cjio myfile.city.json subset --bbox 104607 490148 104703 490257 save out.city.json
+        cjio myfile.city.json subset --radius 500.0 610.0 50.0 --exclude save out.city.json
         cjio myfile.city.json subset --id house12 save out.city.json
         cjio myfile.city.json subset --random 5 save out.city.json
         cjio myfile.city.json subset --cotype LandUse --cotype Building save out.city.json
@@ -410,14 +410,14 @@ def subset_cmd(id, bbox, random, cotype, radius, exclude):
             s = s.get_subset_cotype(cotype, exclude=exclude)
         else:
             click.BadArgumentUsage('You must provide one of the options for subset; --id, --bbox, --random, --cotype')
-        return s 
+        return s
     return processor
 
 
 @cli.command('vertices_clean')
 def vertices_clean_cmd():
     """
-    Remove duplicate vertices + orphan vertices    
+    Remove duplicate vertices + orphan vertices
     """
     def processor(cm):
         print_cmd_status('Clean the file')
@@ -470,7 +470,7 @@ def crs_assign_cmd(newepsg):
 def crs_reproject_cmd(epsg):
     """
     Reproject to a new EPSG.
-    The current CityJSON must have an EPSG defined 
+    The current CityJSON must have an EPSG defined
     (which can be done with function epsg_assign).
     """
     def processor(cm):
@@ -499,8 +499,8 @@ def upgrade_cmd(digit):
     It takes care of *everything* (touch wood).
 
         $ cjio myfile.city.json upgrade save upgraded.city.json
-    
-    For v1.1+, the file needs to be compressed, and you can 
+
+    For v1.1+, the file needs to be compressed, and you can
     speficy the number of digits to keep (default=3)
 
         $ cjio myfile.city.json upgrade --digit 2 save upgraded.city.json
@@ -529,7 +529,7 @@ def textures_locate_cmd():
             else:
                 print_cmd_status(loc)
         except Exception as e:
-            print_cmd_warning(e)     
+            print_cmd_warning(e)
         return cm
     return processor
 
@@ -556,11 +556,11 @@ def lod_filter_cmd(lod):
     Filter only one LoD for a dataset.
     To use on datasets having more than one LoD for the city objects.
     For each city object, it keeps only the geometries having the LoD
-    passed as parameter; if a city object doesn't have this LoD then 
+    passed as parameter; if a city object doesn't have this LoD then
     it ends up with an empty geometry.
 
         $ cjio myfile.city.json lod_filter 2.2 save myfile_lod2.city.json
-    
+
     """
     def processor(cm):
         print_cmd_status('Filter LoD: "%s"' % lod)
@@ -572,9 +572,9 @@ def lod_filter_cmd(lod):
 @click.argument('attr', type=str, nargs=1)
 def attribute_remove_cmd(attr):
     """
-    Remove an attribute. 
+    Remove an attribute.
     If it's not present nothing is done.
-    That's it.    
+    That's it.
 
         $ cjio myfile.city.json attribute_remove roofType info
     """
@@ -590,9 +590,9 @@ def attribute_remove_cmd(attr):
 @click.argument('newattr', type=str, nargs=1)
 def attribute_rename_cmd(oldattr, newattr):
     """
-    Rename an attribute. 
+    Rename an attribute.
     If it's not present nothing is done, and its value is kept.
-    That's it.    
+    That's it.
 
         $ cjio myfile.city.json attribute_rename oldAttr newAttr info
     """
@@ -607,8 +607,8 @@ def attribute_rename_cmd(oldattr, newattr):
 @click.option('--minxyz', nargs=3, type=float, help='(x, y, z)')
 def crs_translate_cmd(minxyz):
     """
-    Translate the coordinates. 
-    By default, they are all moved by (-minx, -miny, -minz), 
+    Translate the coordinates.
+    By default, they are all moved by (-minx, -miny, -minz),
     so the values are smaller (often useful for further processing data).
     The CRS/EPSG is updated to 'None'.
     Three specific values for the translation can also be given with --minxyz.
@@ -631,7 +631,7 @@ def crs_translate_cmd(minxyz):
 def metadata_create_cmd():
     """
     Add the +metadata-extended properties.
-    This is the MetadataExtended Extension 
+    This is the MetadataExtended Extension
     (https://github.com/cityjson/metadata-extended).
     Modify/update the dataset.
     """
@@ -649,7 +649,7 @@ def metadata_create_cmd():
 def metadata_update_cmd(overwrite):
     """
     Update the +metadata-extended.
-    Properties that can be computed are updated. 
+    Properties that can be computed are updated.
     Modify/update the dataset.
     """
     def processor(cm):
@@ -702,7 +702,7 @@ def triangulate_cmd(sloppy):
     Triangulate every surface.
 
     If the robust method fails (crash) then it is caused by invalid input.
-    You can use the option '--sloppy' which uses a more lenient library (mapbox-earcut), 
+    You can use the option '--sloppy' which uses a more lenient library (mapbox-earcut),
     but watch out it is less robust (collapsed triangles could be created!).
 
     Takes care of updating: (1) semantics; (2) textures; (3) material.
@@ -710,8 +710,8 @@ def triangulate_cmd(sloppy):
     sage examples:
 
     \b
-        cjio myfile.city.json triangulate save mytriangles.city.json 
-        cjio myfile.city.json triangulate --sloppy save mytriangles.city.json 
+        cjio myfile.city.json triangulate save mytriangles.city.json
+        cjio myfile.city.json triangulate --sloppy save mytriangles.city.json
     """
     #-- mapbox_earcut available?
     def processor(cm):
@@ -734,6 +734,25 @@ def triangulate_cmd(sloppy):
                 cm.triangulate(sloppy)
         else:
             print_cmd_status('This file is already triangulated!')
+        return cm
+    return processor
+
+
+@cli.command('building_semantics')
+def building_semantics_cmd():
+    """
+    Add the semantics for buildings.
+
+    The semantics are added to the City Objects.
+
+    sage examples:
+
+    \b
+        cjio myfile.city.json building_semantics save myfile_semantics.city.json
+    """
+    def processor(cm):
+        print_cmd_status('Add semantics to buildings')
+        cm.building_semantics()
         return cm
     return processor
 
