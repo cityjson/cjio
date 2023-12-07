@@ -77,30 +77,31 @@ possibilities:
     cjio --help
 
     Commands:
-      attribute_remove  Remove an attribute.
-      attribute_rename  Rename an attribute.
-      crs_assign        Assign a (new) CRS (an EPSG).
-      crs_reproject     Reproject to a new EPSG.
-      crs_translate     Translate the coordinates.
-      export            Export to another format.
-      info              Output information about the dataset.
-      lod_filter        Filter only one LoD for a dataset.
-      materials_remove  Remove all materials.
-      merge             Merge the current CityJSON with other ones.
-      metadata_create   Add the +metadata-extended properties.
-      metadata_get      Shows the metadata and +metadata-extended of this...
-      metadata_remove   Remove the +metadata-extended properties.
-      metadata_update   Update the +metadata-extended.
-      print             print the (pretty formatted) JSON to the console.
-      save              Save to a CityJSON file.
-      subset            Create a subset, City Objects can be selected by: (1)...
-      textures_locate   Output the location of the texture files.
-      textures_remove   Remove all textures.
-      textures_update   Update the location of the texture files.
-      triangulate       Triangulate every surface.
-      upgrade           Upgrade the CityJSON to the latest version.
-      validate          Validate the CityJSON: (1) against its schemas (2)...
-      vertices_clean    Remove duplicate vertices + orphan vertices
+      attribute_remove    Remove an attribute.
+      attribute_rename    Rename an attribute.
+      building_semantics  Add the semantics for buildings.
+      crs_assign          Assign a (new) CRS (an EPSG).
+      crs_reproject       Reproject to a new EPSG.
+      crs_translate       Translate the coordinates.
+      export              Export to another format.
+      info                Output information about the dataset.
+      lod_filter          Filter only one LoD for a dataset.
+      materials_remove    Remove all materials.
+      merge               Merge the current CityJSON with other ones.
+      metadata_create     Add the +metadata-extended properties.
+      metadata_get        Shows the metadata and +metadata-extended of this...
+      metadata_remove     Remove the +metadata-extended properties.
+      metadata_update     Update the +metadata-extended.
+      print               print the (pretty formatted) JSON to the console.
+      save                Save to a CityJSON file.
+      subset              Create a subset, City Objects can be selected by:...
+      textures_locate     Output the location of the texture files.
+      textures_remove     Remove all textures.
+      textures_update     Update the location of the texture files.
+      triangulate         Triangulate every surface.
+      upgrade             Upgrade the CityJSON to the latest version.
+      validate            Validate the CityJSON: (1) against its schemas (2)...
+      vertices_clean      Remove duplicate vertices + orphan vertices
 
 Or see the command-specific help by calling ``--help`` after a command:
 
