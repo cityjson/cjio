@@ -933,7 +933,7 @@ class CityJSON:
 
     def remove_textures(self):
         for co in self.j["CityObjects"].values():
-            for geom in co["geometry"]:
+            for geom in co.get('geometry', []):
                 if "texture" in geom:
                     del geom["texture"]
         if "appearance" in self.j:
@@ -950,7 +950,7 @@ class CityJSON:
 
     def remove_materials(self):
         for co in self.j["CityObjects"].values():
-            for geom in co["geometry"]:
+            for geom in co.get('geometry', []):
                 if "material" in geom:
                     del geom["material"]
         if "appearance" in self.j:
