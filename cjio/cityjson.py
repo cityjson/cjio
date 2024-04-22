@@ -939,8 +939,8 @@ class CityJSON:
         if "appearance" in self.j:
             if "textures" in self.j["appearance"]:
                 del self.j["appearance"]["textures"]
-            if "vertex-texture" in self.j["appearance"]:
-                del self.j["appearance"]["vertex-texture"]
+            if "vertices-texture" in self.j["appearance"]:
+                del self.j["appearance"]["vertices-texture"]
             if "default-theme-texture" in self.j["appearance"]:
                 del self.j["appearance"]["default-theme-texture"]
         if "appearance" in self.j:
