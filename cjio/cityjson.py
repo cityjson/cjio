@@ -165,10 +165,6 @@ def off2cj(file):
     cm = {}
     cm["type"] = "CityJSON"
     cm["version"] = CITYJSON_VERSIONS_SUPPORTED[-1]
-    cm["extensions"] = {}
-    cm["extensions"]["Generic"]= {}
-    cm["extensions"]["Generic"]["url"] = "https://cityjson.org/extensions/download/generic.ext.json"
-    cm["extensions"]["Generic"]["version"] = "1.0"
     cm["CityObjects"] = {}
     cm["vertices"] = []
     for v in lstVertices:
@@ -179,7 +175,7 @@ def off2cj(file):
         shell.append([f])
     g['boundaries'] = [shell]
     g['lod'] = "1"
-    o = {'type': '+GenericCityObject'}
+    o = {'type': 'GenericCityObject'}
     o['geometry'] = [g]
     cm["CityObjects"]["id-1"] = o
     j = CityJSON(j=cm)
@@ -208,10 +204,6 @@ def poly2cj(file):
     cm = {}
     cm["type"] = "CityJSON"
     cm["version"] = CITYJSON_VERSIONS_SUPPORTED[-1]
-    cm["extensions"] = {}
-    cm["extensions"]["Generic"]= {}
-    cm["extensions"]["Generic"]["url"] = "https://cityjson.org/extensions/download/generic.ext.json"
-    cm["extensions"]["Generic"]["version"] = "1.0"
     cm["CityObjects"] = {}
     cm["vertices"] = []
     for v in lstVertices:
