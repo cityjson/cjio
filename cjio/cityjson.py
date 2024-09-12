@@ -115,6 +115,9 @@ def read_stdin():
                raise IOError("Line {} is not of type 'CityJSONFeature'.".format(lcount)) 
             cm.add_cityjsonfeature(j1)
         else:
+            cm.remove_duplicate_vertices()
+            cm.remove_orphan_vertices()
+            cm.update_bbox() 
             break
     return cm
 
@@ -1244,9 +1247,9 @@ class CityJSON:
                             else:
                                 raise KeyError(f"The member 'values' is missing from the texture '{m}' in CityObject {theid}")
 
-        self.remove_duplicate_vertices()
-        self.remove_orphan_vertices()
-        self.update_bbox()                    
+        # self.remove_duplicate_vertices()
+        # self.remove_orphan_vertices()
+        # self.update_bbox()                    
 
 
     def merge(self, lsCMs):
