@@ -111,7 +111,6 @@ def read_stdin():
         line = sys.stdin.readline()
         if line != '':
             j1 = json.loads(line)
-            # TODO: put CityJSONFeature schema and validate here? defensive programming?
             if not( "type" in j1 and j1["type"] == 'CityJSONFeature'):
                raise IOError("Line {} is not of type 'CityJSONFeature'.".format(lcount)) 
             cm.add_cityjsonfeature(j1)
