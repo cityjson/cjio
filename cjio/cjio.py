@@ -753,49 +753,10 @@ def crs_translate_cmd(minxyz):
     return processor
 
 
-@cli.command("metadata_create")
-def metadata_create_cmd():
-    """
-    Add the +metadata-extended properties.
-    This is the MetadataExtended Extension
-    (https://github.com/cityjson/metadata-extended).
-    Modify/update the dataset.
-    """
-
-    def processor(cm):
-        print_cmd_status("Create the +metadata-extended and populate it")
-        _, errors = cm.update_metadata_extended(overwrite=True)
-        for e in errors:
-            print_cmd_warning(e)
-        return cm
-
-    return processor
-
-
-@cli.command("metadata_update")
-@click.option("--overwrite", is_flag=True, help="Overwrite existing values.")
-def metadata_update_cmd(overwrite):
-    """
-    Update the +metadata-extended.
-    Properties that can be computed are updated.
-    Modify/update the dataset.
-    """
-
-    def processor(cm):
-        print_cmd_status("Update the +metadata-extended")
-        _, errors = cm.update_metadata_extended(overwrite)
-        for e in errors:
-            print_cmd_warning(e)
-        return cm
-
-    return processor
-
-
 @cli.command("metadata_get")
 def metadata_get_cmd():
     """
-    Shows the metadata and +metadata-extended of this dataset
-    (they are merged in one JSON object)
+    Shows the metadata of this dataset
 
     The difference between 'info' and this command is that this
     command lists the "pure" metadata as stored in the file.
@@ -807,24 +768,7 @@ def metadata_get_cmd():
         j = {}
         if cm.has_metadata():
             j.update(cm.get_metadata())
-        if cm.has_metadata_extended():
-            j.update(cm.get_metadata_extended())
         print_cmd_info(json.dumps(j, indent=2))
-        return cm
-
-    return processor
-
-
-@cli.command("metadata_remove")
-def metadata_remove_cmd():
-    """
-    Remove the +metadata-extended properties.
-    Modify/update the dataset.
-    """
-
-    def processor(cm):
-        print_cmd_status("Remove the +metadata-extended property")
-        cm.metadata_extended_remove()
         return cm
 
     return processor

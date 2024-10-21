@@ -51,27 +51,24 @@ except ImportError:
 from cjio import convert, geom_help, models, subset
 from cjio.errors import CJInvalidOperation
 from cjio.floatEncoder import FloatEncoder
-from cjio.metadata import generate_metadata
 
 json.encoder.c_make_encoder = None
 json.encoder.float = FloatEncoder
 
 
-CITYJSON_VERSIONS_SUPPORTED = ['0.6', '0.8', '0.9', '1.0', '1.1', '2.0']
+CITYJSON_VERSIONS_SUPPORTED = ["0.6", "0.8", "0.9", "1.0", "1.1", "2.0"]
 
-METADATAEXTENDED_VERSION = "0.6"
-
-CITYJSON_PROPERTIES = ["type",
-                       "version",
-                       "extensions",
-                       "transform",
-                       "metadata",
-                       "CityObjects",
-                       "vertices",
-                       "appearance",
-                       "geometry-templates",
-                       "+metadata-extended"
-                      ]
+CITYJSON_PROPERTIES = [
+    "type",
+    "version",
+    "extensions",
+    "transform",
+    "metadata",
+    "CityObjects",
+    "vertices",
+    "appearance",
+    "geometry-templates",
+]
 
 
 def load(path, transform: bool = True):
@@ -1725,8 +1722,6 @@ class CityJSON:
             j2["metadata"] = self.j["metadata"]
         if "geometry-templates" in self.j:
             j2["geometry-templates"] = self.j["geometry-templates"]
-        if "+metadata-extended" in self.j:
-            j2["+metadata-extended"] = self.j["+metadata-extended"]
         if "extensions" in self.j:
             j2["extensions"] = self.j["extensions"]
         return json.dumps(j2, separators=(",", ":"))
@@ -2079,39 +2074,11 @@ class CityJSON:
         self.update_bbox()
         return bbox
 
-    
     def has_metadata(self):
         """
         Returns whether metadata exist in this CityJSON file or not
         """
         return "metadata" in self.j
-
-    def has_metadata_extended(self):
-        """
-        Returns whether +metadata-extended exist in this CityJSON file or not
-        """
-        return "+metadata-extended" in self.j
-
-    def metadata_extended_remove(self):
-        """
-        Remove the +metadata-extended in this CityJSON file (if present)
-        """
-        if "+metadata-extended" in self.j:
-            del self.j["+metadata-extended"]
-        if "extensions" in self.j and "MetadataExtended" in self.j["extensions"]:
-            del self.j["extensions"]["MetadataExtended"]
-
-    def add_metadata_extended_property(self):
-        """
-        Adds the +metadata-extended + the link to Extension
-        """
-        if "+metadata-extended" not in self.j:
-            self.j["+metadata-extended"] = {}
-            if "extensions" not in self.j:
-                self.j["extensions"] = {}
-            self.j["extensions"]["MetadataExtended"]= {}
-            self.j["extensions"]["MetadataExtended"]["url"] = "https://raw.githubusercontent.com/cityjson/metadata-extended/{}/metadata-extended.ext.json".format(METADATAEXTENDED_VERSION)
-            self.j["extensions"]["MetadataExtended"]["version"] = METADATAEXTENDED_VERSION
 
     def get_metadata(self):
         """
@@ -2122,65 +2089,6 @@ class CityJSON:
         if "metadata" not in self.j:
             raise KeyError("Metadata is missing")
         return self.j["metadata"]
-
-    def get_metadata_extended(self):
-        """
-        Returns the "+metadata-extended" property of this CityJSON file
-
-        Raises a KeyError exception if metadata is missing
-        """
-        if "+metadata-extended" not in self.j:
-            raise KeyError("MetadataExtended is missing")
-        return self.j["+metadata-extended"]
-
-
-    def compute_metadata_extended(self, overwrite=False):
-        """
-        Returns the +metadata-extended of this CityJSON file
-        """
-        return generate_metadata(citymodel=self.j,
-                                 filename=self.path,
-                                 overwrite_values=overwrite)
-
-
-    def update_metadata_extended(self, overwrite=False):
-        """
-        Computes and updates the "metadata" property of this CityJSON dataset
-        """
-        self.add_metadata_extended_property()
-        metadata, errors = self.compute_metadata_extended(overwrite)
-        self.j["+metadata-extended"] = metadata
-        self.update_bbox()
-        return (True, errors)
-
-
-    def add_lineage_item(self, description: str, features: list = None, source: list = None, processor: dict = None):
-        """Adds a lineage item in metadata.
-
-        :param description: A string with the description of the process
-        :param features: A list of object ids that are affected by it
-        :param source: A list of sources. Every source is a dict with
-            the respective info (description, sourceReferenceSystem etc.)
-        :param processor: A dict with contact information for the
-            person that conducted the processing
-        """
-        nu = datetime.now()
-        new_item = {
-            "processStep": {
-                "description": description,
-                "stepDateTime": str(nu.isoformat()) + "Z"
-            }
-        }
-        if isinstance(features, list):
-            new_item["featureIDs"] = features
-        if isinstance(source, list):
-            new_item["source"] = source
-        if isinstance(processor, dict):
-            new_item["processStep"]["processor"] = processor
-        if not self.has_metadata_extended():
-            self.add_metadata_extended_property()
-        if "lineage" not in self.j["+metadata-extended"]:
-        
 
     def triangulate(self, sloppy):
         """Triangulate the CityJSON file face by face together with the texture information.

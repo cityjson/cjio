@@ -87,10 +87,7 @@ possibilities:
       lod_filter        Filter only one LoD for a dataset.
       materials_remove  Remove all materials.
       merge             Merge the current CityJSON with other ones.
-      metadata_create   Add the +metadata-extended properties.
-      metadata_get      Shows the metadata and +metadata-extended of this...
-      metadata_remove   Remove the +metadata-extended properties.
-      metadata_update   Update the +metadata-extended.
+      metadata_get      Shows the metadata.
       print             print the (pretty formatted) JSON to the console.
       save              Save to a CityJSON file.
       subset            Create a subset, City Objects can be selected by: (1)...
