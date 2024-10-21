@@ -17,7 +17,6 @@ from pathlib import Path
 import numpy as np
 from click import progressbar
 
-from datetime import datetime
 
 from cjio import errors
 from cjio.convert import faces_to_obj
@@ -32,26 +31,26 @@ MODULE_CJVAL_AVAILABLE = True
 try:
     from pyproj import CRS
     from pyproj.transformer import TransformerGroup
-except ImportError as e:
+except ImportError:
     MODULE_PYPROJ_AVAILABLE = False
 try:
     import triangle
-except ImportError as e:
+except ImportError:
     MODULE_TRIANGLE_AVAILABLE = False
 try:
     import mapbox_earcut
-except ImportError as e:
+except ImportError:
     MODULE_EARCUT_AVAILABLE = False
 try:
     import pandas
-except ImportError as e:
+except ImportError:
     MODULE_PANDAS_AVAILABLE = False
 try:
     import cjvalpy
-except ImportError as e:
+except ImportError:
     MODULE_CJVAL_AVAILABLE = False
 
-from cjio import convert, errors, geom_help, models, subset
+from cjio import convert, geom_help, models, subset
 from cjio.errors import CJInvalidOperation
 from cjio.floatEncoder import FloatEncoder
 from cjio.metadata import generate_metadata
@@ -90,7 +89,7 @@ def load(path, transform: bool = True):
     with open(path, 'r') as fin:
         try:
             cm = CityJSON(file=fin)
-        except OSError as e:
+        except OSError:
             raise FileNotFoundError
     cm.cityobjects = dict()
     cm.load_from_j(transform=transform)
@@ -922,7 +921,7 @@ class CityJSON:
     def validate_textures(self):
         """Check if the texture files exist"""
         # TODO: implement validate_textures
-        raise NotImplemented
+        raise NotImplementedError
 
 
     def remove_textures(self):
@@ -1950,7 +1949,7 @@ class CityJSON:
 
         Raises a KeyError exception if metadata is missing
         """
-        if not "metadata" in self.j:
+        if "metadata" not in self.j:
             raise KeyError("Metadata is missing")
         return self.j["metadata"]
 
@@ -1960,7 +1959,7 @@ class CityJSON:
 
         Raises a KeyError exception if metadata is missing
         """
-        if not "+metadata-extended" in self.j:
+        if "+metadata-extended" not in self.j:
             raise KeyError("MetadataExtended is missing")
         return self.j["+metadata-extended"]
 
@@ -2010,9 +2009,7 @@ class CityJSON:
             new_item["processStep"]["processor"] = processor
         if not self.has_metadata_extended():
             self.add_metadata_extended_property()
-        if not "lineage" in self.j["+metadata-extended"]:
-            self.j["+metadata-extended"]["lineage"] = []
-        self.j["+metadata-extended"]["lineage"].append(new_item)
+        if "lineage" not in self.j["+metadata-extended"]:
         
 
     def triangulate(self, sloppy):
