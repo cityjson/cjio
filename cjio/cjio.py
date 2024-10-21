@@ -513,20 +513,6 @@ def vertices_clean_cmd():
     return processor
 
 
-@cli.command("materials_remove")
-def materials_remove_cmd():
-    """
-    Remove all materials.
-    """
-
-    def processor(cm):
-        print_cmd_status("Remove all material")
-        cm.remove_materials()
-        return cm
-
-    return processor
-
-
 @cli.command("textures_remove")
 def textures_remove_cmd():
     """
@@ -756,7 +742,7 @@ def crs_translate_cmd(minxyz):
 @cli.command("metadata_get")
 def metadata_get_cmd():
     """
-    Shows the metadata of this dataset
+    Shows the metadata of this dataset.
 
     The difference between 'info' and this command is that this
     command lists the "pure" metadata as stored in the file.
