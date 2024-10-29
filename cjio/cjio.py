@@ -184,8 +184,8 @@ def export_cmd(filename, format, sloppy):
             if stdoutoutput:
                 buf = cm.export2obj(sloppy)
                 buf.seek(0)
-                for l in buf.readlines():
-                    sys.stdout.write(l)
+                for line in buf.readlines():
+                    sys.stdout.write(line)
             else:
                 print_cmd_status("Exporting CityJSON to OBJ (%s)" % (output["path"]))
                 try:
@@ -211,8 +211,8 @@ def export_cmd(filename, format, sloppy):
             if stdoutoutput:
                 buf = cm.export2stl(sloppy)
                 buf.seek(0)
-                for l in buf.readlines():
-                    sys.stdout.write(l)
+                for line in buf.readlines():
+                    sys.stdout.write(line)
             else:
                 print_cmd_status("Exporting CityJSON to STL (%s)" % (output["path"]))
                 try:
@@ -266,8 +266,8 @@ def export_cmd(filename, format, sloppy):
                     buf = cm.export2jsonl()
                     print_cmd_warning(w)
                 buf.seek(0)
-                for l in buf.readlines():
-                    sys.stdout.write(l)
+                for line in buf.readlines():
+                    sys.stdout.write(line)
             else:
                 print_cmd_status(
                     "Exporting CityJSON to JSON Lines (%s)" % (output["path"])
@@ -284,7 +284,7 @@ def export_cmd(filename, format, sloppy):
                     )
 
     def processor(cm):
-        if (format != "jsonl") and (cityjson.MODULE_TRIANGLE_AVAILABLE == False):
+        if (format != "jsonl") and (not cityjson.MODULE_TRIANGLE_AVAILABLE):
             str = "OBJ|glTF|b3dm export skipped: Python module 'triangle' missing (to triangulate faces)"
             print_cmd_alert(str)
             str = "Install it: https://pypi.org/project/triangle/"
@@ -336,7 +336,7 @@ def save_cmd(filename, indent, textures):
                 )
             else:
                 os.makedirs(os.path.dirname(output["path"]), exist_ok=True)
-        if stdoutoutput == True:
+        if stdoutoutput:
             if indent:
                 json_str = json.dumps(cm.j, indent="\t")
                 sys.stdout.write(json_str)
@@ -384,7 +384,7 @@ def validate_cmd():
     """
 
     def processor(cm):
-        if cityjson.MODULE_CJVAL_AVAILABLE == False:
+        if not cityjson.MODULE_CJVAL_AVAILABLE:
             str = "Validation skipped: Python module 'cjvalpy' not installed"
             print_cmd_alert(str)
             str = "To install it: https://www.github.com/cityjson/cjvalpy"
@@ -423,10 +423,8 @@ def merge_cmd(filepattern):
             try:
                 f = click.open_file(i, mode="r", encoding="utf-8-sig")
                 lsCMs.append(cityjson.reader(f))
-            except IOError:
-                raise click.ClickException('%s: "%s".' % (e, input))
-            except IOError:
-                raise click.ClickException('Invalid file: "%s".' % (input))
+            except IOError as err:
+                raise click.ClickException('%s: "%s".' % (err, input))
         if len(lsCMs) == 0:
             print_cmd_info("WARNING: No files to merge.")
         else:
@@ -559,14 +557,14 @@ def crs_reproject_cmd(epsg, digit):
     """
 
     def processor(cm):
-        if cityjson.MODULE_PYPROJ_AVAILABLE == False:
+        if not cityjson.MODULE_PYPROJ_AVAILABLE:
             str = "Reprojection skipped: Python module 'pyproj' missing (to reproject coordinates)"
             print_cmd_alert(str)
             str = "Install it: https://pypi.org/project/pyproj/"
             print_cmd_warning(str)
             raise click.ClickException("Abort.")
         print_cmd_status("Reproject to EPSG:%d" % epsg)
-        if cm.get_epsg() == None:
+        if cm.get_epsg() is None:
             print_cmd_warning(
                 "WARNING: CityJSON has no EPSG defined, can't be reprojected."
             )
@@ -603,7 +601,7 @@ def upgrade_cmd(digit):
         vlatest = cityjson.CITYJSON_VERSIONS_SUPPORTED[-1]
         print_cmd_status("Upgrade CityJSON file to v%s" % vlatest)
         re, reasons = cm.upgrade_version(vlatest, digit)
-        if re == False:
+        if not re:
             print_cmd_warning("WARNING: %s" % (reasons))
         return cm
 
@@ -620,7 +618,7 @@ def textures_locate_cmd():
         print_cmd_status("Locate the textures")
         try:
             loc = cm.get_textures_location()
-            if loc == None:
+            if loc is None:
                 print_cmd_info("This file does not have textures")
             else:
                 print_cmd_info(loc)
@@ -786,7 +784,7 @@ def triangulate_cmd(sloppy):
     # -- mapbox_earcut available?
     def processor(cm):
         print_cmd_status("Triangulate the CityJSON file")
-        if cityjson.MODULE_TRIANGLE_AVAILABLE == False:
+        if not cityjson.MODULE_TRIANGLE_AVAILABLE:
             str = "Cannot triangulate: Python module 'triangle' missing. Stopping here."
             print_cmd_alert(str)
             str = "Install it: https://pypi.org/project/triangle/"
@@ -794,7 +792,7 @@ def triangulate_cmd(sloppy):
             raise click.ClickException("Abort.")
             return cm
         if not (cm.is_triangulated()):
-            if sloppy == True and cityjson.MODULE_EARCUT_AVAILABLE == False:
+            if sloppy and not cityjson.MODULE_EARCUT_AVAILABLE:
                 str = "Cannot triangulate: Python module 'mapbox_earcut' missing. Stopping here."
                 print_cmd_alert(str)
                 str = "Install it: https://pypi.org/project/mapbox-earcut/"
@@ -828,31 +826,31 @@ def _print_cmd(s, **styles):
 
 @click.pass_context
 def print_cmd_info(ctx, s):
-    if ctx.obj["suppress_msg"] == False:
+    if not ctx.obj["suppress_msg"]:
         _print_cmd(s)
 
 
 @click.pass_context
 def print_cmd_status(ctx, s):
-    if ctx.obj["suppress_msg"] == False:
+    if not ctx.obj["suppress_msg"]:
         _print_cmd(s, bg="cyan", fg="black")
 
 
 @click.pass_context
 def print_cmd_substatus(ctx, s):
-    if ctx.obj["suppress_msg"] == False:
+    if not ctx.obj["suppress_msg"]:
         _print_cmd(s, fg="cyan")
 
 
 @click.pass_context
 def print_cmd_warning(ctx, s):
-    if ctx.obj["suppress_msg"] == False:
+    if not ctx.obj["suppress_msg"]:
         _print_cmd(s, reverse=True, fg="yellow")
 
 
 @click.pass_context
 def print_cmd_alert(ctx, s):
-    if ctx.obj["suppress_msg"] == False:
+    if not ctx.obj["suppress_msg"]:
         _print_cmd(s, reverse=True, fg="red")
 
 

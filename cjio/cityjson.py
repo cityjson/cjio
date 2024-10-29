@@ -32,14 +32,6 @@ try:
 except ImportError:
     MODULE_PYPROJ_AVAILABLE = False
 try:
-    import triangle
-except ImportError:
-    MODULE_TRIANGLE_AVAILABLE = False
-try:
-    import mapbox_earcut
-except ImportError:
-    MODULE_EARCUT_AVAILABLE = False
-try:
     import pandas
 except ImportError:
     MODULE_PANDAS_AVAILABLE = False
@@ -153,11 +145,11 @@ def reader(file, ignore_duplicate_keys=False):
 
 
 def off2cj(file):
-    l = file.readline()
-    while (len(l) <= 1) or (l[0] == "#") or (l[:3] == "OFF"):
-        l = file.readline()
-    numVertices = int(l.split()[0])
-    numFaces = int(l.split()[1])
+    line = file.readline()
+    while (len(line) <= 1) or (line[0] == "#") or (line[:3] == "OFF"):
+        line = file.readline()
+    numVertices = int(line.split()[0])
+    numFaces = int(line.split()[1])
     lstVertices = []
     for i in range(numVertices):
         lstVertices.append(list(map(float, file.readline().split())))
@@ -186,17 +178,16 @@ def off2cj(file):
 
 
 def poly2cj(file):
-    l = file.readline()
-    numVertices = int(l.split()[0])
+    first_line = file.readline()
+    numVertices = int(first_line.split()[0])
     lstVertices = []
     for i in range(numVertices):
         lstVertices.append(list(map(float, file.readline().split()))[1:])
     numFaces = int(file.readline().split()[0])
     lstFaces = []
-    holes = []
     for i in range(numFaces):
-        l = file.readline()
-        irings = int(l.split()[0]) - 1
+        line = file.readline()
+        irings = int(line.split()[0]) - 1
         face = []
         face.append(list(map(int, file.readline().split()[1:])))
         for r in range(irings):
@@ -382,7 +373,7 @@ class CityJSON:
         """Converts the city model to a Pandas data frame where fields are CityObject attributes"""
         if not MODULE_PANDAS_AVAILABLE:
             raise ModuleNotFoundError(
-                "Modul 'pandas' is not available, please install it"
+                "Module 'pandas' is not available, please install it"
             )
         return pandas.DataFrame(
             [co.attributes for co_id, co in self.cityobjects.items()],
@@ -423,10 +414,10 @@ class CityJSON:
         if not isinstance(self.get_version(), str):
             str1 = "CityJSON version should be a string 'X.Y' (eg '1.0')"
             raise errors.CJInvalidVersion(str1)
-        pattern = re.compile("^(\d\.)(\d)$")  # -- correct pattern for version
-        pattern2 = re.compile("^(\d\.)(\d\.)(\d)$")  # -- wrong pattern with X.Y.Z
-        if pattern.fullmatch(self.get_version()) == None:
-            if pattern2.fullmatch(self.get_version()) != None:
+        pattern = re.compile(r"^(\d\.)(\d)$")  # -- correct pattern for version
+        pattern2 = re.compile(r"^(\d\.)(\d\.)(\d)$")  # -- wrong pattern with X.Y.Z
+        if pattern.fullmatch(self.get_version()) is None:
+            if pattern2.fullmatch(self.get_version()) is not None:
                 str1 = "CityJSON version should be only X.Y (eg '1.0') and not X.Y.Z (eg '1.0.1')"
                 raise errors.CJInvalidVersion(str1)
             else:
@@ -472,7 +463,7 @@ class CityJSON:
         return "transform" in self.j
 
     def read(self, file, ignore_duplicate_keys=False):
-        if ignore_duplicate_keys == True:
+        if ignore_duplicate_keys:
             try:
                 self.j = json.loads(file.read())
             except json.decoder.JSONDecodeError as err:
@@ -517,7 +508,7 @@ class CityJSON:
         # print("Downloading the Extension JSON schema file(s):")
         if "extensions" in self.j:
             for ext in self.j["extensions"]:
-                theurl = self.j["extensions"][ext]["url"]
+                #theurl = self.j["extensions"][ext]["url"]
                 try:
                     with urllib.request.urlopen(self.j["extensions"][ext]["url"]) as f:
                         # print("\t- %s" % self.j["extensions"][ext]["url"])
@@ -526,12 +517,12 @@ class CityJSON:
                         # tmp = json.loads(f.read().decode('utf-8'))
                         sf = f.read().decode("utf-8")
                         js.append(sf)
-                except:
+                except Exception as exp:
                     s = (
                         "'%s' cannot be downloaded\nAbort"
                         % self.j["extensions"][ext]["url"]
                     )
-                    raise Exception(s)
+                    raise exp
         val = cjvalpy.CJValidator(js)
         val.validate()
         re = val.get_report()
@@ -569,7 +560,7 @@ class CityJSON:
         """
         if "metadata" not in self.j:
             self.j["metadata"] = {}
-        if self.is_empty() == True:
+        if self.is_empty():
             bbox = [0, 0, 0, 0, 0, 0]
             self.j["metadata"]["geographicalExtent"] = bbox
             return bbox
@@ -586,7 +577,7 @@ class CityJSON:
                 self.j["metadata"]["identifier"] = str(uuid.uuid4())
 
     def set_epsg(self, newepsg):
-        if newepsg == None:
+        if newepsg is None:
             if "metadata" in self.j:
                 if "referenceSystem" in self.j["metadata"]:
                     del self.j["metadata"]["referenceSystem"]
@@ -613,7 +604,7 @@ class CityJSON:
 
         for co in self.j["CityObjects"]:
             if (
-                addifmissing == True
+                addifmissing
                 or "geographicalExtent" in self.j["CityObjects"][co]
             ):
                 vs = []
@@ -762,7 +753,7 @@ class CityJSON:
         # -- copy selected CO to the j2
         re = subset.select_co_ids(self.j, lsIDs)
         # -- exclude
-        if exclude == True:
+        if exclude:
             sallkeys = set(self.j["CityObjects"].keys())
             re = sallkeys - re
         re = list(re)
@@ -1024,7 +1015,7 @@ class CityJSON:
         else:
             s.append("materials = {}".format(False))
             s.append("textures = {}".format(False))
-        if long == False:
+        if not long:
             return s
         # -- all/long version
         s.append("vertices_total = {}".format(len(self.j["vertices"])))
@@ -1063,7 +1054,7 @@ class CityJSON:
 
     def print_info_tree(self, s, d, t, level):
         for each in d:
-            if each.startswith(t + "/") == True and each.count("/") == level:
+            if each.startswith(t + "/") and each.count("/") == level:
                 x = each.rsplit("/")[-1]
                 s2 = "{}|-- {} ({})".format(" " * 4 * level, x, d[each])
                 s.append(s2)
@@ -1192,10 +1183,8 @@ class CityJSON:
         self.j["transform"]["scale"] = [ss, ss, ss]
         self.j["transform"]["translate"] = [bbox[0], bbox[1], bbox[2]]
         # -- clean the file
-        re = self.remove_duplicate_vertices()
-        # print ("Remove duplicates:", re)
-        re = self.remove_orphan_vertices()
-        # print ("Remove orphans:", re)
+        _ = self.remove_duplicate_vertices()
+        _ = self.remove_orphan_vertices()
         return True
 
     def decompress(self):
@@ -1328,7 +1317,7 @@ class CityJSON:
                                 if g2["lod"] == thelod:
                                     b = True
                                     break
-                            if b == False:
+                            if not b:
                                 self.j["CityObjects"][theid]["geometry"].append(g)
                                 update_geom_indices(
                                     self.j["CityObjects"][theid]["geometry"][-1][
@@ -1430,27 +1419,7 @@ class CityJSON:
                                     raise KeyError(
                                         f"The member 'values' is missing from the texture '{m}' in CityObject {theid}"
                                     )
-            # -- metadata
-            if self.has_metadata_extended() or cm.has_metadata_extended():
-                try:
-                    fids = [fid for fid in cm.j["CityObjects"]]
-                    src = {
-                        "description": cm.get_title(),
-                        "sourceReferenceSystem": "urn:ogc:def:crs:EPSG::{}".format(
-                            cm.get_epsg()
-                        )
-                        if cm.get_epsg()
-                        else None,
-                    }
-                    self.add_lineage_item(
-                        "Merge {} into {}".format(
-                            cm.get_identifier(), self.get_identifier()
-                        ),
-                        features=fids,
-                        source=[src],
-                    )
-                except:
-                    pass
+
         self.remove_duplicate_vertices()
         self.remove_orphan_vertices()
         self.update_bbox()
@@ -1483,7 +1452,6 @@ class CityJSON:
                 if sub in self.j["CityObjects"][id]:
                     for each in self.j["CityObjects"][id][sub]:
                         children.append(each)
-                        b = True
             if len(children) > 0:
                 # -- remove the Parts/Installations
                 self.j["CityObjects"][id]["children"] = children
@@ -1613,7 +1581,7 @@ class CityJSON:
             if self.j["CityObjects"][theid]["type"] == "GenericCityObject":
                 self.j["CityObjects"][theid]["type"] = "+GenericCityObject"
                 gco = True
-        if gco == True:
+        if gco:
             reasons = (
                 '"GenericCityObject" is no longer in v1.1, instead Extensions are used.'
             )
@@ -1889,7 +1857,7 @@ class CityJSON:
                     for face in geom["boundaries"]:
                         re, b = geom_help.triangulate_face(face, vnp, sloppy)
                         n, bb = geom_help.get_normal_newell(face)
-                        if b == True:
+                        if b:
                             for t in re:
                                 out.write(
                                     "facet normal %f %f %f\nouter loop\n"
@@ -1925,7 +1893,7 @@ class CityJSON:
                         for i, face in enumerate(shell):
                             re, b = geom_help.triangulate_face(face, vnp, sloppy)
                             n, bb = geom_help.get_normal_newell(face)
-                            if b == True:
+                            if b:
                                 for t in re:
                                     out.write(
                                         "facet normal %f %f %f\nouter loop\n"
@@ -1959,7 +1927,7 @@ class CityJSON:
         out.write("endsolid")
         return out
 
-    def reproject(self, epsg, digit):
+    def reproject(self, epsg, digit=None):
         """
         Project from one CRS to another.
         First the vertices are decompressed and then they are recompressed.
@@ -2047,17 +2015,7 @@ class CityJSON:
         self.remove_duplicate_vertices()
         self.remove_orphan_vertices()
         self.update_bbox()
-        # -- metadata
-        if self.has_metadata_extended():
-            try:
-                self.update_metadata_extended(overwrite=True)
-                fids = [fid for fid in self.j["CityObjects"]]
-                self.add_lineage_item(
-                    "Extract LoD{} from {}".format(thelod, self.get_identifier()),
-                    features=fids,
-                )
-            except:
-                pass
+
 
     def translate(self, minxyz: list = None):
         if minxyz is None:
@@ -2159,7 +2117,7 @@ class CityJSON:
                             re, b = geom_help.triangulate_face(face, vnp, sloppy)
                             # re, b = geom_help.triangulate_face(face, vnp)
 
-                        if b == True:
+                        if b:
                             for t in re:
                                 tlist2 = []
                                 tlist2.append(t.tolist())
@@ -2173,9 +2131,9 @@ class CityJSON:
                                         slist.append(geom["semantics"]["values"][i])
 
                                 if mflag:
-                                    for j, l in enumerate(mlist):
-                                        if type(l).__name__ == "list":
-                                            l.append(
+                                    for j, ls in enumerate(mlist):
+                                        if type(ls).__name__ == "list":
+                                            ls.append(
                                                 material[list(material.keys())[j]][
                                                     "values"
                                                 ][i]
@@ -2246,7 +2204,7 @@ class CityJSON:
                                 b = True
                             else:
                                 re, b = geom_help.triangulate_face(face, vnp, sloppy)
-                            if b == True:
+                            if b:
                                 for t in re:
                                     tlist3 = []
                                     tlist3.append(t.tolist())
@@ -2263,9 +2221,9 @@ class CityJSON:
                                                 geom["semantics"]["values"][sidx][i]
                                             )
                                     if mflag:
-                                        for j, l in enumerate(mlist1):
-                                            if type(l).__name__ == "list":
-                                                l.append(
+                                        for j, ls in enumerate(mlist1):
+                                            if type(ls).__name__ == "list":
+                                                ls.append(
                                                     material[list(material.keys())[j]][
                                                         "values"
                                                     ][0][i]
@@ -2291,13 +2249,13 @@ class CityJSON:
                         tlist1.append(tlist2)
                         if slist is not None:
                             slist.append(slist1)
-                        for j, l in enumerate(mlist):
-                            if type(l).__name__ == "list" and len(mlist1[j]) != 0:
-                                l.append(mlist1[j])
+                        for j, ls in enumerate(mlist):
+                            if type(ls).__name__ == "list" and len(mlist1[j]) != 0:
+                                ls.append(mlist1[j])
                             else:
                                 continue
-                        for j, l in enumerate(texlist):
-                            l.append(texlist0[j])
+                        for j, ls in enumerate(texlist):
+                            ls.append(texlist0[j])
 
                     geom["boundaries"] = tlist1
                     if sflag:
@@ -2360,7 +2318,7 @@ class CityJSON:
                                     re, b = geom_help.triangulate_face(
                                         face, vnp, sloppy
                                     )
-                                if b == True:
+                                if b:
                                     for t in re:
                                         tlist4 = []
                                         tlist4.append(t.tolist())
@@ -2392,9 +2350,9 @@ class CityJSON:
                                                 )
 
                                         if mflag:
-                                            for j, l in enumerate(mlist2):
-                                                if type(l).__name__ == "list":
-                                                    l.append(
+                                            for j, ls in enumerate(mlist2):
+                                                if type(ls).__name__ == "list":
+                                                    ls.append(
                                                         material[
                                                             list(material.keys())[j]
                                                         ]["values"][0][0][i]
@@ -2420,24 +2378,24 @@ class CityJSON:
                             tlist2.append(tlist3)
                             if slist1 is not None:
                                 slist1.append(slist2)
-                            for j, l in enumerate(mlist1):
-                                if type(l).__name__ == "list" and len(mlist2[j]) != 0:
-                                    l.append(mlist2[j])
+                            for j, ls in enumerate(mlist1):
+                                if type(ls).__name__ == "list" and len(mlist2[j]) != 0:
+                                    ls.append(mlist2[j])
                                 else:
                                     continue
-                            for j, l in enumerate(texlist0):
-                                l.append(texlist1[j])
+                            for j, ls in enumerate(texlist0):
+                                ls.append(texlist1[j])
 
                         tlist1.append(tlist2)
                         if slist is not None:
                             slist.append(slist1)
-                        for j, l in enumerate(mlist):
-                            if type(l).__name__ == "list" and len(mlist1[j]) != 0:
-                                l.append(mlist1[j])
+                        for j, ls in enumerate(mlist):
+                            if type(ls).__name__ == "list" and len(mlist1[j]) != 0:
+                                ls.append(mlist1[j])
                             else:
                                 continue
-                        for j, l in enumerate(texlist):
-                            l.append(texlist0[j])
+                        for j, ls in enumerate(texlist):
+                            ls.append(texlist0[j])
 
                     geom["boundaries"] = tlist1
                     if sflag:
