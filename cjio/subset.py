@@ -19,17 +19,17 @@ def select_co_ids(j, IDs):
                     re.add(member)
 
     # -- add children "recursively"
-    l = []
+    children_list = []
     for id in re:
         if "children" in j["CityObjects"][id]:
             for child in j["CityObjects"][id]["children"]:
-                l.append(child)
-    while len(l) > 0:
-        c = l.pop()
+                children_list.append(child)
+    while len(children_list) > 0:
+        c = children_list.pop()
         re.add(c)
         if "children" in j["CityObjects"][c]:
             for child in j["CityObjects"][c]["children"]:
-                l.append(child)
+                children_list.append(child)
     return re
 
 

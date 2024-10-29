@@ -343,7 +343,7 @@ class Geometry(object):
         '''
         Creates a mapping from surfaces to associated textures and vertices-texture
         '''
-        if texture_obj == None or appearance == None:
+        if texture_obj is None or  appearance is None:
             return {}
         texture_idx = {}
         num_surfaces = len(self.boundaries)
