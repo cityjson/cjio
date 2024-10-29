@@ -1,6 +1,5 @@
-"""Demonstrate what is when we define the CityModel-objects in a top-down approach
+"""Demonstrate what is when we define the CityModel-objects in a top-down approach"""
 
-"""
 import json
 from copy import deepcopy
 import collections
@@ -17,16 +16,25 @@ if MODULE_PYPROJ_AVAILABLE:
 #     for geom in co.geometry:
 #         for srf in geom.surfaces.values():
 
-warnings.warn("cityjson.models module will be deprecated, because the cjio API is under "
-              "refactoring. The new cityjson library, cjlib, is coming soon.",
-              DeprecationWarning)
+warnings.warn(
+    "cityjson.models module will be deprecated, because the cjio API is under "
+    "refactoring. The new cityjson library, cjlib, is coming soon.",
+    DeprecationWarning,
+)
+
 
 class CityObject(object):
     """CityObject class"""
-    def __init__(self, id,
-                 type: str=None, geometry: Iterable=None,
-                 attributes: Mapping=None,
-                 children: Iterable=None, parents: Iterable=None):
+
+    def __init__(
+        self,
+        id,
+        type: str = None,
+        geometry: Iterable = None,
+        attributes: Mapping = None,
+        children: Iterable = None,
+        parents: Iterable = None,
+    ):
         self.id = id
         self.type = type
         self.geometry = [] if geometry is None else geometry
@@ -40,11 +48,11 @@ class CityObject(object):
     def _get_info(self):
         """Print information about the object"""
         info = collections.OrderedDict()
-        info['id'] = self.id
-        info['type'] = self.type
-        info['attributes'] = self.attributes
-        info['children'] = self.children
-        info['parents'] = self.parents
+        info["id"] = self.id
+        info["type"] = self.type
+        info["attributes"] = self.attributes
+        info["children"] = self.children
+        info["parents"] = self.parents
         gt = set()
         gl = set()
         sf = set()
@@ -54,10 +62,10 @@ class CityObject(object):
                 gl.add(geom.lod)
                 if geom.surfaces:
                     for s_i, srf in geom.surfaces.items():
-                        sf.add(srf['type'])
-        info['geometry_type'] = list(gt)
-        info['geometry_lod'] = list(gl)
-        info['semantic_surfaces'] = list(sf)
+                        sf.add(srf["type"])
+        info["geometry_type"] = list(gt)
+        info["geometry_lod"] = list(gl)
+        info["semantic_surfaces"] = list(sf)
         return json.dumps(info, indent=2)
 
     def get_vertices(self):
@@ -67,7 +75,7 @@ class CityObject(object):
             vtx += geom.get_vertices()
         return vtx
 
-    def build_index(self, vtx_lookup: Mapping=None, vtx_idx: int=0):
+    def build_index(self, vtx_lookup: Mapping = None, vtx_idx: int = 0):
         """Build a coordinate list and index the vertices for Geometry objects
         in the CityObject.
         """
@@ -76,34 +84,46 @@ class CityObject(object):
         for geom in self.geometry:
             geom_idx, vtx_lookup, vtx_idx = geom.build_index(vtx_lookup, vtx_idx)
             j = geom.to_json()
-            j['boundaries'] = geom_idx
+            j["boundaries"] = geom_idx
             if len(geom.surfaces) > 0:
                 geom.build_semantic_surface_index()
-                j['semantics'] = geom.semantics
+                j["semantics"] = geom.semantics
             geometry.append(j)
         return (geometry, vtx_lookup, vtx_idx)
 
     def to_json(self):
         """Return a dictionary that conforms the CityJSON schema"""
         j = dict()
-        j['type'] = self.type
-        j['geometry'] = []
+        j["type"] = self.type
+        j["geometry"] = []
         if self.attributes:
-            j['attributes'] = self.attributes
+            j["attributes"] = self.attributes
         if self.children:
-            j['children'] = self.children
+            j["children"] = self.children
         if self.parents:
-            j['parents'] = self.parents
+            j["parents"] = self.parents
         return j
+
 
 class Geometry(object):
     """CityJSON Geometry object"""
-    def __init__(self, type: str=None, lod: str=None,
-                 boundaries: Iterable=None, semantics_obj: Mapping=None,
-                 vertices=None, transform=None, texture_obj=None, appearance=None):
-        self.type = type # TODO: use a property for allowing only the specified types
+
+    def __init__(
+        self,
+        type: str = None,
+        lod: str = None,
+        boundaries: Iterable = None,
+        semantics_obj: Mapping = None,
+        vertices=None,
+        transform=None,
+        texture_obj=None,
+        appearance=None,
+    ):
+        self.type = type  # TODO: use a property for allowing only the specified types
         self.lod = lod
-        self.boundaries = self._dereference_boundaries(type, boundaries, vertices, transform)
+        self.boundaries = self._dereference_boundaries(
+            type, boundaries, vertices, transform
+        )
         self.surfaces = self._dereference_surfaces(semantics_obj)
         self.semantics = {}
         self.texture = self._dereference_textures(texture_obj, appearance)
@@ -136,17 +156,19 @@ class Geometry(object):
                                 if isinstance(jdx, list):
                                     for k, kdx in enumerate(jdx):
                                         if isinstance(kdx, list):
-                                            raise TypeError("The 'values' member of 'semantics' is too many levels deep")
+                                            raise TypeError(
+                                                "The 'values' member of 'semantics' is too many levels deep"
+                                            )
                                         if kdx is not None:
                                             if kdx not in surface_idx.keys():
-                                                surface_idx[kdx] = [[i,j,k]]
+                                                surface_idx[kdx] = [[i, j, k]]
                                             else:
-                                                surface_idx[kdx].append([i,j,k])
+                                                surface_idx[kdx].append([i, j, k])
                                 else:
                                     if jdx not in surface_idx.keys():
-                                        surface_idx[jdx] = [[i,j]]
+                                        surface_idx[jdx] = [[i, j]]
                                     else:
-                                        surface_idx[jdx].append([i,j])
+                                        surface_idx[jdx].append([i, j])
                     else:
                         if idx not in surface_idx.keys():
                             surface_idx[idx] = [[i]]
@@ -164,7 +186,12 @@ class Geometry(object):
         """
         # NOTE BD: it might be ok to simply return the iterator from map()
         if vertices is not None:
-            return list(map(lambda v_i: Geometry._transform_vertex(vertices[v_i], transform), ring))
+            return list(
+                map(
+                    lambda v_i: Geometry._transform_vertex(vertices[v_i], transform),
+                    ring,
+                )
+            )
         else:
             return [Geometry._transform_vertex(vtx, transform) for vtx in ring]
 
@@ -181,10 +208,16 @@ class Geometry(object):
         if transform is None:
             return vertex
         else:
-            x = deepcopy((vertex[0] * transform["scale"][0]) + transform["translate"][0])
-            y = deepcopy((vertex[1] * transform["scale"][1]) + transform["translate"][1])
-            z = deepcopy((vertex[2] * transform["scale"][2]) + transform["translate"][2])
-            return x,y,z
+            x = deepcopy(
+                (vertex[0] * transform["scale"][0]) + transform["translate"][0]
+            )
+            y = deepcopy(
+                (vertex[1] * transform["scale"][1]) + transform["translate"][1]
+            )
+            z = deepcopy(
+                (vertex[2] * transform["scale"][2]) + transform["translate"][2]
+            )
+            return x, y, z
 
     @staticmethod
     def _reproject_vertex(vertex, transformer):
@@ -200,7 +233,6 @@ class Geometry(object):
     @staticmethod
     def _reproject_ring(ring, transformer):
         return [Geometry._reproject_vertex(vtx, transformer) for vtx in ring]
-
 
     @staticmethod
     def _vertex_indexer(geom, vtx_lookup, vtx_idx):
@@ -228,32 +260,57 @@ class Geometry(object):
         self_cp = deepcopy(self)
         if not self_cp.boundaries:
             return self_cp
-        if self_cp.type.lower() == 'multipoint':
-            self_cp.boundaries = self_cp._vertex_mapper(self_cp.boundaries, transform,
-                                                        vertices)
-        elif self_cp.type.lower() == 'multilinestring':
-            self_cp.boundaries = [self_cp._vertex_mapper(ring, transform, vertices) for ring in self_cp.boundaries]
-        elif self_cp.type.lower() == 'multisurface' or self_cp.type.lower() == 'compositesurface':
+        if self_cp.type.lower() == "multipoint":
+            self_cp.boundaries = self_cp._vertex_mapper(
+                self_cp.boundaries, transform, vertices
+            )
+        elif self_cp.type.lower() == "multilinestring":
+            self_cp.boundaries = [
+                self_cp._vertex_mapper(ring, transform, vertices)
+                for ring in self_cp.boundaries
+            ]
+        elif (
+            self_cp.type.lower() == "multisurface"
+            or self_cp.type.lower() == "compositesurface"
+        ):
             s = list()
             for surface in self_cp.boundaries:
-                s.append([self_cp._vertex_mapper(ring, transform, vertices) for ring in surface])
+                s.append(
+                    [
+                        self_cp._vertex_mapper(ring, transform, vertices)
+                        for ring in surface
+                    ]
+                )
             self_cp.boundaries = s
-        elif self_cp.type.lower() == 'solid':
+        elif self_cp.type.lower() == "solid":
             sh = list()
             for shell in self_cp.boundaries:
                 s = list()
                 for surface in shell:
-                    s.append([self_cp._vertex_mapper(ring, transform, vertices) for ring in surface])
+                    s.append(
+                        [
+                            self_cp._vertex_mapper(ring, transform, vertices)
+                            for ring in surface
+                        ]
+                    )
                 sh.append(s)
             self_cp.boundaries = sh
-        elif self_cp.type.lower() == 'multisolid' or self_cp.type.lower() == 'compositesolid':
+        elif (
+            self_cp.type.lower() == "multisolid"
+            or self_cp.type.lower() == "compositesolid"
+        ):
             solids = list()
             for solid in self_cp.boundaries:
                 sh = list()
                 for shell in solid:
                     s = list()
                     for surface in shell:
-                        s.append([self_cp._vertex_mapper(ring, transform, vertices) for ring in surface])
+                        s.append(
+                            [
+                                self_cp._vertex_mapper(ring, transform, vertices)
+                                for ring in surface
+                            ]
+                        )
                     sh.append(s)
                 solids.append(sh)
             self_cp.boundaries = solids
@@ -270,45 +327,61 @@ class Geometry(object):
         # TODO BD optimize: would be much faster with recursion
         if not boundaries:
             return list()
-        if btype.lower() == 'multipoint':
+        if btype.lower() == "multipoint":
             if not isinstance(boundaries[0], int):
                 raise TypeError("Boundary definition does not correspond to MultiPoint")
             return self._vertex_mapper(boundaries, transform, vertices)
-        elif btype.lower() == 'multilinestring':
+        elif btype.lower() == "multilinestring":
             if not isinstance(boundaries[0][0], int):
                 raise TypeError("Boundary definition does not correspond to MultiPoint")
             return [self._vertex_mapper(b, transform, vertices) for b in boundaries]
-        elif btype.lower() == 'multisurface' or btype.lower() == 'compositesurface':
+        elif btype.lower() == "multisurface" or btype.lower() == "compositesurface":
             s = list()
             if not isinstance(boundaries[0][0][0], int):
-                raise TypeError("Boundary definition does not correspond to MultiSurface or CompositeSurface")
+                raise TypeError(
+                    "Boundary definition does not correspond to MultiSurface or CompositeSurface"
+                )
             for surface in boundaries:
-                s.append([self._vertex_mapper(ring, transform, vertices) for ring in surface])
+                s.append(
+                    [self._vertex_mapper(ring, transform, vertices) for ring in surface]
+                )
             return s
-        elif btype.lower() == 'solid':
+        elif btype.lower() == "solid":
             sh = list()
             if not isinstance(boundaries[0][0][0][0], int):
                 raise TypeError("Boundary definition does not correspond to Solid")
             for shell in boundaries:
                 s = list()
                 for surface in shell:
-                    s.append([self._vertex_mapper(ring, transform, vertices) for ring in surface])
+                    s.append(
+                        [
+                            self._vertex_mapper(ring, transform, vertices)
+                            for ring in surface
+                        ]
+                    )
                 sh.append(s)
             return sh
-        elif btype.lower() == 'multisolid' or btype.lower() == 'compositesolid':
+        elif btype.lower() == "multisolid" or btype.lower() == "compositesolid":
             solids = list()
             if not isinstance(boundaries[0][0][0][0][0], int):
-                raise TypeError("Boundary definition does not correspond to MultiSolid or CompositeSolid")
+                raise TypeError(
+                    "Boundary definition does not correspond to MultiSolid or CompositeSolid"
+                )
             for solid in boundaries:
                 sh = list()
                 for shell in solid:
                     s = list()
                     for surface in shell:
-                        s.append([self._vertex_mapper(ring, transform, vertices) for ring in surface])
+                        s.append(
+                            [
+                                self._vertex_mapper(ring, transform, vertices)
+                                for ring in surface
+                            ]
+                        )
                     sh.append(s)
                 solids.append(sh)
             return solids
-        elif btype.lower() == 'geometryinstance':
+        elif btype.lower() == "geometryinstance":
             warnings.warn("Unsupported geometry type GeometryInstance", UserWarning)
         else:
             raise TypeError("Unknown geometry type: {}".format(btype))
@@ -319,52 +392,52 @@ class Geometry(object):
         :param semantics_obj: Semantic Surface object as extracted from CityJSON file
         """
         semantic_surfaces = dict()
-        if not semantics_obj or not semantics_obj['values']:
+        if not semantics_obj or not semantics_obj["values"]:
             return semantic_surfaces
         else:
-            srf_idx = self._index_surface_boundaries(semantics_obj['values'])
-            for i,srf in enumerate(semantics_obj['surfaces']):
+            srf_idx = self._index_surface_boundaries(semantics_obj["values"])
+            for i, srf in enumerate(semantics_obj["surfaces"]):
                 attributes = dict()
-                semantic_surfaces[i] = {'surface_idx': srf_idx.get(i)}
-                for key,value in srf.items():
-                    if key == 'type':
-                        semantic_surfaces[i]['type'] = value
-                    elif key == 'children':
-                        semantic_surfaces[i]['children'] = value
-                    elif key == 'parent':
-                        semantic_surfaces[i]['parent'] = value
+                semantic_surfaces[i] = {"surface_idx": srf_idx.get(i)}
+                for key, value in srf.items():
+                    if key == "type":
+                        semantic_surfaces[i]["type"] = value
+                    elif key == "children":
+                        semantic_surfaces[i]["children"] = value
+                    elif key == "parent":
+                        semantic_surfaces[i]["parent"] = value
                     else:
                         attributes[key] = value
                 if len(attributes) > 0:
-                    semantic_surfaces[i]['attributes'] = attributes
+                    semantic_surfaces[i]["attributes"] = attributes
             return semantic_surfaces
 
     def _dereference_textures(self, texture_obj, appearance):
-        '''
+        """
         Creates a mapping from surfaces to associated textures and vertices-texture
-        '''
-        if texture_obj is None or  appearance is None:
+        """
+        if texture_obj is None or appearance is None:
             return {}
         texture_idx = {}
         num_surfaces = len(self.boundaries)
-        if self.type == 'Solid':
+        if self.type == "Solid":
             num_surfaces = len(self.boundaries[0])
         for c in range(num_surfaces):
             t = {}
             for ele in texture_obj:
-                textures = texture_obj[ele]['values']
-                if self.type == 'Solid':
+                textures = texture_obj[ele]["values"]
+                if self.type == "Solid":
                     textures = textures[0]
                 textures = textures[c]
-                d = {'texture':[],'vertices-texture':[]}
+                d = {"texture": [], "vertices-texture": []}
                 for texture_list in textures:
                     if texture_list == [None]:
                         continue
-                    d['texture'].append(appearance['textures'][texture_list[0]])
+                    d["texture"].append(appearance["textures"][texture_list[0]])
                     vt = []
                     for i in texture_list[1:]:
-                        vt.append(appearance['vertices-texture'][i])
-                    d['vertices-texture'].append(vt)
+                        vt.append(appearance["vertices-texture"][i])
+                    d["vertices-texture"].append(vt)
                 t[ele] = d
             texture_idx[c] = t
         return texture_idx
@@ -374,24 +447,27 @@ class Geometry(object):
         # TODO BD optimize: would be much faster with recursion
         if not self.boundaries:
             return list()
-        if self.type.lower() == 'multipoint':
+        if self.type.lower() == "multipoint":
             return self.boundaries
-        elif self.type.lower() == 'multilinestring':
+        elif self.type.lower() == "multilinestring":
             return [b for b in self.boundaries]
-        elif self.type.lower() == 'multisurface' or self.type.lower() == 'compositesurface':
+        elif (
+            self.type.lower() == "multisurface"
+            or self.type.lower() == "compositesurface"
+        ):
             vtx = list()
             for surface in self.boundaries:
                 for ring in surface:
                     vtx += ring
             return vtx
-        elif self.type.lower() == 'solid':
+        elif self.type.lower() == "solid":
             vtx = list()
             for shell in self.boundaries:
                 for surface in shell:
                     for ring in surface:
                         vtx += ring
             return vtx
-        elif self.type.lower() == 'multisolid' or self.type.lower() == 'compositesolid':
+        elif self.type.lower() == "multisolid" or self.type.lower() == "compositesolid":
             vtx = list()
             for solid in self.boundaries:
                 for shell in solid:
@@ -415,17 +491,21 @@ class Geometry(object):
         # a Geometry object of MultiSufrace type
         if not isinstance(surface, dict):
             raise TypeError("surface must be a dict")
-        if (len(surface) > 0 and 'surface_idx' not in surface):
+        if len(surface) > 0 and "surface_idx" not in surface:
             raise TypeError("surface must be a single surface")
-        if not surface['surface_idx'] or len(surface['surface_idx']) == 0:
+        if not surface["surface_idx"] or len(surface["surface_idx"]) == 0:
             return []
         else:
-            return (self.boundaries[i[0]] if len(i) == 1
-                    else self.boundaries[i[0]][i[1]] if len(i) == 2
-                    else self.boundaries[i[0]][i[1]][i[2]]
-                    for i in surface['surface_idx'])
+            return (
+                self.boundaries[i[0]]
+                if len(i) == 1
+                else self.boundaries[i[0]][i[1]]
+                if len(i) == 2
+                else self.boundaries[i[0]][i[1]][i[2]]
+                for i in surface["surface_idx"]
+            )
 
-    def build_index(self, vtx_lookup: Mapping=None, vtx_idx: int=0):
+    def build_index(self, vtx_lookup: Mapping = None, vtx_idx: int = 0):
         """Build a coordinate list and index the vertices in the boundary.
 
         This method is used when converting the Geometry to the JSON output.
@@ -433,37 +513,48 @@ class Geometry(object):
         vtx_lookup = {} if vtx_lookup is None else vtx_lookup
         if not self.boundaries:
             return ([], vtx_lookup, vtx_idx)
-        if self.type.lower() == 'multipoint':
-            bdry, vtx_lookup, vtx_idx = self._vertex_indexer(self.boundaries, vtx_lookup, vtx_idx)
+        if self.type.lower() == "multipoint":
+            bdry, vtx_lookup, vtx_idx = self._vertex_indexer(
+                self.boundaries, vtx_lookup, vtx_idx
+            )
             return (bdry, vtx_lookup, vtx_idx)
-        elif self.type.lower() == 'multilinestring':
+        elif self.type.lower() == "multilinestring":
             mline = list()
             for _boundary in self.boundaries:
-                bdry, vtx_lookup, vtx_idx = self._vertex_indexer(_boundary, vtx_lookup, vtx_idx)
+                bdry, vtx_lookup, vtx_idx = self._vertex_indexer(
+                    _boundary, vtx_lookup, vtx_idx
+                )
                 mline.append(bdry)
             return (mline, vtx_lookup, vtx_idx)
-        elif self.type.lower() == 'multisurface' or self.type.lower() == 'compositesurface':
+        elif (
+            self.type.lower() == "multisurface"
+            or self.type.lower() == "compositesurface"
+        ):
             msurface = list()
             for _surface in self.boundaries:
                 r = list()
                 for _ring in _surface:
-                    bdry, vtx_lookup, vtx_idx = self._vertex_indexer(_ring, vtx_lookup, vtx_idx)
+                    bdry, vtx_lookup, vtx_idx = self._vertex_indexer(
+                        _ring, vtx_lookup, vtx_idx
+                    )
                     r.append(bdry)
                 msurface.append(r)
             return (msurface, vtx_lookup, vtx_idx)
-        elif self.type.lower() == 'solid':
+        elif self.type.lower() == "solid":
             shell = list()
             for _shell in self.boundaries:
                 msurface = list()
                 for _surface in _shell:
                     r = list()
                     for _ring in _surface:
-                        bdry, vtx_lookup, vtx_idx = self._vertex_indexer(_ring, vtx_lookup, vtx_idx)
+                        bdry, vtx_lookup, vtx_idx = self._vertex_indexer(
+                            _ring, vtx_lookup, vtx_idx
+                        )
                         r.append(bdry)
                     msurface.append(r)
                 shell.append(msurface)
             return (shell, vtx_lookup, vtx_idx)
-        elif self.type.lower() == 'multisolid' or self.type.lower() == 'compositesolid':
+        elif self.type.lower() == "multisolid" or self.type.lower() == "compositesolid":
             msolid = list()
             for solid in self.boundaries:
                 shell = list()
@@ -472,7 +563,9 @@ class Geometry(object):
                     for _surface in _shell:
                         r = list()
                         for _ring in _surface:
-                            bdry, vtx_lookup, vtx_idx = self._vertex_indexer(_ring, vtx_lookup, vtx_idx)
+                            bdry, vtx_lookup, vtx_idx = self._vertex_indexer(
+                                _ring, vtx_lookup, vtx_idx
+                            )
                             r.append(bdry)
                         msurface.append(r)
                     shell.append(msurface)
@@ -484,39 +577,41 @@ class Geometry(object):
     def build_semantic_surface_index(self):
         """Index the semantic surfaces in way that is stored in JSON."""
         # TODO: handle parent-children
-        self.semantics['surfaces'] = []
-        if self.type.lower() == 'multisurface':
-            self.semantics['values'] = [None for i in range(len(self.boundaries))]
-        elif self.type.lower() == 'solid':
-            self.semantics['values'] = []
+        self.semantics["surfaces"] = []
+        if self.type.lower() == "multisurface":
+            self.semantics["values"] = [None for i in range(len(self.boundaries))]
+        elif self.type.lower() == "solid":
+            self.semantics["values"] = []
             for i in range(len(self.boundaries)):
-                self.semantics['values'].append([])
+                self.semantics["values"].append([])
                 for j in range(len(self.boundaries[i])):
-                    self.semantics['values'][i].append(None)
+                    self.semantics["values"][i].append(None)
         else:
-            raise ValueError(f"{self.type} is not supported at the moment for semantic surfaces")
+            raise ValueError(
+                f"{self.type} is not supported at the moment for semantic surfaces"
+            )
         for i, srf in self.surfaces.items():
-            if srf['surface_idx']:
+            if srf["surface_idx"]:
                 _surface = dict()
-                _surface['type'] = srf['type']
-                if 'attributes' in srf:
-                    for attr, value in srf['attributes'].items():
+                _surface["type"] = srf["type"]
+                if "attributes" in srf:
+                    for attr, value in srf["attributes"].items():
                         _surface[attr] = value
                         # TODO: make it work with null-s in semantic surfaces
-                self.semantics['surfaces'].append(_surface)
+                self.semantics["surfaces"].append(_surface)
                 # TODO: optimize for loop by switching it with the conditional
-                for bdry in srf['surface_idx']:
+                for bdry in srf["surface_idx"]:
                     if len(bdry) == 1:
-                        self.semantics['values'][bdry[0]] = i
+                        self.semantics["values"][bdry[0]] = i
                     elif len(bdry) == 2:
-                        self.semantics['values'][bdry[0]][bdry[1]] = i
+                        self.semantics["values"][bdry[0]][bdry[1]] = i
             else:
                 # There is an unused Semantic Object on the geometry. The Semantic
                 # Object was imported from the cityjson.
                 # TODO: log("Removing unused Semantic Object {srf['type']} from the Geometry")
                 pass
 
-    def get_surfaces(self, type: str=None, lod: str=None):
+    def get_surfaces(self, type: str = None, lod: str = None):
         """Get the semantic surfaces of the given type
 
         The whole boundary is returned if a geometry does not have semantics, or has a LoD < 2,
@@ -529,16 +624,20 @@ class Geometry(object):
         if (type is None) or (lod and float(lod) < 2.0) or len(self.surfaces) == 0:
             return self.boundaries
         else:
-            return {i:srf for i,srf in self.surfaces.items() if srf['type'].lower() == type.lower()}
+            return {
+                i: srf
+                for i, srf in self.surfaces.items()
+                if srf["type"].lower() == type.lower()
+            }
 
     def to_json(self):
         """Return a dict that in the CityJSON schema"""
         j = dict()
-        j['type'] = self.type
-        j['lod'] = self.lod
-        j['boundaries'] = []
+        j["type"] = self.type
+        j["lod"] = self.lod
+        j["boundaries"] = []
         if self.surfaces:
-            j['semantics'] = {}
+            j["semantics"] = {}
         return j
 
     def reproject(self, epsg_from, epsg_to=None, crs_to=None):
@@ -549,7 +648,9 @@ class Geometry(object):
         :param crs_to: pyproj.CRS to convert to
         """
         if not MODULE_PYPROJ_AVAILABLE:
-            raise ModuleNotFoundError("Modul 'pyproj' is not available, please install it from https://pypi.org/project/pyproj/")
+            raise ModuleNotFoundError(
+                "Modul 'pyproj' is not available, please install it from https://pypi.org/project/pyproj/"
+            )
         if epsg_to is not None:
             _to = f"EPSG:{epsg_to:d}"
         elif crs_to is not None:
@@ -560,45 +661,59 @@ class Geometry(object):
         transformer = tg.transformers[0]
         if not self.boundaries:
             return list()
-        if self.type.lower() == 'multipoint':
+        if self.type.lower() == "multipoint":
             if not isinstance(self.boundaries[0], tuple):
                 raise TypeError("Boundary definition does not correspond to MultiPoint")
             return self._reproject_ring(self.boundaries, transformer)
-        elif self.type.lower() == 'multilinestring':
+        elif self.type.lower() == "multilinestring":
             if not isinstance(self.boundaries[0][0], tuple):
                 raise TypeError("Boundary definition does not correspond to MultiPoint")
             return [self._reproject_ring(b, transformer) for b in self.boundaries]
-        elif self.type.lower() == 'multisurface' or self.type.lower() == 'compositesurface':
+        elif (
+            self.type.lower() == "multisurface"
+            or self.type.lower() == "compositesurface"
+        ):
             s = list()
             if not isinstance(self.boundaries[0][0][0], tuple):
-                raise TypeError("Boundary definition does not correspond to MultiSurface or CompositeSurface")
+                raise TypeError(
+                    "Boundary definition does not correspond to MultiSurface or CompositeSurface"
+                )
             for surface in self.boundaries:
                 s.append([self._reproject_ring(ring, transformer) for ring in surface])
             return s
-        elif self.type.lower() == 'solid':
+        elif self.type.lower() == "solid":
             sh = list()
             if not isinstance(self.boundaries[0][0][0][0], tuple):
                 raise TypeError("Boundary definition does not correspond to Solid")
             for shell in self.boundaries:
                 s = list()
                 for surface in shell:
-                    s.append([self._reproject_ring(ring, transformer) for ring in surface])
+                    s.append(
+                        [self._reproject_ring(ring, transformer) for ring in surface]
+                    )
                 sh.append(s)
             return sh
-        elif self.type.lower() == 'multisolid' or self.type.lower() == 'compositesolid':
+        elif self.type.lower() == "multisolid" or self.type.lower() == "compositesolid":
             solids = list()
             if not isinstance(self.boundaries[0][0][0][0][0], tuple):
-                raise TypeError("Boundary definition does not correspond to MultiSolid or CompositeSolid")
+                raise TypeError(
+                    "Boundary definition does not correspond to MultiSolid or CompositeSolid"
+                )
             for solid in self.boundaries:
                 sh = list()
                 for shell in solid:
                     s = list()
                     for surface in shell:
-                        s.append([self._reproject_ring(ring, transformer) for ring in surface])
+                        s.append(
+                            [
+                                self._reproject_ring(ring, transformer)
+                                for ring in surface
+                            ]
+                        )
                     sh.append(s)
                 solids.append(sh)
             return solids
-        elif self.type.lower() == 'geometryinstance':
+        elif self.type.lower() == "geometryinstance":
             warnings.warn("Unsupported geometry type GeometryInstance", UserWarning)
         else:
             raise TypeError("Unknown geometry type: {}".format(self.type))

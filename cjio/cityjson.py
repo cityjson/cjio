@@ -508,7 +508,7 @@ class CityJSON:
         # print("Downloading the Extension JSON schema file(s):")
         if "extensions" in self.j:
             for ext in self.j["extensions"]:
-                #theurl = self.j["extensions"][ext]["url"]
+                # theurl = self.j["extensions"][ext]["url"]
                 try:
                     with urllib.request.urlopen(self.j["extensions"][ext]["url"]) as f:
                         # print("\t- %s" % self.j["extensions"][ext]["url"])
@@ -603,10 +603,7 @@ class CityJSON:
                     vs.append(each)
 
         for co in self.j["CityObjects"]:
-            if (
-                addifmissing
-                or "geographicalExtent" in self.j["CityObjects"][co]
-            ):
+            if addifmissing or "geographicalExtent" in self.j["CityObjects"][co]:
                 vs = []
                 bbox = [9e9, 9e9, 9e9, -9e9, -9e9, -9e9]
                 if "geometry" in self.j["CityObjects"][co]:
@@ -2015,7 +2012,6 @@ class CityJSON:
         self.remove_duplicate_vertices()
         self.remove_orphan_vertices()
         self.update_bbox()
-
 
     def translate(self, minxyz: list = None):
         if minxyz is None:
