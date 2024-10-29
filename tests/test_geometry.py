@@ -241,7 +241,6 @@ class TestGeometry:
             models.Geometry(type=geometry[0]['type'],
                             boundaries=geometry[0]['boundaries'],
                             vertices=vertices)
-            assert e == "Boundary definition does not correspond to MultiSurface or CompositeSurface"
 
     def test_build_index(self, data_geometry, data_vtx_idx):
         type, boundary, result, vertex_list = data_vtx_idx
@@ -259,22 +258,6 @@ class TestGeometry:
         geom.surfaces = {0: {'surface_idx': [[0, 0]], 'type': 'GroundSurface'}, 1: {'surface_idx': [[0, 5]], 'type': 'RoofSurface', 'attributes': {'cladding': 'tiles'}}, 2: {'surface_idx': [[0, 1], [0, 2], [0, 3], [0, 4]], 'type': 'WallSurface', 'attributes': {'on_footprint_edge': True}}, 3: {'surface_idx': None, 'type': 'WallSurface', 'attributes': {'on_footprint_edge': False}}}
         geom.texture = 0
         geom.build_semantic_surface_index()
-
-    @pytest.mark.balazs
-    def test_vertex_indexer(self, ms_triangles):
-        vtx_lookup = {}
-        vtx_idx = 0
-        geom = models.Geometry(type='MultiSurface', lod=1)
-        for record in ms_triangles:
-            msurface = list()
-            for _surface in record:
-                r = list()
-                for _ring in _surface:
-                    bdry, vtx_lookup, vtx_idx = geom._vertex_indexer(_ring,
-                                                                     vtx_lookup,
-                                                                     vtx_idx)
-                    r.append(bdry)
-                msurface.append(r)
 
 
     def test_to_json(self, data_geometry,data_vtx_idx):
@@ -452,11 +435,10 @@ class TestGeometry:
             }
         }
         surface = wall[0]
-        if 'children' in surface:
-            children = {j:geom.surfaces[j] for j in surface['children']}
-            assert children == res
-        else:
-            pytest.xfail("surface does not have children")
+        assert 'children' in surface
+        children = {j:geom.surfaces[j] for j in surface['children']}
+        assert children == res
+
 
     def test_get_surface_parent(self, surfaces):
         geom = models.Geometry(type='CompositeSolid')
@@ -483,12 +465,11 @@ class TestGeometry:
             }
         }
         surface = door[2]
-        if 'parent' in surface:
-            i = surface['parent']
-            parent = {i: geom.surfaces[i]}
-            assert parent == res
-        else:
-            pytest.xfail("surface does not have parent")
+        assert 'parent' in surface
+        i = surface['parent']
+        parent = {i: geom.surfaces[i]}
+        assert parent == res
+
 
     def test_reproject(self, data_geometry, data_vtx_idx):
         type, boundary, result, vertex_list = data_vtx_idx

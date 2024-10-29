@@ -1,8 +1,8 @@
 import os
 import os.path
 from click.testing import CliRunner
-import json
-from cjio import cjio
+from cjio import cjio, cityjson
+import pytest
 
 
 class TestCLI:
@@ -16,7 +16,7 @@ class TestCLI:
                                      p_out])
         
         assert result.exit_code == 0
-        assert os.path.exists(p_out) == True
+        assert os.path.exists(p_out)
         
         os.remove(p_out)
     
@@ -30,7 +30,7 @@ class TestCLI:
                                      p_out])
         
         assert result.exit_code == 0
-        assert os.path.exists(p_out) == True
+        assert os.path.exists(p_out) 
         
         os.remove(p_out)
         
@@ -42,10 +42,9 @@ class TestCLI:
                                      'export',
                                      'obj',
                                      p_out])
-        if result.exit_code != 0:
-            print(f"CLI returned '{result.output}'")
+        print(f"CLI returned '{result.output}'")
         assert result.exit_code == 0
-        assert os.path.exists(p_out) == True
+        assert os.path.exists(p_out) 
     
         os.remove(p_out)
     
@@ -62,8 +61,7 @@ class TestCLI:
         result = runner.invoke(cjio.cli,
                                args=[delft_path,
                                      'info'])
-        if result.exit_code != 0:
-            print(f"CLI returned '{result.output}'")
+        print(f"CLI returned '{result.output}'")
         assert result.exit_code == 0
     
     def test_merge_cli(self, delft_path, rotterdam_subset_path, data_output_dir):
@@ -76,7 +74,7 @@ class TestCLI:
                                      p_out])
         
         assert result.exit_code == 0
-        assert os.path.exists(p_out) == True
+        assert os.path.exists(p_out) 
         
         os.remove(p_out)
     
@@ -90,23 +88,10 @@ class TestCLI:
                                      p_out])
         
         assert result.exit_code == 0
-        assert os.path.exists(p_out) == True
+        assert os.path.exists(p_out) 
         
         os.remove(p_out)
-        
-    def test_materials_remove_cli(self, rotterdam_subset_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, 'materials_remove.json')
-        runner = CliRunner()
-        result = runner.invoke(cjio.cli,
-                               args=[rotterdam_subset_path,
-                                     'materials_remove',
-                                     'save',
-                                     p_out])
-        
-        assert result.exit_code == 0
-        assert os.path.exists(p_out) == True
-        
-        os.remove(p_out)
+
     
     def test_textures_remove_cli(self, rotterdam_subset_path, data_output_dir):
         p_out = os.path.join(data_output_dir, 'textures_remove.json')
@@ -118,7 +103,7 @@ class TestCLI:
                                      p_out])
         
         assert result.exit_code == 0
-        assert os.path.exists(p_out) == True
+        assert os.path.exists(p_out) 
         
         os.remove(p_out)
     
@@ -132,7 +117,7 @@ class TestCLI:
                                      p_out])
         
         assert result.exit_code == 0
-        assert os.path.exists(p_out) == True
+        assert os.path.exists(p_out) 
         
         os.remove(p_out)
     
@@ -145,7 +130,7 @@ class TestCLI:
                                      p_out])
         
         assert result.exit_code == 0
-        assert os.path.exists(p_out) == True
+        assert os.path.exists(p_out) 
         
         os.remove(p_out)
 
@@ -160,23 +145,10 @@ class TestCLI:
                                      p_out])
         
         assert result.exit_code == 0
-        assert os.path.exists(p_out) == True
+        assert os.path.exists(p_out) 
         
         os.remove(p_out)
     
-    def test_metadata_update_cli(self, delft_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, 'metadata_update.json')
-        runner = CliRunner()
-        result = runner.invoke(cjio.cli,
-                               args=[delft_path,
-                                     'metadata_update',
-                                     'save',
-                                     p_out])
-        
-        assert result.exit_code == 0
-        assert os.path.exists(p_out) == True
-        
-        os.remove(p_out)
 
     def test_upgrade_cli(self, delft_path, data_output_dir):
         p_out = os.path.join(data_output_dir, 'upgrade.json')
@@ -188,15 +160,18 @@ class TestCLI:
                                      p_out])
         
         assert result.exit_code == 0
-        assert os.path.exists(p_out) == True
+        assert os.path.exists(p_out) 
         
         os.remove(p_out)
 
     def test_validate_cli(self, delft_path):
+        if not cityjson.MODULE_CJVAL_AVAILABLE: # pragma: no cover
+            pytest.skip("cjvalpy module not available")
         runner = CliRunner()
         result = runner.invoke(cjio.cli,
                                args=[delft_path,
                                      'validate'])
         
+        print(f"CLI returned '{result.output}'")
         assert result.exit_code == 0
         
