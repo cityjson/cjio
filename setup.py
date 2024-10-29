@@ -37,12 +37,13 @@ setup(
     extras_require={
         'develop': [
             'pytest',
-            'bump2version'
+            'bump2version',
+            'coverage',
         ],
         'export': [
             'pandas',
             'mapbox-earcut',
-            'triangle'
+            'triangle2'
         ],
         'validate': [
             'cjvalpy>=0.3.0'
