@@ -1,4 +1,3 @@
-import math
 from io import BytesIO
 import json
 
@@ -120,7 +119,7 @@ def to_glb(cm, do_triangulate=True):
     try:
         if len(cm.j['CityObjects']) == 0:
             return glb
-    except KeyError as e:
+    except KeyError:
         raise TypeError("Not a CityJSON")
 
     # asset
@@ -148,10 +147,11 @@ def to_glb(cm, do_triangulate=True):
     # The root node of the scene contains the y-up to z-up transformation matrix,
     # which is needed for inherently z-up data. 
     # See https://github.com/CesiumGS/3d-tiles/tree/main/specification#y-up-to-z-up
+    name = cm.j.get("metadata", "citymodel").get("identifier", "citymodel") if "metadata" in cm.j else ""
     nodes.append({
         "matrix": [1, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, 1],
         "children": [],
-        "name": cm.j.get("metadata", "citymodel").get("identifier", "citymodel")
+        "name": name
     })
     root_node_idx = 0
 
@@ -316,18 +316,18 @@ def to_glb(cm, do_triangulate=True):
                 try:
                     vtx_np[i] = np.array(
                         (vertexlist[v][0], vertexlist[v][1], vertexlist[v][2]))
-                except IndexError as e:
+                except IndexError:
                     print(i, v)
                 vtx_idx_np[i] = i
-            bin_vtx = vtx_np.astype(np.float32).tostring()
+            bin_vtx = vtx_np.astype(np.float32).tobytes()
             # convert geometry indices to binary
-            bin_geom = vtx_idx_np.astype(np.uint32).tostring()
+            bin_geom = vtx_idx_np.astype(np.uint32).tobytes()
             del flatgeom
             # convert the normal to binary
-            bin_normals = normals_np.astype(np.float32).tostring()
+            bin_normals = normals_np.astype(np.float32).tobytes()
             # convert batchid to binary
             batchid_np = np.array([i for g in vtx_idx_np])
-            bin_batchid = batchid_np.astype(np.uint32).tostring()
+            _ = batchid_np.astype(np.uint32).tobytes()
 
             #-- geometry indices bufferView
             bpos = len(gltf_bin)
@@ -607,12 +607,12 @@ def faces_to_obj(faces, out, sloppy, vnp, texture_values=None, textures=None):
                 out.write('usemtl ' + textures[mtl]['name'] + '\n')
             current_material = mtl
             # Map each vertex to its texture coordinate
-            if b == True and current_material is not None:
+            if b and current_material is not None:
                 v_t_map = {}
                 for f, t in zip(face, texture_vals):
                     for v, vt in zip(f, t[1:]):  # t[0] is the material, t[1:] are the texture coordinates
                         v_t_map[v] = vt
-        if b == True:
+        if b:
             for v in re:
                 if v_t_map is not None and current_material is not None:
                     out.write("f %d/%d %d/%d %d/%d\n" % (v[0] + 1, v_t_map[v[0]] + 1, v[1] + 1, v_t_map[v[1]] + 1, v[2] + 1, v_t_map[v[2]] + 1))
