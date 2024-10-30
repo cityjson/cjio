@@ -16,36 +16,28 @@ from pathlib import Path
 import numpy as np
 from click import progressbar
 
-from cjio import errors
-from cjio.convert import faces_to_obj
-
-MODULE_NUMPY_AVAILABLE = True
-MODULE_PYPROJ_AVAILABLE = True
-MODULE_TRIANGLE_AVAILABLE = True
-MODULE_EARCUT_AVAILABLE = True
-MODULE_PANDAS_AVAILABLE = True
-MODULE_CJVAL_AVAILABLE = True
-
-try:
-    from pyproj import CRS
-    from pyproj.transformer import TransformerGroup
-except ImportError:
-    MODULE_PYPROJ_AVAILABLE = False
-try:
-    import pandas
-except ImportError:
-    MODULE_PANDAS_AVAILABLE = False
-try:
-    import cjvalpy
-except ImportError:
-    MODULE_CJVAL_AVAILABLE = False
-
-from cjio import convert, geom_help, models, subset
+from cjio import errors, convert, geom_help, models, subset
 from cjio.errors import CJInvalidOperation
 from cjio.floatEncoder import FloatEncoder
 
+from cjio import (
+    MODULE_PANDAS_AVAILABLE,
+    MODULE_PYPROJ_AVAILABLE,
+    MODULE_CJVAL_AVAILABLE,
+)
+
 json.encoder.c_make_encoder = None
 json.encoder.float = FloatEncoder
+
+if MODULE_PYPROJ_AVAILABLE:
+    from pyproj import CRS
+    from pyproj.transformer import TransformerGroup
+
+if MODULE_PANDAS_AVAILABLE:
+    import pandas
+
+if MODULE_CJVAL_AVAILABLE:
+    import cjvalpy
 
 
 CITYJSON_VERSIONS_SUPPORTED = ["0.6", "0.8", "0.9", "1.0", "1.1", "2.0"]
@@ -523,6 +515,10 @@ class CityJSON:
                         % self.j["extensions"][ext]["url"]
                     )
                     raise exp
+        if not MODULE_CJVAL_AVAILABLE:
+            raise ModuleNotFoundError(
+                "Module 'cjvalpy' is not available, please install it"
+            )
         val = cjvalpy.CJValidator(js)
         val.validate()
         re = val.get_report()
@@ -1042,7 +1038,10 @@ class CityJSON:
                         if geom["semantics"] is not None:
                             for srf in geom["semantics"]["surfaces"]:
                                 sem_srf.add(srf["type"])
-        getsorted = lambda a: sorted(list(a))
+
+        def getsorted(a):
+            return sorted(list(a))
+
         s.append("geom primitives = {}".format(getsorted(geoms)))
         s.append("LoD = {}".format(getsorted(lod)))
         s.append("semantics surfaces = {}".format(getsorted(sem_srf)))
@@ -1799,7 +1798,7 @@ class CityJSON:
                     if (geom["type"] == "MultiSurface") or (
                         geom["type"] == "CompositeSurface"
                     ):
-                        faces_to_obj(
+                        convert.faces_to_obj(
                             geom["boundaries"],
                             out,
                             sloppy,
@@ -1811,15 +1810,15 @@ class CityJSON:
                         geom["type"] == "Solid"
                     ):  # depth of geom['texture'] will be one more than for MultiSurface
                         for shell, tex in zip(geom["boundaries"], texture_values):
-                            faces_to_obj(shell, out, sloppy, vnp, tex, textures)
+                            convert.faces_to_obj(shell, out, sloppy, vnp, tex, textures)
                 else:
                     if (geom["type"] == "MultiSurface") or (
                         geom["type"] == "CompositeSurface"
                     ):
-                        faces_to_obj(geom["boundaries"], out, sloppy, vnp)
+                        convert.faces_to_obj(geom["boundaries"], out, sloppy, vnp)
                     elif geom["type"] == "Solid":
                         for shell in geom["boundaries"]:
-                            faces_to_obj(shell, out, sloppy, vnp)
+                            convert.faces_to_obj(shell, out, sloppy, vnp)
 
         self.compress(imp_digits)
         if export_textures:

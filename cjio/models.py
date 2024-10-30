@@ -6,10 +6,10 @@ import collections
 from typing import Iterable, Mapping
 import warnings
 
-from cjio.cityjson import MODULE_PYPROJ_AVAILABLE
+from cjio import MODULE_PYPROJ_AVAILABLE
 
 if MODULE_PYPROJ_AVAILABLE:
-    from cjio.cityjson import TransformerGroup
+    from pyproj.transformer import TransformerGroup
 
 # TODO BD: this iteration is not really nice, maybe implement it in a way that don't need to use .items() and .values()
 # for co_id, co in cm.cityobjects.items():

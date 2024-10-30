@@ -10,7 +10,15 @@ from pathlib import Path
 import click
 
 import cjio
-from cjio import cityjson, errors, utils
+from cjio import (
+    cityjson,
+    errors,
+    utils,
+    MODULE_TRIANGLE_AVAILABLE,
+    MODULE_PYPROJ_AVAILABLE,
+    MODULE_EARCUT_AVAILABLE,
+    MODULE_CJVAL_AVAILABLE,
+)
 from cjio.floatEncoder import FloatEncoder
 
 json.encoder.c_make_encoder = None
@@ -284,7 +292,7 @@ def export_cmd(filename, format, sloppy):
                     )
 
     def processor(cm):
-        if (format != "jsonl") and (not cityjson.MODULE_TRIANGLE_AVAILABLE):
+        if (format != "jsonl") and (not MODULE_TRIANGLE_AVAILABLE):
             str = "OBJ|glTF|b3dm export skipped: Python module 'triangle' missing (to triangulate faces)"
             print_cmd_alert(str)
             str = "Install it: https://pypi.org/project/triangle/"
@@ -384,7 +392,7 @@ def validate_cmd():
     """
 
     def processor(cm):
-        if not cityjson.MODULE_CJVAL_AVAILABLE:
+        if not MODULE_CJVAL_AVAILABLE:
             str = "Validation skipped: Python module 'cjvalpy' not installed"
             print_cmd_alert(str)
             str = "To install it: https://www.github.com/cityjson/cjvalpy"
@@ -557,7 +565,7 @@ def crs_reproject_cmd(epsg, digit):
     """
 
     def processor(cm):
-        if not cityjson.MODULE_PYPROJ_AVAILABLE:
+        if not MODULE_PYPROJ_AVAILABLE:
             str = "Reprojection skipped: Python module 'pyproj' missing (to reproject coordinates)"
             print_cmd_alert(str)
             str = "Install it: https://pypi.org/project/pyproj/"
@@ -784,7 +792,7 @@ def triangulate_cmd(sloppy):
     # -- mapbox_earcut available?
     def processor(cm):
         print_cmd_status("Triangulate the CityJSON file")
-        if not cityjson.MODULE_TRIANGLE_AVAILABLE:
+        if not MODULE_TRIANGLE_AVAILABLE:
             str = "Cannot triangulate: Python module 'triangle' missing. Stopping here."
             print_cmd_alert(str)
             str = "Install it: https://pypi.org/project/triangle/"
@@ -792,7 +800,7 @@ def triangulate_cmd(sloppy):
             raise click.ClickException("Abort.")
             return cm
         if not (cm.is_triangulated()):
-            if sloppy and not cityjson.MODULE_EARCUT_AVAILABLE:
+            if sloppy and not MODULE_EARCUT_AVAILABLE:
                 str = "Cannot triangulate: Python module 'mapbox_earcut' missing. Stopping here."
                 print_cmd_alert(str)
                 str = "Install it: https://pypi.org/project/mapbox-earcut/"
