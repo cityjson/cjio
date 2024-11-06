@@ -511,28 +511,22 @@ class CityJSON:
                 % (CITYJSON_VERSIONS_SUPPORTED[-1])
             )
             raise Exception(s)
+        val = cjvalpy.CJValidator(json.dumps(self.j))
         # -- fetch extensions from the URLs given
-        js = []
-        js.append(json.dumps(self.j))
-        # print("Downloading the Extension JSON schema file(s):")
+        exts = []
         if "extensions" in self.j:
             for ext in self.j["extensions"]:
                 theurl = self.j["extensions"][ext]["url"]
                 try:
                     with urllib.request.urlopen(self.j["extensions"][ext]["url"]) as f:
-                        # print("\t- %s" % self.j["extensions"][ext]["url"])
-                        # s = theurl[theurl.rfind('/') + 1:]
-                        # s = os.path.join(os.getcwd(), s)
-                        # tmp = json.loads(f.read().decode('utf-8'))
                         sf = f.read().decode("utf-8")
-                        js.append(sf)
+                        val.add_one_extension_rom_str(sf)
                 except:
                     s = (
                         "'%s' cannot be downloaded\nAbort"
                         % self.j["extensions"][ext]["url"]
                     )
                     raise Exception(s)
-        val = cjvalpy.CJValidator(js)
         val.validate()
         re = val.get_report()
         return re
