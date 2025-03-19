@@ -8,16 +8,16 @@ from cjio import cityjson
 
 #------------------------------------ add option for running the full test set
 def pytest_addoption(parser):
-    parser.addoption("--balazs", action="store_true",
-                     default=False, help="run tests against Balázs' local data")
+    parser.addoption("--run-all", action="store_true",
+                     default=False, help="Run all tests")
 
 def pytest_collection_modifyitems(config, items):
-    if config.getoption("--balazs"):
+    if config.getoption("--run-all"):
         return
-    skip_balazs = pytest.mark.skip(reason="need --balazs option to run")
+    skip_slow = pytest.mark.skip(reason="need --run-all option to run")
     for item in items:
-        if "balazs" in item.keywords:
-            item.add_marker(skip_balazs)
+        if "slow" in item.keywords:
+            item.add_marker(skip_slow)
 
 @pytest.fixture(scope='function')
 def data_dir():
@@ -69,14 +69,7 @@ def zurich_subset(data_dir):
 def zurich_subset_path(data_dir):
     p = os.path.join(data_dir, 'zurich', 'zurich_subset_lod2.json')
     yield p
-
-@pytest.mark.balazs
-@pytest.fixture(scope='function')
-def ms_triangles(data_dir):
-    """Long list of triangulated MultiSurfaces with EPSG:7514 corodinates."""
-    p = os.path.join(data_dir, 'multisurface_triangulated.pickle')
-    with open(p, 'rb') as fo:
-        yield pickle.load(fo)
+    
 
 @pytest.fixture(scope='function')
 def dummy(data_dir):

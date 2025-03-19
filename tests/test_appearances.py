@@ -57,8 +57,5 @@ def test_update_textures_none(dummy_noappearance):
 def test_remove_textures(rotterdam_subset):
     cm = rotterdam_subset
     cm.remove_textures()
-    if "appearance" in cm.j:
-        assert cm.j.get("appearance").get("textures") is None
-        assert cm.j.get("appearance").get("vertex-texture") is None
-        assert cm.j.get("appearance").get("default-theme-texture") is None
+    assert "appearance" not in cm.j
     assert all("texture" not in geom for co in cm.j["CityObjects"].values() for geom in co["geometry"])

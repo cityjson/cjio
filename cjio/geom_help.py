@@ -52,7 +52,7 @@ def get_normal_newell(poly):
 
 
 def triangulate_face(face, vnp, sloppy=False):
-    if sloppy == False:
+    if not sloppy:
         return triangulate_face_shewchuk(face, vnp)
     else:
         return triangulate_face_mapbox_earcut(face, vnp)
@@ -137,7 +137,8 @@ def triangulate_face_shewchuk(face, vnp):
 
     try:
         re = triangle.triangulate(A, "p")
-    except:
+    except Exception as e:
+        print(e)
         print("Houston we have a problem...")
         # re = {}
         return (np.array(face), False)
@@ -148,7 +149,8 @@ def triangulate_face_shewchuk(face, vnp):
     for i, each in enumerate(re):
         try:
             re[i] = sf[each]
-        except:
+        except Exception as exp:
+            print(exp)
             return (re, False)
     return (re, True)
 
@@ -173,7 +175,7 @@ def triangulate_face_mapbox_earcut(face, vnp):
     n, b = get_normal_newell(sfv)
 
     # -- if already a triangle then return it
-    if b == False:
+    if not b:
         return (n, False)
     # print ("Newell:", n)
 

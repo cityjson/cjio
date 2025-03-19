@@ -1,6 +1,7 @@
 """Various utility functions"""
 
 import os.path
+import click
 
 
 def verify_filename(filename):
@@ -12,13 +13,13 @@ def verify_filename(filename):
         if os.path.exists(absp):
             res["path"] = absp
         else:
-            raise ClickException("Couldn't expand %s to absolute path" % filename)
+            raise click.ClickException("Couldn't expand %s to absolute path" % filename)
     else:
         base = os.path.basename(filename)
         dirname = os.path.abspath(os.path.dirname(filename))
         # parent directory must exist, we don't recurse further
         if not os.path.exists(dirname):
-            raise ClickException('Path does not exist: "%s"' % (dirname))
+            raise click.ClickException('Path does not exist: "%s"' % (dirname))
         fname, extension = os.path.splitext(base)
         res["path"] = os.path.join(dirname, base)
         if len(extension) == 0:

@@ -27,7 +27,7 @@ class TestExport:
             co.attributes['cjio_test'] = 'made by Balázs'
             new_cos[co_id] = co
         cm.cityobjects = new_cos
-        p_out = os.path.join(data_dir, 'rotterdam_subset_cjio_test.json')
+        p_out = os.path.join(data_dir,'rotterdam', 'rotterdam_subset_cjio_test.json')
         cityjson.save(cm, p_out)
 
     def test_to_dataframe(self, data_dir):
