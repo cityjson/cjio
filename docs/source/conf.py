@@ -18,11 +18,11 @@ sys.path.insert(0, os.path.abspath('../..'))
 # -- Project information -----------------------------------------------------
 
 project = 'cjio'
-copyright = '2022, 3D geoinformation group at TU Delft'
-author = 'Hugo Ledoux, Balázs Dukai'
+copyright = '2025, 3D geoinformation group at TU Delft'
+author = 'Hugo Ledoux, Balázs Dukai, Gina Stavropoulou'
 
 # The full version, including alpha/beta/rc tags
-release = '0.9.0'
+release = '0.9.1'
 
 
 # -- General configuration ---------------------------------------------------
