@@ -496,7 +496,7 @@ class CityJSON:
             raise Exception(s)
         val = cjvalpy.CJValidator(json.dumps(self.j))
         # -- fetch extensions from the URLs given
-        exts = []
+        js = []
         if "extensions" in self.j:
             for ext in self.j["extensions"]:
                 # theurl = self.j["extensions"][ext]["url"]
