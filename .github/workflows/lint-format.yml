@@ -2,6 +2,8 @@ name: Install, Lint, Format, Test
 
 on:
   push:
+    branches: [ "v0.9.1" ]
+  push:
     branches: [ "develop" ]
   pull_request:
     branches: [ "develop" ]
@@ -18,8 +20,10 @@ jobs:
       with:
         python-version: '3.11'
     - name: Install dependencies
-      run: pip install ruff
+      run: pip install ruff pytest
     - name: Lint
       run: ruff check
     - name: Format
       run: ruff format --check
+    - name: Test
+      run: pytest tests -v --run-all
