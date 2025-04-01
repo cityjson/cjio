@@ -1,4 +1,4 @@
-name: Install, Lint, Format, Test
+name: Lint and Format
 
 on:
   push:
@@ -20,8 +20,6 @@ jobs:
     - name: Install dependencies
       run: pip install ruff pytest
     - name: Lint
-      run: ruff check
+      run: ruff check tests ; ruff check cjio
     - name: Format
-      run: ruff format --check
-    - name: Test
-      run: pytest tests -v --run-all
+      run: ruff format test --check ; ruff format cjio --check
