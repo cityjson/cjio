@@ -2,9 +2,7 @@ name: Install, Lint, Format, Test
 
 on:
   push:
-    branches: [ "v0.9.1" ]
-  push:
-    branches: [ "develop" ]
+    branches: [ "*" ]
   pull_request:
     branches: [ "develop" ]
 
