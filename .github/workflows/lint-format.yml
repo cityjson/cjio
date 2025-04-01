@@ -22,4 +22,4 @@ jobs:
     - name: Lint
       run: ruff check tests ; ruff check cjio
     - name: Format
-      run: ruff format test --check ; ruff format cjio --check
+      run: ruff format tests --check ; ruff format cjio --check
