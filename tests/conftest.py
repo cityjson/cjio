@@ -50,10 +50,12 @@ def sample_input_path(data_dir):
     p = os.path.join(data_dir, "delft.json")
     yield p
 
+
 @pytest.fixture(scope="function")
 def wrong_input_path(data_dir):
     p = os.path.join(data_dir, "delft_no_file.json")
     yield p
+
 
 @pytest.fixture(scope="function")
 def delft_1b(data_dir):
