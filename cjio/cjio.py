@@ -527,6 +527,20 @@ def vertices_clean_cmd():
     return processor
 
 
+@cli.command("materials_remove")
+def materials_remove_cmd():
+    """
+    Remove all materials.
+    """
+
+    def processor(cm):
+        print_cmd_status("Remove all material")
+        cm.remove_materials()
+        return cm
+
+    return processor
+
+
 @cli.command("textures_remove")
 def textures_remove_cmd():
     """

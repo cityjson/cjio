@@ -186,6 +186,18 @@ class TestCLI:
 
         os.remove(p_out)
 
+    def test_materials_remove_cli(self, rotterdam_subset_path, data_output_dir):
+        p_out = os.path.join(data_output_dir, "materials_remove.json")
+        runner = CliRunner()
+        result = runner.invoke(
+            cjio.cli, args=[rotterdam_subset_path, "materials_remove", "save", p_out]
+        )
+
+        assert result.exit_code == 0
+        assert os.path.exists(p_out)
+
+        os.remove(p_out)
+
     def test_textures_remove_cli(self, rotterdam_subset_path, data_output_dir):
         p_out = os.path.join(data_output_dir, "textures_remove.json")
         runner = CliRunner()
