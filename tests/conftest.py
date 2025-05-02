@@ -52,6 +52,12 @@ def sample_input_path(data_dir):
 
 
 @pytest.fixture(scope="function")
+def sample_with_ext_metadata_input_path(data_dir):
+    p = os.path.join(data_dir, "material/mt-1-triangulated.json")
+    yield p
+
+
+@pytest.fixture(scope="function")
 def wrong_input_path(data_dir):
     p = os.path.join(data_dir, "delft_no_file.json")
     yield p

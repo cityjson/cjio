@@ -42,13 +42,20 @@ class PerCommandArgWantSubCmdHelp(click.Argument):
         )
 
 
-@click.group(chain=True)
+CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
+
+
+@click.group(chain=True, context_settings=CONTEXT_SETTINGS)
 @click.version_option(
     version=cjio.__version__,
     prog_name=cityjson.CITYJSON_VERSIONS_SUPPORTED[-1],
     message="cjio v%(version)s; supports CityJSON v%(prog)s",
 )
-@click.argument("input", cls=PerCommandArgWantSubCmdHelp)
+@click.argument(
+    "input",
+    cls=PerCommandArgWantSubCmdHelp,
+    type=click.Path(exists=True, dir_okay=False, readable=True),
+)
 @click.option(
     "--ignore_duplicate_keys",
     is_flag=True,
@@ -77,6 +84,7 @@ def cli(context, input, ignore_duplicate_keys, suppress_msg):
         cjio myfile.city.json crs_assign 7145 textures_remove export --format obj output.obj
         cat mystream.city.jsonl | cjio stdin info
     """
+    context.ensure_object(dict)
     context.obj = {"argument": input, "suppress_msg": suppress_msg}
 
 
@@ -121,7 +129,7 @@ def process_pipeline(processors, input, ignore_duplicate_keys, suppress_msg):
 
 @cli.command("print")
 def print_cmd():
-    """print the (pretty formatted) JSON to the console."""
+    """Print the (pretty formatted) JSON to the console."""
 
     def processor(cm):
         json_str = json.dumps(cm.j, indent="  ")
@@ -132,7 +140,7 @@ def print_cmd():
 
 
 @cli.command("info")
-@click.option("--long", is_flag=True, help="More gory details about the file.")
+@click.option("--long", is_flag=True, help="More details about the file.")
 def info_cmd(long):
     """Output information about the dataset."""
 
@@ -748,7 +756,7 @@ def crs_translate_cmd(minxyz):
 @cli.command("metadata_get")
 def metadata_get_cmd():
     """
-    Shows the metadata of this dataset.
+    Show the metadata of this dataset.
 
     The difference between 'info' and this command is that this
     command lists the "pure" metadata as stored in the file.
@@ -761,6 +769,21 @@ def metadata_get_cmd():
         if cm.has_metadata():
             j.update(cm.get_metadata())
         print_cmd_info(json.dumps(j, indent=2))
+        return cm
+
+    return processor
+
+
+@cli.command("metadata_extended_remove")
+def metadata_remove_cmd():
+    """
+    Remove the deprecated +metadata-extended properties.
+    Modify/update the dataset.
+    """
+
+    def processor(cm):
+        print_cmd_status("Remove the +metadata-extended property")
+        cm.metadata_extended_remove()
         return cm
 
     return processor

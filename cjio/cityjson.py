@@ -2038,6 +2038,15 @@ class CityJSON:
             raise KeyError("Metadata is missing")
         return self.j["metadata"]
 
+    def metadata_extended_remove(self):
+        """
+        Remove the +metadata-extended in this CityJSON file (if present)
+        """
+        if "+metadata-extended" in self.j:
+            del self.j["+metadata-extended"]
+        if "extensions" in self.j and "MetadataExtended" in self.j["extensions"]:
+            del self.j["extensions"]["MetadataExtended"]
+
     def triangulate(self, sloppy):
         """Triangulate the CityJSON file face by face together with the texture information.
 

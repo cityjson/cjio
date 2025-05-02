@@ -17,6 +17,13 @@ class TestCLI:
         runner = CliRunner()
         result = runner.invoke(cjio.cli, args=["--help"])
         assert result.exit_code == 0
+        assert "Options" in result.output
+
+    def test_h_cli(self):
+        runner = CliRunner()
+        result = runner.invoke(cjio.cli, args=["-h"])
+        assert result.exit_code == 0
+        assert "Options" in result.output
 
     def test_print_cli(self, sample_input_path):
         runner = CliRunner()
@@ -127,6 +134,25 @@ class TestCLI:
         print(f"CLI returned '{result.output}'")
         assert not os.path.exists(p_out)
         assert result.exit_code != 0
+
+    def test_metadata_extended_remove_cli(
+        self, sample_with_ext_metadata_input_path, data_output_dir
+    ):
+        p_out = os.path.join(data_output_dir, "cleaned_file.json")
+        runner = CliRunner()
+        result = runner.invoke(
+            cjio.cli,
+            args=[
+                sample_with_ext_metadata_input_path,
+                "metadata_extended_remove",
+                "save",
+                p_out,
+            ],
+        )
+        assert result.exit_code == 0
+        assert os.path.exists(p_out)
+
+        os.remove(p_out)
 
     def test_metadata_get_cli(self, sample_input_path):
         runner = CliRunner()
