@@ -16,7 +16,7 @@ from pathlib import Path
 import numpy as np
 from click import progressbar
 
-from cjio import errors, convert, geom_help, models, subset
+from cjio import errors, convert, geom_help, subset
 from cjio.errors import CJInvalidOperation
 from cjio.floatEncoder import FloatEncoder
 
@@ -55,28 +55,6 @@ CITYJSON_PROPERTIES = [
 ]
 
 
-def load(path, transform: bool = True):
-    """Load a CityJSON file for working with it though the API
-
-    :param path: Absolute path to a CityJSON file
-    :param transform: Apply the coordinate transformation to the vertices (if applicable)
-    :return: A CityJSON object
-    """
-    warnings.warn(
-        "cityjson.load() will be deprecated, because the cjio API is under "
-        "refactoring. The new cityjson library, cjlib, is coming soon.",
-        DeprecationWarning,
-    )
-    with open(path, "r") as fin:
-        try:
-            cm = CityJSON(file=fin)
-        except OSError:
-            raise FileNotFoundError
-    cm.cityobjects = dict()
-    cm.load_from_j(transform=transform)
-    return cm
-
-
 def read_stdin():
     lcount = 1
     # -- read first line
@@ -103,33 +81,6 @@ def read_stdin():
             break
     return cm
 
-
-def save(citymodel, path: str, indent: bool = False):
-    """Save a city model to a CityJSON file
-
-    :param citymodel: A CityJSON object
-    :param path: Absolute path to a CityJSON file
-    """
-    warnings.warn(
-        "cityjson.save() will be deprecated, because the cjio API is under "
-        "refactoring. The new cityjson library, cjlib, is coming soon.",
-        DeprecationWarning,
-    )
-    citymodel.add_to_j()
-    # if citymodel.is_transformed:
-    #     # FIXME: here should be compression, however the current compression does not work with immutable tuples, but requires mutable lists for the points
-    #     pass
-    citymodel.remove_duplicate_vertices()
-    citymodel.remove_orphan_vertices()
-    try:
-        with open(path, "w") as fout:
-            if indent:
-                json_str = json.dumps(citymodel.j, indent="\t")
-            else:
-                json_str = json.dumps(citymodel.j, separators=(",", ":"))
-            fout.write(json_str)
-    except IOError as e:
-        raise IOError("Invalid output file: %s \n%s" % (path, e))
 
 
 def reader(file, ignore_duplicate_keys=False):
@@ -254,71 +205,6 @@ class CityJSON:
 
     def __repr__(self):
         return os.linesep.join(self.get_info())
-
-    ##-- API functions
-    # TODO BD: refactor this whole CityJSON class
-
-    def load_from_j(self, transform: bool = True):
-        """Populates the CityJSON API members from the json schema member 'j'.
-
-        If the CityJSON API members have values, they are removed and updated.
-        """
-        warnings.warn(
-            "cityjson.load_from_j() will be deprecated, because the cjio API is under "
-            "refactoring. The new cityjson library, cjlib, is coming soon.",
-            DeprecationWarning,
-        )
-        # Delete everything first
-        self.cityobjects.clear()
-        # Then do update
-        if "transform" in self.j:
-            self.transform = self.j.pop("transform")
-        else:
-            self.transform = None
-        if transform:
-            # Because I can choose to work with untransformed vertices in the API,
-            # even though there is a Transform Object in self.transform. So, when the
-            # citymodel is written back to json, I we check if we need to transform
-            # the vertices.
-            # Also, this is very nasty, to have:
-            #   - CityJSON.is_transformed ––> the vertices in the API Geometry have been transformed
-            #   - CityJSON.transform --> stores the Transform Object for the API
-            #   - CityJSON.is_transform() --> checks if the json has a 'transform' property
-            self.is_transformed = True if self.transform is not None else False
-            do_transform = self.transform
-        else:
-            self.is_transformed = False
-            do_transform = None
-        appearance = self.j["appearance"] if "appearance" in self.j else None
-        for co_id, co in self.j["CityObjects"].items():
-            # TODO BD: do some verification here
-            children = co["children"] if "children" in co else None
-            parents = co["parents"] if "parents" in co else None
-            attributes = co["attributes"] if "attributes" in co else None
-            geometry = []
-            for geom in co.get("geometry", []):
-                semantics = geom["semantics"] if "semantics" in geom else None
-                texture = geom["texture"] if "texture" in geom else None
-                geometry.append(
-                    models.Geometry(
-                        type=geom["type"],
-                        lod=geom.get("lod"),
-                        boundaries=geom["boundaries"],
-                        semantics_obj=semantics,
-                        texture_obj=texture,
-                        appearance=appearance,
-                        vertices=self.j["vertices"],
-                        transform=do_transform,
-                    )
-                )
-            self.cityobjects[co_id] = models.CityObject(
-                id=co_id,
-                type=co["type"],
-                attributes=attributes,
-                children=children,
-                parents=parents,
-                geometry=geometry,
-            )
 
     def get_cityobjects(self, type=None, id=None):
         """Return a subset of CityObjects
