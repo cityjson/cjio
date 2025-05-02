@@ -25,21 +25,38 @@ class TestCLI:
         assert result.exit_code == 0
         assert "Options" in result.output
 
-    def test_print_cli(self, sample_input_path):
+    def test_attribute_remove_cli(self, sample_input_path, data_output_dir):
+        p_out = os.path.join(data_output_dir, "attribute_remove.json")
         runner = CliRunner()
-        result = runner.invoke(cjio.cli, args=[sample_input_path, "print"])
-        print(f"CLI returned '{result.output}'")
-        assert result.exit_code == 0
-        assert result.exit_code == 0
-        assert "CityJSON" in result.output
-        assert "EPSG" in result.output
+        result = runner.invoke(
+            cjio.cli,
+            args=[sample_input_path, "attribute_remove", "bgt_status", "save", p_out],
+        )
 
-    def test_info_cli(self, sample_input_path):
-        runner = CliRunner()
-        result = runner.invoke(cjio.cli, args=[sample_input_path, "info"])
-        print(sample_input_path)
-        print(f"CLI returned '{result.output}'")
         assert result.exit_code == 0
+        assert os.path.exists(p_out)
+
+        os.remove(p_out)
+
+    def test_attribute_rename_cli(self, sample_input_path, data_output_dir):
+        p_out = os.path.join(data_output_dir, "attribute_rename.json")
+        runner = CliRunner()
+        result = runner.invoke(
+            cjio.cli,
+            args=[
+                sample_input_path,
+                "attribute_rename",
+                "hoek",
+                "angle",
+                "save",
+                p_out,
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert os.path.exists(p_out)
+
+        os.remove(p_out)
 
     def test_crs_assign_cli(self, sample_input_path, data_output_dir):
         p_out = os.path.join(data_output_dir, "crs_assign.json")
@@ -53,11 +70,23 @@ class TestCLI:
 
         os.remove(p_out)
 
-    def test_vertices_clean_cli(self, sample_input_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, "clean.json")
+    # TODO: Add test for crs_reproject
+
+    def test_crs_translate_cli(self, sample_input_path, data_output_dir):
+        p_out = os.path.join(data_output_dir, "crs_translate.json")
         runner = CliRunner()
         result = runner.invoke(
-            cjio.cli, args=[sample_input_path, "vertices_clean", "save", p_out]
+            cjio.cli,
+            args=[
+                sample_input_path,
+                "crs_translate",
+                "--minxyz",
+                "-1",
+                "-1",
+                "-1",
+                "save",
+                p_out,
+            ],
         )
 
         assert result.exit_code == 0
@@ -135,6 +164,40 @@ class TestCLI:
         assert not os.path.exists(p_out)
         assert result.exit_code != 0
 
+    def test_info_cli(self, sample_input_path):
+        runner = CliRunner()
+        result = runner.invoke(cjio.cli, args=[sample_input_path, "info"])
+        print(sample_input_path)
+        print(f"CLI returned '{result.output}'")
+        assert result.exit_code == 0
+
+    # TODO: Add test for lod_filter
+
+    def test_materials_remove_cli(self, rotterdam_subset_path, data_output_dir):
+        p_out = os.path.join(data_output_dir, "materials_remove.json")
+        runner = CliRunner()
+        result = runner.invoke(
+            cjio.cli, args=[rotterdam_subset_path, "materials_remove", "save", p_out]
+        )
+
+        assert result.exit_code == 0
+        assert os.path.exists(p_out)
+
+        os.remove(p_out)
+
+    def test_merge_cli(self, sample_input_path, rotterdam_subset_path, data_output_dir):
+        p_out = os.path.join(data_output_dir, "merge.json")
+        runner = CliRunner()
+        result = runner.invoke(
+            cjio.cli,
+            args=[sample_input_path, "merge", rotterdam_subset_path, "save", p_out],
+        )
+
+        assert result.exit_code == 0
+        assert os.path.exists(p_out)
+
+        os.remove(p_out)
+
     def test_metadata_extended_remove_cli(
         self, sample_with_ext_metadata_input_path, data_output_dir
     ):
@@ -160,103 +223,20 @@ class TestCLI:
 
         assert result.exit_code == 0
 
-    def test_merge_cli(self, sample_input_path, rotterdam_subset_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, "merge.json")
+    def test_print_cli(self, sample_input_path):
         runner = CliRunner()
-        result = runner.invoke(
-            cjio.cli,
-            args=[sample_input_path, "merge", rotterdam_subset_path, "save", p_out],
-        )
-
+        result = runner.invoke(cjio.cli, args=[sample_input_path, "print"])
+        print(f"CLI returned '{result.output}'")
         assert result.exit_code == 0
-        assert os.path.exists(p_out)
-
-        os.remove(p_out)
-
-    def test_attribute_remove_cli(self, sample_input_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, "attribute_remove.json")
-        runner = CliRunner()
-        result = runner.invoke(
-            cjio.cli,
-            args=[sample_input_path, "attribute_remove", "bgt_status", "save", p_out],
-        )
-
         assert result.exit_code == 0
-        assert os.path.exists(p_out)
-
-        os.remove(p_out)
-
-    def test_materials_remove_cli(self, rotterdam_subset_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, "materials_remove.json")
-        runner = CliRunner()
-        result = runner.invoke(
-            cjio.cli, args=[rotterdam_subset_path, "materials_remove", "save", p_out]
-        )
-
-        assert result.exit_code == 0
-        assert os.path.exists(p_out)
-
-        os.remove(p_out)
-
-    def test_textures_remove_cli(self, rotterdam_subset_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, "textures_remove.json")
-        runner = CliRunner()
-        result = runner.invoke(
-            cjio.cli, args=[rotterdam_subset_path, "textures_remove", "save", p_out]
-        )
-
-        assert result.exit_code == 0
-        assert os.path.exists(p_out)
-
-        os.remove(p_out)
-
-    def test_attribute_rename_cli(self, sample_input_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, "attribute_rename.json")
-        runner = CliRunner()
-        result = runner.invoke(
-            cjio.cli,
-            args=[
-                sample_input_path,
-                "attribute_rename",
-                "hoek",
-                "angle",
-                "save",
-                p_out,
-            ],
-        )
-
-        assert result.exit_code == 0
-        assert os.path.exists(p_out)
-
-        os.remove(p_out)
+        assert "CityJSON" in result.output
+        assert "EPSG" in result.output
 
     def test_save_cli(self, sample_input_path, data_output_dir):
         p_out = os.path.join(data_output_dir, "save.json")
         runner = CliRunner()
         result = runner.invoke(
             cjio.cli, args=[sample_input_path, "save", "--indent", p_out]
-        )
-
-        assert result.exit_code == 0
-        assert os.path.exists(p_out)
-
-        os.remove(p_out)
-
-    def test_crs_translate_cli(self, sample_input_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, "crs_translate.json")
-        runner = CliRunner()
-        result = runner.invoke(
-            cjio.cli,
-            args=[
-                sample_input_path,
-                "crs_translate",
-                "--minxyz",
-                "-1",
-                "-1",
-                "-1",
-                "save",
-                p_out,
-            ],
         )
 
         assert result.exit_code == 0
@@ -284,6 +264,23 @@ class TestCLI:
 
         os.remove(p_out)
 
+    # TODO: Add test for textures_locate
+
+    def test_textures_remove_cli(self, rotterdam_subset_path, data_output_dir):
+        p_out = os.path.join(data_output_dir, "textures_remove.json")
+        runner = CliRunner()
+        result = runner.invoke(
+            cjio.cli, args=[rotterdam_subset_path, "textures_remove", "save", p_out]
+        )
+
+        assert result.exit_code == 0
+        assert os.path.exists(p_out)
+
+        os.remove(p_out)
+
+    # TODO: Add test for textures_update
+    # TODO: Add test for triangulate
+
     def test_upgrade_cli(self, sample_input_path, data_output_dir):
         p_out = os.path.join(data_output_dir, "upgrade.json")
         runner = CliRunner()
@@ -304,3 +301,40 @@ class TestCLI:
 
         print(f"CLI returned '{result.output}'")
         assert result.exit_code == 0
+
+    def test_vertices_clean_cli(self, sample_input_path, data_output_dir):
+        p_out = os.path.join(data_output_dir, "clean.json")
+        runner = CliRunner()
+        result = runner.invoke(
+            cjio.cli, args=[sample_input_path, "vertices_clean", "save", p_out]
+        )
+
+        assert result.exit_code == 0
+        assert os.path.exists(p_out)
+
+        os.remove(p_out)
+
+    def test_process_pipeline_cli(self, rotterdam_subset_path, data_output_dir):
+        """
+        Test chaining multiple commands to ensure process_pipeline is invoked correctly.
+        """
+        p_out = os.path.join(data_output_dir, "pipeline_output.json")
+        runner = CliRunner()
+
+        result = runner.invoke(
+            cjio.cli,
+            args=[
+                rotterdam_subset_path,
+                "subset",
+                "--id",
+                "{23D8CA22-0C82-4453-A11E-B3F2B3116DB4}",
+                "vertices_clean",
+                "save",
+                p_out,
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert os.path.exists(p_out)
+
+        os.remove(p_out)

@@ -77,6 +77,13 @@ def rotterdam_subset_path(data_dir):
 
 
 @pytest.fixture(scope="function")
+def rotterdam_subset(data_dir):
+    p = os.path.join(data_dir, "rotterdam", "rotterdam_subset.json")
+    with open(p, "r") as f:
+        yield cityjson.CityJSON(file=f)
+
+
+@pytest.fixture(scope="function")
 def zurich_subset(data_dir):
     p = os.path.join(data_dir, "zurich", "zurich_subset_lod2.json")
     with open(p, "r") as f:
