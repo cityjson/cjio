@@ -8,7 +8,7 @@ with open("README.rst", "r") as fh:
 
 setup(
     name="cjio",
-    version="0.9.1",
+    version="0.10.0",
     description="CLI to process and manipulate CityJSON files",
     long_description=long_description,
     long_description_content_type="text/x-rst",
