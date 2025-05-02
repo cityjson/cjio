@@ -314,7 +314,7 @@ class TestCLI:
 
         os.remove(p_out)
 
-    def test_process_pipeline_cli(self, rotterdam_subset_path, data_output_dir):
+    def test_chained_commands_cli(self, rotterdam_subset_path, data_output_dir):
         """
         Test chaining multiple commands to ensure process_pipeline is invoked correctly.
         """
