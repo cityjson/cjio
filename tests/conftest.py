@@ -71,13 +71,6 @@ def delft_1b(data_dir):
 
 
 @pytest.fixture(scope="function")
-def rotterdam_subset(data_dir):
-    p = os.path.join(data_dir, "rotterdam", "rotterdam_subset.json")
-    with open(p, "r") as f:
-        yield cityjson.CityJSON(file=f)
-
-
-@pytest.fixture(scope="function")
 def rotterdam_subset_path(data_dir):
     p = os.path.join(data_dir, "rotterdam", "rotterdam_subset.json")
     yield p
@@ -203,8 +196,3 @@ def triangulated(data_dir, request):
     p = os.path.join(data_dir, *request.param)
     with open(p, "r") as f:
         yield cityjson.CityJSON(file=f)
-
-
-@pytest.fixture(scope="function")
-def mt_1_path(data_dir):
-    return os.path.join(data_dir, "material", "mt-1.json")

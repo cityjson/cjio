@@ -264,6 +264,26 @@ class TestCLI:
 
         os.remove(p_out)
 
+    def test_subset_cli(self, rotterdam_subset_path, data_output_dir):
+        p_out = os.path.join(data_output_dir, "subset.json")
+        runner = CliRunner()
+        result = runner.invoke(
+            cjio.cli,
+            args=[
+                rotterdam_subset_path,
+                "subset",
+                "--id",
+                "{23D8CA22-0C82-4453-A11E-B3F2B3116DB4}",
+                "save",
+                p_out,
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert os.path.exists(p_out)
+
+        os.remove(p_out)
+
     def test_upgrade_cli(self, sample_input_path, data_output_dir):
         p_out = os.path.join(data_output_dir, "upgrade.json")
         runner = CliRunner()
