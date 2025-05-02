@@ -338,3 +338,24 @@ class TestCLI:
         assert os.path.exists(p_out)
 
         os.remove(p_out)
+
+    def test_wrong_extension_cli(self, sample_wrong_suffix):
+        """
+        Test that the CLI gives a warning when the file extension is not supported.
+        """
+        runner = CliRunner()
+
+        result = runner.invoke(
+            cjio.cli,
+            args=[
+                sample_wrong_suffix,
+                "subset",
+                "--id",
+                "{23D8CA22-0C82-4453-A11E-B3F2B3116DB4}",
+                "vertices_clean",
+                "save",
+                "output.json",
+            ],
+        )
+        assert result.exit_code != 0
+        assert "File type not supported" in result.output
