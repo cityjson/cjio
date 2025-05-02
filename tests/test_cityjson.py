@@ -6,6 +6,7 @@ from cjio import cityjson
 from math import isclose
 import json
 
+
 class TestCityJSON:
     def test_subset_ids(self, zurich_subset):
         # Parent ID

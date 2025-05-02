@@ -8,7 +8,6 @@ import shutil
 import sys
 import urllib.request
 import uuid
-import warnings
 from datetime import datetime
 from io import StringIO
 from pathlib import Path
@@ -21,7 +20,6 @@ from cjio.errors import CJInvalidOperation
 from cjio.floatEncoder import FloatEncoder
 
 from cjio import (
-    MODULE_PANDAS_AVAILABLE,
     MODULE_PYPROJ_AVAILABLE,
     MODULE_CJVAL_AVAILABLE,
 )
@@ -32,9 +30,6 @@ json.encoder.float = FloatEncoder
 if MODULE_PYPROJ_AVAILABLE:
     from pyproj import CRS
     from pyproj.transformer import TransformerGroup
-
-if MODULE_PANDAS_AVAILABLE:
-    import pandas
 
 if MODULE_CJVAL_AVAILABLE:
     import cjvalpy
@@ -80,7 +75,6 @@ def read_stdin():
             cm.update_bbox()
             break
     return cm
-
 
 
 def reader(file, ignore_duplicate_keys=False):
