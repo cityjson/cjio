@@ -26,8 +26,8 @@ class TestCityJSON:
         expected = []
         assert set(expected).issubset(set(subset2.j["CityObjects"]))
 
-    def test_subset_bbox(self, zurich_subset):
-        cm = zurich_subset
+    def test_subset_bbox(self, delft):
+        cm = delft
         extent = cm.j["metadata"]["geographicalExtent"]
         bbox = [
             extent[0],
@@ -196,17 +196,21 @@ class TestCityJSON:
         cm = triangulated
         assert cm.is_triangulated()
 
-    def test_convert_to_jsonl(self, delft):
-        cm = copy.deepcopy(delft)
+    def test_convert_to_jsonl(self, rotterdam_subset):
+        cm = copy.deepcopy(rotterdam_subset)
         jsonl = cm.export2jsonl()
+        assert jsonl is not None
+        jsonl.seek(0)
         for line in jsonl.readlines():
-            json.loads(line)
+            data = json.loads(line)
+
+            assert "CityObjects" in data
 
     def test_filter_lod(self, multi_lod):
         cm = multi_lod
         cm.filter_lod("1.3")
         for coid in cm.j["CityObjects"]:
-            if "geometry" in cm.j["CityObjects"]:
+            if "geometry" in cm.j["CityObjects"][coid]:
                 for geom in cm.j["CityObjects"][coid]["geometry"]:
                     assert geom["lod"] == "1.3"
 
