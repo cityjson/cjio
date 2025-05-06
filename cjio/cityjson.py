@@ -672,6 +672,7 @@ class CityJSON:
             else:
                 apath = os.path.abspath(new_loc)
                 if not os.path.isdir(apath):
+                    print("here")
                     raise NotADirectoryError("%s does not exits" % apath)
                 elif relative:
                     rpath = os.path.relpath(apath, os.path.dirname(self.path))
@@ -711,7 +712,8 @@ class CityJSON:
                 for t in self.j["appearance"]["textures"]:
                     f = os.path.basename(t["image"])
                     curr_path = os.path.join(curr_loc, f)
-                    shutil.copy(curr_path, apath)
+                    if os.path.isfile(curr_path):
+                        shutil.copy(curr_path, apath)
                 # update the location relative to the CityJSON file
                 self.update_textures_location(apath, relative=True)
                 print("Textures copied to", apath)
