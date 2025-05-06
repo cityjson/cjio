@@ -151,7 +151,7 @@ def info_cmd(long):
 
 @cli.command("export")
 @click.argument(
-    "format", type=click.Choice(["obj", "jsonl", "stl", "glb", "b3dm"]), required=True
+    "format", type=click.Choice(["jsonl", "obj", "stl", "glb", "b3dm"]), required=True
 )
 @click.argument("filename")
 @click.option(
@@ -162,11 +162,11 @@ def info_cmd(long):
 def export_cmd(filename, format, sloppy):
     """Export to another format.
 
-    OBJ, Binary glTF (glb), Batched 3DModel (b3dm), STL, JSONL (JSON Lines, for streaming).
+    CityJSONSeq (JSONL/JSON Lines for streaming), OBJ, Binary glTF (glb), Batched 3DModel (b3dm), STL.
     The result can be stored either in a file, out piped to stdout (by choosing 'stdout' instead
     of a file).
 
-    Currently, textures are only supported for OBJ export.
+    Currently, textures are only supported for CityJSONSeq and OBJ export.
 
     Usage examples:
 
