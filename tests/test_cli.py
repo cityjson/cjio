@@ -287,17 +287,22 @@ class TestCLI:
 
         os.remove(p_out)
 
-    def test_textures_locate_cli(self, rotterdam_subset_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, "textures_locate.city.json")
+    def test_textures_locate_cli_no_textures(self, sample_input_path):
         runner = CliRunner()
-        result = runner.invoke(
-            cjio.cli, args=[rotterdam_subset_path, "textures_locate", "save", p_out]
-        )
+        result = runner.invoke(cjio.cli, args=[sample_input_path, "textures_locate"])
 
         assert result.exit_code == 0
-        assert os.path.exists(p_out)
+        assert "This file does not have textures" in result.output
 
-        os.remove(p_out)
+    def test_textures_locate_cli_with_textures(self, rotterdam_subset_path):
+        runner = CliRunner()
+        result = runner.invoke(
+            cjio.cli, args=[rotterdam_subset_path, "textures_locate"]
+        )
+
+        print("CLI result:", result.output)
+        assert result.exit_code == 0
+        assert "Textures location" in result.output
 
     def test_textures_remove_cli(self, rotterdam_subset_path, data_output_dir):
         p_out = os.path.join(data_output_dir, "textures_remove.city.json")

@@ -641,7 +641,9 @@ def upgrade_cmd(digit):
 @cli.command("textures_locate")
 def textures_locate_cmd():
     """
-    Output the location of the texture files.
+    Print the location of the texture files.
+
+        $ cjio input.city.json textures_locate
     """
 
     def processor(cm):
@@ -651,7 +653,7 @@ def textures_locate_cmd():
             if loc is None:
                 print_cmd_info("This file does not have textures")
             else:
-                print_cmd_info(loc)
+                print_cmd_info("Textures location: %s" % loc)
         except Exception as e:
             print_cmd_warning(str(e))
         return cm
