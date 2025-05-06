@@ -267,7 +267,7 @@ class TestCLI:
 
         os.remove(p_out)
 
-    def test_subset_cli(self, rotterdam_subset_path, data_output_dir):
+    def test_subset_id_cli(self, rotterdam_subset_path, data_output_dir):
         p_out = os.path.join(data_output_dir, "subset.city.json")
         runner = CliRunner()
         result = runner.invoke(
@@ -277,6 +277,92 @@ class TestCLI:
                 "subset",
                 "--id",
                 "{23D8CA22-0C82-4453-A11E-B3F2B3116DB4}",
+                "save",
+                p_out,
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert os.path.exists(p_out)
+
+        os.remove(p_out)
+
+    def test_subset_bbox_cli(self, rotterdam_subset_path, data_output_dir):
+        p_out = os.path.join(data_output_dir, "subset_bbox.city.json")
+        runner = CliRunner()
+        result = runner.invoke(
+            cjio.cli,
+            args=[
+                rotterdam_subset_path,
+                "subset",
+                "--bbox",
+                90970,
+                435620,
+                91000,
+                435650,
+                "save",
+                p_out,
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert os.path.exists(p_out)
+
+        os.remove(p_out)
+
+    def test_subset_radius_cli(self, rotterdam_subset_path, data_output_dir):
+        p_out = os.path.join(data_output_dir, "subset_radius.city.json")
+        runner = CliRunner()
+        result = runner.invoke(
+            cjio.cli,
+            args=[
+                rotterdam_subset_path,
+                "subset",
+                "--radius",
+                90970,
+                435620,
+                20.0,
+                "--exclude",
+                "save",
+                p_out,
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert os.path.exists(p_out)
+
+        os.remove(p_out)
+
+    def test_subset_random_cli(self, rotterdam_subset_path, data_output_dir):
+        p_out = os.path.join(data_output_dir, "subset_random.city.json")
+        runner = CliRunner()
+        result = runner.invoke(
+            cjio.cli,
+            args=[
+                rotterdam_subset_path,
+                "subset",
+                "--random",
+                3,
+                "save",
+                p_out,
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert os.path.exists(p_out)
+
+        os.remove(p_out)
+
+    def test_subset_cotype_cli(self, sample_input_path, data_output_dir):
+        p_out = os.path.join(data_output_dir, "subset_cotype.city.json")
+        runner = CliRunner()
+        result = runner.invoke(
+            cjio.cli,
+            args=[
+                sample_input_path,
+                "subset",
+                "--cotype",
+                "Bridge",
                 "save",
                 p_out,
             ],
@@ -314,19 +400,43 @@ class TestCLI:
 
         os.remove(p_out)
 
-    def test_textures_update_cli(self, rotterdam_subset_path, data_output_dir):
+    def test_textures_update_cli(
+        self, rotterdam_subset_path, data_output_dir, temp_texture_dir
+    ):
+        p_out = os.path.join(data_output_dir, "updated_textures.city.json")
         runner = CliRunner()
         result = runner.invoke(
-            cjio.cli, args=[rotterdam_subset_path, "textures_update", data_output_dir]
+            cjio.cli,
+            args=[
+                rotterdam_subset_path,
+                "textures_update",
+                temp_texture_dir,
+                "save",
+                p_out,
+            ],
         )
-
         assert result.exit_code == 0
+        assert os.path.exists(p_out)
+
+        os.remove(p_out)
 
     def test_triangulate_cli(self, sample_input_path, data_output_dir):
         p_out = os.path.join(data_output_dir, "triangulated.city.json")
         runner = CliRunner()
         result = runner.invoke(
             cjio.cli, args=[sample_input_path, "triangulate", "save", p_out]
+        )
+
+        assert result.exit_code == 0
+        assert os.path.exists(p_out)
+
+        os.remove(p_out)
+
+    def test_triangulate_sloppy_cli(self, sample_input_path, data_output_dir):
+        p_out = os.path.join(data_output_dir, "triangulated.city.json")
+        runner = CliRunner()
+        result = runner.invoke(
+            cjio.cli, args=[sample_input_path, "triangulate", "--sloppy", "save", p_out]
         )
 
         assert result.exit_code == 0

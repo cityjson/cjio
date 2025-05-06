@@ -31,6 +31,12 @@ def data_dir():
 
 
 @pytest.fixture(scope="function")
+def temp_texture_dir():
+    package_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+    yield os.path.join(package_dir, "tests", "data", "rotterdam", "textures")
+
+
+@pytest.fixture(scope="function")
 def data_output_dir():
     package_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
     d = os.path.join(package_dir, "tmp")
@@ -97,12 +103,6 @@ def zurich_subset(data_dir):
 
 
 @pytest.fixture(scope="function")
-def zurich_subset_path(data_dir):
-    p = os.path.join(data_dir, "zurich", "zurich_subset_lod2.json")
-    yield p
-
-
-@pytest.fixture(scope="function")
 def dummy(data_dir):
     p = os.path.join(data_dir, "dummy", "dummy.json")
     with open(p, "r") as f:
@@ -119,27 +119,6 @@ def dummy_noappearance(data_dir):
 @pytest.fixture(scope="function")
 def cube(data_dir):
     p = os.path.join(data_dir, "cube.json")
-    with open(p, "r") as f:
-        yield cityjson.CityJSON(file=f)
-
-
-@pytest.fixture(scope="function")
-def cube_compressed(data_dir):
-    p = os.path.join(data_dir, "cube.c.json")
-    with open(p, "r") as f:
-        yield cityjson.CityJSON(file=f)
-
-
-@pytest.fixture(scope="function")
-def minimal(data_dir):
-    p = os.path.join(data_dir, "minimal.json")
-    with open(p, "r") as f:
-        yield cityjson.CityJSON(file=f)
-
-
-@pytest.fixture(scope="function")
-def rectangle(data_dir):
-    p = os.path.join(data_dir, "dummy", "rectangle.json")
     with open(p, "r") as f:
         yield cityjson.CityJSON(file=f)
 
