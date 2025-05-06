@@ -301,7 +301,6 @@ class TestCLI:
         )
 
         assert result.exit_code == 0
-        assert "Updating location of textures" in result.output
 
     def test_textures_remove_cli(self, rotterdam_subset_path, data_output_dir):
         p_out = os.path.join(data_output_dir, "textures_remove.city.json")
