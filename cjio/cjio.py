@@ -669,7 +669,7 @@ def textures_update_cmd(newlocation, relative):
     """
 
     def processor(cm):
-        print_cmd_status("Update location of textures")
+        print_cmd_status("Updating location of textures")
         cm.update_textures_location(newlocation, relative=relative)
         return cm
 
