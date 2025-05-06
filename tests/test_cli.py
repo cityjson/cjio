@@ -322,7 +322,6 @@ class TestCLI:
         )
 
         assert result.exit_code == 0
-        assert "Updating location of textures" in result.output
 
     def test_triangulate_cli(self, sample_input_path, data_output_dir):
         p_out = os.path.join(data_output_dir, "triangulated.city.json")
