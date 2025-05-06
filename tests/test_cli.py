@@ -19,9 +19,9 @@ class TestCLI:
         assert result.exit_code == 0
         assert "Options" in result.output
 
-    def test_h_cli(self):
+    def test_help_subcommand_cli(self):
         runner = CliRunner()
-        result = runner.invoke(cjio.cli, args=["-h"])
+        result = runner.invoke(cjio.cli, args=["validate", "--help"])
         assert result.exit_code == 0
         assert "Options" in result.output
 
@@ -300,7 +300,6 @@ class TestCLI:
             cjio.cli, args=[rotterdam_subset_path, "textures_locate"]
         )
 
-        print("CLI result:", result.output)
         assert result.exit_code == 0
         assert "Textures location" in result.output
 
@@ -316,8 +315,26 @@ class TestCLI:
 
         os.remove(p_out)
 
-    # TODO: Add test for textures_update
-    # TODO: Add test for triangulate
+    def test_textures_update_cli(self, rotterdam_subset_path, data_output_dir):
+        runner = CliRunner()
+        result = runner.invoke(
+            cjio.cli, args=[rotterdam_subset_path, "textures_update", data_output_dir]
+        )
+
+        assert result.exit_code == 0
+        assert "Textures location" in result.output
+
+    def test_triangulate_cli(self, sample_input_path, data_output_dir):
+        p_out = os.path.join(data_output_dir, "triangulated.city.json")
+        runner = CliRunner()
+        result = runner.invoke(
+            cjio.cli, args=[sample_input_path, "triangulate", "save", p_out]
+        )
+
+        assert result.exit_code == 0
+        assert os.path.exists(p_out)
+
+        os.remove(p_out)
 
     def test_upgrade_cli(self, sample_input_path, data_output_dir):
         p_out = os.path.join(data_output_dir, "upgrade.city.json")
