@@ -501,6 +501,26 @@ class TestCLI:
 
         os.remove(p_out)
 
+    def test_off_input_cli(self, sample_off_file, data_output_dir):
+        """
+        Test that the CLI works with a .off input file."""
+        p_out = os.path.join(data_output_dir, "box.city.json")
+        runner = CliRunner()
+
+        result = runner.invoke(
+            cjio.cli,
+            args=[
+                sample_off_file,
+                "save",
+                p_out,
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert os.path.exists(p_out)
+
+        os.remove(p_out)
+
     def test_wrong_extension_cli(self, sample_wrong_suffix):
         """
         Test that the CLI gives a warning when the file extension is not supported.

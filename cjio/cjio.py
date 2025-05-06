@@ -91,7 +91,9 @@ def process_pipeline(processors, input, ignore_duplicate_keys, suppress_msg):
             f = click.open_file(input, mode="r", encoding="utf-8-sig")
             extension = os.path.splitext(input)[1].lower()
             if extension not in extensions:
-                raise IOError("File type not supported (only .json, .off, and .poly).")
+                raise IOError(
+                    "File type not supported (only .json, .jsonl, .off, and .poly)."
+                )
             # -- OFF file
             if extension == ".off":
                 print_cmd_status("Converting %s to CityJSON" % (input))
