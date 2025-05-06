@@ -287,7 +287,17 @@ class TestCLI:
 
         os.remove(p_out)
 
-    # TODO: Add test for textures_locate
+    def test_textures_locate_cli(self, rotterdam_subset_path, data_output_dir):
+        p_out = os.path.join(data_output_dir, "textures_locate.city.json")
+        runner = CliRunner()
+        result = runner.invoke(
+            cjio.cli, args=[rotterdam_subset_path, "textures_locate", "save", p_out]
+        )
+
+        assert result.exit_code == 0
+        assert os.path.exists(p_out)
+
+        os.remove(p_out)
 
     def test_textures_remove_cli(self, rotterdam_subset_path, data_output_dir):
         p_out = os.path.join(data_output_dir, "textures_remove.city.json")
