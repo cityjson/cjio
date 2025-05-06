@@ -42,20 +42,13 @@ class PerCommandArgWantSubCmdHelp(click.Argument):
         )
 
 
-CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
-
-
-@click.group(chain=True, context_settings=CONTEXT_SETTINGS)
+@click.group(chain=True)
 @click.version_option(
     version=cjio.__version__,
     prog_name=cityjson.CITYJSON_VERSIONS_SUPPORTED[-1],
     message="cjio v%(version)s; supports CityJSON v%(prog)s",
 )
-@click.argument(
-    "input",
-    cls=PerCommandArgWantSubCmdHelp,
-    type=click.Path(exists=True, dir_okay=False, readable=True),
-)
+@click.argument("input", cls=PerCommandArgWantSubCmdHelp)
 @click.option(
     "--ignore_duplicate_keys",
     is_flag=True,
@@ -670,6 +663,9 @@ def textures_update_cmd(newlocation, relative):
     """
     Update the location of the texture files.
     Can be used if the texture files were moved to new directory.
+
+      $ cjio input.city.json textures_update /new/location
+      $ cjio input.city.json textures_update /new/location --relative
     """
 
     def processor(cm):
