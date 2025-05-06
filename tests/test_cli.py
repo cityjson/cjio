@@ -26,7 +26,7 @@ class TestCLI:
         assert "Options" in result.output
 
     def test_attribute_remove_cli(self, sample_input_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, "attribute_remove.json")
+        p_out = os.path.join(data_output_dir, "attribute_remove.city.json")
         runner = CliRunner()
         result = runner.invoke(
             cjio.cli,
@@ -39,7 +39,7 @@ class TestCLI:
         os.remove(p_out)
 
     def test_attribute_rename_cli(self, sample_input_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, "attribute_rename.json")
+        p_out = os.path.join(data_output_dir, "attribute_rename.city.json")
         runner = CliRunner()
         result = runner.invoke(
             cjio.cli,
@@ -59,7 +59,7 @@ class TestCLI:
         os.remove(p_out)
 
     def test_crs_assign_cli(self, sample_input_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, "crs_assign.json")
+        p_out = os.path.join(data_output_dir, "crs_assign.city.json")
         runner = CliRunner()
         result = runner.invoke(
             cjio.cli, args=[sample_input_path, "crs_assign", "4326", "save", p_out]
@@ -70,10 +70,21 @@ class TestCLI:
 
         os.remove(p_out)
 
-    # TODO: Add test for crs_reproject
+
+    def test_crs_assign_cli(self, sample_input_path, data_output_dir):
+        p_out = os.path.join(data_output_dir, "crs_reproject.city.json")
+        runner = CliRunner()
+        result = runner.invoke(
+            cjio.cli, args=[sample_input_path, "crs_reproject", "--digit", "7", "4979", "save", p_out]
+        )
+
+        assert result.exit_code == 0
+        assert os.path.exists(p_out)
+
+        os.remove(p_out)
 
     def test_crs_translate_cli(self, sample_input_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, "crs_translate.json")
+        p_out = os.path.join(data_output_dir, "crs_translate.city.json")
         runner = CliRunner()
         result = runner.invoke(
             cjio.cli,
@@ -155,7 +166,7 @@ class TestCLI:
         os.remove(p_out)
 
     def test_export_wrong_file_cli(self, wrong_input_path):
-        p_out = os.path.join("tests", "data", "delft_non.json")
+        p_out = os.path.join("tests", "data", "delft_non.city.json")
         runner = CliRunner()
         result = runner.invoke(
             cjio.cli, args=[wrong_input_path, "export", "jsonl", p_out]
@@ -174,7 +185,7 @@ class TestCLI:
     # TODO: Add test for lod_filter
 
     def test_materials_remove_cli(self, rotterdam_subset_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, "materials_remove.json")
+        p_out = os.path.join(data_output_dir, "materials_remove.city.json")
         runner = CliRunner()
         result = runner.invoke(
             cjio.cli, args=[rotterdam_subset_path, "materials_remove", "save", p_out]
@@ -186,7 +197,7 @@ class TestCLI:
         os.remove(p_out)
 
     def test_merge_cli(self, sample_input_path, rotterdam_subset_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, "merge.json")
+        p_out = os.path.join(data_output_dir, "merge.city.json")
         runner = CliRunner()
         result = runner.invoke(
             cjio.cli,
@@ -201,7 +212,7 @@ class TestCLI:
     def test_metadata_extended_remove_cli(
         self, sample_with_ext_metadata_input_path, data_output_dir
     ):
-        p_out = os.path.join(data_output_dir, "cleaned_file.json")
+        p_out = os.path.join(data_output_dir, "cleaned_file.city.json")
         runner = CliRunner()
         result = runner.invoke(
             cjio.cli,
@@ -233,7 +244,7 @@ class TestCLI:
         assert "EPSG" in result.output
 
     def test_save_cli(self, sample_input_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, "save.json")
+        p_out = os.path.join(data_output_dir, "save.city.json")
         runner = CliRunner()
         result = runner.invoke(
             cjio.cli, args=[sample_input_path, "save", "--indent", p_out]
@@ -245,7 +256,7 @@ class TestCLI:
         os.remove(p_out)
 
     def test_subset_cli(self, rotterdam_subset_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, "subset.json")
+        p_out = os.path.join(data_output_dir, "subset.city.json")
         runner = CliRunner()
         result = runner.invoke(
             cjio.cli,
@@ -267,7 +278,7 @@ class TestCLI:
     # TODO: Add test for textures_locate
 
     def test_textures_remove_cli(self, rotterdam_subset_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, "textures_remove.json")
+        p_out = os.path.join(data_output_dir, "textures_remove.city.json")
         runner = CliRunner()
         result = runner.invoke(
             cjio.cli, args=[rotterdam_subset_path, "textures_remove", "save", p_out]
@@ -282,7 +293,7 @@ class TestCLI:
     # TODO: Add test for triangulate
 
     def test_upgrade_cli(self, sample_input_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, "upgrade.json")
+        p_out = os.path.join(data_output_dir, "upgrade.city.json")
         runner = CliRunner()
         result = runner.invoke(
             cjio.cli, args=[sample_input_path, "upgrade", "save", p_out]
@@ -303,7 +314,7 @@ class TestCLI:
         assert result.exit_code == 0
 
     def test_vertices_clean_cli(self, sample_input_path, data_output_dir):
-        p_out = os.path.join(data_output_dir, "clean.json")
+        p_out = os.path.join(data_output_dir, "clean.city.json")
         runner = CliRunner()
         result = runner.invoke(
             cjio.cli, args=[sample_input_path, "vertices_clean", "save", p_out]
@@ -318,7 +329,7 @@ class TestCLI:
         """
         Test chaining multiple commands to ensure process_pipeline is invoked correctly.
         """
-        p_out = os.path.join(data_output_dir, "pipeline_output.json")
+        p_out = os.path.join(data_output_dir, "pipeline_output.city.json")
         runner = CliRunner()
 
         result = runner.invoke(
@@ -354,7 +365,7 @@ class TestCLI:
                 "{23D8CA22-0C82-4453-A11E-B3F2B3116DB4}",
                 "vertices_clean",
                 "save",
-                "output.json",
+                "output.city.json",
             ],
         )
         assert result.exit_code != 0
