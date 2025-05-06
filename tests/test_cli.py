@@ -70,12 +70,20 @@ class TestCLI:
 
         os.remove(p_out)
 
-
-    def test_crs_assign_cli(self, sample_input_path, data_output_dir):
+    def test_crs_reproject_cli(self, sample_input_path, data_output_dir):
         p_out = os.path.join(data_output_dir, "crs_reproject.city.json")
         runner = CliRunner()
         result = runner.invoke(
-            cjio.cli, args=[sample_input_path, "crs_reproject", "--digit", "7", "4979", "save", p_out]
+            cjio.cli,
+            args=[
+                sample_input_path,
+                "crs_reproject",
+                "--digit",
+                "7",
+                "4979",
+                "save",
+                p_out,
+            ],
         )
 
         assert result.exit_code == 0
@@ -111,7 +119,6 @@ class TestCLI:
         result = runner.invoke(
             cjio.cli, args=[sample_input_path, "export", "obj", p_out]
         )
-        print(f"CLI returned '{result.output}'")
         assert result.exit_code == 0
         assert os.path.exists(p_out)
 
@@ -123,7 +130,6 @@ class TestCLI:
         result = runner.invoke(
             cjio.cli, args=[sample_input_path, "export", "glb", p_out]
         )
-        print(f"CLI returned '{result.output}'")
         assert result.exit_code == 0
         assert os.path.exists(p_out)
 
@@ -135,7 +141,6 @@ class TestCLI:
         result = runner.invoke(
             cjio.cli, args=[sample_input_path, "export", "b3dm", p_out]
         )
-        print(f"CLI returned '{result.output}'")
         assert result.exit_code == 0
         assert os.path.exists(p_out)
 
@@ -147,7 +152,6 @@ class TestCLI:
         result = runner.invoke(
             cjio.cli, args=[sample_input_path, "export", "stl", p_out]
         )
-        print(f"CLI returned '{result.output}'")
         assert result.exit_code == 0
         assert os.path.exists(p_out)
 
@@ -159,7 +163,6 @@ class TestCLI:
         result = runner.invoke(
             cjio.cli, args=[sample_input_path, "export", "jsonl", p_out]
         )
-        print(f"CLI returned '{result.output}'")
         assert result.exit_code == 0
         assert os.path.exists(p_out)
 
@@ -171,18 +174,28 @@ class TestCLI:
         result = runner.invoke(
             cjio.cli, args=[wrong_input_path, "export", "jsonl", p_out]
         )
-        print(f"CLI returned '{result.output}'")
+
         assert not os.path.exists(p_out)
         assert result.exit_code != 0
 
     def test_info_cli(self, sample_input_path):
         runner = CliRunner()
         result = runner.invoke(cjio.cli, args=[sample_input_path, "info"])
-        print(sample_input_path)
-        print(f"CLI returned '{result.output}'")
+
         assert result.exit_code == 0
 
-    # TODO: Add test for lod_filter
+    def test_lod_filter_cli(self, multi_lod_path, data_output_dir):
+        p_out = os.path.join(data_output_dir, "filtered_lod.city.json")
+        runner = CliRunner()
+        result = runner.invoke(
+            cjio.cli, args=[multi_lod_path, "lod_filter", "1.2", "save", p_out]
+        )
+
+        assert result.exit_code == 0
+        assert os.path.exists(p_out)
+        assert "1.2" in result.output
+
+        os.remove(p_out)
 
     def test_materials_remove_cli(self, rotterdam_subset_path, data_output_dir):
         p_out = os.path.join(data_output_dir, "materials_remove.city.json")
@@ -237,7 +250,6 @@ class TestCLI:
     def test_print_cli(self, sample_input_path):
         runner = CliRunner()
         result = runner.invoke(cjio.cli, args=[sample_input_path, "print"])
-        print(f"CLI returned '{result.output}'")
         assert result.exit_code == 0
         assert result.exit_code == 0
         assert "CityJSON" in result.output
@@ -310,7 +322,6 @@ class TestCLI:
         runner = CliRunner()
         result = runner.invoke(cjio.cli, args=[sample_input_path, "validate"])
 
-        print(f"CLI returned '{result.output}'")
         assert result.exit_code == 0
 
     def test_vertices_clean_cli(self, sample_input_path, data_output_dir):
