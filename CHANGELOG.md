@@ -8,6 +8,7 @@
 
 ### Added
 - More tests and coverage
+- lint and format github action
 
 ### Removed:
 - Support for extended metadata: specifically the commands `metadata_create` and  `metadata_update`
