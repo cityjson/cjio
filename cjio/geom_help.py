@@ -37,7 +37,7 @@ def get_normal_newell(poly):
     n = np.array([0.0, 0.0, 0.0], dtype=np.float64)
 
     for i, p in enumerate(poly):
-        if len(p) < 3: # -- if it does not have 3 points then skip
+        if len(p) < 3:  # -- if it does not have 3 points then skip
             continue
         ne = i + 1
         if ne == len(poly):
