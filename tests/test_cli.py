@@ -144,7 +144,7 @@ class TestCLI:
         assert result.exit_code == 0
         assert os.path.exists(p_out)
 
-       os.remove(p_out)
+        os.remove(p_out)
 
     def test_export_stl_cli(self, sample_input_path, data_output_dir):
         p_out = os.path.join(data_output_dir, "delft.stl")
