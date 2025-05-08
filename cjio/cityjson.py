@@ -522,22 +522,6 @@ class CityJSON:
     def is_co_toplevel(self, co):
         return "parents" not in co
 
-    def number_top_co(self):
-        count = 0
-        allkeys = list(self.j["CityObjects"].keys())
-        for k in allkeys:
-            if self.is_co_toplevel(self.j["CityObjects"][k]):
-                count += 1
-        return count
-
-    def get_ordered_ids_top_co(self, limit, offset):
-        re = []
-        allkeys = list(self.j["CityObjects"].keys())
-        for k in allkeys:
-            if self.is_co_toplevel(self.j["CityObjects"][k]):
-                re.append(k)
-        return re[offset : (offset + limit)]
-
     def subset(self, lsIDs, exclude=False):
         # -- copy selected CO to the j2
         re = subset.select_co_ids(self.j, lsIDs)
@@ -628,21 +612,27 @@ class CityJSON:
                 if url:
                     return url
                 else:
-                    d = os.path.dirname(p)
-                    if len(d) == 0:
+                    texture_dir = os.path.dirname(p)
+                    if len(texture_dir) == 0:
                         # textures are in the same dir as the cityjson file
                         return cj_dir
-                    elif not os.path.isabs(d):
-                        if os.path.isdir(os.path.abspath(d)):
-                            # texture dir is not necessarily in the same dir
-                            # as the input file
-                            return os.path.abspath(d)
-                        elif os.path.isdir(os.path.join(cj_dir, d)):
-                            # texture dir is a subdirectory at the input file
-                            return os.path.join(cj_dir, d)
+                    else:  # if path is empty
+                        # if absolute and exists return it
+                        if os.path.isabs(texture_dir) and os.path.isdir(texture_dir):
+                            return texture_dir
+                        # if relative and its absolute exists return it
+                        elif not os.path.isabs(texture_dir) and os.path.isdir(
+                            os.path.abspath(texture_dir)
+                        ):
+                            return os.path.abspath(texture_dir)
+                        # if relative and concatenation with cj_dir exists return it
+                        elif not os.path.isabs(texture_dir) and os.path.isdir(
+                            os.path.join(cj_dir, texture_dir)
+                        ):
+                            return os.path.join(cj_dir, texture_dir)
                         else:
                             raise NotADirectoryError(
-                                "Texture directory '%s' not found" % d
+                                "Texture directory '%s' not found" % texture_dir
                             )
             else:
                 return None
@@ -672,7 +662,6 @@ class CityJSON:
             else:
                 apath = os.path.abspath(new_loc)
                 if not os.path.isdir(apath):
-                    print("here")
                     raise NotADirectoryError("%s does not exits" % apath)
                 elif relative:
                     rpath = os.path.relpath(apath, os.path.dirname(self.path))
@@ -688,43 +677,36 @@ class CityJSON:
                 "Cannot update textures in a city model without textures"
             )
 
-    def copy_textures(self, new_loc, json_path):
+    def copy_textures(self, new_textures_loc: str) -> None:
         """Copy the texture files to a new location
-        :param new_loc: path to new texture directory
-        :type new_loc: string
-        :param json_path: path to the CityJSON file directory
-        :type json_path: string
-        :returns: None -- modifies the CityJSON
+        :param new_textures_loc: path to new texture directory
         :raises: InvalidOperation, IOError
         """
-        curr_loc = self.get_textures_location()
-        if curr_loc:
-            apath = os.path.abspath(new_loc)
-            if not os.path.isdir(apath):
-                os.mkdir(apath)
-            if not os.path.abspath(json_path):
-                jpath = os.path.abspath(json_path)
-            else:
-                jpath = json_path
-            curr_path = self.path
-            try:
-                self.path = jpath
-                for t in self.j["appearance"]["textures"]:
-                    f = os.path.basename(t["image"])
-                    curr_path = os.path.join(curr_loc, f)
-                    if os.path.isfile(curr_path):
-                        shutil.copy(curr_path, apath)
-                # update the location relative to the CityJSON file
-                self.update_textures_location(apath, relative=True)
-                print("Textures copied to", apath)
-            except IOError:
-                raise IOError()
-            finally:
-                self.path = curr_path
-        else:
+        current_textures_loc = self.get_textures_location()
+        if not current_textures_loc:
             raise CJInvalidOperation(
                 "Cannot copy textures from a city model without textures"
             )
+
+        # get the absolute path of the new textures location
+        new_textures_abs_loc = os.path.abspath(new_textures_loc)
+
+        # create the new textures directory if it does not exist
+        if not os.path.isdir(new_textures_abs_loc):
+            os.mkdir(new_textures_abs_loc)
+
+        try:
+            for t in self.j["appearance"]["textures"]:
+                f = os.path.basename(t["image"])
+                current_texture_file_path = os.path.join(current_textures_loc, f)
+                # if the file exist, copy it to the new location
+                if os.path.isfile(current_texture_file_path):
+                    shutil.copy(current_texture_file_path, new_textures_abs_loc)
+            # update the location relative to the CityJSON file
+            self.update_textures_location(new_textures_abs_loc, relative=False)
+            print("Textures copied to", new_textures_abs_loc)
+        except IOError as e:
+            raise IOError(" Error copying texture files: %s" % e)
 
     def validate_textures(self):
         """Check if the texture files exist"""
@@ -859,7 +841,6 @@ class CityJSON:
             for c in self.j["CityObjects"][key]["children"]:
                 ct = self.j["CityObjects"][c]["type"]
                 s = typeparent + "/" + ct
-                # print(s)
                 if s not in d:
                     d[s] = 1
                 else:
@@ -1571,8 +1552,7 @@ class CityJSON:
         for each in vnp:
             each[0] -= minx
             each[1] -= miny
-        # print ("min", minx, miny)
-        # print(vnp)
+
         # -- write texture vertices
         if (
             export_textures
@@ -1640,8 +1620,7 @@ class CityJSON:
         for each in vnp:
             each[0] -= minx
             each[1] -= miny
-        # print ("min", minx, miny)
-        # print(vnp)
+
         # -- start with the CO
         for theid in self.j["CityObjects"]:
             for geom in self.j["CityObjects"][theid]["geometry"]:
@@ -1857,7 +1836,6 @@ class CityJSON:
         """
         vnp = np.array(self.j["vertices"])
         for theid in self.j["CityObjects"]:
-            # print(theid)
             if "geometry" not in self.j["CityObjects"][theid]:
                 continue
             for geom in self.j["CityObjects"][theid]["geometry"]:

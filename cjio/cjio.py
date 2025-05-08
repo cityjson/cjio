@@ -359,13 +359,12 @@ def save_cmd(filename, indent, textures):
             try:
                 fo = click.open_file(output["path"], mode="w")
                 if textures:
-                    cm.copy_textures(textures, output["path"])
+                    cm.copy_textures(textures)
                 if indent:
                     json_str = json.dumps(cm.j, indent="\t")
-                    fo.write(json_str)
                 else:
                     json_str = json.dumps(cm.j, separators=(",", ":"))
-                    fo.write(json_str)
+                fo.write(json_str)
             except IOError as e:
                 raise click.ClickException(
                     "Invalid output file: %s \n%s" % (output["path"], e)
@@ -642,7 +641,7 @@ def textures_locate_cmd():
     """
 
     def processor(cm):
-        print_cmd_status("Locate the textures")
+        print_cmd_status("Locating the textures")
         try:
             loc = cm.get_textures_location()
             if loc is None:
@@ -666,8 +665,8 @@ def textures_update_cmd(newlocation, relative):
     Update the location of the texture files.
     Can be used if the texture files were moved to new directory.
 
-      $ cjio input.city.json textures_update /new/location
-      $ cjio input.city.json textures_update /new/location --relative
+      $ cjio input.city.json textures_update /new/textures/location save out.city.json
+      $ cjio input.city.json textures_update /new/textures/relative/location --relative save out.city.json
     """
 
     def processor(cm):
