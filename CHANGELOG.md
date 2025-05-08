@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.10.0] – <>
+## [0.10.0] – 2025-05-08
 ### Changed
 - The command `medata_remove` was renamed to `metadata_extended_remove` and can be used to remove the deprecated extended metadata from older files
 - Fixed the `texture_update` and `texture_locate` commands and also the `save` command with the `--texture` flag.
