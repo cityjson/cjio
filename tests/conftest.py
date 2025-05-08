@@ -70,6 +70,12 @@ def sample_off_file(data_dir):
 
 
 @pytest.fixture(scope="function")
+def sample_poly_file(data_dir):
+    p = os.path.join(data_dir, "cube.poly")
+    yield p
+
+
+@pytest.fixture(scope="function")
 def sample_with_ext_metadata_input_path(data_dir):
     p = os.path.join(data_dir, "material/mt-1-triangulated.json")
     yield p

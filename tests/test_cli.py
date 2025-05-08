@@ -144,7 +144,7 @@ class TestCLI:
         assert result.exit_code == 0
         assert os.path.exists(p_out)
 
-        os.remove(p_out)
+       os.remove(p_out)
 
     def test_export_stl_cli(self, sample_input_path, data_output_dir):
         p_out = os.path.join(data_output_dir, "delft.stl")
@@ -553,6 +553,26 @@ class TestCLI:
             cjio.cli,
             args=[
                 sample_off_file,
+                "save",
+                p_out,
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert os.path.exists(p_out)
+
+        os.remove(p_out)
+
+    def test_poly_input_cli(self, sample_poly_file, data_output_dir):
+        """
+        Test that the CLI works with a .poly input file."""
+        p_out = os.path.join(data_output_dir, "cube.city.json")
+        runner = CliRunner()
+
+        result = runner.invoke(
+            cjio.cli,
+            args=[
+                sample_poly_file,
                 "save",
                 p_out,
             ],
