@@ -563,7 +563,7 @@ class TestCLI:
 
         os.remove(p_out)
 
-    def test_poly_input_cli(self, sample_poly_file, data_output_dir):
+    def test_poly_input_cli_0_index(self, sample_poly_0_index_file, data_output_dir):
         """
         Test that the CLI works with a .poly input file."""
         p_out = os.path.join(data_output_dir, "cube.city.json")
@@ -572,7 +572,27 @@ class TestCLI:
         result = runner.invoke(
             cjio.cli,
             args=[
-                sample_poly_file,
+                sample_poly_0_index_file,
+                "save",
+                p_out,
+            ],
+        )
+
+        assert result.exit_code == 0
+        assert os.path.exists(p_out)
+
+        os.remove(p_out)
+
+    def test_poly_input_cli_1_index(self, sample_poly_1_index_file, data_output_dir):
+        """
+        Test that the CLI works with a .poly input file."""
+        p_out = os.path.join(data_output_dir, "cube.city.json")
+        runner = CliRunner()
+
+        result = runner.invoke(
+            cjio.cli,
+            args=[
+                sample_poly_1_index_file,
                 "save",
                 p_out,
             ],

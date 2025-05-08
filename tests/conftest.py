@@ -70,8 +70,14 @@ def sample_off_file(data_dir):
 
 
 @pytest.fixture(scope="function")
-def sample_poly_file(data_dir):
+def sample_poly_0_index_file(data_dir):
     p = os.path.join(data_dir, "cube.poly")
+    yield p
+
+
+@pytest.fixture(scope="function")
+def sample_poly_1_index_file(data_dir):
+    p = os.path.join(data_dir, "box.poly")
     yield p
 
 

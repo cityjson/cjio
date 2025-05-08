@@ -115,21 +115,53 @@ def off2cj(file):
 
 
 def poly2cj(file):
-    first_line = file.readline()
+    def read_next_line():
+        """Helper function to skip comment lines and blank lines."""
+        while True:
+            line = file.readline()
+            # Skip lines that are comments or blank
+            if line and not line.strip().startswith("#") and line.strip():
+                return line.split("#")[0].strip()
+            if not line:  # End of file
+                return None
+
+    first_line = read_next_line()
+    if first_line is None:
+        raise ValueError("Invalid file: No content found.")
     numVertices = int(first_line.split()[0])
+
     lstVertices = []
+    index = 0  # change depending the index used in the poly file
     for i in range(numVertices):
-        lstVertices.append(list(map(float, file.readline().split()))[1:])
-    numFaces = int(file.readline().split()[0])
+        line = read_next_line()
+        if line is None:
+            raise ValueError(
+                "Invalid file: Unexpected end of file. while reading vertices."
+            )
+
+        if i == 0 and line.startswith("1"):
+            index = -1
+        lstVertices.append(list(map(float, line.split()))[1:])
+
+    line = read_next_line()
+    if line is None:
+        raise ValueError(
+            "Invalid file: Unexpected end of file while reading number of faces."
+        )
+    numFaces = int(line.split()[0])
+
     lstFaces = []
-    for i in range(numFaces):
-        line = file.readline()
+    for _ in range(numFaces):
+        line = read_next_line()
+        if line is None:
+            raise ValueError(
+                "Invalid file: Unexpected end of file while reading faces."
+            )
         irings = int(line.split()[0]) - 1
         face = []
-        face.append(list(map(int, file.readline().split()[1:])))
-        for r in range(irings):
-            face.append(list(map(int, file.readline().split()[1:])))
-            file.readline()
+        face.append([x + index for x in map(int, read_next_line().split()[1:])])
+        for _ in range(irings):
+            face.append([x + index for x in map(int, read_next_line().split()[1:])])
         lstFaces.append(face)
     cm = {}
     cm["type"] = "CityJSON"
@@ -495,7 +527,6 @@ class CityJSON:
         return self.get_identifier()
 
     def get_subset_bbox(self, bbox, exclude=False):
-        # print ('get_subset_bbox')
         re = set()
         for coid in self.j["CityObjects"]:
             centroid = self.get_centroid(coid)
@@ -1086,7 +1117,6 @@ class CityJSON:
                     if "geometry" in self.j["CityObjects"][theid]:
                         for g in cm.j["CityObjects"][theid]["geometry"]:
                             thelod = str(g["lod"])
-                            # print ("-->", thelod)
                             b = False
                             for g2 in self.j["CityObjects"][theid]["geometry"]:
                                 if g2["lod"] == thelod:
@@ -1782,7 +1812,6 @@ class CityJSON:
                 for i, g in enumerate(self.j["CityObjects"][co]["geometry"]):
                     if str(g["lod"]) != thelod:
                         re.append(g)
-                        # print (g)
                 for each in re:
                     self.j["CityObjects"][co]["geometry"].remove(each)
         self.remove_duplicate_vertices()
