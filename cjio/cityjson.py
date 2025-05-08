@@ -8,7 +8,6 @@ import shutil
 import sys
 import urllib.request
 import uuid
-import warnings
 from datetime import datetime
 from io import StringIO
 from pathlib import Path
@@ -16,12 +15,11 @@ from pathlib import Path
 import numpy as np
 from click import progressbar
 
-from cjio import errors, convert, geom_help, models, subset
+from cjio import errors, convert, geom_help, subset
 from cjio.errors import CJInvalidOperation
 from cjio.floatEncoder import FloatEncoder
 
 from cjio import (
-    MODULE_PANDAS_AVAILABLE,
     MODULE_PYPROJ_AVAILABLE,
     MODULE_CJVAL_AVAILABLE,
 )
@@ -32,9 +30,6 @@ json.encoder.float = FloatEncoder
 if MODULE_PYPROJ_AVAILABLE:
     from pyproj import CRS
     from pyproj.transformer import TransformerGroup
-
-if MODULE_PANDAS_AVAILABLE:
-    import pandas
 
 if MODULE_CJVAL_AVAILABLE:
     import cjvalpy
@@ -53,28 +48,6 @@ CITYJSON_PROPERTIES = [
     "appearance",
     "geometry-templates",
 ]
-
-
-def load(path, transform: bool = True):
-    """Load a CityJSON file for working with it though the API
-
-    :param path: Absolute path to a CityJSON file
-    :param transform: Apply the coordinate transformation to the vertices (if applicable)
-    :return: A CityJSON object
-    """
-    warnings.warn(
-        "cityjson.load() will be deprecated, because the cjio API is under "
-        "refactoring. The new cityjson library, cjlib, is coming soon.",
-        DeprecationWarning,
-    )
-    with open(path, "r") as fin:
-        try:
-            cm = CityJSON(file=fin)
-        except OSError:
-            raise FileNotFoundError
-    cm.cityobjects = dict()
-    cm.load_from_j(transform=transform)
-    return cm
 
 
 def read_stdin():
@@ -102,34 +75,6 @@ def read_stdin():
             cm.update_bbox()
             break
     return cm
-
-
-def save(citymodel, path: str, indent: bool = False):
-    """Save a city model to a CityJSON file
-
-    :param citymodel: A CityJSON object
-    :param path: Absolute path to a CityJSON file
-    """
-    warnings.warn(
-        "cityjson.save() will be deprecated, because the cjio API is under "
-        "refactoring. The new cityjson library, cjlib, is coming soon.",
-        DeprecationWarning,
-    )
-    citymodel.add_to_j()
-    # if citymodel.is_transformed:
-    #     # FIXME: here should be compression, however the current compression does not work with immutable tuples, but requires mutable lists for the points
-    #     pass
-    citymodel.remove_duplicate_vertices()
-    citymodel.remove_orphan_vertices()
-    try:
-        with open(path, "w") as fout:
-            if indent:
-                json_str = json.dumps(citymodel.j, indent="\t")
-            else:
-                json_str = json.dumps(citymodel.j, separators=(",", ":"))
-            fout.write(json_str)
-    except IOError as e:
-        raise IOError("Invalid output file: %s \n%s" % (path, e))
 
 
 def reader(file, ignore_duplicate_keys=False):
@@ -170,21 +115,53 @@ def off2cj(file):
 
 
 def poly2cj(file):
-    first_line = file.readline()
+    def read_next_line():
+        """Helper function to skip comment lines and blank lines."""
+        while True:
+            line = file.readline()
+            # Skip lines that are comments or blank
+            if line and not line.strip().startswith("#") and line.strip():
+                return line.split("#")[0].strip()
+            if not line:  # End of file
+                return None
+
+    first_line = read_next_line()
+    if first_line is None:
+        raise ValueError("Invalid file: No content found.")
     numVertices = int(first_line.split()[0])
+
     lstVertices = []
+    index = 0  # change depending the index used in the poly file
     for i in range(numVertices):
-        lstVertices.append(list(map(float, file.readline().split()))[1:])
-    numFaces = int(file.readline().split()[0])
+        line = read_next_line()
+        if line is None:
+            raise ValueError(
+                "Invalid file: Unexpected end of file. while reading vertices."
+            )
+
+        if i == 0 and line.startswith("1"):
+            index = -1
+        lstVertices.append(list(map(float, line.split()))[1:])
+
+    line = read_next_line()
+    if line is None:
+        raise ValueError(
+            "Invalid file: Unexpected end of file while reading number of faces."
+        )
+    numFaces = int(line.split()[0])
+
     lstFaces = []
-    for i in range(numFaces):
-        line = file.readline()
+    for _ in range(numFaces):
+        line = read_next_line()
+        if line is None:
+            raise ValueError(
+                "Invalid file: Unexpected end of file while reading faces."
+            )
         irings = int(line.split()[0]) - 1
         face = []
-        face.append(list(map(int, file.readline().split()[1:])))
-        for r in range(irings):
-            face.append(list(map(int, file.readline().split()[1:])))
-            file.readline()
+        face.append([x + index for x in map(int, read_next_line().split()[1:])])
+        for _ in range(irings):
+            face.append([x + index for x in map(int, read_next_line().split()[1:])])
         lstFaces.append(face)
     cm = {}
     cm["type"] = "CityJSON"
@@ -254,150 +231,6 @@ class CityJSON:
 
     def __repr__(self):
         return os.linesep.join(self.get_info())
-
-    ##-- API functions
-    # TODO BD: refactor this whole CityJSON class
-
-    def load_from_j(self, transform: bool = True):
-        """Populates the CityJSON API members from the json schema member 'j'.
-
-        If the CityJSON API members have values, they are removed and updated.
-        """
-        warnings.warn(
-            "cityjson.load_from_j() will be deprecated, because the cjio API is under "
-            "refactoring. The new cityjson library, cjlib, is coming soon.",
-            DeprecationWarning,
-        )
-        # Delete everything first
-        self.cityobjects.clear()
-        # Then do update
-        if "transform" in self.j:
-            self.transform = self.j.pop("transform")
-        else:
-            self.transform = None
-        if transform:
-            # Because I can choose to work with untransformed vertices in the API,
-            # even though there is a Transform Object in self.transform. So, when the
-            # citymodel is written back to json, I we check if we need to transform
-            # the vertices.
-            # Also, this is very nasty, to have:
-            #   - CityJSON.is_transformed ––> the vertices in the API Geometry have been transformed
-            #   - CityJSON.transform --> stores the Transform Object for the API
-            #   - CityJSON.is_transform() --> checks if the json has a 'transform' property
-            self.is_transformed = True if self.transform is not None else False
-            do_transform = self.transform
-        else:
-            self.is_transformed = False
-            do_transform = None
-        appearance = self.j["appearance"] if "appearance" in self.j else None
-        for co_id, co in self.j["CityObjects"].items():
-            # TODO BD: do some verification here
-            children = co["children"] if "children" in co else None
-            parents = co["parents"] if "parents" in co else None
-            attributes = co["attributes"] if "attributes" in co else None
-            geometry = []
-            for geom in co.get("geometry", []):
-                semantics = geom["semantics"] if "semantics" in geom else None
-                texture = geom["texture"] if "texture" in geom else None
-                geometry.append(
-                    models.Geometry(
-                        type=geom["type"],
-                        lod=geom.get("lod"),
-                        boundaries=geom["boundaries"],
-                        semantics_obj=semantics,
-                        texture_obj=texture,
-                        appearance=appearance,
-                        vertices=self.j["vertices"],
-                        transform=do_transform,
-                    )
-                )
-            self.cityobjects[co_id] = models.CityObject(
-                id=co_id,
-                type=co["type"],
-                attributes=attributes,
-                children=children,
-                parents=parents,
-                geometry=geometry,
-            )
-
-    def get_cityobjects(self, type=None, id=None):
-        """Return a subset of CityObjects
-
-        :param type: CityObject type. If a list of types are given, then all types in the list are returned.
-        :param id: CityObject ID. If a list of IDs are given, then all objects matching the IDs in the list are returned.
-        """
-        if type is None and id is None:
-            return self.cityobjects
-        elif (type is not None) and (id is not None):
-            raise AttributeError("Please provide either 'type' or 'id'")
-        elif type is not None:
-            if isinstance(type, str):
-                type_list = [type.lower()]
-            elif isinstance(type, list) and isinstance(type[0], str):
-                type_list = [t.lower() for t in type]
-            else:
-                raise TypeError("'type' must be a string or list of strings")
-            return {
-                i: co
-                for i, co in self.cityobjects.items()
-                if co.type.lower() in type_list
-            }
-        elif id is not None:
-            if isinstance(id, str):
-                id_list = [id]
-            elif isinstance(id, list) and isinstance(id[0], str):
-                id_list = id
-            else:
-                raise TypeError("'id' must be a string or list of strings")
-            return {i: co for i, co in self.cityobjects.items() if co.id in id_list}
-
-    def set_cityobjects(self, cityobjects):
-        """Creates or updates CityObjects
-
-        .. note:: If a CityObject with the same ID already exists in the model, it will be overwritten
-
-        :param cityobjects: Dictionary of CityObjects, where keys are the CityObject IDs. Same structure as returned by get_cityobjects()
-        """
-        for co_id, co in cityobjects.items():
-            self.cityobjects[co_id] = co
-
-    def to_dataframe(self):
-        """Converts the city model to a Pandas data frame where fields are CityObject attributes"""
-        if not MODULE_PANDAS_AVAILABLE:
-            raise ModuleNotFoundError(
-                "Module 'pandas' is not available, please install it"
-            )
-        return pandas.DataFrame(
-            [co.attributes for co_id, co in self.cityobjects.items()],
-            index=list(self.cityobjects.keys()),
-        )
-
-    def reference_geometry(self):
-        """Build a coordinate list and index the vertices for writing out to
-        CityJSON."""
-        cityobjects = dict()
-        vertex_lookup = dict()
-        vertex_idx = 0
-        for co_id, co in self.cityobjects.items():
-            j_co = co.to_json()
-            geometry, vertex_lookup, vertex_idx = co.build_index(
-                vertex_lookup, vertex_idx
-            )
-            j_co["geometry"] = geometry
-            cityobjects[co_id] = j_co
-        return cityobjects, vertex_lookup
-
-    def add_to_j(self):
-        warnings.warn(
-            "cityjson.add_to_j() will be deprecated, because the cjio API is under "
-            "refactoring. The new cityjson library, cjlib, is coming soon.",
-            DeprecationWarning,
-        )
-        cityobjects, vertex_lookup = self.reference_geometry()
-        self.j["vertices"] = [[vtx[0], vtx[1], vtx[2]] for vtx in vertex_lookup.keys()]
-        self.j["CityObjects"] = cityobjects
-
-    ##-- end API functions
 
     def get_version(self):
         return self.j["version"]
@@ -496,7 +329,7 @@ class CityJSON:
             raise Exception(s)
         val = cjvalpy.CJValidator(json.dumps(self.j))
         # -- fetch extensions from the URLs given
-        exts = []
+        js = []
         if "extensions" in self.j:
             for ext in self.j["extensions"]:
                 # theurl = self.j["extensions"][ext]["url"]
@@ -694,7 +527,6 @@ class CityJSON:
         return self.get_identifier()
 
     def get_subset_bbox(self, bbox, exclude=False):
-        # print ('get_subset_bbox')
         re = set()
         for coid in self.j["CityObjects"]:
             centroid = self.get_centroid(coid)
@@ -720,22 +552,6 @@ class CityJSON:
 
     def is_co_toplevel(self, co):
         return "parents" not in co
-
-    def number_top_co(self):
-        count = 0
-        allkeys = list(self.j["CityObjects"].keys())
-        for k in allkeys:
-            if self.is_co_toplevel(self.j["CityObjects"][k]):
-                count += 1
-        return count
-
-    def get_ordered_ids_top_co(self, limit, offset):
-        re = []
-        allkeys = list(self.j["CityObjects"].keys())
-        for k in allkeys:
-            if self.is_co_toplevel(self.j["CityObjects"][k]):
-                re.append(k)
-        return re[offset : (offset + limit)]
 
     def subset(self, lsIDs, exclude=False):
         # -- copy selected CO to the j2
@@ -827,21 +643,27 @@ class CityJSON:
                 if url:
                     return url
                 else:
-                    d = os.path.dirname(p)
-                    if len(d) == 0:
+                    texture_dir = os.path.dirname(p)
+                    if len(texture_dir) == 0:
                         # textures are in the same dir as the cityjson file
                         return cj_dir
-                    elif not os.path.isabs(d):
-                        if os.path.isdir(os.path.abspath(d)):
-                            # texture dir is not necessarily in the same dir
-                            # as the input file
-                            return os.path.abspath(d)
-                        elif os.path.isdir(os.path.join(cj_dir, d)):
-                            # texture dir is a subdirectory at the input file
-                            return os.path.join(cj_dir, d)
+                    else:  # if path is empty
+                        # if absolute and exists return it
+                        if os.path.isabs(texture_dir) and os.path.isdir(texture_dir):
+                            return texture_dir
+                        # if relative and its absolute exists return it
+                        elif not os.path.isabs(texture_dir) and os.path.isdir(
+                            os.path.abspath(texture_dir)
+                        ):
+                            return os.path.abspath(texture_dir)
+                        # if relative and concatenation with cj_dir exists return it
+                        elif not os.path.isabs(texture_dir) and os.path.isdir(
+                            os.path.join(cj_dir, texture_dir)
+                        ):
+                            return os.path.join(cj_dir, texture_dir)
                         else:
                             raise NotADirectoryError(
-                                "Texture directory '%s' not found" % d
+                                "Texture directory '%s' not found" % texture_dir
                             )
             else:
                 return None
@@ -886,42 +708,36 @@ class CityJSON:
                 "Cannot update textures in a city model without textures"
             )
 
-    def copy_textures(self, new_loc, json_path):
+    def copy_textures(self, new_textures_loc: str) -> None:
         """Copy the texture files to a new location
-        :param new_loc: path to new texture directory
-        :type new_loc: string
-        :param json_path: path to the CityJSON file directory
-        :type json_path: string
-        :returns: None -- modifies the CityJSON
+        :param new_textures_loc: path to new texture directory
         :raises: InvalidOperation, IOError
         """
-        curr_loc = self.get_textures_location()
-        if curr_loc:
-            apath = os.path.abspath(new_loc)
-            if not os.path.isdir(apath):
-                os.mkdir(apath)
-            if not os.path.abspath(json_path):
-                jpath = os.path.abspath(json_path)
-            else:
-                jpath = json_path
-            curr_path = self.path
-            try:
-                self.path = jpath
-                for t in self.j["appearance"]["textures"]:
-                    f = os.path.basename(t["image"])
-                    curr_path = os.path.join(curr_loc, f)
-                    shutil.copy(curr_path, apath)
-                # update the location relative to the CityJSON file
-                self.update_textures_location(apath, relative=True)
-                print("Textures copied to", apath)
-            except IOError:
-                raise IOError()
-            finally:
-                self.path = curr_path
-        else:
+        current_textures_loc = self.get_textures_location()
+        if not current_textures_loc:
             raise CJInvalidOperation(
                 "Cannot copy textures from a city model without textures"
             )
+
+        # get the absolute path of the new textures location
+        new_textures_abs_loc = os.path.abspath(new_textures_loc)
+
+        # create the new textures directory if it does not exist
+        if not os.path.isdir(new_textures_abs_loc):
+            os.mkdir(new_textures_abs_loc)
+
+        try:
+            for t in self.j["appearance"]["textures"]:
+                f = os.path.basename(t["image"])
+                current_texture_file_path = os.path.join(current_textures_loc, f)
+                # if the file exist, copy it to the new location
+                if os.path.isfile(current_texture_file_path):
+                    shutil.copy(current_texture_file_path, new_textures_abs_loc)
+            # update the location relative to the CityJSON file
+            self.update_textures_location(new_textures_abs_loc, relative=False)
+            print("Textures copied to", new_textures_abs_loc)
+        except IOError as e:
+            raise IOError(" Error copying texture files: %s" % e)
 
     def validate_textures(self):
         """Check if the texture files exist"""
@@ -1056,7 +872,6 @@ class CityJSON:
             for c in self.j["CityObjects"][key]["children"]:
                 ct = self.j["CityObjects"][c]["type"]
                 s = typeparent + "/" + ct
-                # print(s)
                 if s not in d:
                     d[s] = 1
                 else:
@@ -1302,7 +1117,6 @@ class CityJSON:
                     if "geometry" in self.j["CityObjects"][theid]:
                         for g in cm.j["CityObjects"][theid]["geometry"]:
                             thelod = str(g["lod"])
-                            # print ("-->", thelod)
                             b = False
                             for g2 in self.j["CityObjects"][theid]["geometry"]:
                                 if g2["lod"] == thelod:
@@ -1768,8 +1582,7 @@ class CityJSON:
         for each in vnp:
             each[0] -= minx
             each[1] -= miny
-        # print ("min", minx, miny)
-        # print(vnp)
+
         # -- write texture vertices
         if (
             export_textures
@@ -1837,8 +1650,7 @@ class CityJSON:
         for each in vnp:
             each[0] -= minx
             each[1] -= miny
-        # print ("min", minx, miny)
-        # print(vnp)
+
         # -- start with the CO
         for theid in self.j["CityObjects"]:
             for geom in self.j["CityObjects"][theid]["geometry"]:
@@ -2000,7 +1812,6 @@ class CityJSON:
                 for i, g in enumerate(self.j["CityObjects"][co]["geometry"]):
                     if str(g["lod"]) != thelod:
                         re.append(g)
-                        # print (g)
                 for each in re:
                     self.j["CityObjects"][co]["geometry"].remove(each)
         self.remove_duplicate_vertices()
@@ -2038,6 +1849,15 @@ class CityJSON:
             raise KeyError("Metadata is missing")
         return self.j["metadata"]
 
+    def metadata_extended_remove(self):
+        """
+        Remove the +metadata-extended in this CityJSON file (if present)
+        """
+        if "+metadata-extended" in self.j:
+            del self.j["+metadata-extended"]
+        if "extensions" in self.j and "MetadataExtended" in self.j["extensions"]:
+            del self.j["extensions"]["MetadataExtended"]
+
     def triangulate(self, sloppy):
         """Triangulate the CityJSON file face by face together with the texture information.
 
@@ -2045,7 +1865,6 @@ class CityJSON:
         """
         vnp = np.array(self.j["vertices"])
         for theid in self.j["CityObjects"]:
-            # print(theid)
             if "geometry" not in self.j["CityObjects"][theid]:
                 continue
             for geom in self.j["CityObjects"][theid]["geometry"]:

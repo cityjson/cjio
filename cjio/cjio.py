@@ -77,6 +77,7 @@ def cli(context, input, ignore_duplicate_keys, suppress_msg):
         cjio myfile.city.json crs_assign 7145 textures_remove export --format obj output.obj
         cat mystream.city.jsonl | cjio stdin info
     """
+    context.ensure_object(dict)
     context.obj = {"argument": input, "suppress_msg": suppress_msg}
 
 
@@ -90,7 +91,9 @@ def process_pipeline(processors, input, ignore_duplicate_keys, suppress_msg):
             f = click.open_file(input, mode="r", encoding="utf-8-sig")
             extension = os.path.splitext(input)[1].lower()
             if extension not in extensions:
-                raise IOError("File type not supported (only .json, .off, and .poly).")
+                raise IOError(
+                    "File type not supported (only .json, .jsonl, .off, and .poly)."
+                )
             # -- OFF file
             if extension == ".off":
                 print_cmd_status("Converting %s to CityJSON" % (input))
@@ -121,7 +124,7 @@ def process_pipeline(processors, input, ignore_duplicate_keys, suppress_msg):
 
 @cli.command("print")
 def print_cmd():
-    """print the (pretty formatted) JSON to the console."""
+    """Print the (pretty formatted) JSON to the console."""
 
     def processor(cm):
         json_str = json.dumps(cm.j, indent="  ")
@@ -132,7 +135,7 @@ def print_cmd():
 
 
 @cli.command("info")
-@click.option("--long", is_flag=True, help="More gory details about the file.")
+@click.option("--long", is_flag=True, help="More details about the file.")
 def info_cmd(long):
     """Output information about the dataset."""
 
@@ -356,13 +359,12 @@ def save_cmd(filename, indent, textures):
             try:
                 fo = click.open_file(output["path"], mode="w")
                 if textures:
-                    cm.copy_textures(textures, output["path"])
+                    cm.copy_textures(textures)
                 if indent:
                     json_str = json.dumps(cm.j, indent="\t")
-                    fo.write(json_str)
                 else:
                     json_str = json.dumps(cm.j, separators=(",", ":"))
-                    fo.write(json_str)
+                fo.write(json_str)
             except IOError as e:
                 raise click.ClickException(
                     "Invalid output file: %s \n%s" % (output["path"], e)
@@ -519,6 +521,20 @@ def vertices_clean_cmd():
     return processor
 
 
+@cli.command("materials_remove")
+def materials_remove_cmd():
+    """
+    Remove all materials.
+    """
+
+    def processor(cm):
+        print_cmd_status("Remove all material")
+        cm.remove_materials()
+        return cm
+
+    return processor
+
+
 @cli.command("textures_remove")
 def textures_remove_cmd():
     """
@@ -619,17 +635,19 @@ def upgrade_cmd(digit):
 @cli.command("textures_locate")
 def textures_locate_cmd():
     """
-    Output the location of the texture files.
+    Print the location of the texture files.
+
+        $ cjio input.city.json textures_locate
     """
 
     def processor(cm):
-        print_cmd_status("Locate the textures")
+        print_cmd_status("Locating the textures")
         try:
             loc = cm.get_textures_location()
             if loc is None:
                 print_cmd_info("This file does not have textures")
             else:
-                print_cmd_info(loc)
+                print_cmd_info("Textures location: %s" % loc)
         except Exception as e:
             print_cmd_warning(str(e))
         return cm
@@ -646,10 +664,13 @@ def textures_update_cmd(newlocation, relative):
     """
     Update the location of the texture files.
     Can be used if the texture files were moved to new directory.
+
+      $ cjio input.city.json textures_update /new/textures/location save out.city.json
+      $ cjio input.city.json textures_update /new/textures/relative/location --relative save out.city.json
     """
 
     def processor(cm):
-        print_cmd_status("Update location of textures")
+        print_cmd_status("Updating location of textures")
         cm.update_textures_location(newlocation, relative=relative)
         return cm
 
@@ -748,7 +769,7 @@ def crs_translate_cmd(minxyz):
 @cli.command("metadata_get")
 def metadata_get_cmd():
     """
-    Shows the metadata of this dataset.
+    Show the metadata of this dataset.
 
     The difference between 'info' and this command is that this
     command lists the "pure" metadata as stored in the file.
@@ -761,6 +782,21 @@ def metadata_get_cmd():
         if cm.has_metadata():
             j.update(cm.get_metadata())
         print_cmd_info(json.dumps(j, indent=2))
+        return cm
+
+    return processor
+
+
+@cli.command("metadata_extended_remove")
+def metadata_remove_cmd():
+    """
+    Remove the deprecated +metadata-extended properties.
+    Modify/update the dataset.
+    """
+
+    def processor(cm):
+        print_cmd_status("Remove the +metadata-extended property")
+        cm.metadata_extended_remove()
         return cm
 
     return processor
