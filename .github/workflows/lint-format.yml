@@ -1,0 +1,23 @@
+name: Lint and Format
+
+on:
+  pull_request:
+    branches: [ "develop", "master" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    - name: Install dependencies
+      run: pip install ruff pytest
+    - name: Lint
+      run: ruff check tests ; ruff check cjio
+    - name: Format
+      run: ruff format tests --check ; ruff format cjio --check
