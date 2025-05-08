@@ -5,10 +5,12 @@
 - The command `medata_remove` was renamed to `metadata_extended_remove` and can be used to remove the deprecated extended metadata from older files
 - Fixed the `texture_update` and `texture_locate` commands and also the `save` command with the `--texture` flag.
 - Fixed the conversion from .poly input when the file has comments or 1- index. 
+- Fixed `get_normal_newell(poly)` to reject faces with > 3 points
 
 ### Added
 - More tests and coverage
 - lint and format github action
+- --digit option for reprojections
 
 ### Removed:
 - Support for extended metadata: specifically the commands `metadata_create` and  `metadata_update`

@@ -22,7 +22,7 @@ RUN python3 -m pip install ${PIP_VERSION} ${SETUPTOOL_VERSION}
 # --- cjvalpy build from source because https://github.com/cityjson/cjio/issues/146
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 ENV PATH="/root/.cargo/bin:$PATH"
-RUN pip install maturin
+RUN pip install maturin==0.14
 
 ARG CJVALPY_VERSION="0.3.2"
 RUN curl -L -o cjvalpy.tar.gz https://github.com/cityjson/cjvalpy/archive/refs/tags/${CJVALPY_VERSION}.tar.gz && \
