@@ -8,13 +8,13 @@ with open("README.rst", "r") as fh:
 
 setup(
     name="cjio",
-    version="0.10.0",
+    version="0.10.1",
     description="CLI to process and manipulate CityJSON files",
     long_description=long_description,
     long_description_content_type="text/x-rst",
     url="https://github.com/cityjson/cjio",
-    author="Hugo Ledoux, Balázs Dukai",
-    author_email="h.ledoux@tudelft.nl, balazs.dukai@3dgi.nl",
+    author="Hugo Ledoux, Balázs Dukai, Gina Stavropoulou",
+    author_email="h.ledoux@tudelft.nl, balazs.dukai@3dgi.nl, g.stavropoulou@tudelft.nl",
     python_requires=">=3.6",
     packages=["cjio"],
     # include_package_data=True,

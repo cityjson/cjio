@@ -1,5 +1,5 @@
-__version__ = "0.10.0"
-import importlib
+__version__ = "0.10.1"
+import importlib.util
 
 
 loader = importlib.util.find_spec("triangle")
