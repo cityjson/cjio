@@ -14,7 +14,7 @@
 
 ### Removed:
 - Support for extended metadata: specifically the commands `metadata_create` and  `metadata_update`
-- All API functionality is derecated: cjio.models and some functions from cjio.cityjson have been removed. Also all related tests.
+- All API functionality is deprecated: cjio.models and some functions from cjio.cityjson have been removed. Also all related tests.
 
 
 ## [0.9.0] – 2023-09-28
