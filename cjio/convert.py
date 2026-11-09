@@ -1,11 +1,40 @@
 from io import BytesIO
 import json
+import math
 
 from cjio import geom_help
 
 import numpy as np
 
 from cjio.geom_help import triangle_normal, average_normal
+
+
+class _GLBJSONEncoder(json.JSONEncoder):
+    """Keep GLB numbers precise despite CityJSON's global float formatter."""
+
+    def iterencode(self, value, _one_shot=False):
+        def floatstr(number):
+            if not math.isfinite(number):
+                raise ValueError("Out of range float values are not JSON compliant")
+            return float.__repr__(number)
+
+        # Use the stdlib's Python encoder with a local float formatter, without
+        # temporarily changing json.encoder for other CityJSON output/threads.
+        encode = json.encoder._make_iterencode(
+            {} if self.check_circular else None,
+            self.default,
+            json.encoder.encode_basestring_ascii
+            if self.ensure_ascii
+            else json.encoder.encode_basestring,
+            self.indent,
+            floatstr,
+            self.key_separator,
+            self.item_separator,
+            self.sort_keys,
+            self.skipkeys,
+            _one_shot,
+        )
+        return encode(value, 0)
 
 
 def flatten(x):
@@ -146,6 +175,14 @@ def to_glb(cm, do_triangulate=True):
 
     vertexlist = np.array(cm.j["vertices"])
 
+    # Keep georeferencing out of the Float32 mesh buffers.
+    tx, ty, tz = 0, 0, 0
+    if "transform" in cm.j:
+        transform = cm.j["transform"]
+        tx, ty, tz = transform["translate"]
+        if vertexlist.size:
+            vertexlist = vertexlist * np.asarray(transform["scale"], dtype=float)
+
     # gltf uses a right-handed coordinate system.
     # glTF defines +Y as up, +Z as forward, and -X as right, thus the front of a glTF
     # asset faces +Z.
@@ -159,7 +196,7 @@ def to_glb(cm, do_triangulate=True):
     )
     nodes.append(
         {
-            "matrix": [1, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, 1],
+            "matrix": [1, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0, 0, tx, tz, -ty, 1],
             "children": [],
             "name": name,
         }
@@ -372,12 +409,14 @@ def to_glb(cm, do_triangulate=True):
                 except IndexError:
                     print(i, v)
                 vtx_idx_np[i] = i
-            bin_vtx = vtx_np.astype(np.float32).tobytes()
+            vtx_np = vtx_np.astype(np.float32)
+            bin_vtx = vtx_np.tobytes()
             # convert geometry indices to binary
             bin_geom = vtx_idx_np.astype(np.uint32).tobytes()
             del flatgeom
             # convert the normal to binary
-            bin_normals = normals_np.astype(np.float32).tobytes()
+            normals_np = normals_np.astype(np.float32)
+            bin_normals = normals_np.tobytes()
             # convert batchid to binary
             batchid_np = np.array([i for g in vtx_idx_np])
             _ = batchid_np.astype(np.uint32).tobytes()
@@ -622,7 +661,9 @@ def to_glb(cm, do_triangulate=True):
     gltf_json["materials"] = materials
 
     # -- Chunk 0 (JSON)
-    chunk_0 = json.dumps(gltf_json).encode("utf-8")
+    chunk_0 = json.dumps(gltf_json, cls=_GLBJSONEncoder, allow_nan=False).encode(
+        "utf-8"
+    )
     offset, padding = byte_offset(len(chunk_0), 4)
     for i in range(padding):
         chunk_0 += " ".encode("utf-8")
