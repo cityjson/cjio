@@ -1,5 +1,6 @@
 from io import BytesIO
 import json
+import struct
 
 from cjio import geom_help
 
@@ -34,7 +35,7 @@ def to_b3dm(cm, glb):
     # glb is a buffered I/O, as the output of to_gltf()
     assert isinstance(glb, BytesIO)
     b3dm_bin = BytesIO()
-    if glb.tell() == 0:
+    if glb.tell() == 0 or not cm.j["CityObjects"]:
         return b3dm_bin
 
     # -- Feature table
@@ -109,8 +110,18 @@ def to_glb(cm, do_triangulate=True):
 
     Adapted from CityJSON2glTF: https://github.com/tudelft3d/CityJSON2glTF
     """
+    asset = {
+        "copyright": "Open data",
+        "generator": "Generated using cjio's glTF exporter",
+        "version": "2.0",
+    }
+    if "CityObjects" not in cm.j:
+        raise TypeError("Not a CityJSON")
+    if len(cm.j["CityObjects"]) == 0:
+        return _pack_glb({"asset": asset, "scenes": [{}], "scene": 0})
+
     gltf_json = {
-        "asset": {},
+        "asset": asset,
         "buffers": [],
         "bufferViews": [],
         "accessors": [],
@@ -120,19 +131,6 @@ def to_glb(cm, do_triangulate=True):
         "scenes": [],
     }
     gltf_bin = bytearray()
-    glb = BytesIO()
-    try:
-        if len(cm.j["CityObjects"]) == 0:
-            return glb
-    except KeyError:
-        raise TypeError("Not a CityJSON")
-
-    # asset
-    asset = dict()
-    asset["copyright"] = "Open data"
-    asset["generator"] = "Generated using cjio's glTF exporter"
-    asset["version"] = "2.0"
-    gltf_json["asset"] = asset
 
     # index bufferview
     bufferViews = []
@@ -620,31 +618,24 @@ def to_glb(cm, do_triangulate=True):
         },
     ]
     gltf_json["materials"] = materials
+    return _pack_glb(gltf_json, gltf_bin)
 
-    # -- Chunk 0 (JSON)
-    chunk_0 = json.dumps(gltf_json).encode("utf-8")
-    offset, padding = byte_offset(len(chunk_0), 4)
-    for i in range(padding):
-        chunk_0 += " ".encode("utf-8")
-    # -- Binary glTF header
-    magic = "glTF"
-    version = 2
-    length = 12 + 8 + len(chunk_0) + 8 + len(gltf_bin)
 
-    # header
-    glb.write(magic.encode("utf-8"))
-    glb.write(version.to_bytes(4, byteorder="little", signed=False))
-    glb.write(length.to_bytes(4, byteorder="little", signed=False))
-    # chunk 0
-    glb.write(len(chunk_0).to_bytes(4, byteorder="little", signed=False))
-    glb.write("JSON".encode("utf-8"))
-    glb.write(chunk_0)
-    # chunk 1
-    glb.write(len(gltf_bin).to_bytes(4, byteorder="little", signed=False))
-    glb.write(bytearray.fromhex("42494e00"))  # == BIN + 1 empty byte for padding
-    glb.write(gltf_bin)
-    assert length == glb.tell()
+def _pack_glb(document, binary=None):
+    json_chunk = json.dumps(document).encode("utf-8")
+    _, padding = byte_offset(len(json_chunk), 4)
+    json_chunk += b" " * padding
+    length = 12 + 8 + len(json_chunk)
+    if binary is not None:
+        length += 8 + len(binary)
 
+    glb = BytesIO()
+    glb.write(struct.pack("<4sII", b"glTF", 2, length))
+    glb.write(struct.pack("<I4s", len(json_chunk), b"JSON"))
+    glb.write(json_chunk)
+    if binary is not None:
+        glb.write(struct.pack("<I4s", len(binary), b"BIN\x00"))
+        glb.write(binary)
     return glb
 
 
