@@ -1092,14 +1092,19 @@ class CityJSON:
         # updates materials
         #############################
 
+        def merge_precision(cm):
+            # Empty models have no coordinates whose precision must be retained.
+            if not cm.j["vertices"]:
+                return 0
+            return math.ceil(abs(math.log(cm.j["transform"]["scale"][0], 10)))
+
         # -- decompress current CM
-        imp_digits = math.ceil(abs(math.log(self.j["transform"]["scale"][0], 10)))
+        imp_digits = merge_precision(self)
         self.decompress()
 
         for cm in lsCMs:
             # -- decompress
-            if math.ceil(abs(math.log(cm.j["transform"]["scale"][0], 10))) > imp_digits:
-                imp_digits = math.ceil(abs(math.log(cm.j["transform"]["scale"][0], 10)))
+            imp_digits = max(imp_digits, merge_precision(cm))
             cm.decompress()
             offset = len(self.j["vertices"])
             self.j["vertices"] += cm.j["vertices"]
@@ -1228,7 +1233,9 @@ class CityJSON:
         self.remove_duplicate_vertices()
         self.remove_orphan_vertices()
         self.update_bbox()
-        self.compress(imp_digits)
+        self.compress(
+            imp_digits, translate=[0, 0, 0] if not self.j["vertices"] else None
+        )
         return True
 
     def upgrade_version_v06_v08(self):
