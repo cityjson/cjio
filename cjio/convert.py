@@ -351,8 +351,12 @@ def to_glb(cm, do_triangulate=True):
             # single list. Each consecutive set of three vertices defines a
             # single triangle primitive.
             flatgeom = flatten(forimax)
+            if not flatgeom:
+                raise ValueError(f"No triangles to export for CityObject {theid}")
             # Same for the normal-vertex lists
-            normals_np = np.concatenate(normals_per_geom)
+            normals_np = np.concatenate(
+                [normals for normals in normals_per_geom if normals]
+            )
             if len(normals_np) != len(flatgeom):
                 raise RuntimeError("The length of vertices and normals should be equal")
             del normals_per_geom
